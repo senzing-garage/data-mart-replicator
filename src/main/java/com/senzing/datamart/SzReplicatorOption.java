@@ -6,7 +6,7 @@ import java.util.*;
 
 import com.senzing.cmdline.CommandLineOption;
 import com.senzing.cmdline.ParameterProcessor;
-import com.senzing.util.JsonUtils;
+import com.senzing.util.JsonUtilities;
 
 import static com.senzing.datamart.SzReplicatorConstants.*;
 import static com.senzing.io.IOUtilities.readTextFileAsString;
@@ -108,7 +108,7 @@ public enum SzReplicatorOption implements CommandLineOption {
    * <ul>
    *   <li>Command Line: <code>--module-name {module-name}</code></li>
    *   <li>Command Line: <code>-moduleName {module-name}</code></li>
-   *   <li>Environment: <code>SENZING_API_SERVER_MODULE_NAME="{module-name}"</code></li>
+   *   <li>Environment: <code>SENZING_REPLICATOR_MODULE_NAME="{module-name}"</code></li>
    * </ul>
    */
   MODULE_NAME("--module-name",
@@ -127,7 +127,7 @@ public enum SzReplicatorOption implements CommandLineOption {
    * <ul>
    *   <li>Command Line: <code>--concurrency {thread-count}</code></li>
    *   <li>Command Line: <code>-concurrency {thread-count}</code></li>
-   *   <li>Environment: <code>SENZING_API_SERVER_CONCURRENCY="{thread-count}"</code></li>
+   *   <li>Environment: <code>SENZING_REPLICATOR_CONCURRENCY="{thread-count}"</code></li>
    * </ul>
    */
   CONCURRENCY("--concurrency", ENV_PREFIX + "CONCURRENCY",
@@ -273,6 +273,156 @@ public enum SzReplicatorOption implements CommandLineOption {
   RABBIT_INFO_QUEUE(
       "--rabbit-info-queue",
       "SENZING_RABBITMQ_INFO_QUEUE",
+      null, 1),
+
+  /**
+   * <p>
+   * This option is used to specify the SQLite database file to connect to for
+   * the data mart.  The single parameter to this option is the file path to
+   * the SQLite database file to use.  If this option is specified the database
+   * options for other database types cannot be specified.
+   * </p>
+   * <p>
+   * This option can be specified in the following ways:
+   * <ul>
+   *   <li>Command Line: <code>--sqlite-database-file {file-path}</code></li>
+   *   <li>Environment: <code>SENZING_REPLICATOR_SQLITE_DATABASE_FILE="{file-path}"</code></li>
+   * </ul>
+   */
+  SQLITE_DATABASE_FILE(
+      "--sqlite-database-file",
+      "SENZING_REPLICATOR_SQLITE_DATABASE_FILE",
+      null, 1),
+
+  /**
+   * <p>
+   * This option is used to specify the PostgreSQL database server host to
+   * connect to for the data mart.  The single parameter to this option is
+   * server host name or IP address for the PostgreSQL database server.  If
+   * this option is specified the database options for other database types
+   * (e.g.: {@link #SQLITE_DATABASE_FILE}) cannot be specified and the other
+   * PostgreSQL options (e.g.: {@link #POSTGRESQL_PORT}) are required.
+   * </p>
+   * <p>
+   * This option can be specified in the following ways:
+   * <ul>
+   *   <li>Command Line: <code>--postgresql-host {host-name|ip-address}</code></li>
+   *   <li>Environment: <code>SENZING_REPLICATOR_POSTGRESQL_HOST="{host-name|ip-address}"</code></li>
+   * </ul>
+   *
+   * @see #POSTGRESQL_PORT
+   * @see #POSTGRESQL_DATABASE
+   * @see #POSTGRESQL_USER
+   * @see #POSTGRESQL_PORT
+   */
+  POSTGRESQL_HOST(
+      "--postgresql-host",
+      "SENZING_REPLICATOR_POSTGRESQL_HOST",
+      null, 1),
+
+  /**
+   * <p>
+   * This option is used to specify the PostgreSQL database server port to
+   * connect to for the data mart.  The single parameter to this option is the
+   * port number for the PostgreSQL database server.  If this option is
+   * specified the database options for other database types (e.g.: {@link
+   * #SQLITE_DATABASE_FILE}) cannot be specified and the other PostgreSQL
+   * options (e.g.: {@link #POSTGRESQL_PORT}) are required.
+   * </p>
+   * <p>
+   * This option can be specified in the following ways:
+   * <ul>
+   *   <li>Command Line: <code>--postgresql-port {port-number}</code></li>
+   *   <li>Environment: <code>SENZING_REPLICATOR_POSTGRESQL_PORT="{port-number}"</code></li>
+   * </ul>
+   *
+   * @see #POSTGRESQL_HOST
+   * @see #POSTGRESQL_DATABASE
+   * @see #POSTGRESQL_USER
+   * @see #POSTGRESQL_PORT
+   */
+  POSTGRESQL_PORT(
+      "--postgresql-port",
+      "SENZING_REPLICATOR_POSTGRESQL_PORT",
+      null, 1),
+
+  /**
+   * <p>
+   * This option is used to specify the PostgreSQL database name for the data
+   * mart.  The single parameter to this option is the PostgreSQL database name
+   * for the data mart.  If this option is specified the database options for
+   * other database types (e.g.: {@link #SQLITE_DATABASE_FILE}) cannot be
+   * specified and the other PostgreSQL options (e.g.: {@link
+   * #POSTGRESQL_HOST}) are required.
+   * </p>
+   * <p>
+   * This option can be specified in the following ways:
+   * <ul>
+   *   <li>Command Line: <code>--postgresql-database {database-name}</code></li>
+   *   <li>Environment: <code>SENZING_REPLICATOR_POSTGRESQL_DATABASE="{database-name}"</code></li>
+   * </ul>
+   *
+   * @see #POSTGRESQL_HOST
+   * @see #POSTGRESQL_PORT
+   * @see #POSTGRESQL_USER
+   * @see #POSTGRESQL_PORT
+   *
+   */
+  POSTGRESQL_DATABASE(
+      "--postgresql-database",
+      "SENZING_REPLICATOR_POSTGRESQL_DATABASE",
+      null, 1),
+
+  /**
+   * <p>
+   * This option is used to specify the PostgreSQL database user name to login
+   * to the PostgreSQL database server for the data mart.  The single parameter
+   * to this option is the user name for the PostgreSQL database server.  If
+   * this option is specified the database options for other database types
+   * (e.g.: {@link #SQLITE_DATABASE_FILE}) cannot be specified and the other
+   * PostgreSQL options (e.g.: {@link #POSTGRESQL_HOST}) are required.
+   * </p>
+   * <p>
+   * This option can be specified in the following ways:
+   * <ul>
+   *   <li>Command Line: <code>--postgresql-user {user-name}</code></li>
+   *   <li>Environment: <code>SENZING_REPLICATOR_POSTGRESQL_USER="{user-name}"</code></li>
+   * </ul>
+   *
+   * @see #POSTGRESQL_HOST
+   * @see #POSTGRESQL_PORT
+   * @see #POSTGRESQL_DATABASE
+   * @see #POSTGRESQL_PORT
+   */
+  POSTGRESQL_USER(
+      "--postgresql-user",
+      "SENZING_REPLICATOR_POSTGRESQL_USER",
+      null, 1),
+
+  /**
+   * <p>
+   * This option is used to specify the PostgreSQL database user password to
+   * login to the PostgreSQL database server for the data mart.  The single
+   * parameter to this option is the password for the PostgreSQL database user.
+   * If this option is specified the database options for other database types
+   * (e.g.: {@link #SQLITE_DATABASE_FILE}) cannot be specified and the other
+   * PostgreSQL options (e.g.: {@link #POSTGRESQL_HOST}) are required.
+   * </p>
+   * <p>
+   * This option can be specified in the following ways:
+   * <ul>
+   *   <li>Command Line: <code>--postgresql-password {password}</code></li>
+   *   <li>Environment: <code>SENZING_REPLICATOR_POSTGRESQL_PASSWORD="{password}"</code></li>
+   * </ul>
+   *
+   * @see #POSTGRESQL_HOST
+   * @see #POSTGRESQL_PORT
+   * @see #POSTGRESQL_DATABASE
+   * @see #POSTGRESQL_USER
+   */
+  POSTGRESQL_PASSWORD(
+      "--postgresql-password",
+      "SENZING_REPLICATOR_POSTGRESQL_PASSWORD",
       null, 1);
 
   /**
@@ -379,7 +529,7 @@ public enum SzReplicatorOption implements CommandLineOption {
   /**
    * The {@link Map} of option keys to values that are sets of dependency sets.
    */
-  private static final Map<SzReplicatorOption, Set<Set<SzReplicatorOption>>> DEPENDENCIES;
+  private static final Map<SzReplicatorOption, Set<Set<CommandLineOption>>> DEPENDENCIES;
 
   /**
    * The {@link Map} of option keys to values that are sets of conflicting
@@ -413,6 +563,7 @@ public enum SzReplicatorOption implements CommandLineOption {
     return this.defaultParameters;
   }
 
+  @Override
   public boolean isPrimary() {
     return this.primary;
   }
@@ -427,8 +578,29 @@ public enum SzReplicatorOption implements CommandLineOption {
     return this.envFallbacks;
   }
 
+  @Override
+  public Set<CommandLineOption> getConflicts() {
+    return CONFLICTING_OPTIONS.get(this);
+  }
+
+  @Override
+  public Set<Set<CommandLineOption>> getDependencies() {
+    return DEPENDENCIES.get(this);
+  }
+
+  @Override
+  public boolean isSensitive() {
+    switch (this) {
+      case RABBIT_INFO_PASSWORD:
+      case POSTGRESQL_PASSWORD:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   static {
-    Map<SzReplicatorOption, Set<Set<SzReplicatorOption>>> dependencyMap
+    Map<SzReplicatorOption, Set<Set<CommandLineOption>>> dependencyMap
         = new LinkedHashMap<>();
     Map<SzReplicatorOption, Set<CommandLineOption>> conflictMap
         = new LinkedHashMap<>();
@@ -438,6 +610,7 @@ public enum SzReplicatorOption implements CommandLineOption {
       // iterate over the options
       for (SzReplicatorOption option : SzReplicatorOption.values()) {
         conflictMap.put(option, new LinkedHashSet<>());
+        dependencyMap.put(option, new LinkedHashSet<>());
         lookupMap.put(option.getCommandLineFlag().toLowerCase(), option);
       }
 
@@ -455,15 +628,6 @@ public enum SzReplicatorOption implements CommandLineOption {
       SzReplicatorOption[] initOptions
           = {INI_FILE, INIT_FILE, INIT_JSON};
 
-      for (SzReplicatorOption option1 : initOptions) {
-        for (SzReplicatorOption option2 : initOptions) {
-          if (option1 != option2) {
-            Set<CommandLineOption> set = conflictMap.get(option1);
-            set.add(option2);
-          }
-        }
-      }
-
       // handle the messaging options
       Set<SzReplicatorOption> rabbitInfoOptions = Set.of(
           RABBIT_INFO_USER,
@@ -473,26 +637,26 @@ public enum SzReplicatorOption implements CommandLineOption {
           RABBIT_INFO_VIRTUAL_HOST,
           RABBIT_INFO_QUEUE);
 
-      Set<SzReplicatorOption> requiredRabbit = Set.of(RABBIT_INFO_USER,
-                                                      RABBIT_INFO_PASSWORD,
-                                                      RABBIT_INFO_HOST,
-                                                      RABBIT_INFO_QUEUE);
+      Set<CommandLineOption> requiredRabbit = Set.of(RABBIT_INFO_USER,
+                                                     RABBIT_INFO_PASSWORD,
+                                                     RABBIT_INFO_HOST,
+                                                     RABBIT_INFO_QUEUE);
 
-      Set<SzReplicatorOption> sqsInfoOptions = Set.of(SQS_INFO_URL);
+      Set<CommandLineOption> sqsInfoOptions = Set.of(SQS_INFO_URL);
 
       // enforce that we only have one info queue
       for (SzReplicatorOption option : rabbitInfoOptions) {
         Set<CommandLineOption> conflictSet = conflictMap.get(option);
         conflictSet.addAll(sqsInfoOptions);
       }
-      for (SzReplicatorOption option : sqsInfoOptions) {
+      for (CommandLineOption option : sqsInfoOptions) {
         Set<CommandLineOption> conflictSet = conflictMap.get(option);
         conflictSet.addAll(rabbitInfoOptions);
       }
 
       // make the primary options dependent on one set of info queue options
       for (SzReplicatorOption option : initOptions) {
-        Set<Set<SzReplicatorOption>> dependencySets = dependencyMap.get(option);
+        Set<Set<CommandLineOption>> dependencySets = dependencyMap.get(option);
         dependencySets.add(Set.of(SQS_INFO_URL));
         dependencySets.add(requiredRabbit);
       }
@@ -500,10 +664,50 @@ public enum SzReplicatorOption implements CommandLineOption {
       // make the optional rabbit options dependent on the required ones
       for (SzReplicatorOption option : rabbitInfoOptions) {
         if (requiredRabbit.contains(option)) continue;
-        Set<Set<SzReplicatorOption>> dependencySets = dependencyMap.get(option);
+        Set<Set<CommandLineOption>> dependencySets = dependencyMap.get(option);
         dependencySets.add(requiredRabbit);
       }
 
+      // create a set of SQLite options
+      Set<CommandLineOption> sqliteOptions = Set.of(SQLITE_DATABASE_FILE);
+
+      // create the set of PostgreSQL options
+      Set<CommandLineOption> postgreSqlOptions = Set.of(POSTGRESQL_HOST,
+                                                        POSTGRESQL_PORT,
+                                                        POSTGRESQL_DATABASE,
+                                                        POSTGRESQL_USER,
+                                                        POSTGRESQL_PASSWORD);
+
+      Set<SzReplicatorOption> requiredPostgreSQL = Set.of(POSTGRESQL_HOST,
+                                                          POSTGRESQL_DATABASE,
+                                                          POSTGRESQL_USER,
+                                                          POSTGRESQL_PASSWORD);
+
+      // setup dependencies and conflicts for the PostgreSQL options
+      for (CommandLineOption option: postgreSqlOptions) {
+        // get the set of dependency sets
+        Set<Set<CommandLineOption>> dependencySets = dependencyMap.get(option);
+
+        // create a new set
+        Set<CommandLineOption> dependSet = new LinkedHashSet<>();
+
+        // add all required PostgreSQL options to the set
+        dependSet.addAll(requiredPostgreSQL);
+
+        // remove the current option
+        dependSet.remove(option);
+
+        // add the dependency set
+        if (dependSet.size() > 0) {
+          dependencySets.add(Collections.unmodifiableSet(dependSet));
+        }
+
+        // now set the conflicts
+        conflictMap.put((SzReplicatorOption) option, sqliteOptions);
+      }
+
+      // setup conflicts for the database options
+      conflictMap.put(SQLITE_DATABASE_FILE, postgreSqlOptions);
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -573,7 +777,7 @@ public enum SzReplicatorOption implements CommandLineOption {
                     "Cause: " + e.getMessage()));
           }
           try {
-            return JsonUtils.parseJsonObject(jsonText);
+            return JsonUtilities.parseJsonObject(jsonText);
 
           } catch (Exception e) {
             throw new IllegalArgumentException(
@@ -588,7 +792,7 @@ public enum SzReplicatorOption implements CommandLineOption {
                 "Initialization JSON is missing or empty.");
           }
           try {
-            return JsonUtils.parseJsonObject(initJson);
+            return JsonUtilities.parseJsonObject(initJson);
 
           } catch (Exception e) {
             throw new IllegalArgumentException(
@@ -612,19 +816,25 @@ public enum SzReplicatorOption implements CommandLineOption {
           return threadCount;
         }
 
+        case MODULE_NAME:
         case SQS_INFO_URL:
         case RABBIT_INFO_HOST:
         case RABBIT_INFO_USER:
         case RABBIT_INFO_PASSWORD:
         case RABBIT_INFO_VIRTUAL_HOST:
         case RABBIT_INFO_QUEUE:
+        case POSTGRESQL_HOST:
+        case POSTGRESQL_DATABASE:
+        case POSTGRESQL_USER:
+        case POSTGRESQL_PASSWORD:
           return params.get(0);
 
-        case RABBIT_INFO_PORT: {
+        case RABBIT_INFO_PORT:
+        case POSTGRESQL_PORT: {
           int port = Integer.parseInt(params.get(0));
           if (port < 0) {
             throw new IllegalArgumentException(
-                "Negative RabbitMQ port numbers are not allowed: " + port);
+                "Negative port numbers are not allowed: " + port);
           }
           return port;
         }

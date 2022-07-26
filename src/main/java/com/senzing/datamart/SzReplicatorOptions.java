@@ -1,13 +1,12 @@
 package com.senzing.datamart;
 
 import com.senzing.cmdline.CommandLineOption;
-import com.senzing.util.JsonUtils;
+import com.senzing.util.JsonUtilities;
 import com.senzing.reflect.PropertyReflector;
 
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 import static com.senzing.datamart.SzReplicatorConstants.*;
@@ -48,7 +47,7 @@ public class SzReplicatorOptions {
    * @param jsonInitText The JSON initialization parameters as JSON text.
    */
   public SzReplicatorOptions(String jsonInitText) {
-    this(JsonUtils.parseJsonObject(jsonInitText));
+    this(JsonUtilities.parseJsonObject(jsonInitText));
   }
 
   /**
@@ -265,7 +264,9 @@ public class SzReplicatorOptions {
   }
 
   /**
+   * Converts this instance to a {@link JsonObject}.
    *
+   * @return A {@link JsonObject} representation of this instance.
    */
   public JsonObject toJson() {
     JsonObjectBuilder builder = Json.createObjectBuilder();
@@ -274,73 +275,18 @@ public class SzReplicatorOptions {
   }
 
   /**
+   * Converts this instance to JSON.
    *
+   * @param builder The {@link JsonObjectBuilder} to which to add the JSON
+   *                properties.
+   * @return The specified {@link JsonObjectBuilder}.
    */
   public JsonObjectBuilder buildJson(JsonObjectBuilder builder) {
-    PROPERTY_REFLECTOR.getAccessors().forEach((propName, method) -> {
-      try {
-        Object propValue = method.invoke(this);
-        switch (method.getReturnType().getName()) {
-          case "javax.json.JsonObject":
-            if (propValue != null) {
-              JsonObject jsonObj = (JsonObject) propValue;
-              builder.add(propName, Json.createObjectBuilder(jsonObj));
-            }
-            return;
-
-          case "Integer":
-          case "int":
-            addInt(builder, propName, (Integer) propValue);
-            return;
-
-          case "String":
-            addString(builder, propName, (String) propValue);
-            return;
-
-          default:
-            throw new IllegalStateException(
-                "Unhandled property type: " + method.getReturnType());
-        }
-      } catch (IllegalAccessException|InvocationTargetException e) {
-        throw new RuntimeException(e);
-      }
-    });
-    return builder;
+    return PropertyReflector.buildJsonObject(builder, this);
   }
 
   /**
-   * Conditionally adds the specified {@link String} to the specified
-   * {@link JsonObjectBuilder} with the specified key if the specified
-   * {@link String} value is <b>not</b> <code>null</code>.
-   *
-   * @param builder The {@link JsonObjectBuilder} to add the value to.
-   * @param key The key for the attribute to be added.
-   * @param value The value to be added providing it is <b>not</b>
-   *              <code>null</code>.
-   */
-  protected void addString(JsonObjectBuilder builder, String key, String value)
-  {
-    if (value == null) return;
-    builder.add(key, value);
-  }
-
-  /**
-   * Conditionally adds the specified {@link Integer} to the specified
-   * {@link JsonObjectBuilder} with the specified key if the specified
-   * {@link Integer} value is <b>not</b> <code>null</code>.
-   *
-   * @param builder The {@link JsonObjectBuilder} to add the value to.
-   * @param key The key for the attribute to be added.
-   * @param value The value to be added providing it is <b>not</b>
-   *              <code>null</code>.
-   */
-  protected void addInt(JsonObjectBuilder builder, String key, Integer value) {
-    if (value == null) return;
-    builder.add(key, value);
-  }
-
-  /**
-   *
+   * Populates
    */
   public void fromJson(JsonObject json) {
 
@@ -384,10 +330,4 @@ public class SzReplicatorOptions {
       map.put(option, value);
     }
   }
-
-  /**
-   * The getters for the properties of this class.
-   */
-  private static final PropertyReflector PROPERTY_REFLECTOR
-    = new PropertyReflector(SzReplicatorOptions.class);
 }

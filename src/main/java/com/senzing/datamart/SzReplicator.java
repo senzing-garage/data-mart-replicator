@@ -5,7 +5,7 @@ import com.senzing.g2.engine.G2Product;
 import com.senzing.g2.engine.G2ProductJNI;
 import com.senzing.listener.service.g2.G2Service;
 import com.senzing.util.AccessToken;
-import com.senzing.util.JsonUtils;
+import com.senzing.util.JsonUtilities;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -261,12 +261,12 @@ public class SzReplicator extends Thread {
     // use G2Product API without "init()" for now
     G2Product productApi = new G2ProductJNI();
     String jsonText = productApi.version();
-    JsonObject jsonObj = JsonUtils.parseJsonObject(jsonText);
+    JsonObject jsonObj = JsonUtilities.parseJsonObject(jsonText);
 
 
-    String nativeApiVersion = JsonUtils.getString(jsonObj, "VERSION");
-    String buildVersion     = JsonUtils.getString(jsonObj, "BUILD_VERSION");
-    String buildNumber      = JsonUtils.getString(jsonObj, "BUILD_NUMBER");
+    String nativeApiVersion = JsonUtilities.getString(jsonObj, "VERSION");
+    String buildVersion     = JsonUtilities.getString(jsonObj, "BUILD_VERSION");
+    String buildNumber      = JsonUtilities.getString(jsonObj, "BUILD_NUMBER");
 
     Date buildDate = null;
     if (buildNumber != null && buildNumber.length() > 0
@@ -285,9 +285,9 @@ public class SzReplicator extends Thread {
         Instant.ofEpochMilli(buildDate.getTime()));
 
     JsonObject compatVersion
-        = JsonUtils.getJsonObject(jsonObj, "COMPATIBILITY_VERSION");
+        = JsonUtilities.getJsonObject(jsonObj, "COMPATIBILITY_VERSION");
 
-    String configCompatVersion = JsonUtils.getString(compatVersion,
+    String configCompatVersion = JsonUtilities.getString(compatVersion,
                                                      "CONFIG_VERSION");
 
     pw.println(" - Senzing Replicator Version   : " + BuildInfo.MAVEN_VERSION);
@@ -309,8 +309,7 @@ public class SzReplicator extends Thread {
     pw.println(multilineFormat(
         "java -jar " + JAR_FILE_NAME + " <options>",
         "",
-        "<options> includes: ",
-        ""));
+        "<options> includes: "));
   }
 
   /**
@@ -362,8 +361,7 @@ public class SzReplicator extends Thread {
         "        *** SECURITY WARNING: If the JSON text contains a password",
         "        then it may be visible to other users via process monitoring.",
         "        EXAMPLE: -initJson \"{\"PIPELINE\":{ ... }}\"",
-        "        --> VIA ENVIRONMENT: " + INIT_JSON.getEnvironmentVariable(),
-        ""));
+        "        --> VIA ENVIRONMENT: " + INIT_JSON.getEnvironmentVariable()));
   }
 
   /**
@@ -424,8 +422,7 @@ public class SzReplicator extends Thread {
         "   --rabbit-info-queue <queue name>",
         "        Used to specify the name of the RabbitMQ queue from which to pull the",
         "        info messages.",
-        "        --> VIA ENVIRONMENT: " + RABBIT_INFO_QUEUE.getEnvironmentVariable(),
-        ""));
+        "        --> VIA ENVIRONMENT: " + RABBIT_INFO_QUEUE.getEnvironmentVariable()));
   }
 
   /**
@@ -442,7 +439,6 @@ public class SzReplicator extends Thread {
     printStandardOptionsUsage(pw);
     printInfoQueueOptionsUsage(pw);
 
-    pw.println();
     pw.flush();
     sw.flush();
 
@@ -460,12 +456,12 @@ public class SzReplicator extends Thread {
   }
 
   /**
-   *
+   * The G2 service use for interacting with the entity repository.
    */
   private G2Service g2Service;
 
   /**
-   *
+   * The
    */
   private SzReplicatorService replicatorService;
 
@@ -519,7 +515,7 @@ public class SzReplicator extends Thread {
     String g2InitConfig = null;
     JsonObject initJson = (JsonObject) options.get(INIT_JSON);
     if (initJson != null) {
-      g2InitConfig = JsonUtils.toJsonText(initJson);
+      g2InitConfig = JsonUtilities.toJsonText(initJson);
     } else {
       g2InitConfig = (String) options.get(INI_FILE);
       if (g2InitConfig == null) {
