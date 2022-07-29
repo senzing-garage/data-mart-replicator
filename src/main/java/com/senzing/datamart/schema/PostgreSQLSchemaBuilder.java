@@ -68,6 +68,8 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
         + "  relation_count INTEGER, "
         + "  entity_hash TEXT, "
         + "  prev_entity_hash TEXT, "
+        + "  patch_hash TEXT, "
+        + "  prev_patch_hash TEXT, "
         + "  creator_id TEXT NOT NULL, "
         + "  modifier_id TEXT NOT NULL, "
         + "  created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
@@ -202,26 +204,43 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
         + "  report_key TEXT NOT NULL, "
         + "  entity_id BIGINT NOT NULL, "
         + "  related_id BIGINT NOT NULL DEFAULT (0), "
+        + "  stat_count INTEGER DEFAULT (0), "
         + "  report_notes TEXT, "
+        + "  creator_id TEXT NOT NULL, "
+        + "  modifier_id TEXT NOT NULL, "
         + "  created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
         + "  modified_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
-        + "PRIMARY KEY(entity_id, related_id, report_key);";
+        + "PRIMARY KEY(report_key, entity_id, related_id);";
 
     String dropReportDetailTable = "DROP TABLE IF EXISTS sz_dm_report_detail;";
 
     String createReportDetailIndex1
-        = "CREATE INDEX IF NOT EXISTS sz_dm_rpt_detail_ix "
-        + "ON sz_dm_report_detail (report_key, entity_id);";
+        = "CREATE UNIQUE INDEX IF NOT EXISTS sz_dm_rpt_detail_uix1 "
+        + "ON sz_dm_report_detail (entity_id, related_id, report_key);";
 
     String dropReportDetailIndex1
-        = "DROP INDEX IF EXISTS sz_dm_rpt_detail_ix;";
+        = "DROP INDEX IF EXISTS sz_dm_rpt_detail_uix1;";
 
     String createReportDetailIndex2
-        = "CREATE UNIQUE INDEX IF NOT EXISTS sz_dm_rpt_detail_uix "
+        = "CREATE UNIQUE INDEX IF NOT EXISTS sz_dm_rpt_detail_uix2 "
         + "ON sz_dm_report_detail (related_id, entity_id, report_key);";
 
     String dropReportDetailIndex2
-        = "DROP INDEX IF EXISTS sz_dm_rpt_detail_uix;";
+        = "DROP INDEX IF EXISTS sz_dm_rpt_detail_uix2;";
+
+    String createReportDetailNewIndex
+        = "CREATE INDEX IF NOT EXISTS sz_dm_rpt_det_new_ix "
+        + "ON sz_dm_report_detail (creator_id);";
+
+    String dropReportDetailNewIndex
+        = "DROP INDEX IF EXISTS sz_dm_rpt_det_new_ix;";
+
+    String createReportDetailModIndex
+        = "CREATE INDEX IF NOT EXISTS sz_dm_rpt_det_mod_ix "
+        + "ON sz_dm_report_detail (modifier_id);";
+
+    String dropReportDetailModIndex
+        = "DROP INDEX IF EXISTS sz_dm_rpt_det_mod_ix;";
 
     String createReportDetailTrigger
         = formatCreatePostgreSQLTrigger("sz_dm_report_detail");
@@ -233,7 +252,6 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
         = "CREATE TABLE IF NOT EXISTS sz_dm_pending_report ("
         + "  report_key TEXT NOT NULL, "
         + "  lease_id TEXT, "
-        + "  expire_lease_at TIMESTAMP, "
         + "  expire_lease_at TIMESTAMP, "
         + "  entity_delta INTEGER, "
         + "  record_delta INTEGER, "
@@ -295,6 +313,8 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
       sqlList.add(dropReportTrigger);
       sqlList.add(dropReportTable);
 
+      sqlList.add(dropReportDetailNewIndex);
+      sqlList.add(dropReportDetailModIndex);
       sqlList.add(dropReportDetailIndex2);
       sqlList.add(dropReportDetailIndex1);
       sqlList.add(dropReportDetailTrigger);
@@ -333,6 +353,8 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
     sqlList.add(createReportDetailTrigger);
     sqlList.add(createReportDetailIndex1);
     sqlList.add(createReportDetailIndex2);
+    sqlList.add(createReportDetailNewIndex);
+    sqlList.add(createReportDetailModIndex);
 
     sqlList.add(createPendingReportTable);
     sqlList.add(createPendingReportTrigger);

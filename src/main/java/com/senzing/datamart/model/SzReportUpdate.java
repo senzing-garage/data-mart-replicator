@@ -94,10 +94,10 @@ public class SzReportUpdate {
    * @param entityId The entity ID for the update.
    */
   public SzReportUpdate(SzReportCode reportCode,
-                        String      statistic,
-                        String      dataSource1,
-                        String      dataSource2,
-                        long        entityId)
+                        String       statistic,
+                        String       dataSource1,
+                        String       dataSource2,
+                        long         entityId)
   {
     Objects.requireNonNull(
         reportCode, "The report code cannot be null");
@@ -118,9 +118,9 @@ public class SzReportUpdate {
    * @param relatedId The related entity ID for the update.
    */
   public SzReportUpdate(SzReportCode reportCode,
-                        String      statistic,
-                        long        entityId,
-                        long        relatedId)
+                        String       statistic,
+                        long         entityId,
+                        long         relatedId)
   {
     Objects.requireNonNull(
         reportCode, "The report code cannot be null");
@@ -142,11 +142,11 @@ public class SzReportUpdate {
    * @param relatedId The related entity ID for the update.
    */
   public SzReportUpdate(SzReportCode reportCode,
-                        String      statistic,
-                        String      dataSource1,
-                        String      dataSource2,
-                        long        entityId,
-                        long        relatedId)
+                        String       statistic,
+                        String       dataSource1,
+                        String       dataSource2,
+                        long         entityId,
+                        long         relatedId)
   {
     Objects.requireNonNull(
         reportCode, "The report code cannot be null");
@@ -258,6 +258,19 @@ public class SzReportUpdate {
     this.recordRelationDelta = delta;
   }
 
+  @Override
+  public String toString() {
+    return "SzReportUpdate{ " +
+        "reportKey=[ " + this.getReportKey() +
+        " ], entityDelta=[ " + this.getEntityDelta() +
+        " ], recordDelta=[ " + this.getRecordDelta() +
+        " ], entityRelationDelta=[ " + this.getEntityRelationDelta() +
+        " ], recordRelationDelta=[ " + this.getRecordRelationDelta() +
+        " ], entityId=[ " + this.getEntityId() +
+        " ], relatedId=[ " + this.getRelatedEntityId() +
+        " ] }";
+  }
+
   /**
    * Constructs with the specified entity ID.
    *
@@ -295,8 +308,8 @@ public class SzReportUpdate {
    * @return The {@link Builder} that was created.
    */
   public static Builder builder(SzReportCode reportCode,
-                                Object      statistic,
-                                long        entityId)
+                                Object       statistic,
+                                long         entityId)
   {
     Objects.requireNonNull(
         reportCode, "The report code cannot be null");
@@ -316,10 +329,10 @@ public class SzReportUpdate {
    * @return The {@link Builder} that was created.
    */
   public static Builder builder(SzReportCode reportCode,
-                                Object      statistic,
-                                String      dataSource1,
-                                String      dataSource2,
-                                long        entityId)
+                                Object       statistic,
+                                String       dataSource1,
+                                String       dataSource2,
+                                long         entityId)
   {
     Objects.requireNonNull(
         reportCode, "The report code cannot be null");
@@ -342,9 +355,9 @@ public class SzReportUpdate {
    * @return The {@link Builder} that was created.
    */
   public static Builder builder(SzReportCode reportCode,
-                                Object      statistic,
-                                long        entityId,
-                                long        relatedId)
+                                Object       statistic,
+                                long         entityId,
+                                long         relatedId)
   {
     Objects.requireNonNull(
         reportCode, "The report code cannot be null");
@@ -366,11 +379,11 @@ public class SzReportUpdate {
    * @return The {@link Builder} that was created.
    */
   public static Builder builder(SzReportCode reportCode,
-                                Object      statistic,
-                                String      dataSource1,
-                                String      dataSource2,
-                                long        entityId,
-                                long        relatedId)
+                                Object       statistic,
+                                String       dataSource1,
+                                String       dataSource2,
+                                long         entityId,
+                                long         relatedId)
   {
     Objects.requireNonNull(
         reportCode, "The report code cannot be null");

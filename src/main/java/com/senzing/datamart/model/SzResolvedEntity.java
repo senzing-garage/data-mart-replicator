@@ -159,11 +159,13 @@ public class SzResolvedEntity extends SzEntity {
     }
 
     List<SzRelatedEntity> relatedEntities
-        = new ArrayList<>(relatedArray.size());
+        = new ArrayList<>(relatedArray == null ? 0 : relatedArray.size());
 
-    for (JsonObject jsonObj : relatedArray.getValuesAs(JsonObject.class)) {
-      SzRelatedEntity related = SzRelatedEntity.parse(null, jsonObject);
-      relatedEntities.add(related);
+    if (relatedArray != null) {
+      for (JsonObject jsonObj : relatedArray.getValuesAs(JsonObject.class)) {
+        SzRelatedEntity related = SzRelatedEntity.parse(null, jsonObject);
+        relatedEntities.add(related);
+      }
     }
 
     entity.setRelatedEntities(relatedEntities);

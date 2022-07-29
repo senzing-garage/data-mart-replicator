@@ -5,13 +5,11 @@ import com.senzing.datamart.model.*;
 import com.senzing.listener.service.exception.ServiceExecutionException;
 import com.senzing.listener.service.g2.G2Service;
 import com.senzing.listener.service.scheduling.Scheduler;
-import com.senzing.text.TextUtilities;
 import com.senzing.util.JsonUtilities;
 import com.senzing.util.LoggingUtilities;
 
 import javax.json.JsonObject;
 import java.sql.*;
-import java.time.Instant;
 import java.util.*;
 
 import static com.senzing.sql.SQLUtilities.close;
@@ -19,7 +17,7 @@ import static com.senzing.g2.engine.G2Engine.*;
 import static com.senzing.datamart.SzReplicationProvider.TaskAction.*;
 import static com.senzing.datamart.SzReplicationProvider.*;
 import static com.senzing.datamart.model.SzReportCode.*;
-import static com.senzing.util.JsonUtilities.*;
+import static com.senzing.listener.service.AbstractListenerService.*;
 
 /**
  * Provides a handler for refreshing an affected entity.
@@ -28,13 +26,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
   /**
    * The parameter key for the entity ID.
    */
-  private static final String ENTITY_ID_KEY = "entityId";
-
-  /**
-   * The maximum batch size to use for batch updates to avoid high memory
-   * consumption.
-   */
-  private static final int MAX_BATCH_SIZE = 1000;
+  public static final String ENTITY_ID_KEY = "entityId";
 
   /**
    * The flags to use when retrieving the entity from the G2 repository.
@@ -60,6 +52,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
   /**
    * Constructs with the specified {@link SzReplicationProvider} to use to
    * access the data mart replicator functions.
+   *
+   * @param provider The {@link SzReplicationProvider} to use.
    */
   public RefreshEntityHandler(SzReplicationProvider provider) {
     super(provider, REFRESH_ENTITY);
@@ -93,16 +87,19 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
       JsonObject        jsonObj   = JsonUtilities.parseJsonObject(jsonText);
       SzResolvedEntity  newEntity = SzResolvedEntity.parse(jsonObj);
 
+      // create a map for relationship patches
+      Map<Long, Boolean> relPatchMap = new LinkedHashMap<>();
+
       // ensure the row and get the previous entity hash
-      String previousHash = (newEntity == null)
-          ? this.prepareEntityDelete(conn, entityId)
-          : this.ensureEntityRow(conn, newEntity);
+      String entityHash = (newEntity == null)
+          ? this.prepareEntityDelete(conn, entityId, relPatchMap)
+          : this.ensureEntityRow(conn, newEntity, relPatchMap);
 
       // check if the previous hash is empty string (i.e.: no changes)
-      if (previousHash.length() == 0) return;
+      if (entityHash.length() == 0) return;
 
       // parse the old entity
-      SzResolvedEntity oldEntity = SzResolvedEntity.parseHash(previousHash);
+      SzResolvedEntity oldEntity = SzResolvedEntity.parseHash(entityHash);
 
       // check if the entity in unchanged -- this is a double-check since the
       // hashes should have been the same before we got here
@@ -114,27 +111,36 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
             "WARNING: Entity hashes were different, but no delta was found.",
             "ENTITY ID : " + entityId,
             "NEW HASH  : " + newEntity.toHash(),
-            "OLD HASH  : " + previousHash));
+            "OLD HASH  : " + entityHash));
         return;
       }
 
       // find the entity deltas
-      EntityDelta entityDelta = new EntityDelta(oldEntity, newEntity);
+      EntityDelta entityDelta
+          = new EntityDelta(oldEntity, newEntity, relPatchMap);
 
       // count the number of actual changes
       int changeCount = 0;
 
       // check for added records
-      changeCount += this.ensureAddedRecords(conn, entityDelta);
+      changeCount += this.ensureAddedRecords(conn,
+                                             entityDelta,
+                                             followUpScheduler);
 
       // check for removed records
-      changeCount += this.orphanRemovedRecords(conn, entityDelta);
+      changeCount += this.orphanRemovedRecords(conn,
+                                               entityDelta,
+                                               followUpScheduler);
 
       // check for added relations
-      changeCount += this.ensureCurrentRelations(conn, entityDelta);
+      changeCount += this.ensureCurrentRelations(conn,
+                                                 entityDelta,
+                                                 followUpScheduler);
 
       // check for removed relations
-      changeCount += this.ensureRemovedRelations(conn, entityDelta);
+      changeCount += this.ensureRemovedRelations(conn,
+                                                 entityDelta,
+                                                 followUpScheduler);
 
       // warn if the change count is zero
       if (changeCount == 0) {
@@ -164,7 +170,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
       // commit the transaction
       conn.commit();
 
-    } catch (SQLException e) {
+    } catch (Exception e) {
       e.printStackTrace();
       System.err.println();
       System.err.println("Rolling back transaction....");
@@ -191,10 +197,16 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
    *
    * @param conn The JDBC {@link Connection} to use.
    * @param entityId The entity ID for the entity.
+   * @param relationPatchMap The {@link Map} of {@link Long} entity ID's to
+   *                         {@link Boolean} values to populate to indicate how
+   *                         the relationships had been patched since the
+   *                         entity hash was stored.
    * @return The {@link SzResolvedEntity} describing the previous state, or
    *         <code>null</code> if not found.
    */
-  protected String prepareEntityDelete(Connection conn, long entityId)
+  protected String prepareEntityDelete(Connection         conn,
+                                       long               entityId,
+                                       Map<Long,Boolean>  relationPatchMap)
       throws SQLException
   {
     PreparedStatement ps          = null;
@@ -208,7 +220,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
       int rowCount = ps.executeUpdate();
 
-      // check if now rows were updated (i.e.: already deleted)
+      // check if no rows were updated (i.e.: already deleted)
       if (rowCount == 0) {
         return "";
       }
@@ -220,7 +232,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
       ps = close(ps);
 
       ps = conn.prepareStatement(
-          "SELECT entity_hash FROM sz_dm_entity "
+          "SELECT entity_hash, relations_hash FROM sz_dm_entity "
               + "WHERE entity_id = ? AND modifier_id = ?");
 
       ps.setLong(1, entityId);
@@ -233,7 +245,21 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
             "Updated/locked row to prepare for delete and it was not found.");
       }
 
-      return rs.getString(1);
+      // get the entity hash
+      String entityHash = rs.getString(1);
+      if (rs.wasNull()) entityHash = null;
+
+      // get the relationship patch hash
+      String relationsHash = rs.getString(2);
+      if (rs.wasNull()) relationsHash = null;
+      this.parsePatchHash(relationsHash, relationPatchMap);
+
+      // release JDBC resources
+      rs = close(rs);
+      ps = close(ps);
+
+      // return the entity hash
+      return entityHash;
 
     } finally {
       rs = close(rs);
@@ -246,12 +272,18 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
    *
    * @param conn The JDBC {@link Connection} to use.
    * @param newEntity The {@link SzResolvedEntity} describing the entity.
+   * @param prevRelationPatchMap The {@link Map} of {@link Long} entity ID's
+   *                             to {@link Boolean} values to populate to
+   *                             indicate how the relationships had been patched
+   *                             since the previous entity hash was stored.
    * @return The previous entity hash if updated, <code>null</code> if inserted,
    *         or empty-string if nothing was changed because the entity hashes
    *         were the same.
+   * @throws SQLException If a JDBC failure occurs.
    */
-  protected String ensureEntityRow(Connection       conn,
-                                   SzResolvedEntity newEntity)
+  protected String ensureEntityRow(Connection         conn,
+                                   SzResolvedEntity   newEntity,
+                                   Map<Long,Boolean>  prevRelationPatchMap)
     throws SQLException
   {
     PreparedStatement ps = null;
@@ -262,32 +294,36 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
       ps = conn.prepareStatement(
           "INSERT INTO sz_dm_entity AS t1 ("
               + " entity_id, entity_name, record_count, relation_count, "
-              + " entity_hash, creator_id, modifier_id)"
-              + "VALUES(?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET"
+              + " entity_hash, relations_hash, creator_id, modifier_id)"
+              + "VALUES (?, ?, ?, ?, ?, ?, ?, ?) "
+              + "ON CONFLICT (entity_id) DO UPDATE SET"
               + " entity_name = EXCLUDED.entity_name,"
               + " record_count = EXCLUDED.record_count,"
               + " relation_count = EXCLUDED.relation_count,"
               + " entity_hash = EXCLUDED.entity_hash,"
+              + " relations_hash = EXCLUDED.relations_hash,"
               + " prev_entity_hash = t1.entity_hash,"
+              + " prev_relations_hash = t1.relations_hash,"
               + " modifier_id = EXCLUDED.modifier_id "
-              + "WHERE entity_hash <> EXCLUDED.entity_hash");
+              + "WHERE entity_hash <> EXCLUDED.entity_hash "
+              + "OR relations_hash IS NOT NULL"); // update if we have patches
 
       ps.setLong(1, newEntity.getEntityId());
       ps.setString(2, newEntity.getEntityName());
       ps.setInt(3, newEntity.getRecords().size());
       ps.setInt(4, newEntity.getRelatedEntities().size());
       ps.setString(5, newEntity.toHash());
-      ps.setString(6, operationId);
+      ps.setNull(6, Types.VARCHAR);
       ps.setString(7, operationId);
+      ps.setString(8, operationId);
 
       int rowCount = ps.executeUpdate();
 
       ps = close(ps);
 
-      // check if nothing was updated or modified
-      if (rowCount == 0) {
-        return null;
-      }
+      // check if nothing was updated or inserted (only happens if no patches)
+      if (rowCount == 0) return "";
+
       if (rowCount > 1) {
         throw new IllegalStateException(
             "Too many entity rows updated: " + rowCount);
@@ -295,9 +331,10 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
       // check if a row was updated or inserted
       ps = conn.prepareStatement(
-          "SELECT prev_entity_hash "
-              + "FROM sz_dm_entity WHERE modifier_id = ?");
-      ps.setString(1, operationId);
+          "SELECT prev_relations_hash, prev_entity_hash "
+              + "FROM sz_dm_entity WHERE entity_id = ? AND modifier_id = ?");
+      ps.setLong(1, newEntity.getEntityId());
+      ps.setString(2, operationId);
 
       rs = ps.executeQuery();
 
@@ -308,7 +345,21 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                 + newEntity + " ]");
       }
 
-      return rs.getString(1);
+      // get the previous relations hash
+      String prevRelationsHash = rs.getString(1);
+      if (rs.wasNull()) prevRelationsHash = null;
+      this.parsePatchHash(prevRelationsHash, prevRelationPatchMap);
+
+      // get the previous entity hash
+      String prevEntityHash = rs.getString(2);
+      if (rs.wasNull()) prevEntityHash = null;
+
+      // release JDBC resources
+      rs = close(rs);
+      ps = close(ps);
+
+      // return the previous entity hash
+      return prevEntityHash;
 
     } finally {
       rs = close(rs);
@@ -321,6 +372,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
    *
    * @param conn The JDBC {@link Connection} to use.
    * @param newEntity The {@link SzResolvedEntity} describing the entity.
+   * @throws SQLException If a JDBC failure occurs.
    */
   protected void updateEntityRow(Connection       conn,
                                  SzResolvedEntity newEntity)
@@ -363,10 +415,15 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
    *
    * @param conn The JDBC {@link Connection} to use.
    * @param entityDelta The {@link EntityDelta} to use.
+   * @param followUpScheduler The {@link Scheduler} to use for scheduling
+   *                          follow-up tasks.
    *
    * @return The number of records actually created.
+   * @throws SQLException If a JDBC failure occurs.
    */
-  protected int ensureAddedRecords(Connection conn, EntityDelta entityDelta)
+  protected int ensureAddedRecords(Connection   conn,
+                                   EntityDelta  entityDelta,
+                                   Scheduler    followUpScheduler)
     throws SQLException
   {
     Set<SzRecord> addedRecords = entityDelta.getAddedRecords();
@@ -435,10 +492,14 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
    * @param conn The JDBC {@link Connection} to use.
    * @param entityDelta The {@link EntityDelta} to use to obtain the removed
    *                    records.
+   * @param followUpScheduler The {@link Scheduler} to use for scheduling
+   *                          follow-up tasks.
    * @return The number of records actually modified (i.e.: those that have
    *         not already been claimed by other entities).
    */
-  protected int orphanRemovedRecords(Connection conn, EntityDelta entityDelta)
+  protected int orphanRemovedRecords(Connection   conn,
+                                     EntityDelta  entityDelta,
+                                     Scheduler    followUpScheduler)
       throws SQLException
   {
     Set<SzRecord> removedRecords = entityDelta.getRemovedRecords();
@@ -491,10 +552,14 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
    *
    * @param conn The JDBC {@link Connection} to use.
    * @param entityDelta The {@link EntityDelta} to use.
+   * @param followUpScheduler The {@link Scheduler} to use for scheduling
+   *                          follow-up tasks.
    *
    * @return The number of relationships modified or created.
    */
-  protected int ensureCurrentRelations(Connection conn, EntityDelta entityDelta)
+  protected int ensureCurrentRelations(Connection   conn,
+                                       EntityDelta  entityDelta,
+                                       Scheduler    followUpScheduler)
       throws SQLException
   {
     Map<Long, SzRelatedEntity> relations = new LinkedHashMap<>();
@@ -563,9 +628,13 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
       int updateCount = 0;
       while (rs.next()) {
-        String prevHash = rs.getString(3);
+        String prevHash = rs.getString(1);
 
         SzRelationship relationship = SzRelationship.parseHash(prevHash);
+
+        long relatedId
+            = (relationship.getEntityId() == entityDelta.getEntityId())
+            ? relationship.getRelatedEntityId() : relationship.getEntityId();
 
         updateCount++;
         if (relationship == null) {
@@ -574,6 +643,14 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                                          null,
                                          null,
                                          null);
+
+
+          followUpScheduler.createTaskBuilder(REFRESH_RELATION.toString())
+              .resource(ENTITY_RESOURCE_KEY, relatedId)
+              .parameter(RefreshRelationHandler.ENTITY_ID_KEY, relatedId)
+              .parameter(RefreshRelationHandler.RELATED_ENTITY_ID_KEY,
+                         entityDelta.getEntityId());
+
         } else {
           entityDelta.storedRelationship(
               relationship.getEntityId(),
@@ -614,10 +691,14 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
    *
    * @param conn The JDBC {@link Connection} to use.
    * @param entityDelta The {@link EntityDelta} to use.
+   * @param followUpScheduler The {@link Scheduler} to use for scheduling
+   *                          follow-up tasks.
    *
    * @return The number of relationships modified or created.
    */
-  protected int ensureRemovedRelations(Connection conn, EntityDelta entityDelta)
+  protected int ensureRemovedRelations(Connection   conn,
+                                       EntityDelta  entityDelta,
+                                       Scheduler    followUpScheduler)
       throws SQLException
   {
     Map<Long, SzRelatedEntity> relations = entityDelta.getRemovedRelations();
@@ -729,12 +810,22 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
         // increment the deleted count
         deletedCount++;
 
+        long relatedId
+            = (relationship.getEntityId() == entityDelta.getEntityId())
+            ? relationship.getRelatedEntityId() : relationship.getEntityId();
+
         // mark the relationship as deleted
         entityDelta.deletedRelationship(relationship.getEntityId(),
                                         relationship.getRelatedEntityId(),
                                         relationship.getMatchType(),
                                         relationship.getSourceSummary(),
                                         relationship.getRelatedSourceSummary());
+
+        followUpScheduler.createTaskBuilder(REFRESH_RELATION.toString())
+            .resource(ENTITY_RESOURCE_KEY, relatedId)
+            .parameter(RefreshRelationHandler.ENTITY_ID_KEY, relatedId)
+            .parameter(RefreshRelationHandler.RELATED_ENTITY_ID_KEY,
+                       entityDelta.getEntityId());
       }
 
       return deletedCount;
@@ -838,182 +929,4 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
     return reportKeys.size();
   }
 
-  /**
-   * Creates a virtually unique lease ID.
-   *
-   * @param prefixes The optional prefixes to put on the ID.
-   *
-   * @return A new lease ID to use.
-   */
-  protected String generateOperationId(Object... prefixes) {
-    StringBuilder sb = new StringBuilder();
-
-    // handle the prefixes
-    if (prefixes.length > 0) {
-      sb.append("[");
-    }
-    String sep = "";
-    for (Object prefix : prefixes) {
-      sb.append(sep).append(prefix);
-      sep = ",";
-    }
-    if (prefixes.length > 0) {
-      sb.append("]");
-    }
-
-    long pid = ProcessHandle.current().pid();
-    sb.append("pid=").append(pid).append("|");
-    sb.append(Instant.now().toString()).append("|");
-    sb.append(TextUtilities.randomAlphanumericText(50));
-    return sb.toString();
-  }
-
-  /**
-   * An interface for binding a data value to a {@link PreparedStatement} and
-   * optionally returning the number of rows expected to be updated or
-   * selected for the bound statement.
-   *
-   * @param <T> The type of the object that holds the values to be bound.
-   */
-  private interface Binder<T> {
-    /**
-     * Binds the properties of the specified value to the specified {@link
-     * PreparedStatement}.  This method optionally returns the expected
-     * number of rows or the exact expected number of rows.  If
-     * <code>null</code> is returned then no expection is made on the
-     * returned number of rows.  If a non-negative number is returned then
-     * that exact number of rows is expected to be updated/selected.  If a
-     * negative number is returned then the absolute value of that return
-     * value is an upper bound for the maximum number of rows to be
-     * updated/selected.
-     *
-     * @param ps The {@link PreparedStatement} to bind to.
-     * @param value The value that holds the properties to be bound.
-     * @return The number of expected rows to be returned when executing a
-     *         query or the number of expected rows to be updated if executing
-     *         an update as a non-negative value denoting an exact number and
-     *         as a negative number denoting an upper-bound for the absolute
-     *         value, or <code>null</code> if there is no expectation on the
-     *         number of rows.
-     * @throws SQLException If a failure occurs.
-     */
-    Integer bind(PreparedStatement ps, T value)
-      throws SQLException;
-  }
-  /**
-   * Binds the {@link Collection} of values to the specified {@link
-   * PreparedStatement} as a batch update, executes the batch and
-   * verifies the number of updated rows according to the return value
-   * from {@link Binder#bind(PreparedStatement, Object)} for each respective
-   * value.  This method will cap the batch size at {@Link #MAX_BATCH_SIZE},
-   * execute the batch and start a new batch repeatedly until all updates
-   * have been performed.
-   *
-   * @param ps The {@link PreparedStatement} to bind.
-   * @param binder The {@link Binder} to use for binding to the {@link
-   *               PreparedStatement}.
-   * @param data The {@link Collection} of data values to bind.
-   * @return The {@link List} of row counts for the updated rows, corresponding
-   *         in iteration order to the specified {@link Collection} of data
-   *         values for which the row count applies.
-   */
-  private <T> List<Integer> batchUpdate(PreparedStatement ps,
-                                        Collection<T>     data,
-                                        Binder<T>         binder)
-    throws SQLException {
-
-    int           batchCount      = 0;
-    List<Integer> rowCounts       = new ArrayList<>(data.size());
-    List<Integer> expectedCounts  = new ArrayList<>(data.size());
-    for (T value : data) {
-      expectedCounts.add(binder.bind(ps, value));
-      batchCount++;
-      // if we exceeed the maximum batch size then execute early
-      if (batchCount > MAX_BATCH_SIZE) {
-        for (int rowCount : ps.executeBatch()) {
-          rowCounts.add(rowCount);
-        }
-        batchCount = 0;
-      }
-    }
-    // execute anything remaining in the batch
-    if (batchCount > 0) {
-      for (int rowCount : ps.executeBatch()) {
-        rowCounts.add(rowCount);
-      }
-    }
-
-    // now check the results for number of rows updated
-    int index = 0, errorCount = 0;
-    StringBuilder sb = new StringBuilder();
-    String prefix = "";
-    for (T value : data) {
-      // get the expected row count
-      Integer expectedRowCount = expectedCounts.get(index);
-
-      // check if no expectation
-      if (expectedRowCount == null) continue;
-
-      // check if the expectation is an exact count
-      boolean exact = (expectedRowCount >= 0);
-
-      // if not exact then convert to an upper bound
-      if (!exact) expectedRowCount = -1 * expectedRowCount;
-
-      // get the actual row count
-      int actualRowCount = rowCounts.get(index);
-
-      // check the actual row count versus the expected rowc ount
-      if ((exact && (actualRowCount != expectedRowCount))
-          || (!exact && (actualRowCount > expectedRowCount)))
-      {
-        sb.append(prefix).append("{ [ expected=[ ");
-        sb.append((exact) ? String.valueOf(expectedRowCount)
-            : ("[0, " + expectedRowCount + "]"));
-        sb.append(" ], actual=[ " + actualRowCount + " ], updatedValue=[ "
-                      + value + " ] }");
-        prefix = ", ";
-        errorCount++;
-      }
-    }
-
-    // check if any errors
-    if (errorCount > 0) {
-      throw new IllegalStateException(
-          "Updated the wrong number of rows for " + errorCount + " of "
-              + rowCounts.size() + " batched updates.  statement=[ " + ps
-              + " ], failures=[ " + sb.toString() + " ]");
-    }
-
-    // return the row counts
-    return rowCounts;
-  }
-
-  /**
-   * Gets the data source record summary from the specified entity as JSON
-   * text.  This returns <code>null</code> if the specified entity is
-   * <code>null</code>.
-   *
-   * @param entity The entity from which to obtain the source summary.
-   * @return The JSON text for the data source record summary.
-   */
-  private static String getSummary(SzEntity entity) {
-    if (entity == null) return null;
-    Map<String, Integer> summaryMap = entity.getSourceSummary();
-    return toJsonText(toJsonObject(summaryMap));
-  }
-
-  /**
-   * Returns the summation of the values in the specified {@link Collection}.
-   *
-   * @param values The values to sum.
-   * @return The sum of the values.
-   */
-  private static int sum(Collection<Integer> values) {
-    int result = 0;
-    for (Integer value : values) {
-      result += value.intValue();
-    }
-    return result;
-  }
 }

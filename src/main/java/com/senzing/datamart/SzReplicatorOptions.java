@@ -286,13 +286,6 @@ public class SzReplicatorOptions {
   }
 
   /**
-   * Populates
-   */
-  public void fromJson(JsonObject json) {
-
-  }
-
-  /**
    * Creates a {@link Map} of {@link CommandLineOption} keys to {@link Object}
    * values for initializing an {@link SzReplicator} instance.
    *

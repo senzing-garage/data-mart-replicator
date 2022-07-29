@@ -18,7 +18,7 @@ public interface SzReplicationProvider {
    */
   enum TaskAction {
     REFRESH_ENTITY,
-    REFRESH_RELATIONS,
+    REFRESH_RELATION,
     UPDATE_DATA_SOURCE_SUMMARY,
     UPDATE_CROSS_SOURCE_SUMMARY,
     UPDATE_ENTITY_SIZE_BREAKDOWN,

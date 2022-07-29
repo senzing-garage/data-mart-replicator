@@ -211,7 +211,7 @@ public class SzReportKey implements Serializable {
         throw new IllegalArgumentException(
             "The specified text is not an encoded report key: " + keyText);
       }
-      SzReportCode  code = SzReportCode.valueOf(tokens[0]);
+      SzReportCode  code = SzReportCode.lookup(tokens[0]);
       String        stat = URLDecoder.decode(tokens[1], UTF_8);
 
       if (tokens.length == 2) return new SzReportKey(code, stat);

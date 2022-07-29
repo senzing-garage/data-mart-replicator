@@ -41,6 +41,9 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
         + "  record_count INTEGER, "
         + "  relation_count INTEGER, "
         + "  entity_hash TEXT, "
+        + "  prev_entity_hash TEXT,"
+        + "  patch_hash TEXT,"
+        + "  prev_patch_hash TEXT,"
         + "  creator_id TEXT NOT NULL, "
         + "  modifier_id TEXT NOT NULL, "
         + "  created_on TIMESTAMP NOT NULL "
@@ -207,7 +210,10 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
         + "  report_key TEXT NOT NULL, "
         + "  entity_id INTEGER NOT NULL, "
         + "  related_id INTEGER NOT NULL DEFAULT (0), "
+        + "  stat_count INTEGER DEFAULT (0), "
         + "  report_notes TEXT, "
+        + "  creator_id TEXT NOT NULL, "
+        + "  modifier_id TEXT NOT NULL, "
         + "  created_on TIMESTAMP NOT NULL "
         + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), "
         + "  modified_on TIMESTAMP NOT NULL "
@@ -229,6 +235,20 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
 
     String dropReportDetailIndex2
         = "DROP INDEX IF EXISTS sz_dm_rpt_detail_uix;";
+
+    String createReprtDetailNewIndex
+        = "CREATE INDEX IF NOT EXISTS sz_dm_rpt_det_new_ix "
+        + "ON sz_dm_report_detail (creator_id);";
+
+    String dropReportDetailNewIndex
+        = "DROP INDEX IF EXISTS sz_dm_rpt_det_new_ix;";
+
+    String createReportDetailModIndex
+        = "CREATE INDEX IF NOT EXISTS sz_dm_rpt_det_mod_ix "
+        + "ON sz_dm_report_detail (modifier_id);";
+
+    String dropReportDetailModIndex
+        = "DROP INDEX IF EXISTS sz_dm_rpt_det_mod_ix;";
 
     String createReportDetailInsertTrigger
         = formatCreateSQLiteInsertTrigger("sz_dm_report_detail");

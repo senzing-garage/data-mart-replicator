@@ -1,6 +1,6 @@
 package com.senzing.datamart;
 
-import com.senzing.datamart.handlers.RefreshEntityHandler;
+import com.senzing.datamart.handlers.*;
 import com.senzing.datamart.model.SzReportKey;
 import com.senzing.datamart.schema.PostgreSQLSchemaBuilder;
 import com.senzing.datamart.schema.SQLiteSchemaBuilder;
@@ -144,6 +144,8 @@ public class SzReplicatorService extends AbstractListenerService {
     /**
      * Constructs with the specified period in milliseconds.
      *
+     * @param replicator The {@link SzReplicatorService} that owns the report
+     *                   updater.
      * @param period The period for scheduling periodic tasks.
      */
     protected ReportUpdater(SzReplicatorService replicator, long period) {
@@ -223,9 +225,28 @@ public class SzReplicatorService extends AbstractListenerService {
    */
   public SzReplicatorService() {
     super(Map.of(AFFECTED_ENTITY, REFRESH_ENTITY.toString()));
-    this.handlerMap = Map.of(
-        REFRESH_ENTITY, new RefreshEntityHandler(this.provider));
 
+    RefreshEntityHandler entityHandler
+        = new RefreshEntityHandler(this.provider);
+
+    SourceSummaryReportHandler summaryHandler
+        = new SourceSummaryReportHandler(this.provider);
+
+    CrossSummaryReportHandler crossHandler
+        = new CrossSummaryReportHandler(this.provider);
+
+    SizeBreakdownReportHandler sizeBreakdownHandler
+        = new SizeBreakdownReportHandler(this.provider);
+
+    RelationBreakdownReportHandler relBreakdownHandler
+        = new RelationBreakdownReportHandler(this.provider);
+
+    this.handlerMap = Map.of(
+        REFRESH_ENTITY, entityHandler,
+        UPDATE_DATA_SOURCE_SUMMARY, summaryHandler,
+        UPDATE_CROSS_SOURCE_SUMMARY, crossHandler,
+        UPDATE_ENTITY_SIZE_BREAKDOWN, sizeBreakdownHandler,
+        UPDATE_ENTITY_RELATION_BREAKDOWN, relBreakdownHandler);
   }
 
   /**
@@ -289,12 +310,17 @@ public class SzReplicatorService extends AbstractListenerService {
   }
 
   /**
+   * Implemented to delegate to a {@link TaskHandler} implementation based
+   * on the specified action.
    *
-   * @param action
-   * @param parameters
-   * @param multiplicity
-   * @param followUpScheduler
-   * @throws ServiceExecutionException
+   * @param action The action for the task.
+   * @param parameters The parameters for the task.
+   * @param multiplicity The multiplier indicating how many times the task was
+   *                     scheduled before being dispatched to be handled.
+   * @param followUpScheduler The {@link Scheduler} for scheduling follow-up
+   *                          tasks, or <code>null</code> if follow-up tasks
+   *                          cannot be scheduled.
+   * @throws ServiceExecutionException If a failure occurs.
    */
   @Override
   protected void handleTask(String              action,

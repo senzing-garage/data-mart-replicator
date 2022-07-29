@@ -4,6 +4,7 @@ import com.senzing.datamart.model.*;
 
 import java.util.*;
 
+import static java.util.Map.*;
 import static com.senzing.datamart.model.SzReportCode.*;
 import static com.senzing.datamart.model.SzReportStatistic.*;
 import static com.senzing.datamart.model.SzReportStatistic.DUPLICATE_COUNT;
@@ -32,6 +33,13 @@ public class EntityDelta {
    * <code>null</code> if the entity did not previously exist in the data mart.
    */
   private SzResolvedEntity oldEntity;
+
+  /**
+   * The {@link Map} of {@link Long} entity ID keys to {@link Boolean} values
+   * describing the relationship patches that have been applied to the old
+   * entity.
+   */
+  private Map<Long, Boolean> relationshipPatches;
 
   /**
    * The {@link SzResolvedEntity} describing the new version of the entity, or
@@ -105,22 +113,53 @@ public class EntityDelta {
   private List<SzReportUpdate> reportUpdates;
 
   /**
-   * Default constructor.
+   * Constructs with the specified {@link SzResolvedEntity} instances to find
+   * the deltas between.
+   *
+   * @param oldEntity The {@link SzResolvedEntity} describing the old entity
+   *                  state.
+   * @param newEntity The {@link SzResolvedEntity} describing the new entity
+   *                  state.
    */
   public EntityDelta(SzResolvedEntity oldEntity, SzResolvedEntity newEntity) {
+    this(oldEntity, newEntity, null);
+  }
+
+  /**
+   * Constructs with the specified {@link SzResolvedEntity} instances to find
+   * the deltas between.  The caller may also optionally specify a {@link Map}
+   * of {@link Long} entity ID keys to {@link Boolean} values indicating
+   * patches that have been applied in the data mart to the old entity state
+   * to add or remove entity relationships.
+   *
+   * @param oldEntity The {@link SzResolvedEntity} describing the old entity
+   *                  state.
+   * @param newEntity The {@link SzResolvedEntity} describing the new entity
+   *                  state.
+   * @param relationPatchMap The {@link Map} of {@link Long} entity ID keys to
+   *                         {@link Boolean} relationship patch values, or
+   *                         <code>null</code> if there are no patches.
+   */
+  public EntityDelta(SzResolvedEntity   oldEntity,
+                     SzResolvedEntity   newEntity,
+                     Map<Long, Boolean> relationPatchMap) {
     if (oldEntity != null && newEntity != null
         && oldEntity.getEntityId() != newEntity.getEntityId())
     {
-     throw new IllegalArgumentException(
-         "The entities for which the differences are being discovered must "
-         + "describe the same entity at different points in time, rather than "
-         + "two different entities.  oldEntityId=[ " + oldEntity.getEntityId()
-         + " ], newEntityId=[ " + newEntity.getEntityId() + " ]");
+      throw new IllegalArgumentException(
+          "The entities for which the differences are being discovered must "
+              + "describe the same entity at different points in time, rather than "
+              + "two different entities.  oldEntityId=[ " + oldEntity.getEntityId()
+              + " ], newEntityId=[ " + newEntity.getEntityId() + " ]");
     }
 
     // set the entity fields
     this.oldEntity = oldEntity;
     this.newEntity = newEntity;
+
+    // set the relationship patches
+    this.relationshipPatches = (relationPatchMap == null)
+        ? Collections.emptyMap() : relationPatchMap;
 
     // get the old and new data sources
     Map<String, Integer> oldSourceSummary = getSourceSummary(oldEntity);
@@ -183,12 +222,19 @@ public class EntityDelta {
     this.reportUpdates = new LinkedList<>();
 
     // check the entity size breakdown
-    findEntitySizeChanges(
-        this.reportUpdates, oldEntity, newEntity, oldRecords, newRecords);
+    findEntitySizeChanges(this.reportUpdates,
+                          oldEntity,
+                          newEntity,
+                          oldRecords,
+                          newRecords);
 
     // check the entity relation breakdown
-    findEntityRelationChanges(
-        this.reportUpdates, oldEntity, newEntity, oldRelations, newRelations);
+    findEntityRelationChanges(this.reportUpdates,
+                              oldEntity,
+                              newEntity,
+                              oldRelations,
+                              newRelations,
+                              this.relationshipPatches);
 
     // check the data source summary
     findSourceSummaryChanges(this.reportUpdates,
@@ -199,10 +245,10 @@ public class EntityDelta {
 
     // check the cross source summary
     findCrossSummaryChanges(this.reportUpdates,
-                             oldEntity,
-                             newEntity,
-                             oldSourceSummary,
-                             newSourceSummary);
+                            oldEntity,
+                            newEntity,
+                            oldSourceSummary,
+                            newSourceSummary);
 
     // initialize the remaining members
     this.createdRecords = new LinkedHashSet<>();
@@ -225,6 +271,21 @@ public class EntityDelta {
    */
   public SzResolvedEntity getOldEntity() {
     return this.oldEntity;
+  }
+
+  /**
+   * Gets the {@link Map} of {@link Long} entity ID keys to {@link Boolean}
+   * values describing the relationship patches that have been applied to
+   * the old entity state since it was last fully refreshed.  This returns an
+   * empty {@link Map} if no changes have been applied.
+   *
+   * @return The non-null {@link Map} of {@link Long} entity ID keys to
+   *         {@link Boolean} values describing the relationship patches that
+   *         have been applied to the old entity state since it was last fully
+   *         refreshed.
+   */
+  public Map<Long, Boolean> getRelationshipPatches() {
+    return this.relationshipPatches;
   }
 
   /**
@@ -367,7 +428,7 @@ public class EntityDelta {
    * Indicates that the specified record that was added to the entity had to be
    * created new in the data mart.
    *
-   * @param record The {@linkS SzRecord} describing the record that was newly
+   * @param record The {@link SzRecord} describing the record that was newly
    *               created.
    * @throws NullPointerException If the specified {@link SzRecord} is
    *                              <code>null</code>.
@@ -413,7 +474,7 @@ public class EntityDelta {
    * Indicates that the specified record that was added to the entity had to be
    * created new in the data mart.
    *
-   * @param record The {@linkS SzRecord} describing the record that was newly
+   * @param record The {@link SzRecord} describing the record that was newly
    *               created.
    * @throws NullPointerException If the specified {@link SzRecord} is
    *                              <code>null</code>.
@@ -1033,11 +1094,11 @@ public class EntityDelta {
    * @param newRecords The {@link Set} of {@link SzRecord} instances
    *                   describing the new records.
    */
-  private void findEntitySizeChanges(List<SzReportUpdate> reportUpdates,
-                                     SzResolvedEntity   oldEntity,
-                                     SzResolvedEntity   newEntity,
-                                     Set<SzRecord>      oldRecords,
-                                     Set<SzRecord>      newRecords)
+  private static void findEntitySizeChanges(List<SzReportUpdate>  reportUpdates,
+                                            SzResolvedEntity      oldEntity,
+                                            SzResolvedEntity      newEntity,
+                                            Set<SzRecord>         oldRecords,
+                                            Set<SzRecord>         newRecords)
   {
     int oldSize = oldRecords.size();
     int newSize = newRecords.size();
@@ -1069,15 +1130,22 @@ public class EntityDelta {
    *                     {@link SzRelatedEntity} values describing the new
    *                     relationships.
    */
-  private void findEntityRelationChanges(
+  private static void findEntityRelationChanges(
       List<SzReportUpdate>        reportUpdates,
       SzResolvedEntity            oldEntity,
       SzResolvedEntity            newEntity,
       Map<Long, SzRelatedEntity>  oldRelations,
-      Map<Long, SzRelatedEntity>  newRelations)
+      Map<Long, SzRelatedEntity>  newRelations,
+      Map<Long, Boolean>          relationshipPatches)
   {
-    int oldCount = oldRelations.size();
     int newCount = newRelations.size();
+    int oldCount = oldRelations.size();
+    for (Entry<Long,Boolean> entry : relationshipPatches.entrySet()) {
+      boolean contained = oldRelations.containsKey(entry.getKey());
+      boolean patch     = entry.getValue().booleanValue();
+      if (contained == patch) continue;
+      oldCount += (patch) ? 1 : -1;
+    }
     if (oldCount == newCount) return;
 
     long entityId = getEntityId(oldEntity, newEntity);
@@ -1201,7 +1269,7 @@ public class EntityDelta {
         reportUpdates.add(
             builder(
                 DATA_SOURCE_SUMMARY, DUPLICATE_COUNT, source, source, entityId)
-                .entities(-1).records(oldCount).build());
+                .entities(-1).records(-1 * oldCount).build());
       } else {
         // it is a duplicate of different size
         reportUpdates.add(

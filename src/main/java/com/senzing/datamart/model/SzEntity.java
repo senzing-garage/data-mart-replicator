@@ -10,7 +10,7 @@ import static com.senzing.util.JsonUtilities.*;
 /**
  * Provides a base class to describe an entity comprised of records.
  */
-public abstract class SzEntity {
+public class SzEntity {
   /**
    * The entity ID for this entity.
    */
@@ -34,7 +34,7 @@ public abstract class SzEntity {
   /**
    * Default constructor.
    */
-  protected SzEntity() {
+  public SzEntity() {
     this.sourceSummary = new LinkedHashMap<>();
     this.records       = new LinkedHashSet<>();
   }
@@ -190,14 +190,24 @@ public abstract class SzEntity {
   }
 
   /**
-   * Parses the specified JSON and populates the specified {@link SzEntity}.
+   * Parses the specified JSON and creates a new {@link SzEntity} instance
+   * with the properties of the specified {@link JsonObject}.
    *
-   * @param entity The {@link SzEntity} to populate.
    * @param jsonObject The {@link JsonObject} describing the entity.
    */
-  public static void parse(SzEntity entity, JsonObject jsonObject) {
+  public static SzEntity parse(JsonObject jsonObject) {
+    return parse(new SzEntity(), jsonObject);
+  }
+
+  /**
+   * Parses the specified JSON and populates the specified {@link SzEntity}.
+   *
+   * @param entity The non-null {@link SzEntity} to populate.
+   * @param jsonObject The {@link JsonObject} describing the entity.
+   */
+  public static <T extends SzEntity> T parse(T entity, JsonObject jsonObject) {
     Long entityId = getLong(jsonObject, "id");
-    if (entityId != null) {
+    if (entityId == null) {
       entityId = getLong(jsonObject, "ENTITY_ID");
     }
 
@@ -219,6 +229,7 @@ public abstract class SzEntity {
     }
 
     entity.setRecords(records);
+    return entity;
   }
 
   @Override
