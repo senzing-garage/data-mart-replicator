@@ -10,9 +10,6 @@ import com.senzing.sql.ConnectionProvider;
 import com.senzing.sql.DatabaseType;
 import com.senzing.text.TextUtilities;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -20,7 +17,6 @@ import java.time.Instant;
 import java.util.*;
 
 import static com.senzing.datamart.SzReplicationProvider.*;
-import static com.senzing.util.JsonUtilities.*;
 
 /**
  * Provides an abstract base class for Data Mart Replicator {@link TaskHandler}
@@ -101,7 +97,8 @@ public abstract class AbstractTaskHandler implements TaskHandler {
    * @throws SQLException If a JDBC failure occurs.
    */
   protected Connection getConnection() throws SQLException {
-    return this.getConnectionProvider().getConnection();
+    ConnectionProvider provider = this.getConnectionProvider();
+    return provider.getConnection();
   }
 
   /**
@@ -141,6 +138,20 @@ public abstract class AbstractTaskHandler implements TaskHandler {
                                         SzReportKey reportKey)
   {
     this.scheduleReportFollowUp(reportAction.toString(), reportKey);
+  }
+
+  /**
+   * Implemented to return the result from calling
+   * {@link SzReplicationProvider#waitUntilReady(long)} on the underlying
+   * {@link SzReplicationProvider}.
+   * <p>
+   * {@inheritDoc}
+   */
+  @Override
+  public Boolean waitUntilReady(long timeoutMillis)
+      throws InterruptedException
+  {
+    return this.replicationProvider.waitUntilReady(timeoutMillis);
   }
 
   /**
@@ -274,6 +285,7 @@ public abstract class AbstractTaskHandler implements TaskHandler {
     List<Integer> expectedCounts  = new ArrayList<>(data.size());
     for (T value : data) {
       expectedCounts.add(binder.bind(ps, value));
+      ps.addBatch();
       batchCount++;
       // if we exceeed the maximum batch size then execute early
       if (batchCount > MAX_BATCH_SIZE) {
@@ -283,9 +295,12 @@ public abstract class AbstractTaskHandler implements TaskHandler {
         batchCount = 0;
       }
     }
+
     // execute anything remaining in the batch
     if (batchCount > 0) {
-      for (int rowCount : ps.executeBatch()) {
+      int[] rowCountArray = ps.executeBatch();
+
+      for (int rowCount : rowCountArray) {
         rowCounts.add(rowCount);
       }
     }

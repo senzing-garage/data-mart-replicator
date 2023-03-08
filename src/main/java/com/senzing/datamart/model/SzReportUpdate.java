@@ -158,6 +158,21 @@ public class SzReportUpdate {
   }
 
   /**
+   * Private constructor for use by the builders.
+   *
+   * @param reportKey The {@link SzReportKey} for the report.
+   * @param entityId The entity ID for the update.
+   * @param relatedId The related entity ID for the update, or <code>null</code>
+   *                  if none.
+   */
+  private SzReportUpdate(SzReportKey reportKey, long entityId, Long relatedId) {
+    Objects.requireNonNull(reportKey, "The report key cannot be null");
+    this.reportKey  = reportKey;
+    this.entityId   = entityId;
+    this.relatedId  = relatedId;
+  }
+
+  /**
    * Gets the {@link SzReportKey} for this instance.
    *
    * @return The {@link SzReportKey} for this instance.

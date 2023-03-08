@@ -1,7 +1,10 @@
 package com.senzing.datamart.handlers;
 
 import com.senzing.datamart.model.*;
+import com.senzing.listener.service.locking.ResourceKey;
+import com.senzing.util.LoggingUtilities;
 
+import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 import java.util.*;
 
 import static java.util.Map.*;
@@ -86,6 +89,11 @@ public class EntityDelta {
   private Set<SzRecord> deletedRecords;
 
   /**
+   * The {@link SortedSet} of {@link ResourceKey} instances.
+   */
+  private SortedSet<ResourceKey> resourceKeys;
+
+  /**
    * The {@link Map} of {@link Long} entity ID keys to {@link SzRelatedEntity}
    * values describing the related entities that related to the entity, but
    * previously were not.
@@ -153,9 +161,15 @@ public class EntityDelta {
               + " ], newEntityId=[ " + newEntity.getEntityId() + " ]");
     }
 
+    // create the resource key set
+    this.resourceKeys = new TreeSet<>();
+
     // set the entity fields
     this.oldEntity = oldEntity;
     this.newEntity = newEntity;
+
+    // get the entity ID
+    long entityId = getEntityId(this.oldEntity, this.newEntity);
 
     // set the relationship patches
     this.relationshipPatches = (relationPatchMap == null)
@@ -197,8 +211,18 @@ public class EntityDelta {
     // determine the added records
     this.addedRecords = findAddedRecords(oldRecords, newRecords);
 
+    this.addedRecords.forEach(record -> {
+      this.resourceKeys.add(new ResourceKey(
+          "RECORD", record.getDataSource(), record.getRecordId()));
+    });
+
     // determine the removed records
     this.removedRecords = findRemovedRecords(oldRecords, newRecords);
+
+    this.removedRecords.forEach(record -> {
+      this.resourceKeys.add(new ResourceKey(
+          "RECORD", record.getDataSource(), record.getRecordId()));
+    });
 
     // determine the relationship count delta
     Map<Long, SzRelatedEntity> oldRelations = getRelatedEntities(oldEntity);
@@ -209,14 +233,38 @@ public class EntityDelta {
     // determine the added relationships
     this.addedRelations = findAddedRelations(oldRelations, newRelations);
 
+    this.addedRelations.values().forEach(relatedEntity -> {
+      long relId = relatedEntity.getEntityId();
+      long entityId1 = (entityId < relId) ? entityId : relId;
+      long entityId2 = (entityId < relId) ? relId : entityId;
+      this.resourceKeys.add(new ResourceKey(
+          "RELATIONSHIP", entityId1, entityId2));
+    });
+
     // determine the removed relationships
     this.removedRelations = findRemovedRelations(oldRelations, newRelations);
+
+    this.removedRelations.values().forEach(relatedEntity -> {
+      long relId = relatedEntity.getEntityId();
+      long entityId1 = (entityId < relId) ? entityId : relId;
+      long entityId2 = (entityId < relId) ? relId : entityId;
+      this.resourceKeys.add(new ResourceKey(
+          "RELATIONSHIP", entityId1, entityId2));
+    });
 
     // determine the changed relationships
     this.changedRelations = findChangedRelations(oldDataSources,
                                                  newDataSources,
                                                  oldRelations,
                                                  newRelations);
+
+    this.changedRelations.values().forEach(relatedEntity -> {
+      long relId = relatedEntity.getEntityId();
+      long entityId1 = (entityId < relId) ? entityId : relId;
+      long entityId2 = (entityId < relId) ? relId : entityId;
+      this.resourceKeys.add(new ResourceKey(
+          "RELATIONSHIP", entityId1, entityId2));
+    });
 
     // determine the ECB (Entity Count Breakdown) changes
     this.reportUpdates = new LinkedList<>();
@@ -253,6 +301,9 @@ public class EntityDelta {
     // initialize the remaining members
     this.createdRecords = new LinkedHashSet<>();
     this.deletedRecords = new LinkedHashSet<>();
+
+    // make the resource key set unmodifiable
+    this.resourceKeys = Collections.unmodifiableSortedSet(this.resourceKeys);
   }
 
   /**
@@ -634,6 +685,7 @@ public class EntityDelta {
       // get the statistic
       SzReportStatistic statistic = STATISTIC_LOOKUP.get(oldMatchType);
 
+      System.err.println("DECREMENTING COUNTS: " + oldCrossSources);
       // handle decrementing the counts accordingly
       oldCrossSources.forEach((sourcePair, count) -> {
         String source1 = sourcePair.get(0);
@@ -680,19 +732,31 @@ public class EntityDelta {
       // get the statistic
       SzReportStatistic statistic = STATISTIC_LOOKUP.get(matchType);
 
+      System.err.println("HANDLING DELTAS: " + crossSourceDeltas);
+
       // handle updating the counts accordingly
       crossSourceDeltas.forEach((sourcePair, delta) -> {
+        // if the delta is zero then do nothing
+        if (delta.intValue() == 0) return;
+
         String source1 = sourcePair.get(0);
         String source2 = sourcePair.get(1);
 
         SzReportCode reportCode = (source1.equals(source2))
             ? DATA_SOURCE_SUMMARY : CROSS_SOURCE_SUMMARY;
 
+        int entityDelta = 0;
+        if (!newCrossSources.containsKey(sourcePair)) {
+          entityDelta = -1;
+        } else if (!oldCrossSources.containsKey(sourcePair)) {
+          entityDelta = 1;
+        }
+
         // delete all the old counts for this relationship
         reportUpdates.add(
             builder(
                 reportCode, statistic, source1, source2, id1, id2)
-                .recordRelations(delta).build());
+                .relations(entityDelta).recordRelations(delta).build());
       });
     }
   }
@@ -801,6 +865,7 @@ public class EntityDelta {
     // get the statistic
     SzReportStatistic statistic = STATISTIC_LOOKUP.get(oldMatchType);
 
+    System.out.println("DECREMENTING RELATIONSHIPS: " + oldCrossSources);
     // handle decrementing the counts accordingly
     oldCrossSources.forEach((sourcePair, count) -> {
       String source2 = sourcePair.get(1);
@@ -1459,10 +1524,22 @@ public class EntityDelta {
       if (oldCount != null) return;
 
       // put the difference in the map
-      result.put(sourcePair, newCount - oldCount);
+      result.put(sourcePair, newCount);
     });
 
     return result;
   }
 
+  /**
+   * Gets the <b>unmodifiable</b> {@link SortedSet} of {@link ResourceKey}
+   * instances identifying the resources that need to be locked during database
+   * updated.
+   *
+   * @return The <b>unmodifiable</b> {@link SortedSet} of {@link ResourceKey}
+   *         instances identifying the resources that need to be locked during
+   *         database updated.
+   */
+  public SortedSet<ResourceKey> getResourceKeys() {
+    return this.resourceKeys;
+  }
 }

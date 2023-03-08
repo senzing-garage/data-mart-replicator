@@ -1,6 +1,8 @@
 package com.senzing.datamart.model;
 
 
+import com.senzing.util.JsonUtilities;
+import com.senzing.util.LoggingUtilities;
 import com.senzing.util.ZipUtilities;
 
 import javax.json.*;
@@ -117,7 +119,13 @@ public class SzResolvedEntity extends SzEntity {
   public static SzResolvedEntity parseHash(String hashText) {
     if (hashText == null) return null;
     String jsonText = ZipUtilities.unzipText64(hashText);
-    return parse(jsonText);
+    try {
+      return parse(jsonText);
+    } catch (RuntimeException e) {
+      System.err.println(jsonText);
+      e.printStackTrace();
+      throw e;
+    }
   }
 
   /**
@@ -163,7 +171,7 @@ public class SzResolvedEntity extends SzEntity {
 
     if (relatedArray != null) {
       for (JsonObject jsonObj : relatedArray.getValuesAs(JsonObject.class)) {
-        SzRelatedEntity related = SzRelatedEntity.parse(null, jsonObject);
+        SzRelatedEntity related = SzRelatedEntity.parse(null, jsonObj);
         relatedEntities.add(related);
       }
     }

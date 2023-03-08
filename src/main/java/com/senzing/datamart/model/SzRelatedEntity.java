@@ -1,5 +1,7 @@
 package com.senzing.datamart.model;
 
+import com.senzing.util.JsonUtilities;
+
 import javax.json.*;
 
 import java.util.Objects;
@@ -135,7 +137,10 @@ public class SzRelatedEntity extends SzEntity {
     if (matchTypeText == null) {
       matchType = SzMatchType.detect(jsonObject);
     } else {
-      matchType = SzMatchType.valueOf(matchTypeText);
+      matchType = SzMatchType.lookup(matchTypeText);
+      if (matchType == null) {
+        matchType = SzMatchType.valueOf(matchTypeText);
+      }
     }
     entity.setMatchType(matchType);
 

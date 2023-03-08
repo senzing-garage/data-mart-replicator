@@ -2,15 +2,16 @@ package com.senzing.datamart;
 
 import com.senzing.cmdline.CommandLineOption;
 import com.senzing.util.JsonUtilities;
-import com.senzing.reflect.PropertyReflector;
 
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
+import java.io.File;
 import java.util.*;
 
 import static com.senzing.datamart.SzReplicatorConstants.*;
 import static com.senzing.datamart.SzReplicatorOption.*;
+import static com.senzing.util.JsonUtilities.*;
 
 /**
  * Describes the options to be set when constructing an instance of
@@ -20,6 +21,7 @@ public class SzReplicatorOptions {
   private JsonObject  jsonInit                  = null;
   private int         concurrency               = DEFAULT_CONCURRENCY;
   private String      moduleName                = DEFAULT_MODULE_NAME;
+  private boolean     verbose                   = false;
   private String      rabbitInfoUser            = null;
   private String      rabbitInfoPassword        = null;
   private String      rabbitInfoHost            = null;
@@ -27,6 +29,12 @@ public class SzReplicatorOptions {
   private String      rabbitInfoVHost           = null;
   private String      rabbitInfoQueue           = null;
   private String      sqsInfoUrl                = null;
+  private File        sqliteDatabaseFile        = null;
+  private String      postgreSqlHost            = null;
+  private Integer     postgreSqlPort            = null;
+  private String      postgreSqlDatabase        = null;
+  private String      postgreSqlUser            = null;
+  private String      postgreSqlPassword        = null;
 
   /**
    * Constructs with the native Senzing JSON initialization parameters as a
@@ -87,6 +95,26 @@ public class SzReplicatorOptions {
   public SzReplicatorOptions setModuleName(String moduleName) {
     this.moduleName = moduleName;
     return this;
+  }
+
+  /**
+   * Sets the verbosity to initialize with.
+   *
+   * @param verbose The verbosity to initialize with (either <code>true</code>
+   *                for verbose and <code>false</code> for not verbose).
+   */
+  public void setVerbose(boolean verbose) {
+    this.verbose = verbose;
+  }
+
+  /**
+   * Checks if we should initialize the Senzing engine as verbose or not.
+   *
+   * @return <code>true</code> if we should initialize as verbose, and
+   *         <code>false</code> if not.
+   */
+  public boolean isVerbose() {
+    return this.verbose;
   }
 
   /**
@@ -264,6 +292,138 @@ public class SzReplicatorOptions {
   }
 
   /**
+   * Gets the database file for the Sqlite data mart database.
+   *
+   * @return The database file for connecting to the Sqlite database.
+   *
+   * @see SzReplicatorOption#SQLITE_DATABASE_FILE
+   */
+  public File getSqliteDatabaseFile() {
+    return this.sqliteDatabaseFile;
+  }
+
+  /**
+   * Sets the database file for the Sqlite data mart database.
+   *
+   * @param file The database file for connecting to the Sqlite database.
+   *
+   * @see SzReplicatorOption#SQLITE_DATABASE_FILE
+   */
+  public void setSqliteDatabaseFile(File file) {
+    this.sqliteDatabaseFile = file;
+  }
+
+  /**
+   * Gets the database host for the PostgreSql data mart database.
+   *
+   * @return The database host for connecting to the database.
+   *
+   * @see SzReplicatorOption#POSTGRESQL_HOST
+   */
+  public String getPostgreSqlHost() {
+    return this.postgreSqlHost;
+  }
+
+  /**
+   * Sets the database host for the PostgreSql data mart database.
+   *
+   * @param host The database port for connecting to the database.
+   *
+   * @see SzReplicatorOption#POSTGRESQL_HOST
+   */
+  public void setPostgreSqlHost(String host) {
+    this.postgreSqlHost = host;
+  }
+
+  /**
+   * Gets the database port for the PostgreSql data mart database.
+   *
+   * @return The database port for connecting to the database.
+   *
+   * @see SzReplicatorOption#POSTGRESQL_PORT
+   */
+  public Integer getPostgreSqlPort() {
+    return this.postgreSqlPort;
+  }
+
+  /**
+   * Sets the database port for the PostgreSql data mart database.
+   *
+   * @param port The database port for connecting to the database.
+   *
+   * @see SzReplicatorOption#POSTGRESQL_PORT
+   */
+  public void setPostgreSqlPort(Integer port) {
+    this.postgreSqlPort = port;
+  }
+
+  /**
+   * Gets the database name for the PostgreSql data mart database.
+   *
+   * @return The database name for connecting to the database.
+   *
+   * @see SzReplicatorOption#POSTGRESQL_DATABASE
+   */
+  public String getPostgreSqlDatabase() {
+    return this.postgreSqlDatabase;
+  }
+
+  /**
+   * Sets the database name for the PostgreSql data mart database.
+   *
+   * @param database The database name for connecting to the database.
+   *
+   * @see SzReplicatorOption#POSTGRESQL_DATABASE
+   */
+  public void setPostgreSqlDatabase(String database) {
+    this.postgreSqlDatabase = database;
+  }
+
+  /**
+   * Gets the user name for the PostgreSql data mart database.
+   *
+   * @return The user name for connecting to the database.
+   *
+   * @see SzReplicatorOption#POSTGRESQL_USER
+   */
+  public String getPostgreSqlUser() {
+    return this.postgreSqlUser;
+  }
+
+  /**
+   * Sets the user name for the PostgreSql data mart database.
+   *
+   * @param user The user name for connecting to the database.
+   *
+   * @see SzReplicatorOption#POSTGRESQL_USER
+   */
+  public void setPostgreSqlUser(String user) {
+    this.postgreSqlUser = user;
+  }
+
+  /**
+   * Gets the password for the PostgreSql data mart database.
+   *
+   * @return The password for connecting to the database.
+   *
+   * @see SzReplicatorOption#POSTGRESQL_PASSWORD
+   */
+  public String getPostgreSqlPassword() {
+    return this.postgreSqlPassword;
+  }
+
+  /**
+   * Sets the password for the PostgreSql data mart database.
+   *
+   * @param password The password for connecting to the database.
+   *
+   * @see SzReplicatorOption#POSTGRESQL_PASSWORD
+   */
+  public void setPostgreSqlPassword(String password) {
+    this.postgreSqlPassword = password;
+  }
+
+  /**
    * Converts this instance to a {@link JsonObject}.
    *
    * @return A {@link JsonObject} representation of this instance.
@@ -278,11 +438,78 @@ public class SzReplicatorOptions {
    * Converts this instance to JSON.
    *
    * @param builder The {@link JsonObjectBuilder} to which to add the JSON
-   *                properties.
+   *                properties, or <code>null</code> if a new {@link
+   *                JsonObjectBuilder} should be created.
    * @return The specified {@link JsonObjectBuilder}.
    */
   public JsonObjectBuilder buildJson(JsonObjectBuilder builder) {
-    return PropertyReflector.buildJsonObject(builder, this);
+    if (builder == null) builder = Json.createObjectBuilder();
+    builder.add("initJson", this.getJsonInitParameters());
+    builder.add("verbose", this.isVerbose());
+    builder.add("concurrency", this.getConcurrency());
+    builder.add("moduleName", this.getModuleName());
+    builder.add("rabbitInfoUser", this.getRabbitInfoUser());
+    builder.add("rabbitInfoPassword", this.getRabbitInfoPassword());
+    builder.add("rabbitInfoHost", this.getRabbitInfoHost());
+    builder.add("rabbitInfoPort", this.getRabbitInfoPort());
+    builder.add("rabbitInfoVirtualHost", this.getRabbitInfoVirtualHost());
+    builder.add("rabbitInfoQueue", this.getRabbitInfoQueue());
+    builder.add("sqsInfoUrl", this.getSqsInfoUrl());
+    builder.add("sqliteDatabaseFile", "" + this.getSqliteDatabaseFile());
+    builder.add("postgreSqlHost", this.getPostgreSqlHost());
+    builder.add("postgreSqlPort", this.getPostgreSqlPort());
+    builder.add("postgreSqlDatabase", this.getPostgreSqlDatabase());
+    builder.add("postgreSqlUser", this.getPostgreSqlUser());
+    builder.add("postgreSqlPassword", this.getPostgreSqlPassword());
+    return builder;
+  }
+
+  /**
+   * Parses the specified JSON text as an instance of {@link
+   * SzReplicatorOptions}.
+   *
+   * @param jsonText The JSON text describing the {@link SzReplicatorOptions}.
+   *
+   * @return The {@link SzReplicatorOptions} created from the specified
+   *         JSON text.
+   */
+  public static SzReplicatorOptions parse(String jsonText) {
+    JsonObject jsonObject = JsonUtilities.parseJsonObject(jsonText);
+    return parse(jsonObject);
+  }
+
+  /**
+   * Parses the specified {@link JsonObject} as an instance of {@link
+   * SzReplicatorOptions}.
+   *
+   * @param jsonObject The {@link JsonObject} describing the {@link
+   *                   SzReplicatorOptions}.
+   *
+   * @return The {@link SzReplicatorOptions} created from the specified
+   *         {@link JsonObject}.
+   */
+  public static SzReplicatorOptions parse(JsonObject jsonObject) {
+    final JsonObject obj = jsonObject;
+    SzReplicatorOptions opts
+        = new SzReplicatorOptions(getJsonObject(obj, "initJson"));
+
+    opts.setConcurrency(getInteger(obj, "concurrency"));
+    opts.setModuleName(getString(obj, "moduleName"));
+    opts.setRabbitInfoUser(getString(obj, "rabbitInfoUser"));
+    opts.setRabbitInfoPassword(getString(obj, "rabbitInfoPassword"));
+    opts.setRabbitInfoHost(getString(obj, "rabbitInfoHost"));
+    opts.setRabbitInfoPort(getInteger(obj, "rabbitInfoPort"));
+    opts.setRabbitInfoVirtualHost(getString(obj, "rabbitInfoVirtualHost"));
+    opts.setRabbitInfoQueue(getString(obj, "rabbitInfoQueue"));
+    opts.setSqsInfoUrl(getString(obj, "sqsInfoUrl"));
+    opts.setSqliteDatabaseFile(new File(getString(obj,
+                                                  "sqliteDatabaseFile")));
+    opts.setPostgreSqlHost(getString(obj, "postgreSqlHost"));
+    opts.setPostgreSqlPort(getInteger(obj, "postgreSqlPort"));
+    opts.setPostgreSqlDatabase(getString(obj, "postgreSqlDatabase"));
+    opts.setPostgreSqlUser(getString(obj, "postgreSqlUser"));
+    opts.setPostgreSqlPassword(getString(obj, "postgreSqlPassword"));
+    return opts;
   }
 
   /**
@@ -294,16 +521,23 @@ public class SzReplicatorOptions {
    */
   protected Map<CommandLineOption, Object> buildOptionsMap() {
     Map<CommandLineOption, Object> map = new HashMap<>();
-    put(map, CONCURRENCY,                  this.getConcurrency());
-    put(map, MODULE_NAME,                  this.getModuleName());
-    put(map, INIT_JSON,                    this.getJsonInitParameters());
-    put(map, RABBIT_INFO_USER,             this.getRabbitInfoUser());
-    put(map, RABBIT_INFO_PASSWORD,         this.getRabbitInfoPassword());
-    put(map, RABBIT_INFO_HOST,             this.getRabbitInfoHost());
-    put(map, RABBIT_INFO_PORT,             this.getRabbitInfoPort());
-    put(map, RABBIT_INFO_VIRTUAL_HOST,     this.getRabbitInfoVirtualHost());
-    put(map, RABBIT_INFO_QUEUE,            this.getRabbitInfoQueue());
-    put(map, SQS_INFO_URL,                 this.getSqsInfoUrl());
+    put(map, MODULE_NAME,               this.getModuleName());
+    put(map, INIT_JSON,                 this.getJsonInitParameters());
+    put(map, VERBOSE,                   this.isVerbose());
+    put(map, CONCURRENCY,               this.getConcurrency());
+    put(map, RABBIT_INFO_USER,          this.getRabbitInfoUser());
+    put(map, RABBIT_INFO_PASSWORD,      this.getRabbitInfoPassword());
+    put(map, RABBIT_INFO_HOST,          this.getRabbitInfoHost());
+    put(map, RABBIT_INFO_PORT,          this.getRabbitInfoPort());
+    put(map, RABBIT_INFO_VIRTUAL_HOST,  this.getRabbitInfoVirtualHost());
+    put(map, RABBIT_INFO_QUEUE,         this.getRabbitInfoQueue());
+    put(map, SQS_INFO_URL,              this.getSqsInfoUrl());
+    put(map, SQLITE_DATABASE_FILE,      this.getSqliteDatabaseFile());
+    put(map, POSTGRESQL_HOST,           this.getPostgreSqlHost());
+    put(map, POSTGRESQL_PORT,           this.getPostgreSqlPort());
+    put(map, POSTGRESQL_DATABASE,       this.getPostgreSqlDatabase());
+    put(map, POSTGRESQL_USER,           this.getPostgreSqlUser());
+    put(map, POSTGRESQL_PASSWORD,       this.getPostgreSqlPassword());
     return map;
   }
 

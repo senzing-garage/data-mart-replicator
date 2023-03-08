@@ -1,6 +1,7 @@
 package com.senzing.datamart.schema;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
@@ -46,6 +47,7 @@ public abstract class SchemaBuilder {
       throws SQLException
   {
     Statement stmt = null;
+    ResultSet rs = null;
     try {
       stmt = conn.createStatement();
 
@@ -60,7 +62,9 @@ public abstract class SchemaBuilder {
           throw e;
         }
       }
+
     } finally {
+      rs = close(rs);
       stmt = close(stmt);
     }
   }

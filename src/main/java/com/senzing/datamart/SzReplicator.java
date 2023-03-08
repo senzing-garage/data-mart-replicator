@@ -3,13 +3,24 @@ package com.senzing.datamart;
 import com.senzing.cmdline.*;
 import com.senzing.g2.engine.G2Product;
 import com.senzing.g2.engine.G2ProductJNI;
+import com.senzing.listener.communication.MessageConsumer;
+import com.senzing.listener.communication.rabbitmq.RabbitMQConsumer;
+import com.senzing.listener.communication.sqs.SQSConsumer;
+import com.senzing.listener.service.ListenerService;
 import com.senzing.listener.service.g2.G2Service;
+import com.senzing.listener.service.scheduling.AbstractSQLSchedulingService;
+import com.senzing.listener.service.scheduling.AbstractSchedulingService;
+import com.senzing.listener.service.scheduling.PostgreSQLSchedulingService;
+import com.senzing.listener.service.scheduling.SQLiteSchedulingService;
+import com.senzing.text.TextUtilities;
 import com.senzing.util.AccessToken;
 import com.senzing.util.JsonUtilities;
+import com.senzing.sql.*;
 
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
+import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.Instant;
@@ -25,6 +36,10 @@ import static com.senzing.datamart.SzReplicatorOption.*;
 import static com.senzing.datamart.SzReplicatorConstants.*;
 import static com.senzing.util.LoggingUtilities.isLastLoggedException;
 import static com.senzing.util.LoggingUtilities.multilineFormat;
+import static com.senzing.util.Quantified.*;
+import static com.senzing.listener.service.scheduling.AbstractSchedulingService.Stat.*;
+import static com.senzing.listener.communication.AbstractMessageConsumer.Stat.*;
+import static com.senzing.sql.ConnectionPool.Stat.*;
 
 /**
  * The data mart replicator command-line class.
@@ -174,6 +189,7 @@ public class SzReplicator extends Thread {
       }
 
     } catch (CommandLineException e) {
+      System.out.println();
       System.out.println(e.getMessage());
 
       System.err.println();
@@ -210,6 +226,9 @@ public class SzReplicator extends Thread {
 
     SzReplicator replicator = null;
     try {
+      System.err.println();
+      System.err.println(options);
+      System.err.println();
       replicator = appBuilder.build(options);
 
       if (replicator == null) {
@@ -222,8 +241,105 @@ public class SzReplicator extends Thread {
       exitOnError(e);
     }
 
+    System.err.println("STARTING REPLICATOR...");
     replicator.start();
+    System.err.println("STARTED REPLICATOR.");
+    System.err.println("JOINING REPLICATOR...");
     replicator.join();
+    System.err.println("JOINED REPLICATOR.");
+  }
+
+  /**
+   *
+   */
+  public void run() {
+    try {
+      this.startTimeNanos = System.nanoTime();
+      System.err.println("STARTING MESSAGE CONSUMPTION...");
+      this.messageConsumer.consume(this.replicatorService);
+      System.err.println("MESSAGE CONSUMPTION STARTED.");
+
+      final Object monitor = new Object();
+      synchronized (monitor) {
+        while (true) {
+          monitor.wait(10000L);
+          ListenerService.State listenerState
+              = this.replicatorService.getState();
+
+          MessageConsumer.State consumerState
+              = this.messageConsumer.getState();
+
+          // check if something has interrupted processing
+          if (listenerState != ListenerService.State.AVAILABLE
+              || consumerState != MessageConsumer.State.CONSUMING) {
+            break;
+          }
+
+          this.printStatistics();
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+
+    } finally {
+      this.messageConsumer.destroy();
+      this.replicatorService.destroy();
+    }
+  }
+
+  /**
+   *
+   */
+  private void printStatistics() {
+    Map<Statistic, Number> stats = new LinkedHashMap<>();
+    stats.putAll(this.messageConsumer.getStatistics());
+    stats.putAll(this.replicatorService.getStatistics());
+    stats.putAll(this.connPool.getStatistics());
+
+    long    now     = System.nanoTime();
+    double  elapsed = ((double) (now - this.startTimeNanos)) / 1000000000.0;
+
+    Number completeCount = stats.get(taskGroupCompleteCount);
+    long   completed = completeCount.longValue();
+
+    System.out.println();
+    System.out.println(
+        "Handled " + completed + " INFO messages in " + elapsed + " seconds.");
+    System.out.println(
+        "Processing rate: " + (((double) completed) / elapsed)
+            + " INFO messages per second.");
+
+    /*
+    MessageConsumer     consumer  = this.messageConsumer;
+    SzReplicatorService service   = this.replicatorService;
+
+    System.out.println();
+    System.out.println("=====================================================");
+    System.out.println("CONSUMER STATISTICS:");
+    printStatisticsMap(stats1);
+
+    System.out.println();
+    System.out.println("-----------------------------------------------------");
+
+    System.out.println("REPLICATOR STATISTICS:");
+    printStatisticsMap(stats2);
+
+    System.out.println();
+    System.out.println("-----------------------------------------------------");
+    System.out.println("CONNECTION POOL STATISTICS:");
+    printStatisticsMap(stats3);
+    */
+  }
+
+  /**
+   *
+   */
+  private static void printStatisticsMap(Map<Statistic,Number> stats) {
+    stats.forEach((key, value) -> {
+      String units = key.getUnits();
+      System.out.println("  " + key.getName() + ": " + value
+                             + ((units != null) ? " " + units : ""));
+    });
   }
 
   /**
@@ -322,42 +438,48 @@ public class SzReplicator extends Thread {
     pw.println(multilineFormat(
         "[ Standard Options ]",
         "   --help",
-        "        Also -help.  Should be the first and only option if provided.",
-        "        Causes this help message to be displayed.",
-        "        NOTE: If this option is provided, the server will not start.",
+        "        Should be the first and only option if provided.  Causes this help",
+        "        message to be displayed.",
+        "        NOTE: If this option is provided, the replicator will not start.",
         "",
         "   --version",
-        "        Also -version.  Should be the first and only option if provided.",
-        "        Causes the version of the G2 REST API Server to be displayed.",
-        "        NOTE: If this option is provided, the server will not start.",
+        "        Should be the first and only option if provided.  Causes the version",
+        "        of the G2 REST API Server to be displayed.",
+        "        NOTE: If this option is provided, the replicator will not start.",
         "",
         "   --concurrency <thread-count>",
-        "        Also -concurrency.  Sets the number of threads available for consuming ",
-        "        info messages from the queue (i.e.: the number of engine threads).",
-        "        If not specified, then this defaults to "
+        "        Sets the number of threads available for performing Senzing API",
+        "        operations (i.e.: the number of engine threads).  The number of",
+        "        threads for consuming messages and handling tasks is scaled based",
+        "        on the engine concurrency.  If not specified, then this defaults to "
             + DEFAULT_CONCURRENCY + ".",
         "        --> VIA ENVIRONMENT: " + CONCURRENCY.getEnvironmentVariable(),
         "",
         "   --module-name <module-name>",
-        "        Also -moduleName.  The module name to initialize with.  If not",
-        "        specified, then the module name defaults to \""
-            + DEFAULT_MODULE_NAME + "\".",
+        "        The module name to initialize with.  If not specified, then the module",
+        "        name defaults to \"" + DEFAULT_MODULE_NAME + "\".",
         "        --> VIA ENVIRONMENT: " + MODULE_NAME.getEnvironmentVariable(),
         "",
+        "   --verbose [true|false]",
+        "        Also -verbose.  If specified then initialize in verbose mode.  The",
+        "        true/false parameter is optional, if not specified then true is assumed.",
+        "        If specified as false then it is the same as omitting the option with",
+        "        the exception that omission falls back to the environment variable",
+        "        setting whereas an explicit false overrides any environment variable.",
+        "        --> VIA ENVIRONMENT: " + VERBOSE.getEnvironmentVariable(),
+        "",
         "   --ini-file <ini-file-path>",
-        "        Also -iniFile.  The path to the Senzing INI file to with which to",
-        "        initialize.",
+        "        The path to the Senzing INI file to with which to initialize.",
         "        EXAMPLE: -iniFile /etc/opt/senzing/G2Module.ini",
         "        --> VIA ENVIRONMENT: " + INI_FILE.getEnvironmentVariable(),
         "",
         "   --init-file <json-init-file>",
-        "        Also -initFile.  The path to the file containing the JSON text to",
-        "        use for Senzing initialization.",
-        "        EXAMPLE: -initFile ~/senzing/g2-init.json",
+        "        The path to the file containing the JSON text to use for Senzing",
+        "        initialization.  EXAMPLE: -initFile ~/senzing/g2-init.json",
         "        --> VIA ENVIRONMENT: " + INIT_FILE.getEnvironmentVariable(),
         "",
         "   --init-json <json-init-text>",
-        "        Also -initJson.  The JSON text to use for Senzing initialization.",
+        "        The JSON text to use for Senzing initialization.",
         "        *** SECURITY WARNING: If the JSON text contains a password",
         "        then it may be visible to other users via process monitoring.",
         "        EXAMPLE: -initJson \"{\"PIPELINE\":{ ... }}\"",
@@ -388,7 +510,7 @@ public class SzReplicator extends Thread {
             + " (fallback)",
         "",
         "   --rabbit-info-port <port>",
-        "        Used to specify the port number for connectingto RabbitMQ as part of",
+        "        Used to specify the port number for connecting to RabbitMQ as part of",
         "        specifying a RabbitMQ info queue.",
         "        --> VIA ENVIRONMENT: " + RABBIT_INFO_PORT.getEnvironmentVariable(),
         "                             "
@@ -426,6 +548,51 @@ public class SzReplicator extends Thread {
   }
 
   /**
+   * Prints the data-mart database connectivity options usage to the specified
+   * {@link PrintWriter}.
+   *
+   * @param pw The {@link PrintWriter} to write the data-mart database
+   *           connectivity options usage.
+   */
+  protected static void printDatabaseOptionsUsage(PrintWriter pw) {
+    pw.println(multilineFormat(
+        "[ Data Mart Database Connectivity Options ]",
+        "   The following options pertain to configuring the connection to the data-mart",
+        "   database.  Exactly one such database must be configured.",
+        "",
+        "   --sqlite-database-file <url>",
+        "        Specifies an SQLite database file to open (or create) to use as the",
+        "        data-mart database.  NOTE: SQLite may be used for testing, but because",
+        "        only one connection may be made, it will not scale for production use.",
+        "        --> VIA ENVIRONMENT: " + SQLITE_DATABASE_FILE.getEnvironmentVariable(),
+        "",
+        "   --postgresql-host <hostname>",
+        "        Used to specify the hostname for connecting to PostgreSQL as the ",
+        "        data-mart database.",
+        "        --> VIA ENVIRONMENT: " + POSTGRESQL_HOST.getEnvironmentVariable(),
+        "",
+        "   --postgresql-port <port>",
+        "        Used to specify the port number for connecting to PostgreSQL as the ",
+        "        data-mart database.",
+        "        --> VIA ENVIRONMENT: " + POSTGRESQL_PORT.getEnvironmentVariable(),
+        "",
+        "   --postgresql-database <database>",
+        "        Used to specify the database name for connecting to PostgreSQL as the ",
+        "        data-mart database.",
+        "        --> VIA ENVIRONMENT: " + POSTGRESQL_DATABASE.getEnvironmentVariable(),
+        "",
+        "   --postgresql-user <user name>",
+        "        Used to specify the user name for connecting to PostgreSQL as the ",
+        "        data-mart database.",
+        "        --> VIA ENVIRONMENT: " + POSTGRESQL_USER.getEnvironmentVariable(),
+        "",
+        "   --postgresql-password <password>",
+        "        Used to specify the password for connecting to PostgreSQL as the ",
+        "        data-mart database.",
+        "        --> VIA ENVIRONMENT: " + POSTGRESQL_PASSWORD.getEnvironmentVariable()));
+  }
+
+  /**
    * Generates the usage string for the data-mart replicator.
    *
    * @return The usage string for the data-mart replicator.
@@ -438,6 +605,7 @@ public class SzReplicator extends Thread {
     printUsageIntro(pw);
     printStandardOptionsUsage(pw);
     printInfoQueueOptionsUsage(pw);
+    printDatabaseOptionsUsage(pw);
 
     pw.flush();
     sw.flush();
@@ -461,7 +629,50 @@ public class SzReplicator extends Thread {
   private G2Service g2Service;
 
   /**
-   * The
+   * The configured concurrency.
+   */
+  private int concurrency;
+
+  /**
+   * The start time when the {@link #run()} method is called.
+   */
+  private long startTimeNanos = 0L;
+
+  /**
+   * The {@link Connector} for connecting to the data-mart database.
+   */
+  private Connector connector = null;
+
+  /**
+   * The {@link ConnectionPool} to use for connecting.
+   */
+  private ConnectionPool connPool = null;
+
+  /**
+   * The {@link ConnectionProvider} that is backed by the
+   * {@link ConnectionPool}.
+   */
+  private ConnectionProvider connProvider;
+
+  /**
+   * The unique name used to bind the {@link ConnectionProvider} in the
+   * {@link ConnectionProvider#REGISTRY}.
+   */
+  private String connProviderName;
+
+  /**
+   * The {@link AccessToken} that was obtained when binding the
+   * {@link ConnectionProvider} in the {@link ConnectionProvider#REGISTRY}.
+   */
+  private AccessToken connProviderToken;
+
+  /**
+   * The {@link MessageConsumer} to use.
+   */
+  private MessageConsumer messageConsumer = null;
+
+  /**
+   * The {@link SzReplicatorService} to use for
    */
   private SzReplicatorService replicatorService;
 
@@ -473,7 +684,7 @@ public class SzReplicator extends Thread {
    *                construct the API server instance.
    * @throws Exception If a failure occurs.
    */
-  public SzReplicator(SzReplicatorOptions  options)
+  public SzReplicator(SzReplicatorOptions options)
     throws Exception
   {
     this(options.buildOptionsMap());
@@ -511,19 +722,135 @@ public class SzReplicator extends Thread {
       moduleName = (String) options.get(MODULE_NAME);
     }
 
-    // determine the G2 init configuration
-    String g2InitConfig = null;
-    JsonObject initJson = (JsonObject) options.get(INIT_JSON);
-    if (initJson != null) {
-      g2InitConfig = JsonUtilities.toJsonText(initJson);
-    } else {
-      g2InitConfig = (String) options.get(INI_FILE);
-      if (g2InitConfig == null) {
-        g2InitConfig = (String) options.get(INIT_FILE);
-      }
+    // get the concurrency
+    this.concurrency = DEFAULT_CONCURRENCY;
+    if (options.containsKey(CONCURRENCY)) {
+      this.concurrency = (Integer) options.get(CONCURRENCY);
     }
 
-    this.g2Service = new G2Service();
-    this.g2Service.init(moduleName, g2InitConfig);
+    final int consumerConcurrency = this.concurrency * 2;
+    final int scheduleConcurrency = this.concurrency;
+    final int poolSize            = this.concurrency;
+    final int maxPoolSize         = poolSize * 2;
+    final int g2Concurrency       = this.concurrency;
+
+    // create the configuration for the G2Service
+    JsonObjectBuilder g2ConfigBuilder = Json.createObjectBuilder();
+    // determine the init JSON
+    JsonObject initJson = (JsonObject) options.get(INIT_JSON);
+    if (initJson == null) {
+      initJson = (JsonObject) options.get(INIT_FILE);
+    }
+    if (initJson == null) {
+      initJson = (JsonObject) options.get(INI_FILE);
+    }
+    g2ConfigBuilder.add(G2Service.G2_INIT_CONFIG_KEY, initJson);
+    g2ConfigBuilder.add(G2Service.G2_MODULE_NAME_KEY, moduleName);
+    boolean verbose = false;
+    if (options.containsKey(VERBOSE)) {
+      verbose = (Boolean) options.get(VERBOSE);
+    }
+    g2ConfigBuilder.add(G2Service.G2_VERBOSE_KEY, verbose);
+    g2ConfigBuilder.add(G2Service.CONCURRENCY_KEY, g2Concurrency);
+
+    // setup the connection pool / provider
+    String schedulingServiceClassName = null;
+
+    if (options.containsKey(SQLITE_DATABASE_FILE)) {
+      File dbFile = (File) options.get(SQLITE_DATABASE_FILE);
+      this.connector = new SQLiteConnector(dbFile);
+
+      this.connPool = new ConnectionPool(this.connector, 1);
+
+      schedulingServiceClassName = SQLiteSchedulingService.class.getName();
+
+    } else {
+      String  host      = (String) options.get(POSTGRESQL_HOST);
+      Integer port      = (Integer) options.get(POSTGRESQL_PORT);
+      String  database  = (String) options.get(POSTGRESQL_DATABASE);
+      String  user      = (String) options.get(POSTGRESQL_USER);
+      String  password  = (String) options.get(POSTGRESQL_PASSWORD);
+      this.connector = new PostgreSqlConnector(host,
+                                               port,
+                                               database,
+                                               user,
+                                               password);
+
+      this.connPool = new ConnectionPool(this.connector,
+                                         TransactionIsolation.READ_COMMITTED,
+                                         poolSize,
+                                         maxPoolSize);
+
+      schedulingServiceClassName = PostgreSQLSchedulingService.class.getName();
+    }
+
+    this.connProvider = new PoolConnectionProvider(this.connPool,
+                                                   5000L);
+
+    this.connProviderName = TextUtilities.randomAlphanumericText(30);
+
+    this.connProviderToken = ConnectionProvider.REGISTRY.bind(
+        this.connProviderName, this.connProvider);
+
+    // handle the scheduling service config
+    JsonObjectBuilder schedulingJOB = Json.createObjectBuilder();
+    schedulingJOB.add(AbstractSchedulingService.CONCURRENCY_KEY,
+                      scheduleConcurrency);
+    schedulingJOB.add(AbstractSQLSchedulingService.CONNECTION_PROVIDER_KEY,
+                      this.connProviderName);
+
+    // handle the replicator config
+    JsonObjectBuilder replicatorJOB = Json.createObjectBuilder();
+    replicatorJOB.add(SzReplicatorService.SCHEDULING_SERVICE_CLASS_KEY,
+                      schedulingServiceClassName);
+
+    replicatorJOB.add(SzReplicatorService.SCHEDULING_SERVICE_CONFIG_KEY,
+                      schedulingJOB);
+
+    replicatorJOB.add(SzReplicatorService.G2_SERVICE_CONFIG_KEY,
+                      g2ConfigBuilder);
+
+    replicatorJOB.add(SzReplicatorService.CONNECTION_PROVIDER_KEY,
+                      this.connProviderName);
+
+    this.replicatorService = new SzReplicatorService();
+    this.replicatorService.init(replicatorJOB.build());
+
+    // build the message consumer
+    JsonObjectBuilder consumerJOB = Json.createObjectBuilder();
+    if (options.containsKey(RABBIT_INFO_HOST)) {
+      consumerJOB.add(RabbitMQConsumer.CONCURRENCY_KEY, consumerConcurrency);
+      consumerJOB.add(RabbitMQConsumer.MQ_HOST_KEY,
+                      ((String) options.get(RABBIT_INFO_HOST)));
+      consumerJOB.add(RabbitMQConsumer.MQ_USER_KEY,
+                      ((String) options.get(RABBIT_INFO_USER)));
+      consumerJOB.add(RabbitMQConsumer.MQ_PASSWORD_KEY,
+                      ((String) options.get(RABBIT_INFO_PASSWORD)));
+      consumerJOB.add(RabbitMQConsumer.MQ_QUEUE_KEY,
+                      ((String) options.get(RABBIT_INFO_QUEUE)));
+
+      // check if we have the port parameter
+      if (options.containsKey(RABBIT_INFO_PORT)) {
+        consumerJOB.add(RabbitMQConsumer.MQ_PORT_KEY,
+                        ((Integer) options.get(RABBIT_INFO_PORT)));
+      }
+
+      // check if we have the virtual host parameter
+      if (options.containsKey(RABBIT_INFO_VIRTUAL_HOST)) {
+        consumerJOB.add(RabbitMQConsumer.MQ_VIRTUAL_HOST_KEY,
+                        ((String) options.get(RABBIT_INFO_VIRTUAL_HOST)));
+      }
+
+      this.messageConsumer = new RabbitMQConsumer();
+
+    } else {
+      consumerJOB.add(SQSConsumer.CONCURRENCY_KEY, consumerConcurrency);
+
+      // build an SQS message consumer
+      consumerJOB.add(SQSConsumer.SQS_URL_KEY,
+                      ((String) options.get(SQS_INFO_URL)));
+      this.messageConsumer = new SQSConsumer();
+    }
+    this.messageConsumer.init(consumerJOB.build());
   }
 }

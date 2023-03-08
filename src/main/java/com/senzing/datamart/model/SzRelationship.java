@@ -1,6 +1,7 @@
 package com.senzing.datamart.model;
 
 import com.senzing.util.JsonUtilities;
+import com.senzing.util.LoggingUtilities;
 import com.senzing.util.ZipUtilities;
 
 import javax.json.Json;
@@ -375,7 +376,7 @@ public class SzRelationship {
 
     // get the second summary object
     JsonObject summaryObj2
-        = getJsonObject(jsonObject, "relatedSourceSummary");
+        = getJsonObject(jsonObject, "relatedSummary");
     Map<String, Integer> summary2 = new LinkedHashMap<>();
     for (String key : summaryObj2.keySet()) {
       summary2.put(key, getInteger(summaryObj2, key));

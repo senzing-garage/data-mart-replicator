@@ -101,7 +101,8 @@ public class RefreshRelationHandler extends AbstractTaskHandler {
         return;
       }
 
-      // initialize the patch value
+      // initialize the patch value -- true for a relationship, false for no
+      // relationship and null for no action
       Boolean patch = null;
 
       // check whether the specified relationship exists in the G2 repository
@@ -122,7 +123,7 @@ public class RefreshRelationHandler extends AbstractTaskHandler {
 
         // if we got here, then assume the other entity was the one deleted and
         // treat this like a deleted relationship (because the related is gone)
-        patch = Boolean.FALSE;
+        patch = Boolean.FALSE; // false indicates no relationship
 
       } else {
         // if we get here then both entities exist, parse the JSON to check for

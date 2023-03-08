@@ -108,8 +108,7 @@ public class SzEntity {
   public void setRecords(Collection<SzRecord> records) {
     this.records.clear();
     this.sourceSummary.clear();
-    this.records.addAll(records);
-    this.records.forEach(record -> {
+    records.forEach(record -> {
       this.addRecord(record);
     });
   }
@@ -120,6 +119,8 @@ public class SzEntity {
    * @param record The {@link SzRecord} describing the record to add.
    */
   public void addRecord(SzRecord record) {
+    if (this.records.contains(record)) return;
+
     String dataSource = record.getDataSource();
     Integer count = this.sourceSummary.get(dataSource);
     if (count == null) {
@@ -146,16 +147,20 @@ public class SzEntity {
    */
   public void buildJson(JsonObjectBuilder builder) {
     builder.add("id", this.getEntityId());
-    builder.add("name", this.getEntityName());
+    if (this.getEntityName() != null) {
+      builder.add("name", this.getEntityName());
+    }
     JsonArrayBuilder jab = Json.createArrayBuilder();
     Set<SzRecord> records = this.getRecords();
-    SortedSet<SzRecord> sortedRecords = new TreeSet<>(records);
-    for (SzRecord record : sortedRecords) {
-      JsonObjectBuilder job = Json.createObjectBuilder();
-      record.buildJson(job);
-      jab.add(job);
+    if (records != null && records.size() > 0) {
+      SortedSet<SzRecord> sortedRecords = new TreeSet<>(records);
+      for (SzRecord record : sortedRecords) {
+        JsonObjectBuilder job = Json.createObjectBuilder();
+        record.buildJson(job);
+        jab.add(job);
+      }
+      builder.add("records", jab);
     }
-    builder.add("records", jab);
   }
 
   /**
@@ -210,6 +215,7 @@ public class SzEntity {
     if (entityId == null) {
       entityId = getLong(jsonObject, "ENTITY_ID");
     }
+    entity.setEntityId(entityId);
 
     String entityName = getString(jsonObject, "name");
     if (entityName == null) {
@@ -222,13 +228,16 @@ public class SzEntity {
       recordArray = getJsonArray(jsonObject, "RECORDS");
     }
 
-    List<SzRecord> records = new ArrayList<>(recordArray.size());
-    for (JsonObject jsonObj : recordArray.getValuesAs(JsonObject.class)) {
-      SzRecord record = SzRecord.parse(jsonObj);
-      records.add(record);
+    List<SzRecord> records = null;
+    if (recordArray != null) {
+      records = new ArrayList<>(recordArray.size());
+      for (JsonObject jsonObj : recordArray.getValuesAs(JsonObject.class)) {
+        SzRecord record = SzRecord.parse(jsonObj);
+        records.add(record);
+      }
+      entity.setRecords(records);
     }
 
-    entity.setRecords(records);
     return entity;
   }
 

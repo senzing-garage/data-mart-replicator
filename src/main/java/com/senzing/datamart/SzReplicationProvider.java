@@ -26,6 +26,25 @@ public interface SzReplicationProvider {
   };
 
   /**
+   * Waits until the replication service is ready for handling tasks for at
+   * most the specified number of milliseconds.  Specify a negative number of
+   * milliseconds to wait indefinitely or zero (0) to simply check if ready
+   * with no waiting.
+   *
+   * @param timeoutMillis The maximum number of milliseconds to wait for this
+   *                      task handler to become ready, a negative number to
+   *                      wait indefinitely, or zero (0) to simply poll without
+   *                      waiting.
+   *
+   * @return {@link Boolean#TRUE} if ready to handle tasks, {@link
+   *         Boolean#FALSE} if not yet ready, and <code>null</code> if due to
+   *         some failure we will never be ready to handle tasks.
+   *
+   * @throws InterruptedException If interrupted while waiting.
+   */
+  Boolean waitUntilReady(long timeoutMillis) throws InterruptedException;
+
+  /**
    * Gets the {@link G2Service} for accessing the associated entity repository.
    *
    * @return The {@link G2Service} for accessing the associated entity

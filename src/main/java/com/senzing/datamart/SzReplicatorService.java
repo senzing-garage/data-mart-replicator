@@ -1,6 +1,7 @@
 package com.senzing.datamart;
 
 import com.senzing.datamart.handlers.*;
+import com.senzing.datamart.model.SzReportCode;
 import com.senzing.datamart.model.SzReportKey;
 import com.senzing.datamart.schema.PostgreSQLSchemaBuilder;
 import com.senzing.datamart.schema.SQLiteSchemaBuilder;
@@ -25,11 +26,19 @@ import static com.senzing.datamart.SzReplicationProvider.*;
 import static com.senzing.datamart.SzReplicationProvider.TaskAction.*;
 import static com.senzing.sql.SQLUtilities.*;
 import static com.senzing.sql.DatabaseType.*;
+import static com.senzing.util.JsonUtilities.*;
 
 /**
- *
+ * Extends {@link AbstractListenerService} to implement a data mart replication.
  */
 public class SzReplicatorService extends AbstractListenerService {
+  /**
+   * The initialization parameter key for specifying the {@link JsonObject}
+   * used to initialize the backing {@link G2Service}.  This parameter is
+   * required.
+   */
+  public static final String G2_SERVICE_CONFIG_KEY = "g2ServiceConfig";
+
   /**
    * The initialization key for obtaining the {@link ConnectionProvider}
    * from the {@link ConnectionProvider#REGISTRY}.  This initialization
@@ -58,9 +67,17 @@ public class SzReplicatorService extends AbstractListenerService {
                POSTGRESQL, new PostgreSQLSchemaBuilder());
 
   /**
-   *
+   * The {@link SzReplicationProvider} implementation used by {@link
+   * SzReplicatorService}.
    */
   protected class Provider implements SzReplicationProvider {
+    @Override
+    public Boolean waitUntilReady(long timeoutMillis)
+        throws InterruptedException
+    {
+      return SzReplicatorService.this.waitUntilReady(timeoutMillis);
+    }
+
     @Override
     public G2Service getG2Service() {
       return SzReplicatorService.this.getG2Service();
@@ -79,8 +96,8 @@ public class SzReplicatorService extends AbstractListenerService {
     @Override
     public void scheduleReportFollowUp(String       reportAction,
                                        SzReportKey  reportKey) {
-      SzReplicatorService.this.reportUpdater.addReportTask(
-          reportKey.toString(), reportAction);
+      SzReplicatorService.this.reportUpdater.addReportTask(reportKey,
+                                                           reportAction);
     }
   }
 
@@ -134,7 +151,7 @@ public class SzReplicatorService extends AbstractListenerService {
      * The {@link Map} of {@link String} report keys to {@link String} task
      * action values for reports that need to be handled.
      */
-    private Map<String, String> reportKeyMap;
+    private Map<SzReportKey, String> reportKeyMap;
 
     /**
      * The parent {@link SzReplicatorService} for this instance.
@@ -177,8 +194,8 @@ public class SzReplicatorService extends AbstractListenerService {
      * @param reportKey The report key for the report that needs an update.
      * @param reportAction The {@link String} report action.
      */
-    public synchronized void addReportTask(String reportKey,
-                                           String reportAction)
+    public synchronized void addReportTask(SzReportKey  reportKey,
+                                           String       reportAction)
     {
       this.reportKeyMap.put(reportKey, reportAction);
     }
@@ -195,8 +212,8 @@ public class SzReplicatorService extends AbstractListenerService {
           Scheduler scheduler = scheduling.createScheduler(true);
           this.reportKeyMap.forEach((reportKey, action) -> {
             scheduler.createTaskBuilder(action)
-                .resource("REPORT", reportKey)
-                .parameter("reportKey", reportKey)
+                .resource("REPORT", reportKey.toString())
+                .parameter("reportKey", reportKey.toString())
                 .schedule();
           });
           try {
@@ -257,47 +274,31 @@ public class SzReplicatorService extends AbstractListenerService {
    *
    * @throws SQLException If a failure occurs.
    */
-  protected Map<String, String> getInitialReportTasks() throws SQLException {
-    Map<String, String> reportKeys = new LinkedHashMap<>();
+  protected Map<SzReportKey, String> getInitialReportTasks()
+      throws SQLException
+  {
+    Map<SzReportKey, String> reportKeys = new LinkedHashMap<>();
 
     Connection  conn  = null;
     Statement   stmt  = null;
     ResultSet   rs    = null;
     try {
+      // get the connection
+      conn = this.getConnection();
+
       // create a statement
       stmt = conn.createStatement();
 
-      // get the pending DSS report values
-      rs = stmt.executeQuery("SELECT DISTINCT data_source1, data_source2 "
-                                 + "FROM sz_pending_dss");
+      // get the pending report keys
+      rs = stmt.executeQuery("SELECT report_key FROM sz_dm_pending_report");
       while (rs.next()) {
-        String dataSource1 = rs.getString(1);
-        String dataSource2 = rs.getString(2);
-        reportKeys.put(
-            "DSS:" + dataSource1 + ":" + dataSource2, "UPDATE_DSS");
-      }
-      rs = close(rs);
+        String        reportKeyText = rs.getString(1);
+        SzReportKey   reportKey     = SzReportKey.parse(reportKeyText);
 
-      // get the pending CSS report values
-      rs = stmt.executeQuery("SELECT DISTINCT data_source1, data_source2 "
-                                 + "FROM sz_pending_css");
-      while (rs.next()) {
-        String dataSource1 = rs.getString(1);
-        String dataSource2 = rs.getString(2);
-        reportKeys.put(
-            "CSS:" + dataSource1 + ":" + dataSource2, "UPDATE_CSS");
+        SzReportCode  reportCode    = reportKey.getReportCode();
+        String        action        = "UPDATE_" + reportCode;
+        reportKeys.put(reportKey, action);
       }
-      rs = close(rs);
-
-      // get the pending ESB report values
-      rs = stmt.executeQuery("SELECT DISTINCT entity_size "
-                                 + "FROM sz_pending_esb");
-      while (rs.next()) {
-        int entitySize = rs.getInt(1);
-        reportKeys.put("ESB:" + entitySize, "UPDATE_ESB");
-      }
-      rs = close(rs);
-      stmt = close(stmt);
 
       // return the report keys
       return reportKeys;
@@ -347,6 +348,18 @@ public class SzReplicatorService extends AbstractListenerService {
   @Override
   protected void doInit(JsonObject config) throws ServiceSetupException {
     try {
+      // get the G2 service config
+      JsonObject g2ServiceConfig = getJsonObject(config, G2_SERVICE_CONFIG_KEY);
+      if (g2ServiceConfig == null) {
+        throw new ServiceSetupException(
+            "The " + G2_SERVICE_CONFIG_KEY + " initialization parameter is "
+            + "required, but is missing: " + toJsonText(config));
+      }
+
+      // initialize the G2 service
+      this.g2Service = new G2Service();
+      this.g2Service.init(g2ServiceConfig);
+
       String providerName = getConfigString(
           config, CONNECTION_PROVIDER_KEY, true);
 
@@ -377,7 +390,13 @@ public class SzReplicatorService extends AbstractListenerService {
 
   @Override
   protected void doDestroy() {
-    // do nothing
+    this.reportUpdater.shutdown();
+    try {
+      this.reportUpdater.join();
+    } catch (InterruptedException ignore) {
+      // ignore
+    }
+    this.g2Service.destroy();
   }
 
   /**

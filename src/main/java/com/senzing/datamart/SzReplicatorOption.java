@@ -20,7 +20,6 @@ public enum SzReplicatorOption implements CommandLineOption {
    * <p>
    * Option for displaying help/usage for the replicator.  This option can
    * only be provided by itself and has no parameters.
-   * </p>
    * <p>
    * This option can be specified in the following ways:
    * <ul>
@@ -33,7 +32,6 @@ public enum SzReplicatorOption implements CommandLineOption {
    * <p>
    * Option for displaying the version number of the replicator.  This option
    * can only be provided by itself and has no parameters.
-   * </p>
    * <p>
    * This option can be specified in the following ways:
    * <ul>
@@ -47,7 +45,6 @@ public enum SzReplicatorOption implements CommandLineOption {
    * Option for specifying the INI file to initialize the Senzing API's with.
    * The parameter to this option should be a file path to an INI file.
    * Alternatively, one can specify {@link #INIT_FILE} or {@link #INIT_JSON}.
-   * </p>
    * <p>
    * This option can be specified in the following ways:
    * <ul>
@@ -66,7 +63,6 @@ public enum SzReplicatorOption implements CommandLineOption {
    * with.  The parameter to this option should be a file path to a JSON init
    * file.  Alternatively, one can specify {@link #INI_FILE} or
    * {@link #INIT_JSON}.
-   * </p>
    * <p>
    * This option can be specified in the following ways:
    * <ul>
@@ -85,7 +81,6 @@ public enum SzReplicatorOption implements CommandLineOption {
    * with.  The parameter to this option should be the actual JSON text with
    * which to initialize.  Alternatively, one can specify {@link #INI_FILE} or
    * {@link #INIT_FILE}.
-   * </p>
    * <p>
    * This option can be specified in the following ways:
    * <ul>
@@ -102,7 +97,6 @@ public enum SzReplicatorOption implements CommandLineOption {
    * <p>
    * Option for specifying the module name to initialize the Senzing API's
    * with.  The default value is {@link SzReplicatorConstants#DEFAULT_MODULE_NAME}.
-   * </p>
    * <p>
    * This option can be specified in the following ways:
    * <ul>
@@ -117,11 +111,33 @@ public enum SzReplicatorOption implements CommandLineOption {
 
   /**
    * <p>
+   * This presence of this option causes the Senzing G2 API's to be initialized
+   * in verbose mode, but its absence causes the Senzing API's to be initialized
+   * in standard mode (the default).  This option is used with {@link #INI_FILE},
+   * {@link #INIT_FILE}, or {@link #INIT_JSON} to control the Senzing API
+   * initialization.  A single parameter may optionally be specified as
+   * <code>true</code> or <code>false</code> with <code>false</code> simulating
+   * the absence of the option.
+   * <p>
+   * This option can be specified in the following ways:
+   * <ul>
+   *   <li>Command Line: <code>--verbose [true|false]</code></li>
+   *   <li>Environment: <code>SENZING_REPLICATOR_VERBOSE="{true|false}"</code></li>
+   * </ul>
+   */
+  VERBOSE("--verbose",
+          "SENZING_REPLICATOR_VERBOSE",
+          null, 0, "false"),
+
+  /**
+   * <p>
    * This option sets the number of threads available for executing Senzing API
    * functions (i.e.: the number of engine threads).  The single parameter to
    * this option should be a positive integer.  If not specified, then this
-   * defaults to {@link SzReplicatorConstants#DEFAULT_CONCURRENCY},
-   * </p>
+   * defaults to {@link SzReplicatorConstants#DEFAULT_CONCURRENCY}.  The
+   * concurrency of each other component in the system is scaled from this
+   * setting so more threads will exist, but only this specified number will
+   * do with the native Senzing API.
    * <p>
    * This option can be specified in the following ways:
    * <ul>
@@ -139,7 +155,6 @@ public enum SzReplicatorOption implements CommandLineOption {
    * for obtaining the info messages.  The single parameter to this option is
    * the URL.  If this option is specified then the info queue parameters for
    * RabbitMQ and Kafka are not allowed.
-   * </p>
    * <p>
    * This option can be specified in the following ways:
    * <ul>
@@ -157,7 +172,6 @@ public enum SzReplicatorOption implements CommandLineOption {
    * option is a user name.  If this option is specified then the other options
    * required for a RabbitMQ info queue are required and the info queue
    * parameters pertaining to SQS and Kafka are not allowed.
-   * </p>
    * <p>
    * This option can be specified in the following ways:
    * <ul>
@@ -178,7 +192,6 @@ public enum SzReplicatorOption implements CommandLineOption {
    * option is a password.  If this option is specified then the other options
    * required for a RabbitMQ info queue are required and the info queue
    * parameters pertaining to SQS and Kafka are not allowed.
-   * </p>
    * <p>
    * This option can be specified in the following ways:
    * <ul>
@@ -199,7 +212,6 @@ public enum SzReplicatorOption implements CommandLineOption {
    * option is a hostname or IP address.  If this option is specified then the
    * other options required for a RabbitMQ info queue are required and the
    * info queue parameters pertaining to SQS and Kafka are not allowed.
-   * </p>
    * <p>
    * This option can be specified in the following ways:
    * <ul>
@@ -220,7 +232,6 @@ public enum SzReplicatorOption implements CommandLineOption {
    * option is a port number.  If this option is specified then the other
    * options required for a RabbitMQ info queue are required and the info queue
    * parameters pertaining to SQS and Kafka are not allowed.
-   * </p>
    * <p>
    * This option can be specified in the following ways:
    * <ul>
@@ -241,7 +252,6 @@ public enum SzReplicatorOption implements CommandLineOption {
    * option is a virtual host name.  If this option is specified then the other
    * options required for a RabbitMQ info queue are required and the info queue
    * parameters pertaining to SQS and Kafka are not allowed.
-   * </p>
    * <p>
    * This option can be specified in the following ways:
    * <ul>
@@ -262,7 +272,6 @@ public enum SzReplicatorOption implements CommandLineOption {
    * option is a routing key.  If this option is specified then the other
    * options required for a RabbitMQ info queue are required and the info queue
    * parameters pertaining to SQS and Kafka are not allowed.
-   * </p>
    * <p>
    * This option can be specified in the following ways:
    * <ul>
@@ -281,7 +290,6 @@ public enum SzReplicatorOption implements CommandLineOption {
    * the data mart.  The single parameter to this option is the file path to
    * the SQLite database file to use.  If this option is specified the database
    * options for other database types cannot be specified.
-   * </p>
    * <p>
    * This option can be specified in the following ways:
    * <ul>
@@ -302,7 +310,6 @@ public enum SzReplicatorOption implements CommandLineOption {
    * this option is specified the database options for other database types
    * (e.g.: {@link #SQLITE_DATABASE_FILE}) cannot be specified and the other
    * PostgreSQL options (e.g.: {@link #POSTGRESQL_PORT}) are required.
-   * </p>
    * <p>
    * This option can be specified in the following ways:
    * <ul>
@@ -328,7 +335,6 @@ public enum SzReplicatorOption implements CommandLineOption {
    * specified the database options for other database types (e.g.: {@link
    * #SQLITE_DATABASE_FILE}) cannot be specified and the other PostgreSQL
    * options (e.g.: {@link #POSTGRESQL_PORT}) are required.
-   * </p>
    * <p>
    * This option can be specified in the following ways:
    * <ul>
@@ -354,7 +360,6 @@ public enum SzReplicatorOption implements CommandLineOption {
    * other database types (e.g.: {@link #SQLITE_DATABASE_FILE}) cannot be
    * specified and the other PostgreSQL options (e.g.: {@link
    * #POSTGRESQL_HOST}) are required.
-   * </p>
    * <p>
    * This option can be specified in the following ways:
    * <ul>
@@ -381,7 +386,6 @@ public enum SzReplicatorOption implements CommandLineOption {
    * this option is specified the database options for other database types
    * (e.g.: {@link #SQLITE_DATABASE_FILE}) cannot be specified and the other
    * PostgreSQL options (e.g.: {@link #POSTGRESQL_HOST}) are required.
-   * </p>
    * <p>
    * This option can be specified in the following ways:
    * <ul>
@@ -407,7 +411,6 @@ public enum SzReplicatorOption implements CommandLineOption {
    * If this option is specified the database options for other database types
    * (e.g.: {@link #SQLITE_DATABASE_FILE}) cannot be specified and the other
    * PostgreSQL options (e.g.: {@link #POSTGRESQL_HOST}) are required.
-   * </p>
    * <p>
    * This option can be specified in the following ways:
    * <ul>
@@ -433,10 +436,11 @@ public enum SzReplicatorOption implements CommandLineOption {
    * @param envFallbacks   The {@link List} of fallback environment variables.
    * @param parameterCount The number of parameters for the option.
    */
-  SzReplicatorOption(String cmdLineFlag,
-                     String envVariable,
+  SzReplicatorOption(String       cmdLineFlag,
+                     String       envVariable,
                      List<String> envFallbacks,
-                     int parameterCount) {
+                     int          parameterCount)
+  {
     this(cmdLineFlag, envVariable, envFallbacks, false, parameterCount);
   }
 
@@ -450,11 +454,12 @@ public enum SzReplicatorOption implements CommandLineOption {
    * @param defaultParameters The default parameter values for the option if not
    *                          specified.
    */
-  SzReplicatorOption(String cmdLineFlag,
-                     String envVariable,
+  SzReplicatorOption(String       cmdLineFlag,
+                     String       envVariable,
                      List<String> envFallbacks,
-                     int parameterCount,
-                     String... defaultParameters) {
+                     int          parameterCount,
+                     String...    defaultParameters)
+  {
     this(cmdLineFlag,
          envVariable,
          envFallbacks,
@@ -473,12 +478,13 @@ public enum SzReplicatorOption implements CommandLineOption {
    * @param defaultParameters The default parameter value for the option if not
    *                          specified.
    */
-  SzReplicatorOption(String cmdLineFlag,
-                     String envVariable,
+  SzReplicatorOption(String       cmdLineFlag,
+                     String       envVariable,
                      List<String> envFallbacks,
-                     boolean primary,
-                     int parameterCount,
-                     String... defaultParameters) {
+                     boolean      primary,
+                     int          parameterCount,
+                     String...    defaultParameters)
+  {
     this.primary = primary;
     this.cmdLineFlag = cmdLineFlag;
     this.envVariable = envVariable;
@@ -654,13 +660,6 @@ public enum SzReplicatorOption implements CommandLineOption {
         conflictSet.addAll(rabbitInfoOptions);
       }
 
-      // make the primary options dependent on one set of info queue options
-      for (SzReplicatorOption option : initOptions) {
-        Set<Set<CommandLineOption>> dependencySets = dependencyMap.get(option);
-        dependencySets.add(Set.of(SQS_INFO_URL));
-        dependencySets.add(requiredRabbit);
-      }
-
       // make the optional rabbit options dependent on the required ones
       for (SzReplicatorOption option : rabbitInfoOptions) {
         if (requiredRabbit.contains(option)) continue;
@@ -709,6 +708,34 @@ public enum SzReplicatorOption implements CommandLineOption {
       // setup conflicts for the database options
       conflictMap.put(SQLITE_DATABASE_FILE, postgreSqlOptions);
 
+      List<Set<CommandLineOption>> baseDependSets = new LinkedList<>();
+      Set<CommandLineOption> dependSet = new LinkedHashSet<>();
+      dependSet.add(SQS_INFO_URL);
+      dependSet.add(SQLITE_DATABASE_FILE);
+      baseDependSets.add(Collections.unmodifiableSet(dependSet));
+
+      dependSet = new LinkedHashSet<>();
+      dependSet.add(SQS_INFO_URL);
+      dependSet.addAll(requiredPostgreSQL);
+      baseDependSets.add(Collections.unmodifiableSet(dependSet));
+
+      dependSet = new LinkedHashSet<>();
+      dependSet.add(SQLITE_DATABASE_FILE);
+      dependSet.addAll(requiredRabbit);
+      baseDependSets.add(Collections.unmodifiableSet(dependSet));
+
+      dependSet = new LinkedHashSet<>();
+      dependSet.addAll(requiredPostgreSQL);
+      dependSet.addAll(requiredRabbit);
+      baseDependSets.add(Collections.unmodifiableSet(dependSet));
+
+      // make the primary options dependent on one set of info queue options
+      for (SzReplicatorOption option : initOptions) {
+        Set<Set<CommandLineOption>> dependencySets = dependencyMap.get(option);
+
+        dependencySets.addAll(baseDependSets);
+      }
+
     } catch (Exception e) {
       e.printStackTrace();
       throw new ExceptionInInitializerError(e);
@@ -749,6 +776,20 @@ public enum SzReplicatorOption implements CommandLineOption {
         case HELP:
         case VERSION:
           return Boolean.TRUE;
+
+        case VERBOSE:
+          if (params.size() == 0) return Boolean.TRUE;
+          String boolText = params.get(0);
+          if ("false".equalsIgnoreCase(boolText)) {
+            return Boolean.FALSE;
+          }
+          if ("true".equalsIgnoreCase(boolText)) {
+            return Boolean.TRUE;
+          }
+          throw new IllegalArgumentException(
+              "The specified parameter for "
+                  + option.getCommandLineFlag()
+                  + " must be true or false: " + params.get(0));
 
         case INI_FILE:
           File iniFile = new File(params.get(0));

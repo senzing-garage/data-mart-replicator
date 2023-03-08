@@ -115,7 +115,7 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
       System.err.println("Rolling back transaction....");
       // rollback the transaction
       try {
-        conn.rollback();
+        if (conn != null) conn.rollback();
       } catch (Exception e2) {
         System.err.println("**** FAILED TO ROLLBACK");
         e2.printStackTrace();
@@ -222,6 +222,9 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
       ps.setString(1, reportKey.toString());
       ps.setString(2, leaseId);
 
+      // execute the query
+      rs = ps.executeQuery();
+
       // read the results
       while (rs.next()) {
         int   entityDelta         = rs.getInt(1);
@@ -230,10 +233,14 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
         int   recordRelationDelta = rs.getInt(4);
         long  entityId            = rs.getLong(5);
         Long  relatedId           = rs.getLong(6);
+
         if (rs.wasNull()) relatedId = null;
 
         SzReportUpdate update
-            = new SzReportUpdate(reportKey, entityId, relatedId);
+            = (relatedId == null)
+            ? new SzReportUpdate(reportKey, entityId)
+            : new SzReportUpdate(reportKey, entityId, relatedId);
+
         update.setEntityDelta(entityDelta);
         update.setRecordDelta(recordDelta);
         update.setEntityRelationDelta(entityRelationDelta);
@@ -422,7 +429,7 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
               + "ON CONFLICT (report_key, entity_id, related_id) "
               + "DO UPDATE SET"
               + " stat_count = t1.stat_count + EXCLUDED.stat_count,"
-              + " modifier_id = EXCLUXED.modifier_id");
+              + " modifier_id = EXCLUDED.modifier_id");
 
       List<Integer> rowCounts = this.batchUpdate(
           ps, deltaSumMap.entrySet(), (ps2, entry) -> {
@@ -437,7 +444,7 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
             ps2.setString(1, reportKey.toString());
             ps2.setLong(2, entityId);
             if (relatedId == null) {
-              ps2.setNull(3, Types.NUMERIC);
+              ps2.setLong(3, 0L);
             } else {
               ps2.setLong(3, relatedId);
             }
@@ -503,7 +510,7 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
     try {
       ps = conn.prepareStatement(
           "DELETE FROM sz_dm_pending_report "
-              + "WHERE reportKey = ? AND lease_id = ?");
+              + "WHERE report_key = ? AND lease_id = ?");
 
       ps.setString(1, reportKey.toString());
       ps.setString(2, leaseId);

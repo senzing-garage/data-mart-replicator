@@ -32,7 +32,7 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
    * @param provider The {@link SzReplicationProvider} to use.
    */
   public SourceSummaryReportHandler(SzReplicationProvider provider) {
-    super(provider, UPDATE_CROSS_SOURCE_SUMMARY);
+    super(provider, UPDATE_DATA_SOURCE_SUMMARY);
   }
 
   /**
@@ -98,7 +98,7 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
               + " record_relation_count = EXCLUDED.record_relation_count");
 
       ps.setString(1, reportKey.toString());
-      ps.setString(2, DATA_SOURCE_SUMMARY.toString());
+      ps.setString(2, DATA_SOURCE_SUMMARY.getCode());
       ps.setString(3, RECORD_COUNT.toString());
       ps.setString(4, dataSource);
       ps.setString(5, dataSource);

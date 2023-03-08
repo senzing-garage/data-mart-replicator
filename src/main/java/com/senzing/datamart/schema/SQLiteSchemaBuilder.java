@@ -34,6 +34,13 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
   {
     List<String> sqlList = new LinkedList<>();
 
+    String createLockTable
+        = "CREATE TABLE IF NOT EXISTS sz_dm_locks ("
+        + "  resource_key TEXT NOT NULL PRIMARY KEY, "
+        + "  modifier_id TEXT NOT NULL);";
+
+    String dropLockTable = "DROP TABLE IF EXISTS sz_dm_locks;";
+
     String createEntityTable
         = "CREATE TABLE IF NOT EXISTS sz_dm_entity ("
         + "  entity_id INTEGER NOT NULL PRIMARY KEY, "
@@ -42,6 +49,8 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
         + "  relation_count INTEGER, "
         + "  entity_hash TEXT, "
         + "  prev_entity_hash TEXT,"
+        + "  relations_hash TEXT, "
+        + "  prev_relations_hash TEXT, "
         + "  patch_hash TEXT,"
         + "  prev_patch_hash TEXT,"
         + "  creator_id TEXT NOT NULL, "
@@ -308,6 +317,8 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
         = formatDropSQLiteUpdateTrigger("sz_dm_pending_report");
 
     if (recreate) {
+      sqlList.add(dropLockTable);
+
       sqlList.add(dropEntityNewIndex);
       sqlList.add(dropEntityModIndex);
       sqlList.add(dropEntityUpdateTrigger);
@@ -344,6 +355,7 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
       sqlList.add(dropPendingReportInsertTrigger);
       sqlList.add(dropPendingReportTable);
     }
+    sqlList.add(createLockTable);
     sqlList.add(createEntityTable);
     sqlList.add(createEntityNewIndex);
     sqlList.add(createEntityModIndex);

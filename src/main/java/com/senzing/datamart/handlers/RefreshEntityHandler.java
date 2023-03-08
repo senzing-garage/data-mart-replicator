@@ -4,11 +4,13 @@ import com.senzing.datamart.SzReplicationProvider;
 import com.senzing.datamart.model.*;
 import com.senzing.listener.service.exception.ServiceExecutionException;
 import com.senzing.listener.service.g2.G2Service;
+import com.senzing.listener.service.locking.ResourceKey;
 import com.senzing.listener.service.scheduling.Scheduler;
 import com.senzing.util.JsonUtilities;
 import com.senzing.util.LoggingUtilities;
 
 import javax.json.JsonObject;
+import javax.swing.text.DefaultEditorKit;
 import java.sql.*;
 import java.util.*;
 
@@ -26,7 +28,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
   /**
    * The parameter key for the entity ID.
    */
-  public static final String ENTITY_ID_KEY = "entityId";
+  public static final String ENTITY_ID_KEY = "ENTITY_ID";
 
   /**
    * The flags to use when retrieving the entity from the G2 repository.
@@ -36,7 +38,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
       | G2_ENTITY_INCLUDE_RECORD_DATA
       | G2_ENTITY_INCLUDE_ALL_RELATIONS
       | G2_ENTITY_INCLUDE_RELATED_MATCHING_INFO
-      | G2_ENTITY_INCLUDE_RELATED_RECORD_SUMMARY;
+      | G2_ENTITY_INCLUDE_RELATED_RECORD_DATA;
 
   /**
    * Maps the {@link SzReportCode} to the {@link TaskAction} for updating that
@@ -96,7 +98,9 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
           : this.ensureEntityRow(conn, newEntity, relPatchMap);
 
       // check if the previous hash is empty string (i.e.: no changes)
-      if (entityHash.length() == 0) return;
+      if (entityHash != null && entityHash.length() == 0) {
+        return;
+      }
 
       // parse the old entity
       SzResolvedEntity oldEntity = SzResolvedEntity.parseHash(entityHash);
@@ -121,6 +125,11 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
       // count the number of actual changes
       int changeCount = 0;
+
+      // first enroll any subordinate resource locking rows into the transaction
+      // to ensure mutual exclusion while avoiding deadlocks -- this will ensure
+      // mutual exclusion on the record and relationship rows
+      this.enrollLockingRows(conn, entityDelta);
 
       // check for added records
       changeCount += this.ensureAddedRecords(conn,
@@ -150,7 +159,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                 "-------------------------------------------------------",
                 "WARNING: Entity hashes were different, but no detail changes "
                 + "were applied.",
-                "This may occur if all changes were already applied another "
+                "This may occur if all changes were already applied by another "
                 + "task.",
                 "ENTITY ID          : " + entityId,
                 "OLD RECORD COUNT   : " + entityDelta.getOldRecords().size(),
@@ -167,7 +176,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
       // notify the provider of report updates pending
       this.followUpOnReports(entityDelta);
 
-      // commit the transaction
+      // commit the transaction -- this will release any locked rows
       conn.commit();
 
     } catch (Exception e) {
@@ -294,7 +303,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
       ps = conn.prepareStatement(
           "INSERT INTO sz_dm_entity AS t1 ("
               + " entity_id, entity_name, record_count, relation_count, "
-              + " entity_hash, relations_hash, creator_id, modifier_id)"
+              + " entity_hash, relations_hash, creator_id, modifier_id) "
               + "VALUES (?, ?, ?, ?, ?, ?, ?, ?) "
               + "ON CONFLICT (entity_id) DO UPDATE SET"
               + " entity_name = EXCLUDED.entity_name,"
@@ -305,8 +314,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
               + " prev_entity_hash = t1.entity_hash,"
               + " prev_relations_hash = t1.relations_hash,"
               + " modifier_id = EXCLUDED.modifier_id "
-              + "WHERE entity_hash <> EXCLUDED.entity_hash "
-              + "OR relations_hash IS NOT NULL"); // update if we have patches
+              + "WHERE t1.entity_hash <> EXCLUDED.entity_hash "
+              + "OR t1.relations_hash IS NOT NULL"); // update if we have patches
 
       ps.setLong(1, newEntity.getEntityId());
       ps.setString(2, newEntity.getEntityName());
@@ -437,7 +446,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
       ps = conn.prepareStatement(
           "INSERT INTO sz_dm_record ("
           + " data_source, record_id, entity_id, creator_id, modifier_id) "
-          + "VALUES (?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET"
+          + "VALUES (?, ?, ?, ?, ?) "
+          + "ON CONFLICT (data_source, record_id) DO UPDATE SET"
           + " entity_id = EXCLUDED.entity_id,"
           + " modifier_id = EXCLUDED.modifier_id");
 
@@ -477,7 +487,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
       return createdCount;
 
     } finally {
-      rs.close();
+      rs = close(rs);
       ps = close(ps);
     }
   }
@@ -496,6 +506,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
    *                          follow-up tasks.
    * @return The number of records actually modified (i.e.: those that have
    *         not already been claimed by other entities).
+   * @throws SQLException If a JDBC failure occurs.
    */
   protected int orphanRemovedRecords(Connection   conn,
                                      EntityDelta  entityDelta,
@@ -556,6 +567,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
    *                          follow-up tasks.
    *
    * @return The number of relationships modified or created.
+   * @throws SQLException If a JDBC failure occurs.
    */
   protected int ensureCurrentRelations(Connection   conn,
                                        EntityDelta  entityDelta,
@@ -578,8 +590,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
       ps = conn.prepareStatement(
           "INSERT INTO sz_dm_relation AS t1 ("
               + " entity_id, related_id, match_level, match_key, match_type,"
-              + " relation_hash, prev_relation_hash, creator_id, modifier_id) "
-              + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) "
+              + " relation_hash, creator_id, modifier_id) "
+              + "VALUES (?, ?, ?, ?, ?, ?, ?, ?) "
               + "ON CONFLICT (entity_id, related_id) DO UPDATE SET"
               + " match_level = EXCLUDED.match_level,"
               + " match_key = EXCLUDED.match_key,"
@@ -587,7 +599,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
               + " relation_hash = EXCLUDED.relation_hash,"
               + " prev_relation_hash = t1.relation_hash,"
               + " modifier_id = EXCLUDED.modifier_id "
-              + "WHERE relation_hash <> EXCLUDED.relation_hash");
+              + "WHERE t1.relation_hash <> EXCLUDED.relation_hash");
 
       List<Integer> rowCounts = this.batchUpdate(
           ps, relations.values(), (ps2, relatedEntity) -> {
@@ -619,8 +631,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
       // now get the ones that were actually added or modified along with their
       // previous relationship hashes
       ps = conn.prepareStatement(
-          "SELECT prev_relation_hash "
-              + "FROM sz_dm_relationship WHERE modifier_id = ?");
+          "SELECT relation_hash, prev_relation_hash "
+              + "FROM sz_dm_relation WHERE modifier_id = ?");
 
       ps.setString(1, operationId);
 
@@ -628,16 +640,19 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
       int updateCount = 0;
       while (rs.next()) {
-        String prevHash = rs.getString(1);
+        String relHash  = rs.getString(1);
+        String prevHash = rs.getString(2);
 
-        SzRelationship relationship = SzRelationship.parseHash(prevHash);
+        SzRelationship relationship = SzRelationship.parseHash(relHash);
+        SzRelationship prevRelation = SzRelationship.parseHash(prevHash);
 
         long relatedId
             = (relationship.getEntityId() == entityDelta.getEntityId())
             ? relationship.getRelatedEntityId() : relationship.getEntityId();
 
         updateCount++;
-        if (relationship == null) {
+        // check if previously, there was no relationship
+        if (prevRelation == null) {
           entityDelta.storedRelationship(relationship.getEntityId(),
                                          relationship.getRelatedEntityId(),
                                          null,
@@ -656,8 +671,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
               relationship.getEntityId(),
               relationship.getRelatedEntityId(),
               relationship.getMatchType(),
-              relationship.getSourceSummary(),
-              relationship.getRelatedSourceSummary());
+              prevRelation.getSourceSummary(),
+              prevRelation.getRelatedSourceSummary());
         }
       }
 
@@ -677,7 +692,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
       return updateCount;
 
     } finally {
-      rs.close();
+      rs = close(rs);
       ps = close(ps);
     }
   }
@@ -703,6 +718,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
   {
     Map<Long, SzRelatedEntity> relations = entityDelta.getRemovedRelations();
     if (relations.size() == 0) return 0;
+    System.err.println("REMOVING RELATIONSHIPS: " + relations);
 
     List<SzRelationship> relationships = new ArrayList<>(relations.size());
 
@@ -742,7 +758,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
       // current relationship hashes
       ps = conn.prepareStatement(
           "SELECT relation_hash "
-              + "FROM sz_dm_relationship WHERE modifier_id = ?");
+              + "FROM sz_dm_relation WHERE modifier_id = ?");
 
       ps.setString(1, operationId);
 
@@ -751,7 +767,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
       List<SzRelationship> pendingDelete = new ArrayList<>(expectedCount);
 
       while (rs.next()) {
-        String hash = rs.getString(3);
+        String hash = rs.getString(1);
 
         SzRelationship relationship = SzRelationship.parseHash(hash);
         if (relationship == null) {
@@ -929,4 +945,40 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
     return reportKeys.size();
   }
 
+  /**
+   * Enrolls the database rows for locking resources into the transaction in a
+   * consistent order so that mutual exclusion is ensured while avoiding
+   * deadlocks.
+   *
+   * @param conn The {@link Connection} to the database.
+   * @param entityDelta The {@link EntityDelta} describing the changes.
+   * @throws SQLException If a failure occurs.
+   */
+  protected void enrollLockingRows(Connection conn, EntityDelta entityDelta)
+    throws SQLException
+  {
+    PreparedStatement ps  = null;
+
+    String operationId = this.generateOperationId(entityDelta.getEntityId());
+
+    try {
+      ps = conn.prepareStatement(
+          "INSERT INTO sz_dm_locks AS t1 (resource_key, modifier_id) "
+          + "VALUES (?, ?) "
+          + "ON CONFLICT (resource_key) DO UPDATE SET"
+          + " modifier_id = EXCLUDED.modifier_id");
+
+      SortedSet<ResourceKey> resourceKeys = entityDelta.getResourceKeys();
+
+      this.batchUpdate(ps, resourceKeys, (ps2, resourceKey) ->
+          {
+            ps2.setString(1, resourceKey.toString());
+            ps2.setString(2, operationId);
+            return 1;
+          });
+
+    } finally {
+      ps = close(ps);
+    }
+  }
 }

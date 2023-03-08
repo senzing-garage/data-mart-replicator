@@ -60,6 +60,13 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
     String dropTriggerFunctionSql
         = "DROP FUNCTION IF EXISTS sz_maintain_timestamps;";
 
+    String createLockTable
+        = "CREATE TABLE IF NOT EXISTS sz_dm_locks ("
+        + "  resource_key TEXT NOT NULL PRIMARY KEY, "
+        + "  modifier_id TEXT NOT NULL);";
+
+    String dropLockTable = "DROP TABLE IF EXISTS sz_dm_locks;";
+
     String createEntityTable
         = "CREATE TABLE IF NOT EXISTS sz_dm_entity ("
         + "  entity_id BIGINT NOT NULL PRIMARY KEY, "
@@ -68,6 +75,8 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
         + "  relation_count INTEGER, "
         + "  entity_hash TEXT, "
         + "  prev_entity_hash TEXT, "
+        + "  relations_hash TEXT, "
+        + "  prev_relations_hash TEXT, "
         + "  patch_hash TEXT, "
         + "  prev_patch_hash TEXT, "
         + "  creator_id TEXT NOT NULL, "
@@ -210,7 +219,7 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
         + "  modifier_id TEXT NOT NULL, "
         + "  created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
         + "  modified_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
-        + "PRIMARY KEY(report_key, entity_id, related_id);";
+        + "PRIMARY KEY(report_key, entity_id, related_id));";
 
     String dropReportDetailTable = "DROP TABLE IF EXISTS sz_dm_report_detail;";
 
@@ -293,6 +302,8 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
         = formatDropPostgreSQLTrigger("sz_dm_pending_report");
 
     if (recreate) {
+      sqlList.add(dropLockTable);
+
       sqlList.add(dropEntityModIndex);
       sqlList.add(dropEntityNewIndex);
       sqlList.add(dropEntityTrigger);
@@ -329,6 +340,7 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
       sqlList.add(dropTriggerFunctionSql);
     }
     sqlList.add(createTriggerFunctionSql);
+    sqlList.add(createLockTable);
     sqlList.add(createEntityTable);
     sqlList.add(createEntityNewIndex);
     sqlList.add(createEntityModIndex);
@@ -361,6 +373,8 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
     sqlList.add(createPendingReportIndex1);
     sqlList.add(createPendingReportIndex2);
     sqlList.add(createPendingReportIndex3);
+
+    if (!conn.getAutoCommit()) sqlList.add("COMMIT;");
 
     this.executeStatements(conn, sqlList);
   }
