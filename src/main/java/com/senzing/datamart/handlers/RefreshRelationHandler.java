@@ -98,6 +98,7 @@ public class RefreshRelationHandler extends AbstractTaskHandler {
       // check if the entity does not yet exist
       if (operationId == null) {
         // assume we are going to refresh this entity soon since it is expected
+        // but does not yet exist
         return;
       }
 

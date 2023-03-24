@@ -6,15 +6,17 @@ import com.senzing.listener.service.exception.ServiceExecutionException;
 import com.senzing.listener.service.g2.G2Service;
 import com.senzing.listener.service.locking.ResourceKey;
 import com.senzing.listener.service.scheduling.Scheduler;
-import com.senzing.util.JsonUtilities;
 import com.senzing.util.LoggingUtilities;
 
+import javax.json.JsonArray;
 import javax.json.JsonObject;
-import javax.swing.text.DefaultEditorKit;
+import javax.json.JsonString;
 import java.sql.*;
 import java.util.*;
 
-import static com.senzing.sql.SQLUtilities.close;
+import static com.senzing.sql.SQLUtilities.getString;
+import static com.senzing.util.JsonUtilities.*;
+import static com.senzing.sql.SQLUtilities.*;
 import static com.senzing.g2.engine.G2Engine.*;
 import static com.senzing.datamart.SzReplicationProvider.TaskAction.*;
 import static com.senzing.datamart.SzReplicationProvider.*;
@@ -86,7 +88,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
       // get the entity
       String            jsonText  = g2Service.getEntity(entityId, ENTITY_FLAGS);
-      JsonObject        jsonObj   = JsonUtilities.parseJsonObject(jsonText);
+      JsonObject        jsonObj   = parseJsonObject(jsonText);
       SzResolvedEntity  newEntity = SzResolvedEntity.parse(jsonObj);
 
       // create a map for relationship patches
@@ -438,47 +440,70 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
     Set<SzRecord> addedRecords = entityDelta.getAddedRecords();
     if (addedRecords.size() == 0) return 0;
 
+    SortedSet<String> relatedSourceSet
+        = entityDelta.getNewEntity().getRelatedSources();
+
+    JsonArray relatedSourceArray = toJsonArray(relatedSourceSet);
+
+    String relatedSources = toJsonText(relatedSourceArray);
+
     PreparedStatement ps            = null;
     ResultSet         rs            = null;
     String            operationId   = this.generateOperationId();
     int               createdCount  = 0;
     try {
       ps = conn.prepareStatement(
-          "INSERT INTO sz_dm_record ("
-          + " data_source, record_id, entity_id, creator_id, modifier_id) "
-          + "VALUES (?, ?, ?, ?, ?) "
+          "INSERT INTO sz_dm_record t1 ("
+          + " data_source, record_id, entity_id, related_sources,"
+          + " creator_id, modifier_id) "
+          + "VALUES (?, ?, ?, ?, ?, ?) "
           + "ON CONFLICT (data_source, record_id) DO UPDATE SET"
           + " entity_id = EXCLUDED.entity_id,"
-          + " modifier_id = EXCLUDED.modifier_id");
+          + " modifier_id = EXCLUDED.modifier_id,"
+          + " related_sources = EXCLUDED.related_sources,"
+          + " prev_related_sources = t1.related_sources");
 
       this.batchUpdate(ps, addedRecords, (ps2, record) -> {
         ps2.setString(1, record.getDataSource());
         ps2.setString(2, record.getRecordId());
         ps2.setLong(3, entityDelta.getEntityId());
-        ps2.setString(4, operationId);
+        ps2.setString(4, relatedSources);
         ps2.setString(5, operationId);
+        ps2.setString(6, operationId);
         return 1;
       });
 
       ps = close(ps);
 
-      // now get the ones that were actually added rather than updated
+      // now get the modified records
       ps = conn.prepareStatement(
-          "SELECT data_source, record_id FROM sz_dm_record WHERE"
-          + " entity_id = ? AND creator_id = ?");
+          "SELECT data_source, record_id, prev_related_sources, creator_id"
+          + " FROM sz_dm_record WHERE entity_id = ? AND modifier_id = ?");
 
       ps.setLong(1, entityDelta.getEntityId());
       ps.setString(2, operationId);
 
       rs = ps.executeQuery();
       while (rs.next()) {
-        String    dataSource = rs.getString(1);
-        String    recordId   = rs.getString(2);
-        SzRecord  record     = new SzRecord(dataSource, recordId);
+        String    dataSource      = rs.getString(1);
+        String    recordId        = rs.getString(2);
+        String    prevRelatedSrcs = getString(rs, 3);
+        String    creatorId       = rs.getString(4);
+        SzRecord  record          = new SzRecord(dataSource, recordId);
 
-        // flag the record as created
-        entityDelta.createdRecord(record);
-        createdCount++;
+        // we have updated the record with new related sources, record it
+        SortedSet<String> prevRelSet = parseRelatedSources(prevRelatedSrcs);
+
+        // check if we created the record instead of just modifying it
+        if (operationId.equals(creatorId)) {
+          // flag the record as created
+          entityDelta.createdRecord(record);
+          createdCount++;
+
+        } else {
+          // the record was updated
+          entityDelta.updatedRecord(record, prevRelSet);
+        }
       }
 
       rs = close(rs);
@@ -493,10 +518,26 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
   }
 
   /**
+   * Parses the JSON text as a JSON array of {@link String} values which are
+   * then collected into a {@link SortedSet} and that is returned.
+   *
+   * @param relatedSources The JSON text for the related sources.
+   * @return The {@link SortedSet} of the related data source codes.
+   */
+  private static SortedSet<String> parseRelatedSources(String relatedSources) {
+    SortedSet<String> set = new TreeSet<>();
+    if (relatedSources == null) return set;
+    JsonArray array = parseJsonArray(relatedSources);
+    array.getValuesAs(JsonString.class)
+        .forEach(source -> set.add(source.getString()));
+    return set;
+  }
+
+  /**
    * Handles changing the entity ID of any removed records to be zero (0)
    * providing the entity ID is still the same as that for the specified
    * {@link EntityDelta}.  This will mark records as {@linkplain
-   * EntityDelta#orphanedRecord(SzRecord) orphaned} in the specified
+   * EntityDelta#orphanedRecord(SzRecord,Set) orphaned} in the specified
    * {@link EntityDelta} if the record row was in fact updated.
    *
    * @param conn The JDBC {@link Connection} to use.
@@ -518,7 +559,6 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
     PreparedStatement ps            = null;
     String            operationId   = this.generateOperationId();
-    int               createdCount  = 0;
     try {
       ps = conn.prepareStatement(
           "UPDATE sz_dm_record entity_id = 0, modifier_id = ? "
@@ -536,18 +576,44 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
       // close the statement
       ps = close(ps);
 
-      // iterate over the row counts
-      int index = 0, modifiedCount = 0;
-      for (SzRecord record: removedRecords) {
-        int rowCount = rowCounts.get(index++);
-        if (rowCount == 0) continue;
-        modifiedCount++;
+      int expectedCount = sum(rowCounts);
 
-        // flag the record as deleted
-        entityDelta.orphanedRecord(record);
+      // now get the modified records
+      ps = conn.prepareStatement(
+          "SELECT data_source, record_id, prev_related_sources"
+              + " FROM sz_dm_record WHERE entity_id = 0 AND modifier_id = ?");
+
+      ps.setString(1, operationId);
+
+      ResultSet rs = ps.executeQuery();
+      int orphanedCount = 0;
+      while (rs.next()) {
+        orphanedCount++;
+
+        String    dataSource      = rs.getString(1);
+        String    recordId        = rs.getString(2);
+        String    prevRelatedSrcs = getString(rs, 3);
+        SzRecord  record          = new SzRecord(dataSource, recordId);
+
+        // we have updated the record with new related sources, record it
+        SortedSet<String> prevRelSet = parseRelatedSources(prevRelatedSrcs);
+
+        entityDelta.orphanedRecord(record, prevRelSet);
       }
 
-      return modifiedCount;
+      rs = close(rs);
+      ps = close(ps);
+
+      if (orphanedCount != expectedCount) {
+        System.out.println("");
+        System.out.println("*** WARNING: Orphaned record count ("
+                               + orphanedCount + ") for entity "
+                               + entityDelta.getEntityId()
+                               + " was not as expected ("
+                               + expectedCount + ").  Likely race condition.");
+      }
+
+      return orphanedCount;
 
     } finally {
       ps = close(ps);

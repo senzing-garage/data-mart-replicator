@@ -22,10 +22,17 @@ public class SzResolvedEntity extends SzEntity {
   public Map<Long, SzRelatedEntity> relatedEntities;
 
   /**
+   * The {@link SortedSet} of distinct data sources related to this entity
+   * by the related entities.
+   */
+  public SortedSet<String> relatedSources;
+
+  /**
    * Default constructor.
    */
   public SzResolvedEntity() {
-    this.relatedEntities = new LinkedHashMap<>();
+    this.relatedEntities  = new LinkedHashMap<>();
+    this.relatedSources   = new TreeSet<>();
   }
 
   /**
@@ -56,8 +63,10 @@ public class SzResolvedEntity extends SzEntity {
       }
     }
     this.relatedEntities.clear();
+    this.relatedSources.clear();
     entities.forEach(entity -> {
       this.relatedEntities.put(entity.getEntityId(), entity);
+      this.relatedSources.addAll(entity.getSourceSummary().keySet());
     });
   }
 
@@ -75,6 +84,7 @@ public class SzResolvedEntity extends SzEntity {
           + entity);
     }
     this.relatedEntities.put(entity.getEntityId(), entity);
+    this.relatedSources.addAll(entity.getSourceSummary().keySet());
   }
 
   /**
@@ -204,5 +214,17 @@ public class SzResolvedEntity extends SzEntity {
   @Override
   public int hashCode() {
     return Objects.hash(super.hashCode(), this.getRelatedEntities());
+  }
+
+  /**
+   * Gets the <b>unmodifiable</b> alphabetically-sorted {@link Set} of
+   * {@link String} data source codes for data sources of all related entities.
+   *
+   * @return The <b>unmodifiable</b> alphabetically-sorted {@link Set} of
+   *         {@link String} data source codes for data sources of all related
+   *         entities.
+   */
+  public SortedSet<String> getRelatedSources() {
+    return Collections.unmodifiableSortedSet(this.relatedSources);
   }
 }

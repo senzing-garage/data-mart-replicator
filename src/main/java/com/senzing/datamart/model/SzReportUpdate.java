@@ -24,12 +24,7 @@ public class SzReportUpdate {
   /**
    * The delta on the entity relationship count.
    */
-  private int entityRelationDelta;
-
-  /**
-   * The delta on the record relationship count.
-   */
-  private int recordRelationDelta;
+  private int relationDelta;
 
   /**
    * The entity ID for the update.
@@ -242,8 +237,8 @@ public class SzReportUpdate {
    *
    * @return The delta on the entity relationship count.
    */
-  public int getEntityRelationDelta() {
-    return this.entityRelationDelta;
+  public int getRelationDelta() {
+    return this.relationDelta;
   }
 
   /**
@@ -251,26 +246,8 @@ public class SzReportUpdate {
    *
    * @param delta The delta on entity relationship count.
    */
-  public void setEntityRelationDelta(int delta) {
-    this.entityRelationDelta = delta;
-  }
-
-  /**
-   * Gets the delta on the record relationship count.
-   *
-   * @return The delta on the record relationship count.
-   */
-  public int getRecordRelationDelta() {
-    return this.recordRelationDelta;
-  }
-
-  /**
-   * Sets the delta on the record relationship count.
-   *
-   * @param delta The delta on record relationship count.
-   */
-  public void setRecordRelationDelta(int delta) {
-    this.recordRelationDelta = delta;
+  public void setRelationDelta(int delta) {
+    this.relationDelta = delta;
   }
 
   @Override
@@ -279,8 +256,7 @@ public class SzReportUpdate {
         "reportKey=[ " + this.getReportKey() +
         " ], entityDelta=[ " + this.getEntityDelta() +
         " ], recordDelta=[ " + this.getRecordDelta() +
-        " ], entityRelationDelta=[ " + this.getEntityRelationDelta() +
-        " ], recordRelationDelta=[ " + this.getRecordRelationDelta() +
+        " ], relationDelta=[ " + this.getRelationDelta() +
         " ], entityId=[ " + this.getEntityId() +
         " ], relatedId=[ " + this.getRelatedEntityId() +
         " ] }";
@@ -307,8 +283,8 @@ public class SzReportUpdate {
    * @return The {@link Builder} that was created.
    */
   public static Builder builder(SzReportKey reportKey,
-                                long      entityId,
-                                long      relatedId)
+                                long        entityId,
+                                long        relatedId)
   {
     Objects.requireNonNull(reportKey, "The report key cannot be null");
     return new Builder(reportKey, entityId, relatedId);
@@ -443,12 +419,7 @@ public class SzReportUpdate {
     /**
      * The delta in the related entity count.
      */
-    private int entityRelationDelta;
-
-    /**
-     * The delta in the related record count.
-     */
-    private int recordRelationDelta;
+    private int relationDelta;
 
     /**
      * Constructs with the specified parameters.
@@ -458,13 +429,12 @@ public class SzReportUpdate {
      * @param relatedId The related entity ID, or <code>null</code> if none.
      */
     private Builder(SzReportKey reportKey, long entityId, Long relatedId) {
-      this.reportKey            = reportKey;
-      this.entityId             = entityId;
-      this.relatedId            = relatedId;
-      this.entityDelta          = 0;
-      this.recordDelta          = 0;
-      this.entityRelationDelta  = 0;
-      this.recordRelationDelta  = 0;
+      this.reportKey              = reportKey;
+      this.entityId               = entityId;
+      this.relatedId              = relatedId;
+      this.entityDelta            = 0;
+      this.recordDelta            = 0;
+      this.relationDelta          = 0;
     }
 
     /**
@@ -499,19 +469,7 @@ public class SzReportUpdate {
      * @return This builder instance.
      */
     public Builder relations(int delta) {
-      this.entityRelationDelta = delta;
-      return this;
-    }
-
-    /**
-     * Sets the record relationship count delta.
-     *
-     * @param delta The delta in the record relationship count.
-     *
-     * @return This builder instance.
-     */
-    public Builder recordRelations(int delta) {
-      this.recordRelationDelta = delta;
+      this.relationDelta = delta;
       return this;
     }
 
@@ -525,8 +483,7 @@ public class SzReportUpdate {
           this.reportKey, this.entityId, this.relatedId);
       updater.setEntityDelta(this.entityDelta);
       updater.setRecordDelta(this.recordDelta);
-      updater.setEntityRelationDelta(this.entityRelationDelta);
-      updater.setRecordRelationDelta(this.recordRelationDelta);
+      updater.setRelationDelta(this.relationDelta);
       return updater;
     }
   }

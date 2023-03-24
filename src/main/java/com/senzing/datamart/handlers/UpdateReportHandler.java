@@ -214,8 +214,8 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
       // now get the updates
       ps = conn.prepareStatement(
           "SELECT"
-              + " entity_delta, record_delta, entity_relation_delta,"
-              + " record_relation_delta, entity_id, related_id "
+              + " entity_delta, record_delta, relation_delta,"
+              + " entity_id, related_id "
               + "FROM sz_dm_pending_report "
               + "WHERE report_key = ? AND lease_id = ?");
 
@@ -227,12 +227,11 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
 
       // read the results
       while (rs.next()) {
-        int   entityDelta         = rs.getInt(1);
-        int   recordDelta         = rs.getInt(2);
-        int   entityRelationDelta = rs.getInt(3);
-        int   recordRelationDelta = rs.getInt(4);
-        long  entityId            = rs.getLong(5);
-        Long  relatedId           = rs.getLong(6);
+        int   entityDelta           = rs.getInt(1);
+        int   recordDelta           = rs.getInt(2);
+        int   relationDelta         = rs.getInt(3);
+        long  entityId              = rs.getLong(4);
+        Long  relatedId             = rs.getLong(5);
 
         if (rs.wasNull()) relatedId = null;
 
@@ -243,8 +242,7 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
 
         update.setEntityDelta(entityDelta);
         update.setRecordDelta(recordDelta);
-        update.setEntityRelationDelta(entityRelationDelta);
-        update.setRecordRelationDelta(recordRelationDelta);
+        update.setRelationDelta(relationDelta);
 
         updates.add(update);
       }
@@ -291,20 +289,23 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
   {
     PreparedStatement ps = null;
     try {
-      int entityDelta         = 0;
-      int recordDelta         = 0;
-      int entityRelationDelta = 0;
-      int recordRelationDelta = 0;
+      int entityDelta           = 0;
+      int recordDelta           = 0;
+      int relationDelta         = 0;
 
       for (SzReportUpdate update: updates) {
-        entityDelta         += update.getEntityDelta();
-        recordDelta         += update.getRecordDelta();
-        entityRelationDelta += update.getEntityRelationDelta();
-        recordRelationDelta += update.getRecordRelationDelta();
+        if (!reportKey.equals(update.getReportKey())) {
+          throw new IllegalArgumentException(
+              "At least one report update does not match the specified report "
+              + "key.  reportKey=[ " + reportKey + " ], reportUpdate=[ "
+              + update + " ]");
+        }
+        entityDelta           += update.getEntityDelta();
+        recordDelta           += update.getRecordDelta();
+        relationDelta         += update.getRelationDelta();
       }
 
-      if (entityDelta == 0 && recordDelta == 0
-          && entityRelationDelta == 0 && recordRelationDelta == 0)
+      if (entityDelta == 0 && recordDelta == 0 && relationDelta == 0)
       {
         // short circuit early since the cumulative change being applied is no
         // change at all
@@ -314,16 +315,13 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
       ps = conn.prepareStatement(
           "INSERT INTO sz_dm_report AS t1 ("
               + " report_key, report, statistic, data_source1, data_source2,"
-              + " entity_count, record_count, entity_relation_count,"
-              + " record_relation_count ) "
+              + " entity_count, record_count, relation_count ) "
               + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) "
               + "ON CONFLICT (report_key) DO UPDATE SET"
               + " entity_count = t1.entity_count + EXCLUDED.entity_count,"
               + " record_count = t1.record_count + EXCLUDED.record_count,"
-              + " entity_relation_count = t1.entity_relation_count"
-              + " + EXCLUDED.entity_relation_count,"
-              + " record_relation_count = t1.record_relation_count"
-              + " + EXCLUDED.record_relation_count");
+              + " relation_count = t1.relation_count"
+              + " + EXCLUDED.relation_count");
 
       ps.setString(1, reportKey.toString());
       ps.setString(2, reportKey.getReportCode().getCode());
@@ -332,8 +330,7 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
       ps.setString(5, reportKey.getDataSource2());
       ps.setInt(6, entityDelta);
       ps.setInt(7, recordDelta);
-      ps.setInt(8, entityRelationDelta);
-      ps.setInt(9, recordRelationDelta);
+      ps.setInt(8, relationDelta);
 
       int rowCount = ps.executeUpdate();
 
@@ -377,15 +374,17 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
   {
     PreparedStatement ps = null;
     try {
+      // this map has text keys that are either entity ID's or encoded
+      // relationship ID's
       Map<String, int[]> deltaSumMap = new LinkedHashMap<>();
 
-      // split the updates into inserts and deletes
+      // split the updates into inserts and deletes by summing the deltas
       for (SzReportUpdate update: updates) {
         long entityId = update.getEntityId();
         Long relatedId = update.getRelatedEntityId();
 
         int entityDelta = update.getEntityDelta();
-        int relationDelta = update.getEntityRelationDelta();
+        int relationDelta = update.getRelationDelta();
 
         // check if we have an entity delta to record
         if (entityDelta != 0) {

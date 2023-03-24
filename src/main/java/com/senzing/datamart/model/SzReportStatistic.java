@@ -18,12 +18,7 @@ public enum SzReportStatistic {
   /**
    *
    */
-  SINGLETON_COUNT,
-
-  /**
-   *
-   */
-  DUPLICATE_COUNT,
+  UNMATCHED_COUNT,
 
   /**
    *
