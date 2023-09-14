@@ -1,21 +1,22 @@
 package com.senzing.datamart.handlers;
 
 import com.senzing.datamart.SzReplicationProvider;
-import com.senzing.datamart.model.SzReportCode;
-import com.senzing.datamart.model.SzReportKey;
-import com.senzing.datamart.model.SzReportUpdate;
-import com.senzing.datamart.model.SzReportStatistic;
+import com.senzing.datamart.model.*;
+import com.senzing.listener.service.exception.ServiceExecutionException;
+import com.senzing.listener.service.g2.G2Service;
+import com.senzing.listener.service.scheduling.Scheduler;
+import com.senzing.util.JsonUtilities;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.List;
+import javax.json.JsonObject;
+import java.sql.*;
+import java.util.*;
 
 import static com.senzing.datamart.SzReplicationProvider.TaskAction;
 import static com.senzing.datamart.SzReplicationProvider.TaskAction.*;
-import static com.senzing.datamart.model.SzReportCode.*;
 import static com.senzing.datamart.model.SzReportStatistic.*;
 import static com.senzing.sql.SQLUtilities.close;
+import static com.senzing.util.LoggingUtilities.*;
+import static com.senzing.listener.service.AbstractListenerService.*;
 
 /**
  * Handles updates to the data source summary (DSS) report statistics.
@@ -23,6 +24,10 @@ import static com.senzing.sql.SQLUtilities.close;
  * @see SzReportCode#DATA_SOURCE_SUMMARY
  */
 public class SourceSummaryReportHandler extends UpdateReportHandler {
+  /**
+   * The flags to use when retrieving the entity from the G2 repository.
+   */
+  private static final long ENTITY_FLAGS = 0L;
 
   /**
    * Constructs with the specified {@link SzReplicationProvider}.  This
@@ -36,30 +41,32 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
   }
 
   /**
-   * Overridden to special-case the {@link SzReportStatistic#RECORD_COUNT}
-   * statistic so that only positive deltas from the pending updates are
-   * considered and the negative values are pulled directly from the
-   * record table where the entity ID is set to zero (0).
-   *
    * {@inheritDoc}
+   * <p>
+   * Overridden to special-case the record delta for the {@link
+   * SzReportStatistic#ENTITY_COUNT} statistic so that only positive deltas from
+   * the pending updates are considered and the negative values are pulled
+   * directly from the record table where the entity ID is set to zero (0).
    */
-  protected void updateReportStatistic(Connection           conn,
-                                       SzReportKey          reportKey,
-                                       String               leaseId,
-                                       List<SzReportUpdate> updates)
+  @Override
+  protected int overrideRecordDelta(Connection            conn,
+                                    SzReportKey           reportKey,
+                                    List<SzReportUpdate>  updates,
+                                    int                   computedSum,
+                                    Scheduler             followUpScheduler)
       throws SQLException
   {
-    // check if not
-    if (!RECORD_COUNT.toString().equals(reportKey.getStatistic())) {
-      super.updateReportStatistic(conn, reportKey, leaseId, updates);
-      return;
+    // check if not ENTITY_COUNT statistic
+    if (!ENTITY_COUNT.toString().equals(reportKey.getStatistic())) {
+      return computedSum;
     }
 
     PreparedStatement ps = null;
+    ResultSet rs = null;
     try {
       int recordDelta = 0;
 
-      for (SzReportUpdate update: updates) {
+      for (SzReportUpdate update : updates) {
         if (update.getRecordDelta() < 0) continue;
         recordDelta += update.getRecordDelta();
       }
@@ -67,58 +74,188 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
       // get the data source
       String dataSource = reportKey.getDataSource1();
 
+      // generate an operation ID
+      String operationId = this.generateOperationId();
+
       // now lease the rows with no entity ID
       ps = conn.prepareStatement(
-          "DELETE FROM sz_dm_record "
+          "UPDATE sz_dm_record SET modifier_id = ? "
               + "WHERE data_source = ? AND entity_id = 0");
 
-      ps.setString(1, dataSource);
+      ps.setString(1, operationId);
+      ps.setString(2, dataSource);
 
-      int rowCount = ps.executeUpdate();
+      // execute the lease
+      int leasedCount = ps.executeUpdate();
 
       ps = close(ps);
 
-      // the row count is the number to decrement by
-      recordDelta -= rowCount;
-
-      // check the record delta and see if there is nothing to update
-      if (recordDelta == 0) return;
-
-      // prepare the statement
+      // select back the leased rows
       ps = conn.prepareStatement(
-          "INSERT INTO sz_dm_report AS t1 ("
-              + " report_key, report, statistic, data_source1, data_source2,"
-              + " entity_count, record_count, entity_relation_count,"
-              + " record_relation_count ) "
-              + "VALUES (?, ?, ?, ?, ?, 0, ?, 0, 0) "
-              + "ON CONFLICT (report_key) DO UPDATE SET"
-              + " entity_count = EXCLUDED.entity_count,"
-              + " record_count = t1.record_count + EXCLUDED.record_count,"
-              + " entity_relation_count = EXCLUDED.entity_relation_count,"
-              + " record_relation_count = EXCLUDED.record_relation_count");
+          "SELECT record_id FROM sz_dm_record "
+              + "WHERE entity_id = 0 AND data_source = ? AND modifier_id = ?");
 
-      ps.setString(1, reportKey.toString());
-      ps.setString(2, DATA_SOURCE_SUMMARY.getCode());
-      ps.setString(3, RECORD_COUNT.toString());
-      ps.setString(4, dataSource);
-      ps.setString(5, dataSource);
-      ps.setInt(6, recordDelta);
+      ps.setString(1, dataSource);
+      ps.setString(2, operationId);
 
-      rowCount = ps.executeUpdate();
+      rs = ps.executeQuery();
 
-      // check the row count
-      if (rowCount != 1) {
-        throw new IllegalStateException(
-            "Expected exactly 1 row to be updated, but " + rowCount
-                + "rows were updated.");
+      // get the G2Service
+      G2Service g2Service = this.getG2Service();
+
+      Set<SzRecord> deleteSet = new LinkedHashSet<>();
+      Map<SzRecord,Long> reconnectMap = new LinkedHashMap<>();
+      while (rs.next()) {
+        String recordId = rs.getString(1);
+        SzRecord record = new SzRecord(dataSource, recordId);
+
+        Long    entityId = null;
+        String  jsonText = null;
+        try {
+          jsonText = g2Service.getEntity(dataSource, recordId, ENTITY_FLAGS);
+
+        } catch(ServiceExecutionException e){
+          logWarning(e, "FAILED TO CHECK IF RECORD STILL EXISTS: " + record);
+          continue;
+        }
+        if (jsonText != null) {
+          JsonObject jsonObject = JsonUtilities.parseJsonObject(jsonText);
+
+          // dereference the resolved entity
+          if (jsonObject.containsKey("RESOLVED_ENTITY")) {
+            jsonObject = jsonObject.getJsonObject("RESOLVED_ENTITY");
+          }
+
+          // get the entity ID
+          entityId = JsonUtilities.getLong(jsonObject, "ENTITY_ID");
+
+          if (entityId == null) {
+            logWarning("Skipping orphan record + " + record
+                           + " due to missing entity ID in entity JSON: "
+                           + jsonText);
+            continue;
+          }
+
+          // check the entity ID
+          ResultSet rs2 = null;
+          PreparedStatement ps2 = conn.prepareStatement(
+              "SELECT COUNT(*) FROM sz_dm_entity WHERE entity_id = ?");
+          ps2.setLong(1, entityId);
+          rs2 = ps2.executeQuery();
+          rs2.next();
+          int entityCount = rs2.getInt(1);
+          rs2 = close(rs2);
+          ps2 = close(ps2);
+          if (entityCount == 0) {
+            logDebug("Entity " + entityId + " for orphan record "
+                         + record + " has not yet been replicated.  "
+                         + "Scheduling follow-up....");
+
+            followUpScheduler.createTaskBuilder(REFRESH_ENTITY.toString())
+                .resource(ENTITY_RESOURCE_KEY, entityId)
+                .parameter(RefreshEntityHandler.ENTITY_ID_KEY, entityId)
+                .schedule(true);
+
+            continue;
+
+          } else if (entityCount > 1) {
+            logWarning("Entity " + entityId + " for orhan record "
+                           + record + " has " + entityCount
+                           + " data-mart rows.");
+            continue;
+          }
+        }
+        if (entityId == null) {
+          logDebug("Determined that record is truly deleted: " + record);
+          deleteSet.add(new SzRecord(dataSource, recordId));
+
+        } else {
+          logDebug("Queueing record " + record
+                       + " for reconnection to entity " + entityId);
+          reconnectMap.put(record, entityId);
+        }
       }
 
-      // free resources
+      rs = close(rs);
       ps = close(ps);
+
+      // check if we have any to reconnect
+      if (reconnectMap.size() > 0) {
+        // reconnect the records that have been mistakenly orphaned
+        ps = conn.prepareStatement(
+            "UPDATE sz_dm_record SET entity_id = ?, adopter_id = ? "
+                + "WHERE data_source = ? AND record_id = ? AND entity_id = 0 "
+                + "AND modifier_id = ?");
+
+        List<Integer> rowCounts = this.batchUpdate(
+            ps, reconnectMap.entrySet(), (ps2, entry) -> {
+              SzRecord  record    = entry.getKey();
+              Long      entityId  = entry.getValue();
+              ps2.setLong(1, entityId);
+              ps2.setString(2, operationId);
+              ps2.setString(3, record.getDataSource());
+              ps2.setString(4, record.getRecordId());
+              ps2.setString(5, operationId);
+              return -1;
+            });
+
+        int index = 0, reconnectedCount = 0;
+        for (Map.Entry<SzRecord, Long> entry : reconnectMap.entrySet()) {
+          int rowCount = rowCounts.get(index++);
+          if (rowCount == 0) {
+            logWarning("FAILED TO RECONNECT RECORD " + entry.getKey()
+                           + " TO ENTITY " + entry.getValue());
+          } else {
+            logDebug("Reconnected record " + entry.getKey()
+                         + " to entity " + entry.getValue());
+            reconnectedCount++;
+          }
+        }
+        logDebug("Reconnected " + reconnectedCount + " out of "
+                     + reconnectMap.size() + " records from " + dataSource
+                     + " data source");
+      }
+
+      rs = close(rs);
+      ps = close(ps);
+
+      if (deleteSet.size() > 0) {
+        // delete the leased rows
+        ps = conn.prepareStatement(
+            "DELETE FROM sz_dm_record "
+                + "WHERE data_source = ? AND record_id = ? "
+                + "AND entity_id = 0 AND modifier_id = ?");
+
+        List<Integer> rowCounts = this.batchUpdate(ps, deleteSet, (ps2, rec) -> {
+          ps2.setString(1, rec.getDataSource());
+          ps2.setString(2, rec.getRecordId());
+          ps2.setString(3, operationId);
+          return -1;
+        });
+
+        int index = 0, deletedCount = 0;
+        for (SzRecord record : deleteSet) {
+          int rowCount = rowCounts.get(index++);
+          if (rowCount == 0) {
+            throw new IllegalStateException(
+                "Failed to delete leased orphan record row: " + record);
+          }
+          deletedCount++;
+        }
+
+        // the row count is the number to decrement by
+        recordDelta -= deletedCount;
+      }
+
+      // release resources
+      ps = close(ps);
+
+      // return the record delta
+      return recordDelta;
 
     } finally {
       ps = close(ps);
+      rs = close(rs);
     }
   }
-
 }

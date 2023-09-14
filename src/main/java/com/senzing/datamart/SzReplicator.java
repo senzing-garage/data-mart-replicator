@@ -16,6 +16,7 @@ import com.senzing.text.TextUtilities;
 import com.senzing.util.AccessToken;
 import com.senzing.util.JsonUtilities;
 import com.senzing.sql.*;
+import com.senzing.util.LoggingUtilities;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -34,8 +35,7 @@ import java.util.function.Supplier;
 import static com.senzing.cmdline.CommandLineUtilities.getJarName;
 import static com.senzing.datamart.SzReplicatorOption.*;
 import static com.senzing.datamart.SzReplicatorConstants.*;
-import static com.senzing.util.LoggingUtilities.isLastLoggedException;
-import static com.senzing.util.LoggingUtilities.multilineFormat;
+import static com.senzing.util.LoggingUtilities.*;
 import static com.senzing.util.Quantified.*;
 import static com.senzing.listener.service.scheduling.AbstractSchedulingService.Stat.*;
 import static com.senzing.listener.communication.AbstractMessageConsumer.Stat.*;
@@ -241,12 +241,12 @@ public class SzReplicator extends Thread {
       exitOnError(e);
     }
 
-    System.err.println("STARTING REPLICATOR...");
+    logInfo("STARTING REPLICATOR...");
     replicator.start();
-    System.err.println("STARTED REPLICATOR.");
-    System.err.println("JOINING REPLICATOR...");
+    logInfo("STARTED REPLICATOR.");
+    logInfo("JOINING REPLICATOR...");
     replicator.join();
-    System.err.println("JOINED REPLICATOR.");
+    logInfo("JOINED REPLICATOR.");
   }
 
   /**
@@ -255,14 +255,14 @@ public class SzReplicator extends Thread {
   public void run() {
     try {
       this.startTimeNanos = System.nanoTime();
-      System.err.println("STARTING MESSAGE CONSUMPTION...");
+      logInfo("STARTING MESSAGE CONSUMPTION...");
       this.messageConsumer.consume(this.replicatorService);
-      System.err.println("MESSAGE CONSUMPTION STARTED.");
+      logInfo("MESSAGE CONSUMPTION STARTED.");
 
       final Object monitor = new Object();
       synchronized (monitor) {
         while (true) {
-          monitor.wait(10000L);
+          monitor.wait(60000L);
           ListenerService.State listenerState
               = this.replicatorService.getState();
 
@@ -302,33 +302,13 @@ public class SzReplicator extends Thread {
     Number completeCount = stats.get(taskGroupCompleteCount);
     long   completed = completeCount.longValue();
 
-    System.out.println();
-    System.out.println(
-        "Handled " + completed + " INFO messages in " + elapsed + " seconds.");
-    System.out.println(
-        "Processing rate: " + (((double) completed) / elapsed)
-            + " INFO messages per second.");
-
-    /*
     MessageConsumer     consumer  = this.messageConsumer;
     SzReplicatorService service   = this.replicatorService;
 
     System.out.println();
     System.out.println("=====================================================");
-    System.out.println("CONSUMER STATISTICS:");
-    printStatisticsMap(stats1);
-
-    System.out.println();
-    System.out.println("-----------------------------------------------------");
-
-    System.out.println("REPLICATOR STATISTICS:");
-    printStatisticsMap(stats2);
-
-    System.out.println();
-    System.out.println("-----------------------------------------------------");
-    System.out.println("CONNECTION POOL STATISTICS:");
-    printStatisticsMap(stats3);
-    */
+    System.out.println("STATISTICS:");
+    printStatisticsMap(stats);
   }
 
   /**
@@ -619,7 +599,7 @@ public class SzReplicator extends Thread {
    * @param t The {@link Throwable} representing the failure.
    */
   private static void exitOnError(Throwable t) {
-    System.err.println(t.getMessage());
+    logError(t, "EXITING ON ERROR:");
     System.exit(1);
   }
 
@@ -729,9 +709,9 @@ public class SzReplicator extends Thread {
     }
 
     final int consumerConcurrency = this.concurrency * 2;
-    final int scheduleConcurrency = this.concurrency;
+    final int scheduleConcurrency = this.concurrency * 2;
     final int poolSize            = this.concurrency;
-    final int maxPoolSize         = poolSize * 2;
+    final int maxPoolSize         = poolSize * 3;
     final int g2Concurrency       = this.concurrency;
 
     // create the configuration for the G2Service
@@ -785,7 +765,7 @@ public class SzReplicator extends Thread {
     }
 
     this.connProvider = new PoolConnectionProvider(this.connPool,
-                                                   5000L);
+                                                   10000L);
 
     this.connProviderName = TextUtilities.randomAlphanumericText(30);
 

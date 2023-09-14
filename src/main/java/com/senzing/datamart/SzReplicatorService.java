@@ -27,6 +27,7 @@ import static com.senzing.datamart.SzReplicationProvider.TaskAction.*;
 import static com.senzing.sql.SQLUtilities.*;
 import static com.senzing.sql.DatabaseType.*;
 import static com.senzing.util.JsonUtilities.*;
+import static com.senzing.util.LoggingUtilities.*;
 
 /**
  * Extends {@link AbstractListenerService} to implement a data mart replication.
@@ -221,10 +222,7 @@ public class SzReplicatorService extends AbstractListenerService {
             this.reportKeyMap.clear();
 
           } catch (ServiceExecutionException e) {
-            System.err.println();
-            System.err.println("*******************************************");
-            System.err.println("FAILED TO SCHEDULE PERIODIC REPORT UPDATE: ");
-            e.printStackTrace();
+            logWarning(e, "FAILED TO SCHEDULE PERIODIC REPORT UPDATE: ");
           }
 
           try {

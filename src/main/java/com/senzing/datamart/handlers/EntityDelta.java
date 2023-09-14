@@ -2,15 +2,18 @@ package com.senzing.datamart.handlers;
 
 import com.senzing.datamart.model.*;
 import com.senzing.listener.service.locking.ResourceKey;
+import com.senzing.util.LoggingUtilities;
 
+import javax.management.relation.Relation;
+import java.time.temporal.UnsupportedTemporalTypeException;
 import java.util.*;
 
 import static java.util.Map.*;
 import static com.senzing.datamart.model.SzReportCode.*;
 import static com.senzing.datamart.model.SzReportStatistic.*;
-import static com.senzing.datamart.model.SzReportStatistic.DUPLICATE_COUNT;
 import static com.senzing.datamart.model.SzReportUpdate.builder;
 import static com.senzing.datamart.model.SzMatchType.*;
+import static com.senzing.util.LoggingUtilities.*;
 
 /**
  * Determines the delta between the old state of an entity and the new state
@@ -19,6 +22,130 @@ import static com.senzing.datamart.model.SzMatchType.*;
  * the both states should not be non-existent or else no difference exists.
  */
 public class EntityDelta {
+  /**
+   * The key for a cross-relation report statistic comprising two data sources
+   * and a match type.
+   */
+  public static class CrossRelationKey {
+    /**
+     * The first data source.
+     */
+    private String source1;
+
+    /**
+     * The second data source.
+     */
+    private String source2;
+
+    /**
+     * The {@link SzMatchType} describing the associated match type.
+     */
+    private SzMatchType matchType;
+
+    /**
+     * Constructs with the specified data source codes and {@link SzMatchType}.
+     *
+     * @param source The data source code representing both the "from" and
+     *               "to" data source.
+     * @param matchType The {@link SzMatchType} describing the match type.
+     * @throws NullPointerException If any of the parameter is <code>null</code>
+     */
+    public CrossRelationKey(String      source,
+                            SzMatchType matchType)
+        throws NullPointerException
+    {
+      this(source, source, matchType);
+    }
+
+    /**
+     * Constructs with the specified data source codes and {@link SzMatchType}.
+     *
+     * @param source1 The first ("from") data source code.
+     * @param source2 The second ("to") data source code.
+     * @param matchType The {@link SzMatchType} describing the match type.
+     * @throws NullPointerException If any of the parameter is <code>null</code>
+     */
+    public CrossRelationKey(String      source1,
+                            String      source2,
+                            SzMatchType matchType)
+      throws NullPointerException
+    {
+      this.source1    = source1;
+      this.source2    = source2;
+      this.matchType  = matchType;
+    }
+
+    /**
+     * Gets the first ("from") data source code.
+     *
+     * @return The first ("from") data source code.
+     */
+    public String getSource1() {
+      return this.source1;
+    }
+
+    /**
+     * Gets the second ("to") data source code.
+     *
+     * @return The second ("to") data source code.
+     */
+    public String getSource2() {
+      return this.source2;
+    }
+
+    /**
+     * Gets the associated {@link SzMatchType}.
+     *
+     * @return The associated {@link SzMatchType}.
+     */
+    public SzMatchType getMatchType() {
+      return this.matchType;
+    }
+
+    /**
+     * Gets the hash code for this instance.
+     *
+     * @return The hash code for this instance.
+     */
+    @Override
+    public int hashCode() {
+      return Objects.hash(this.getSource1(),
+                          this.getSource2(),
+                          this.getMatchType());
+    }
+
+    /**
+     * Checks if this instance is equal to the specified object.  This is
+     * implemented to return <code>true</code> if and only if the specified
+     * value is a non-null reference to an object of the same class with
+     * equivalent properties.
+     *
+     * @param obj The object to compare with.
+     */
+    @Override
+    public boolean equals(Object obj) {
+      if (obj == null) return false;
+      if (this == obj) return true;
+      if (this.getClass() != obj.getClass()) return false;
+      CrossRelationKey key = (CrossRelationKey) obj;
+      return Objects.equals(this.getSource1(), key.getSource1())
+          && Objects.equals(this.getSource2(), key.getSource2())
+          && Objects.equals(this.getMatchType(), key.getMatchType());
+    }
+
+    /**
+     * Implemented to provide a diagnostic {@link String} describing this
+     * instance.
+     *
+     * @return A diagnostic {@link String} describing this instance.
+     */
+    @Override
+    public String toString() {
+      return this.getSource1() + ":" + this.getSource2() + "["
+          + this.getMatchType() + "]";
+    }
+  }
+
   /**
    * Handles counting relationships given two data source summaries.
    */
@@ -40,18 +167,6 @@ public class EntityDelta {
     private int recordCount = 0;
 
     /**
-     * Flag indicating if the forward relationship exists for the data source
-     * pair.
-     */
-    private boolean forwardRelated = false;
-
-    /**
-     * Flag indicating if the reverse relationship exists for the data source
-     * pair.
-     */
-    private boolean reverseRelated = false;
-
-    /**
      * Constructs with the specified data sources.
      *
      * @param source1 The first data source.
@@ -61,8 +176,6 @@ public class EntityDelta {
       this.source1        = source1;
       this.source2        = source2;
       this.recordCount    = 0;
-      this.forwardRelated = false;
-      this.reverseRelated = false;
     }
 
     /**
@@ -84,76 +197,6 @@ public class EntityDelta {
     }
 
     /**
-     * Gets the count of relationships from entities having records of the
-     * first data source to entities having records of the second data source.
-     * If the data sources differ and they are present on both sides of the
-     * relationship then the relationship is counted twice.
-     *
-     * @return The count of relationships from entities having records if the
-     *         first data source to entities having records of the second data
-     *         source.
-     */
-    public int getRelationCount() {
-      int forwardCount = (this.isForwardRelated() ? 1 : 0);
-      int reverseCount = (this.isReverseRelated() ? 1 : 0);
-      if (this.getSource1().equals(this.getSource2())) {
-        return Math.max(forwardCount, reverseCount);
-      } else {
-        return forwardCount + reverseCount;
-      }
-    }
-
-    /**
-     * Checks if there is a relationship from the first entity to the second
-     * entity for the data source pair.  This would mean that the first entity
-     * has a record of the first data source and the second entity has a record
-     * of the second data source.
-     *
-     * @return <code>true</code> if the forward relationship exists for the
-     *         data source pair, otherwise <code>false</code>.
-     */
-    public boolean isForwardRelated() {
-      return this.forwardRelated;
-    }
-
-    /**
-     * Sets whether or not a relationship exists from the first entity having
-     * records of the first data source to the second entity having records of
-     * the second data source.
-     *
-     * @param related <code>true</code> if the forward relationship exists for
-     *                the data sources, otherwise <code>false</code>.
-     */
-    public void setForwardRelated(boolean related) {
-      this.forwardRelated = related;
-    }
-
-    /**
-     * Checks if there is a relationship from the first entity to the second
-     * entity for the data source pair.  This would mean that the first entity
-     * has a record of the first data source and the second entity has a record
-     * of the second data source.
-     *
-     * @return <code>true</code> if the forward relationship exists for the
-     *         data source pair, otherwise <code>false</code>.
-     */
-    public boolean isReverseRelated() {
-      return this.reverseRelated;
-    }
-
-    /**
-     * Sets whether or not a relationship exists from the second entity having
-     * records of the first data source to the first entity having records of
-     * the second data source.
-     *
-     * @param related <code>true</code> if the reverse relationship exists for
-     *                the data sources, otherwise <code>false</code>.
-     */
-    public void setReverseRelated(boolean related) {
-      this.reverseRelated = related;
-    }
-
-    /**
      * Gets the count of records of the first data source to entities having
      * records from the second data source.  If the data sources differ and
      * they are present on both sides of the relationship then this the sum
@@ -172,8 +215,8 @@ public class EntityDelta {
      * they are present on both sides of the relationship then this the sum
      * of records from both sides.
      *
-     * @return The count of records of the first data source to entities having
-     *         records from the second data source.
+     * @param count The count of records of the first data source to entities
+     *              having records from the second data source.
      */
     public void setRecordCount(int count) {
       this.recordCount = count;
@@ -195,9 +238,7 @@ public class EntityDelta {
     public String toString() {
       return "source1=[ " + this.getSource1() + " ], source2=[ "
           + this.getSource2() + " ], recordCount=[ " + this.getRecordCount()
-          + " ], relationCount=[ " + this.getRelationCount()
-          + " ], forwardRelated=[ " + this.isForwardRelated()
-          + " ], reverseRelated=[ " + this.isReverseRelated() + " ]";
+          + " ]";
     }
   }
 
@@ -216,13 +257,6 @@ public class EntityDelta {
    * <code>null</code> if the entity did not previously exist in the data mart.
    */
   private SzResolvedEntity oldEntity;
-
-  /**
-   * The {@link Map} of {@link Long} entity ID keys to {@link Boolean} values
-   * describing the relationship patches that have been applied to the old
-   * entity.
-   */
-  private Map<Long, Boolean> relationshipPatches;
 
   /**
    * The {@link SzResolvedEntity} describing the new version of the entity, or
@@ -310,27 +344,6 @@ public class EntityDelta {
    *                  state.
    */
   public EntityDelta(SzResolvedEntity oldEntity, SzResolvedEntity newEntity) {
-    this(oldEntity, newEntity, null);
-  }
-
-  /**
-   * Constructs with the specified {@link SzResolvedEntity} instances to find
-   * the deltas between.  The caller may also optionally specify a {@link Map}
-   * of {@link Long} entity ID keys to {@link Boolean} values indicating
-   * patches that have been applied in the data mart to the old entity state
-   * to add or remove entity relationships.
-   *
-   * @param oldEntity        The {@link SzResolvedEntity} describing the old entity
-   *                         state.
-   * @param newEntity        The {@link SzResolvedEntity} describing the new entity
-   *                         state.
-   * @param relationPatchMap The {@link Map} of {@link Long} entity ID keys to
-   *                         {@link Boolean} relationship patch values, or
-   *                         <code>null</code> if there are no patches.
-   */
-  public EntityDelta(SzResolvedEntity oldEntity,
-                     SzResolvedEntity newEntity,
-                     Map<Long, Boolean> relationPatchMap) {
     if (oldEntity != null && newEntity != null
         && oldEntity.getEntityId() != newEntity.getEntityId()) {
       throw new IllegalArgumentException(
@@ -349,10 +362,6 @@ public class EntityDelta {
 
     // get the entity ID
     long entityId = getEntityId(this.oldEntity, this.newEntity);
-
-    // set the relationship patches
-    this.relationshipPatches = (relationPatchMap == null)
-        ? Collections.emptyMap() : relationPatchMap;
 
     // get the old and new data sources
     Map<String, Integer> oldSourceSummary = getSourceSummary(oldEntity);
@@ -448,6 +457,11 @@ public class EntityDelta {
     // determine the ECB (Entity Count Breakdown) changes
     this.reportUpdates = new LinkedList<>();
 
+    // check on the related source counts
+    findRelatedSourceChanges(this.reportUpdates,
+                             oldEntity,
+                             newEntity);
+
     // check the entity size breakdown
     findEntitySizeChanges(this.reportUpdates,
                           oldEntity,
@@ -460,8 +474,7 @@ public class EntityDelta {
                               oldEntity,
                               newEntity,
                               oldRelations,
-                              newRelations,
-                              this.relationshipPatches);
+                              newRelations);
 
     // check the data source summary
     findSourceSummaryChanges(this.reportUpdates,
@@ -501,21 +514,6 @@ public class EntityDelta {
    */
   public SzResolvedEntity getOldEntity() {
     return this.oldEntity;
-  }
-
-  /**
-   * Gets the {@link Map} of {@link Long} entity ID keys to {@link Boolean}
-   * values describing the relationship patches that have been applied to
-   * the old entity state since it was last fully refreshed.  This returns an
-   * empty {@link Map} if no changes have been applied.
-   *
-   * @return The non-null {@link Map} of {@link Long} entity ID keys to
-   * {@link Boolean} values describing the relationship patches that
-   * have been applied to the old entity state since it was last fully
-   * refreshed.
-   */
-  public Map<Long, Boolean> getRelationshipPatches() {
-    return this.relationshipPatches;
   }
 
   /**
@@ -582,6 +580,33 @@ public class EntityDelta {
    */
   public Map<String, Integer> getNewSourceSummary() {
     return getSourceSummary(this.getNewEntity());
+  }
+
+  /**
+   * Gets the {@link SortedMap} of {@link SzMatchType} keys to {@link SortedSet}
+   * values containing data source codes for the data sources of the records in
+   * all entities related to the old entity.  If the entity did not previously
+   * exist (i.e.: the old entity is <code>null</code>) then this returns an
+   * empty {@link Set}.
+   *
+   * @return The {@link Set} of {@link String} data source codes for the data
+   *         sources of the records in all entities related to the old entity.
+   */
+  public SortedMap<SzMatchType, SortedSet<String>> getOldRelatedSources() {
+    return getRelatedSources(this.getOldEntity());
+  }
+
+  /**
+   * Gets the {@link Set} of {@link String} data source codes for the data
+   * sources of the records in all entities related to the new entity.  If the
+   * entity no longer exists (i.e.: the new entity is <code>null</code>)
+   * then this returns an empty {@link Set}.
+   *
+   * @return The {@link Set} of {@link String} data source codes for the data
+   *         sources of the records in all entities related to the new entity.
+   */
+  public SortedMap<SzMatchType, SortedSet<String>> getNewRelatedSources() {
+    return getRelatedSources(this.getNewEntity());
   }
 
   /**
@@ -668,6 +693,8 @@ public class EntityDelta {
    *                                  as created.
    */
   public void createdRecord(SzRecord record) {
+    logDebug("RECORD CREATED BY ENTITY " + this.getEntityId()
+                       + ": " + record);
     Objects.requireNonNull(record, "The record cannot be null");
     if (!this.getAddedRecords().contains(record)) {
       throw new IllegalArgumentException(
@@ -685,43 +712,7 @@ public class EntityDelta {
     long entityId = this.getEntityId();
     this.reportUpdates.add(
         builder(
-            DATA_SOURCE_SUMMARY, RECORD_COUNT, source, source, entityId)
-            .records(1).build());
-  }
-
-  /**
-   * Indicates that the specified record that was updated with new related
-   * data sourcesadded to the entity had to be
-   * created new in the data mart.
-   *
-   * @param record The {@link SzRecord} describing the record that was newly
-   *               created.
-   * @throws NullPointerException     If the specified {@link SzRecord} is
-   *                                  <code>null</code>.
-   * @throws IllegalArgumentException If the specified {@link SzRecord} is not
-   *                                  one of the {@linkplain #getAddedRecords()
-   *                                  added records} or has already been marked
-   *                                  as created.
-   */
-  public void updatedRecord(SzRecord record, Set<String> prevRelatedSources) {
-    Objects.requireNonNull(record, "The record cannot be null");
-    if (!this.getAddedRecords().contains(record)) {
-      throw new IllegalArgumentException(
-          "The specified record is not one of the added records.  record=[ "
-              + record + " ], allowed=[ " + this.getAddedRecords() + " ]");
-    }
-    if (this.createdRecords.contains(record)) {
-      throw new IllegalArgumentException(
-          "The specified record has already been marked as created.  record=[ "
-              + record + " ]");
-    }
-    this.createdRecords.add(record);
-
-    String source = record.getDataSource();
-    long entityId = this.getEntityId();
-    this.reportUpdates.add(
-        builder(
-            DATA_SOURCE_SUMMARY, RECORD_COUNT, source, source, entityId)
+            DATA_SOURCE_SUMMARY, ENTITY_COUNT, source, source, entityId)
             .records(1).build());
   }
 
@@ -742,8 +733,6 @@ public class EntityDelta {
    *
    * @param record         The {@link SzRecord} describing the record that was newly
    *                       created.
-   * @param prevRelatedSet The {@link Set} of {@link String} data sources
-   *                       previously related to the specified record.
    * @throws NullPointerException     If the specified {@link SzRecord} is
    *                                  <code>null</code>.
    * @throws IllegalArgumentException If the specified {@link SzRecord} is not
@@ -751,7 +740,9 @@ public class EntityDelta {
    *                                  added records} or has already been marked
    *                                  as created.
    */
-  public void orphanedRecord(SzRecord record, Set<String> prevRelatedSet) {
+  public void orphanedRecord(SzRecord record) {
+    logDebug("RECORD ORPHANED BY ENTITY " + this.getEntityId()
+                 + ": " + record);
     Objects.requireNonNull(record, "The record cannot be null");
     if (!this.getRemovedRecords().contains(record)) {
       throw new IllegalArgumentException(
@@ -771,7 +762,7 @@ public class EntityDelta {
 
     reportUpdates.add(
         builder(
-            DATA_SOURCE_SUMMARY, RECORD_COUNT, source, source, entityId)
+            DATA_SOURCE_SUMMARY, ENTITY_COUNT, source, source, entityId)
             .records(-1).build());
   }
 
@@ -804,7 +795,8 @@ public class EntityDelta {
 
   /**
    * Marks the relationship to the specified related entity as having been
-   * stored in the database.  The relationship may have been created or updated.
+   * stored in the database.  The relationship may have been created or
+   * updated or found to already exist.
    *
    * @param entityId          The entity ID of the first entity in the relationship.
    * @param relatedId         The entity ID of the second entity in the relationship.
@@ -827,11 +819,12 @@ public class EntityDelta {
    *                                  different or neither matches the entity ID
    *                                  for this instance.
    */
-  public void storedRelationship(long entityId,
-                                 long relatedId,
-                                 SzMatchType oldMatchType,
-                                 Map<String, Integer> oldSourceSummary,
-                                 Map<String, Integer> oldRelatedSummary) {
+  public void trackStoredRelationship(long                  entityId,
+                                      long                  relatedId,
+                                      SzMatchType           oldMatchType,
+                                      Map<String, Integer>  oldSourceSummary,
+                                      Map<String, Integer>  oldRelatedSummary)
+  {
     // get our entity ID
     long myEntityId = this.getEntityId();
 
@@ -855,11 +848,11 @@ public class EntityDelta {
 
     // normalize everything with respect to this entity's perspective
     if (myEntityId == relatedId) {
-      relatedId = entityId;
-      entityId = myEntityId;
+      relatedId                 = entityId;
+      entityId                  = myEntityId;
       Map<String, Integer> temp = oldSourceSummary;
-      oldSourceSummary = oldRelatedSummary;
-      oldRelatedSummary = temp;
+      oldSourceSummary          = oldRelatedSummary;
+      oldRelatedSummary         = temp;
     }
 
     // now check that the related entity ID is related to the entity
@@ -872,9 +865,15 @@ public class EntityDelta {
               + " ], changed=[ " + this.getChangedRelations().keySet() + " ]");
     }
 
+    logDebug("ENTITY " + entityId + " OLD SOURCE SUMMARY TO ENTITY "
+                 + relatedId + ": ", oldSourceSummary, oldRelatedSummary);
+
     // determine the previous cross-source pairs
     Map<List<String>, RelationshipCounts> oldRelCounts
         = countRelationships(oldSourceSummary, oldRelatedSummary);
+
+    logDebug("ENTITY " + entityId + " OLD REL COUNTS TO ENTITY "
+                 + relatedId + ": ", oldRelCounts);
 
     // get the related entities
     Map<Long, SzRelatedEntity> relatedEntityMap = this.getNewRelatedEntities();
@@ -892,99 +891,118 @@ public class EntityDelta {
     SzMatchType matchType = related.getMatchType();
 
     // create final ID's to use in lambda expression
-    final long id1        = entityId;
-    final long id2        = relatedId;
-    final long lesserId   = (id1 < id2) ? id1 : id2;
-    final long greaterId  = (id1 > id2) ? id1 : id2;
+    final long fromId = entityId;
+    final long toId   = relatedId;
+
+    logDebug("ENTITY " + fromId + " CHECKING RELATION TO " + toId
+                 + " WITH: matchType=[ " + matchType + " ] AND oldMatchType=[ "
+                 + oldMatchType + " ]");
 
     // check if we need to decrement counts for an old match type
     if (matchType != oldMatchType && oldMatchType != null) {
       // get the statistic
       SzReportStatistic statistic = STATISTIC_LOOKUP.get(oldMatchType);
 
-      System.err.println("DECREMENTING COUNTS: " + oldRelCounts);
+      logDebug("ENTITY " + fromId + " HANDLING RELATION TO " + toId
+                   + " WITH: " + oldRelCounts);
 
       // handle decrementing the counts accordingly
       oldRelCounts.forEach((sourcePair, counts) -> {
         String source1 = sourcePair.get(0);
         String source2 = sourcePair.get(1);
 
-        SzReportCode reportCode = (source1.equals(source2))
+        boolean sameSource  = source1.equals(source2);
+
+        SzReportCode reportCode = (sameSource)
             ? DATA_SOURCE_SUMMARY : CROSS_SOURCE_SUMMARY;
 
-        // check if the forward relationship exists
-        if (counts.isForwardRelated()) {
-          // delete all the old counts for this relationship
-          reportUpdates.add(
-              builder(
-                  reportCode, statistic, source1, source2, id1, id2)
-                  .relations(-1).entities(-1).build());
-        }
+        logDebug("A) ENTITY " + fromId + ": UNTRACKING RELATION TO "
+                     + toId + " for " + reportCode + ":" + statistic + ":"
+                     + source1 + ":" + source2);
 
-        // check if the reverse relationship exists
-        if (counts.isReverseRelated() && !(source1.equals(source2))) {
-          reportUpdates.add(
-              builder(
-                  reportCode, statistic, source1, source2, id2, id1)
-                  .relations(-1).entities(-1).build());
-        }
+        // decrement the relationship count for this relationship
+        reportUpdates.add(
+            builder(
+                reportCode, statistic, source1, source2, fromId, toId)
+                .relations(-1).build());
       });
     }
 
-    // check if need to increment counts for the new match type
+    // check if we need to increment counts for the new match type
     if (matchType != oldMatchType && matchType != null) {
       // get the statistic
       SzReportStatistic statistic = STATISTIC_LOOKUP.get(matchType);
 
       // handle decrementing the counts accordingly
-      newCrossSources.forEach((sourcePair, count) -> {
-        String source1 = sourcePair.get(0);
-        String source2 = sourcePair.get(1);
+      newRelCounts.forEach((sourcePair, counts) -> {
+        String  source1     = sourcePair.get(0);
+        String  source2     = sourcePair.get(1);
+        boolean sameSource  = source1.equals(source2);
 
-        SzReportCode reportCode = (source1.equals(source2))
+        SzReportCode reportCode = (sameSource)
             ? DATA_SOURCE_SUMMARY : CROSS_SOURCE_SUMMARY;
 
-        // delete all the old counts for this relationship
+        logDebug("B) ENTITY " + fromId + ": TRACKING RELATION TO "
+                     + toId + " for " + reportCode + ":" + statistic
+                     + ":" + source1 + ":" + source2);
+
+        // increment the relationship count for this relationship
         reportUpdates.add(
             builder(
-                reportCode, statistic, source1, source2, id1, id2)
-                .relations(1).recordRelations(count).build());
+                reportCode, statistic, source1, source2, fromId, toId)
+                .relations(1).build());
       });
     }
 
     // check if the match type is the same and compute the deltas
-    if (matchType == oldMatchType && matchType != null && oldMatchType != null) {
-      Map<List<String>, Integer> crossSourceDeltas = diffCrossSourceSummaries(
-          oldCrossSources, newCrossSources);
-
+    if (matchType == oldMatchType && matchType != null && oldMatchType != null)
+    {
       // get the statistic
       SzReportStatistic statistic = STATISTIC_LOOKUP.get(matchType);
 
-      System.err.println("HANDLING DELTAS: " + crossSourceDeltas);
+      Set<List<String>> allSourcePairs = new LinkedHashSet<>();
+      allSourcePairs.addAll(newRelCounts.keySet());
+      allSourcePairs.addAll(oldRelCounts.keySet());
 
-      // handle updating the counts accordingly
-      crossSourceDeltas.forEach((sourcePair, delta) -> {
-        // if the delta is zero then do nothing
-        if (delta.intValue() == 0) return;
+      allSourcePairs.forEach((sourcePair) -> {
+        RelationshipCounts newCounts = newRelCounts.get(sourcePair);
+        RelationshipCounts oldCounts = oldRelCounts.get(sourcePair);
 
         String source1 = sourcePair.get(0);
         String source2 = sourcePair.get(1);
 
-        SzReportCode reportCode = (source1.equals(source2))
+        boolean sameSource  = source1.equals(source2);
+
+        SzReportCode reportCode = (sameSource)
             ? DATA_SOURCE_SUMMARY : CROSS_SOURCE_SUMMARY;
 
-        int entityDelta = 0;
-        if (!newCrossSources.containsKey(sourcePair)) {
-          entityDelta = -1;
-        } else if (!oldCrossSources.containsKey(sourcePair)) {
-          entityDelta = 1;
+        // check if an old relationship no longer exists
+        if (oldCounts != null && newCounts == null)
+        {
+          logDebug("C) ENTITY " + fromId + ": UNTRACKING RELATION TO "
+                       + toId + " for " + reportCode + ":" + statistic + ":"
+                       + source1 + ":" + source2);
+
+          // decrement the relationship count for this relationship
+          reportUpdates.add(
+              builder(
+                  reportCode, statistic, source1, source2, fromId, toId)
+                  .relations(-1).build());
         }
 
-        // delete all the old counts for this relationship
-        reportUpdates.add(
-            builder(
-                reportCode, statistic, source1, source2, id1, id2)
-                .relations(entityDelta).recordRelations(delta).build());
+        // check if a new relationship exists that previously did not
+        if (oldCounts == null && newCounts != null)
+        {
+          logDebug("D) ENTITY " + fromId + ": TRACKING RELATION TO "
+                       + toId + " for " + reportCode + ":" + statistic + ":"
+                       + source1 + ":" + source2);
+
+          // increment the relationship count for this relationship
+          reportUpdates.add(
+              builder(
+                  reportCode, statistic, source1, source2, fromId, toId)
+                  .relations(1).build());
+        }
       });
     }
   }
@@ -1004,7 +1022,8 @@ public class EntityDelta {
 
   /**
    * Marks the relationship to the specified related entity as having been
-   * deleted from the database.  The relationship must have previously existed.
+   * deleted or found to be already deleted from the database.  The
+   * relationship must have previously existed.
    *
    * @param entityId          The entity ID of the first entity in the relationship.
    * @param relatedId         The entity ID of the second entity in the relationship.
@@ -1026,12 +1045,13 @@ public class EntityDelta {
    *                                  different or neither matches the entity ID
    *                                  for this instance.
    */
-  public void deletedRelationship(long entityId,
-                                  long relatedId,
-                                  SzMatchType oldMatchType,
-                                  Map<String, Integer> oldSourceSummary,
-                                  Map<String, Integer> oldRelatedSummary)
-      throws NullPointerException, IllegalArgumentException {
+  public void trackDeletedRelationship(long                  entityId,
+                                       long                  relatedId,
+                                       SzMatchType           oldMatchType,
+                                       Map<String, Integer>  oldSourceSummary,
+                                       Map<String, Integer>  oldRelatedSummary)
+      throws NullPointerException, IllegalArgumentException
+  {
     // get our entity ID
     long myEntityId = this.getEntityId();
 
@@ -1039,6 +1059,7 @@ public class EntityDelta {
         oldSourceSummary,
         "Previous source summary cannot be null if deleted.  "
             + "entityId=[ " + entityId + " ], relatedId=[ " + relatedId + " ]");
+
     Objects.requireNonNull(
         oldRelatedSummary,
         "Previous related source summary cannot be null if deleted.  "
@@ -1066,11 +1087,11 @@ public class EntityDelta {
 
     // normalize everything with respect to this entity's perspective
     if (myEntityId == relatedId) {
+      relatedId                 = entityId;
+      entityId                  = myEntityId;
       Map<String, Integer> temp = oldSourceSummary;
-      oldSourceSummary = oldRelatedSummary;
-      oldRelatedSummary = temp;
-      relatedId = entityId;
-      entityId = myEntityId;
+      oldSourceSummary          = oldRelatedSummary;
+      oldRelatedSummary         = temp;
     }
 
     // now check that the related entity ID is related to the entity
@@ -1081,32 +1102,36 @@ public class EntityDelta {
               + " ], removed=[ " + this.getRemovedRelations().keySet() + " ]");
     }
 
-    // determine the lesser and greater entity ID
-    long id1 = (entityId < relatedId) ? entityId : relatedId;
-    long id2 = (entityId < relatedId) ? relatedId : entityId;
-
     // determine the previous cross-source pairs
-    Map<List<String>, Integer> oldCrossSources = countRelationships(
-        (entityId < relatedId) ? oldSourceSummary : oldRelatedSummary,
-        (entityId < relatedId) ? oldRelatedSummary : oldSourceSummary);
+    Map<List<String>, RelationshipCounts> oldRelCounts = countRelationships(
+        oldSourceSummary, oldRelatedSummary);
 
     // get the statistic
     SzReportStatistic statistic = STATISTIC_LOOKUP.get(oldMatchType);
 
-    System.out.println("DECREMENTING RELATIONSHIPS: " + oldCrossSources);
+    // create final ID's to use in lambda expression
+    final long fromId = entityId;
+    final long toId   = relatedId;
+
     // handle decrementing the counts accordingly
-    oldCrossSources.forEach((sourcePair, count) -> {
+    oldRelCounts.forEach((sourcePair, counts) -> {
       String source2 = sourcePair.get(1);
       String source1 = sourcePair.get(0);
 
-      SzReportCode reportCode = (source1.equals(source2))
+      boolean sameSource  = source1.equals(source2);
+
+      SzReportCode reportCode = (sameSource)
           ? DATA_SOURCE_SUMMARY : CROSS_SOURCE_SUMMARY;
 
-      // delete all the old counts for this relationship
+      logDebug("E) ENTITY " + fromId + ": UNTRACKING RELATION TO "
+                   + toId + " for " + reportCode + ":" + statistic + ":"
+                   + source1 + ":" + source2);
+
+      // decrement the relationship count for this relationship
       reportUpdates.add(
           builder(
-              reportCode, statistic, source1, source2, id1, id2)
-              .relations(-1).recordRelations(-1 * count).build());
+              reportCode, statistic, source1, source2, fromId, toId)
+              .relations(-1).build());
     });
   }
 
@@ -1137,6 +1162,29 @@ public class EntityDelta {
     return (entity == null) ? Collections.emptyMap()
         : entity.getSourceSummary();
 
+  }
+
+  /**
+   * Gets the {@link SortedMap} of {@link SzMatchType} keys to {@link SortedSet}
+   * values containing {@link String} data source codes describing the data
+   * sources related by the respective {@link SzMatchType}.  If the specified
+   * {@link SzEntity} is <code>null</code> then this returns an empty {@link
+   * SortedMap}.
+   *
+   * @param entity The {@link SzResolvedEntity} from which to obtain the related
+   *               sources.
+   *
+   * @return The {@link SortedMap} of {@link SzMatchType} keys to {@link
+   *         SortedSet} values containing {@link String} data source codes
+   *         describing the data sources related by the respective {@link
+   *         SzMatchType}, or an empty {@link SortedMap} if the specified
+   *         {@link SzResolvedEntity} is <code>null</code>.
+   */
+  private static SortedMap<SzMatchType, SortedSet<String>> getRelatedSources(
+      SzResolvedEntity  entity)
+  {
+    return (entity == null) ? Collections.emptySortedMap()
+        : entity.getRelatedSources();
   }
 
   /**
@@ -1360,6 +1408,129 @@ public class EntityDelta {
   }
 
   /**
+   * Determines which relationships were changed for the entity given the
+   * specified {@link Map}'s describing the old and new relationships.  All
+   * the relationships in the returned {@link Map} were present in the {@link
+   * Map} of old relations, but also exist and are different in the new
+   * relations.  In some cases, the only difference is the data sources have
+   * changed for the entity.
+   *
+   * @param reportUpdates The {@link List} of {@link SzReportUpdate} instances.
+   * @param oldEntity The {@link SzResolvedEntity} describing the old entity.
+   * @param newEntity The {@link SzResolvedEntity} describing the new entity.
+   *
+   * @return The {@link Map} of {@link List} keys containing data source pairs
+   *         to {@link Integer} values indicating the delta in the number of
+   *         records related from the first source to the second source in the
+   *         pair.
+   */
+  private static void findRelatedSourceChanges(
+      List<SzReportUpdate>  reportUpdates,
+      SzResolvedEntity      oldEntity,
+      SzResolvedEntity      newEntity)
+  {
+    long entityId = getEntityId(oldEntity, newEntity);
+
+    // now check get the current and previous data sources for this entity
+    Map<String, Integer> oldSummary = getSourceSummary(oldEntity);
+    Map<String, Integer> newSummary = getSourceSummary(newEntity);
+
+    // get the related sources
+    SortedMap<SzMatchType, SortedSet<String>> oldRelSources
+        = getRelatedSources(oldEntity);
+
+    SortedMap<SzMatchType, SortedSet<String>> newRelSources
+        = getRelatedSources(newEntity);
+
+    // get the cross relations
+    Map<CrossRelationKey, Integer> oldCrossRelations
+        = crossSourceRelations(oldSummary, oldRelSources);
+
+    Map<CrossRelationKey, Integer> newCrossRelations
+        = crossSourceRelations(newSummary, newRelSources);
+
+    // iterate over the old cross relations
+    oldCrossRelations.forEach((crossKey, oldCount) -> {
+      // check if this cross key still exists
+      Integer newCount = newCrossRelations.get(crossKey);
+
+      // get the data sources
+      String      source1   = crossKey.getSource1();
+      String      source2   = crossKey.getSource2();
+      SzMatchType matchType = crossKey.getMatchType();
+
+      // get the report code
+      SzReportCode reportCode = (source1.equals(source2))
+          ? DATA_SOURCE_SUMMARY : CROSS_SOURCE_SUMMARY;
+
+      int recordDelta = 0;
+      int entityDelta = 0;
+
+      // check if no relationship still exists
+      if (newCount == null) {
+        recordDelta = -1 * oldCount;
+        entityDelta = -1;
+      } else {
+        recordDelta = newCount - oldCount;
+        entityDelta = (newCount == 0) ? -1 : 0;
+      }
+
+      SzReportStatistic statistic = STATISTIC_LOOKUP.get(matchType);
+
+      reportUpdates.add(
+          builder(reportCode, statistic, source1, source2, entityId)
+              .records(recordDelta).entities(entityDelta).build());
+    });
+
+    // now iterate over the new cross relations that are completely new
+    newCrossRelations.forEach((crossKey, newCount) -> {
+      // check if this cross key previously existed -- and skip it if so
+      if (oldCrossRelations.containsKey(crossKey)) return;
+
+      // get the data sources
+      String      source1   = crossKey.getSource1();
+      String      source2   = crossKey.getSource2();
+      SzMatchType matchType = crossKey.getMatchType();
+
+      // get the report code
+      SzReportCode reportCode = (source1.equals(source2))
+          ? DATA_SOURCE_SUMMARY : CROSS_SOURCE_SUMMARY;
+
+      SzReportStatistic statistic = STATISTIC_LOOKUP.get(matchType);
+
+      reportUpdates.add(
+          builder(reportCode, statistic, source1, source2, entityId)
+              .records(newCount).entities(1).build());
+    });
+  }
+
+  /**
+   * Gets the {@link Map} of {@link CrossRelationKey} keys to {@link Integer}
+   * values describing the record count for that key.
+   *
+   * @param sourceSummary The source summary for the entity.
+   * @param relatedSources The {@link Map} of {@link SzMatchType} keys to
+   *                       {@link SortedSet} values describing the related
+   *                       sources by match type.
+   */
+  private static Map<CrossRelationKey, Integer> crossSourceRelations(
+      Map<String, Integer>                sourceSummary,
+      Map<SzMatchType, SortedSet<String>> relatedSources)
+  {
+    Map<CrossRelationKey, Integer> result = new LinkedHashMap<>();
+    sourceSummary.forEach((source, recordCount) -> {
+      relatedSources.forEach(((matchType, relatedSourceSet) -> {
+        relatedSourceSet.forEach(relatedSource -> {
+          CrossRelationKey key
+              = new CrossRelationKey(source, relatedSource, matchType);
+          result.put(key, recordCount);
+        });
+      }));
+    });
+    return result;
+  }
+
+  /**
    * Finds the changes to the {@link SzReportCode#ENTITY_SIZE_BREAKDOWN} report.
    *
    * @param reportUpdates The {@link List} of {@link SzReportUpdate} instances.
@@ -1376,7 +1547,8 @@ public class EntityDelta {
                                             SzResolvedEntity oldEntity,
                                             SzResolvedEntity newEntity,
                                             Set<SzRecord> oldRecords,
-                                            Set<SzRecord> newRecords) {
+                                            Set<SzRecord> newRecords)
+  {
     int oldSize = oldRecords.size();
     int newSize = newRecords.size();
     if (oldSize == newSize) return;
@@ -1418,38 +1590,40 @@ public class EntityDelta {
    *                      relationships.
    */
   private static void findEntityRelationChanges(
-      List<SzReportUpdate> reportUpdates,
-      SzResolvedEntity oldEntity,
-      SzResolvedEntity newEntity,
-      Map<Long, SzRelatedEntity> oldRelations,
-      Map<Long, SzRelatedEntity> newRelations,
-      Map<Long, Boolean> relationshipPatches)
+      List<SzReportUpdate>          reportUpdates,
+      SzResolvedEntity              oldEntity,
+      SzResolvedEntity              newEntity,
+      Map<Long, SzRelatedEntity>    oldRelations,
+      Map<Long, SzRelatedEntity>    newRelations)
   {
     int newCount = newRelations.size();
     int oldCount = oldRelations.size();
 
-    for (Entry<Long, Boolean> entry : relationshipPatches.entrySet()) {
-      boolean contained = oldRelations.containsKey(entry.getKey());
-      boolean patch = entry.getValue().booleanValue();
-      if (contained == patch) continue;
-      oldCount += (patch) ? 1 : -1;
-    }
-
-    if (oldCount == newCount) return;
-
     long entityId = getEntityId(oldEntity, newEntity);
 
-    // check if the entity previously existed
-    if (oldEntity != null) {
+    // check if we have never seen this entity before
+    if (oldEntity == null && newEntity != null) {
+      // handle the case of a first-seen entity
+      reportUpdates.add(
+          builder(ENTITY_RELATION_BREAKDOWN, newCount, entityId)
+              .entities(1).build());
+
+    } else if (newEntity == null && oldEntity != null) {
+      // handle the case of a deleted entity
       // if the entity previously existed then remove it from its old
       // relationship breakdown count
       reportUpdates.add(
           builder(ENTITY_RELATION_BREAKDOWN, oldCount, entityId)
               .entities(-1).build());
-    }
 
-    // check if the new entity exists (entity may have been deleted)
-    if (newEntity != null) {
+    } else if (oldEntity != null && newEntity != null && oldCount != newCount) {
+      // handle the case of a different number of relationships
+      // first decrement for the old count
+      reportUpdates.add(
+          builder(ENTITY_RELATION_BREAKDOWN, oldCount, entityId)
+              .entities(-1).build());
+
+      // then increment for the new count
       reportUpdates.add(
           builder(ENTITY_RELATION_BREAKDOWN, newCount, entityId)
               .entities(1).build());
@@ -1740,26 +1914,6 @@ public class EntityDelta {
         }
 
         counts.setRecordCount(count1);
-        counts.setForwardRelated(true);
-      });
-    });
-
-    // get the reverse counts
-    summary2.forEach((source1, count1) -> {
-      summary1.forEach((source2, count2) -> {
-        // create the key
-        List<String> key = List.of(source1, source2);
-
-        // get the counts if any (create if not)
-        RelationshipCounts counts = result.get(key);
-        if (counts == null) {
-          counts = new RelationshipCounts(source1, source2);
-          result.put(key, counts);
-        }
-
-        // increment the record count
-        counts.incrementRecordCount(count1);
-        counts.setReverseRelated(true);
       });
     });
 

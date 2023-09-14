@@ -13,22 +13,12 @@ public enum SzReportStatistic {
   /**
    *
    */
-  RECORD_COUNT,
-
-  /**
-   *
-   */
   UNMATCHED_COUNT,
 
   /**
    *
    */
   MATCHED_COUNT,
-
-  /**
-   *
-   */
-  RELATION_COUNT,
 
   /**
    *

@@ -12,8 +12,8 @@ import java.util.*;
 
 import static com.senzing.datamart.SzReplicationProvider.TaskAction;
 import static com.senzing.sql.SQLUtilities.close;
-import static java.lang.Math.*;
 import static java.util.Map.*;
+import static com.senzing.util.LoggingUtilities.*;
 
 /**
  * Provides a handler for refreshing an affected entity.
@@ -87,10 +87,12 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
       if (updates.size() == 0) return;
 
       // update the report statistic
-      this.updateReportStatistic(conn, reportKey, leaseId, updates);
+      this.updateReportStatistic(
+          conn, reportKey, leaseId, updates, followUpScheduler);
 
       // update the report details
-      this.updateReportDetails(conn, reportKey, leaseId, updates);
+      this.updateReportDetails(
+          conn, reportKey, leaseId, updates, followUpScheduler);
 
       // delete the leased updates
       this.deleteLeasedReportUpdates(conn, reportKey, leaseId, updates);
@@ -109,15 +111,16 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
       // commit the transaction
       conn.commit();
 
+      // schedule follow-ups (if any)
+      followUpScheduler.commit();
+
     } catch (Exception e) {
-      e.printStackTrace();
-      System.err.println();
-      System.err.println("Rolling back transaction....");
+      logError(e, "SQL ERROR -- ROLLING BACK TRANSACTION....");
       // rollback the transaction
       try {
         if (conn != null) conn.rollback();
       } catch (Exception e2) {
-        System.err.println("**** FAILED TO ROLLBACK");
+        logError(e2, "**** FAILED TO ROLLBACK");
         e2.printStackTrace();
       }
       throw new ServiceExecutionException(e);
@@ -175,13 +178,9 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
 
       // if we expired a lease, then warn
       if (rowCount > 0) {
-        System.err.println(
-            LoggingUtilities.multilineFormat(
-                "",
-                "------------------------------------------------------------",
-                "WARNING: Expired lease on rows (" + rowCount + ") for report "
-                + "update. ",
-                "REPORT KEY : " + reportKey.toString()));
+        logWarning("Expired lease on rows (" + rowCount + ") for report "
+                       + "update. ",
+                   "REPORT KEY : " + reportKey.toString());
       }
 
       // now lease the rows
@@ -269,6 +268,87 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
   }
 
   /**
+   * This method provides a means by which a sub-class can override the value
+   * for the cumulative entity count delta computed from specified {@link List}
+   * of {@link SzReportUpdate} instances.  The default implementation simply
+   * returns the specified previously computed sum.
+   *
+   * @param conn The JDBC {@link Connection} to use.
+   * @param reportKey The {@link SzReportKey} for the report stat being updated.
+   * @param updates The {@link List} of {@link SzReportUpdate} instances
+   *                describing the pending updates.
+   * @param computedSum The sum of the entity deltas computed from the specified
+   *                    {@link SzReportUpdate} instances.
+   * @param followUpScheduler The {@link Scheduler} with which to schedule any
+   *                          follow-up tasks.
+   * @return The cumulative entity delta for the specified updates.
+   * @throws SQLException If a JDBC failure occurs.
+   */
+  protected int overrideEntityDelta(Connection            conn,
+                                    SzReportKey           reportKey,
+                                    List<SzReportUpdate>  updates,
+                                    int                   computedSum,
+                                    Scheduler             followUpScheduler)
+      throws SQLException
+  {
+    return computedSum;
+  }
+
+  /**
+   * This method provides a means by which a sub-class can override the value
+   * for the cumulative record count delta computed from specified {@link List}
+   * of {@link SzReportUpdate} instances.  The default implementation simply
+   * returns the specified previously computed sum.
+   *
+   * @param conn The JDBC {@link Connection} to use.
+   * @param reportKey The {@link SzReportKey} for the report stat being updated.
+   * @param updates The {@link List} of {@link SzReportUpdate} instances
+   *                describing the pending updates.
+   * @param computedSum The sum of the record deltas computed from the specified
+   *                    {@link SzReportUpdate} instances.
+   * @param followUpScheduler The {@link Scheduler} with which to schedule any
+   *                          follow-up tasks.
+   * @return The cumulative record delta for the specified updates.
+   * @throws SQLException If a JDBC failure occurs.
+   */
+  protected int overrideRecordDelta(Connection            conn,
+                                    SzReportKey           reportKey,
+                                    List<SzReportUpdate>  updates,
+                                    int                   computedSum,
+                                    Scheduler             followUpScheduler)
+      throws SQLException
+  {
+    return computedSum;
+  }
+
+  /**
+   * This method provides a means by which a sub-class can override the value
+   * for the cumulative relationship count delta computed from specified {@link
+   * List} of {@link SzReportUpdate} instances.  The default implementation
+   * simply returns the specified previously computed sum.
+   *
+   * @param conn The JDBC {@link Connection} to use.
+   * @param reportKey The {@link SzReportKey} for the report stat being updated.
+   * @param updates The {@link List} of {@link SzReportUpdate} instances
+   *                describing the pending updates.
+   * @param computedSum The sum of the relationship deltas computed from the
+   *                    specified {@link SzReportUpdate} instances.
+   * @param followUpScheduler The {@link Scheduler} with which to schedule any
+   *                          follow-up tasks.
+   * @return The cumulative relationship delta for the specified updates.
+   * @throws SQLException If a JDBC failure occurs.
+   */
+  protected int overrideRelationDelta(Connection            conn,
+                                      SzReportKey           reportKey,
+                                      List<SzReportUpdate>  updates,
+                                      int                   computedSum,
+                                      Scheduler             followUpScheduler)
+      throws SQLException
+  {
+    return computedSum;
+  }
+
+  /**
    * Totals the report deltas for each report statistic value and applies the
    * cumulative delta for each report statistic value for the report statistic
    * value being modified.
@@ -278,32 +358,45 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
    * @param leaseId The {@link String} lease ID to use.
    * @param updates The {@link List} of {@link SzReportUpdate} instances
    *                describing the pending updates.
-   *
+   * @param followUpScheduler The {@link Scheduler} with which to schedule any
+   *                          follow-up tasks.
    * @throws SQLException If a JDBC failure occurs.
    */
   protected void updateReportStatistic(Connection           conn,
                                        SzReportKey          reportKey,
                                        String               leaseId,
-                                       List<SzReportUpdate> updates)
+                                       List<SzReportUpdate> updates,
+                                       Scheduler            followUpScheduler)
     throws SQLException
   {
     PreparedStatement ps = null;
     try {
-      int entityDelta           = 0;
-      int recordDelta           = 0;
-      int relationDelta         = 0;
+      int entityDelta   = 0;
+      int recordDelta   = 0;
+      int relationDelta = 0;
 
       for (SzReportUpdate update: updates) {
         if (!reportKey.equals(update.getReportKey())) {
           throw new IllegalArgumentException(
               "At least one report update does not match the specified report "
-              + "key.  reportKey=[ " + reportKey + " ], reportUpdate=[ "
-              + update + " ]");
+                  + "key.  reportKey=[ " + reportKey + " ], reportUpdate=[ "
+                  + update + " ]");
         }
-        entityDelta           += update.getEntityDelta();
-        recordDelta           += update.getRecordDelta();
-        relationDelta         += update.getRelationDelta();
+        entityDelta   += update.getEntityDelta();
+        recordDelta   += update.getRecordDelta();
+        relationDelta += update.getRecordDelta();
       }
+
+      // allow the subclass to override the computed values
+      entityDelta = this.overrideEntityDelta(
+          conn, reportKey, updates, entityDelta, followUpScheduler);
+
+      recordDelta = this.overrideRecordDelta(
+          conn, reportKey, updates, recordDelta, followUpScheduler);
+
+      relationDelta = this.overrideRelationDelta(
+          conn, reportKey, updates, relationDelta, followUpScheduler);
+
 
       if (entityDelta == 0 && recordDelta == 0 && relationDelta == 0)
       {
@@ -316,7 +409,7 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
           "INSERT INTO sz_dm_report AS t1 ("
               + " report_key, report, statistic, data_source1, data_source2,"
               + " entity_count, record_count, relation_count ) "
-              + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) "
+              + "VALUES (?, ?, ?, ?, ?, ?, ?, ?) "
               + "ON CONFLICT (report_key) DO UPDATE SET"
               + " entity_count = t1.entity_count + EXCLUDED.entity_count,"
               + " record_count = t1.record_count + EXCLUDED.record_count,"
@@ -363,13 +456,16 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
    * @param leaseId The {@link String} lease ID to use.
    * @param updates The {@link List} of {@link SzReportUpdate} instances
    *                describing the pending updates.
+   * @param followUpScheduler The {@link Scheduler} with which to schedule any
+   *                          follow-up tasks.
    * @return The number of rows inserted/updated.
    * @throws SQLException If a JDBC failure occurs.
    */
   protected int updateReportDetails(Connection            conn,
                                     SzReportKey           reportKey,
                                     String                leaseId,
-                                    List<SzReportUpdate>  updates)
+                                    List<SzReportUpdate>  updates,
+                                    Scheduler             followUpScheduler)
       throws SQLException
   {
     PreparedStatement ps = null;
@@ -399,8 +495,7 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
 
         // check if we have a relation delta to record
         if (relationDelta != 0 && relatedId != null) {
-          String key = min(entityId, relatedId) + ":"
-              + max(entityId, relatedId);
+          String key = entityId + ":" + relatedId;
           int[] deltaArr = deltaSumMap.get(key);
           if (deltaArr == null) {
             deltaArr = new int[]{0};

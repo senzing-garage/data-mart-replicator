@@ -9,7 +9,9 @@ import com.senzing.listener.service.scheduling.TaskHandler;
 import com.senzing.sql.ConnectionProvider;
 import com.senzing.sql.DatabaseType;
 import com.senzing.text.TextUtilities;
+import com.senzing.util.LoggingUtilities;
 
+import javax.swing.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -17,6 +19,7 @@ import java.time.Instant;
 import java.util.*;
 
 import static com.senzing.datamart.SzReplicationProvider.*;
+import static com.senzing.util.LoggingUtilities.*;
 
 /**
  * Provides an abstract base class for Data Mart Replicator {@link TaskHandler}
@@ -168,6 +171,9 @@ public abstract class AbstractTaskHandler implements TaskHandler {
                          Scheduler            followUpScheduler)
       throws ServiceExecutionException
   {
+    logDebug("HANDLING TASK: " + action + " ( x " + multiplicity + " )",
+             "WITH PARAMETERS: " + parameters);
+
     Objects.requireNonNull(action, "The action cannot be null");
     if (!action.equals(this.getSupportedAction())) {
       throw new IllegalArgumentException(
@@ -364,58 +370,4 @@ public abstract class AbstractTaskHandler implements TaskHandler {
     }
     return result;
   }
-
-
-  /**
-   * Utility method to parse the specified patch hash and populate the
-   * specified {@link Map} of {@link Long} entity ID keys to {@link Boolean}
-   * patch values.  The hash is expected to be formatted as a comma-separated
-   * list of entity ID's each preceeded by a plus (<code>+</code>) or minus
-   * <code>(-)</code> indicating if the relation was added or removed,
-   * respectively.
-   *
-   * @param patchHash The hash text to parse, or <code>null</code> if none.
-   * @param relationPatchMap The {@link Map} to populate.
-   */
-  protected void parsePatchHash(String            patchHash,
-                                Map<Long,Boolean> relationPatchMap)
-  {
-    // populate the relationship patches
-    if (patchHash != null) {
-      String[] tokens = patchHash.split(",");
-      for (String token : tokens) {
-        Long entityId = Long.parseLong(token.substring(1));
-        if (token.charAt(0) == '+') {
-          relationPatchMap.put(entityId, true);
-        } else if (token.charAt(0) == '-') {
-          relationPatchMap.put(entityId, false);
-        } else {
-          throw new IllegalArgumentException(
-              "The specified token hash is not property formatted.  hash=[ "
-                  + patchHash + " ]");
-        }
-      }
-    }
-  }
-
-  /**
-   * Formats the specified {@link Map} of {@link Long} entity ID keys to
-   * {@link Boolean} patch values as a relationship patch hash.
-   *
-   * @param relationPatchMap The {@link Map} of {@link Long} entity ID keys to
-   *                         {@link Boolean} patch values describing the
-   *                         patches.
-   *
-   * @return The hash for the patches describes in the specified {@link Map}.
-   */
-  protected String formatPatchHash(Map<Long,Boolean> relationPatchMap) {
-    if (relationPatchMap == null || relationPatchMap.isEmpty()) return null;
-    StringBuilder sb = new StringBuilder();
-    relationPatchMap.forEach((entityId, patch) -> {
-      if (sb.length() > 0) sb.append(",");
-      sb.append(patch.booleanValue() ? "+" : "-").append(entityId);
-    });
-    return sb.toString();
-  }
-
 }

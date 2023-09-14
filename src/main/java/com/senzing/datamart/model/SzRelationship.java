@@ -168,7 +168,7 @@ public class SzRelationship {
     Objects.requireNonNull(
         sourceSummary2, "The second source summary cannot be null");
 
-    boolean flip = (entityId2 > entityId1);
+    boolean flip = (entityId2 < entityId1);
 
     this.entityId       = (flip) ? entityId2 : entityId1;
     this.relatedId      = (flip) ? entityId1 : entityId2;
@@ -180,10 +180,10 @@ public class SzRelationship {
     Map<String, Integer> summary2 = (flip) ? sourceSummary1 : sourceSummary2;
 
     this.sourceSummary
-        = (copyMaps) ? new LinkedHashMap<>(summary1) : summary2;
+        = (copyMaps) ? new LinkedHashMap<>(summary1) : summary1;
 
     this.relatedSourceSummary
-        = (copyMaps) ? new LinkedHashMap<>(summary2) : summary1;
+        = (copyMaps) ? new LinkedHashMap<>(summary2) : summary2;
   }
 
   /**
@@ -418,5 +418,39 @@ public class SzRelationship {
     if (hashText == null) return null;
     String jsonText = ZipUtilities.unzipText64(hashText);
     return parse(jsonText);
+  }
+
+  /**
+   *
+   */
+  public static void main(String[] args) {
+    try {
+      SzResolvedEntity resolved = new SzResolvedEntity();
+      resolved.setEntityId(1);
+      resolved.setEntityName("Foo Smith");
+      resolved.addRecord(new SzRecord("FOO", "FOO-1"));
+      SzRelatedEntity related = new SzRelatedEntity();
+      related.setEntityId(2);
+      related.addRecord(new SzRecord("BAR", "BAR-1"));
+      related.setEntityName("Bar Jones");
+      related.setMatchKey("NAME+SSN");
+      related.setMatchLevel(3);
+      related.setMatchType(SzMatchType.POSSIBLE_RELATION);
+      resolved.addRelatedEntity(related);
+
+      SzRelationship relationship1 = new SzRelationship(resolved, related);
+      String hash = relationship1.toHash();
+      SzRelationship relationship2 = SzRelationship.parseHash(hash);
+
+      System.out.println();
+      System.out.println(relationship1);
+      System.out.println();
+      System.out.println(relationship2);
+      System.out.println();
+      System.out.println(relationship1.equals(relationship2));
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 }

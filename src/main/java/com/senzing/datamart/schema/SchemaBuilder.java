@@ -7,6 +7,7 @@ import java.sql.Statement;
 import java.util.List;
 
 import static com.senzing.sql.SQLUtilities.close;
+import static com.senzing.util.LoggingUtilities.*;
 
 /**
  * Provides a base class for building the schema for the data mart replicator.
@@ -56,9 +57,7 @@ public abstract class SchemaBuilder {
         try {
           stmt.execute(sql);
         } catch (SQLException e) {
-          System.err.println();
-          System.err.println(sql);
-          e.printStackTrace();
+          logError(e, "SQL ERROR:", sql);
           throw e;
         }
       }

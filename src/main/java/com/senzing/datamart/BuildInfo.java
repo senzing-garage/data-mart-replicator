@@ -3,6 +3,7 @@ package com.senzing.datamart;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import static com.senzing.util.LoggingUtilities.*;
 
 /**
  * Provides build information for the replicator.
@@ -23,11 +24,10 @@ public class BuildInfo {
       version = buildProps.getProperty("Maven-Version");
 
     } catch (IOException e) {
-      System.err.println("FAILED TO READ " + resource + " FILE");
-      e.printStackTrace();
+      logWarning(e, "FAILED TO READ RESOURCE FILE: " + resource);
 
     } catch (Exception e) {
-      e.printStackTrace();
+      logError(e, "FAILED TO READ RESOURCE FILE: " + resource);
       throw new ExceptionInInitializerError(e);
 
     } finally {
