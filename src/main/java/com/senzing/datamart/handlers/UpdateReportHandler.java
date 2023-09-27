@@ -384,7 +384,7 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
         }
         entityDelta   += update.getEntityDelta();
         recordDelta   += update.getRecordDelta();
-        relationDelta += update.getRecordDelta();
+        relationDelta += update.getRelationDelta();
       }
 
       // allow the subclass to override the computed values
