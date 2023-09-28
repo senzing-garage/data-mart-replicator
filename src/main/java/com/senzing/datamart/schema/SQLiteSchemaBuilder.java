@@ -422,7 +422,7 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
         + "BEGIN UPDATE " + tableName + " "
         + "SET created_on = (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')),"
         + " modified_on = (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')) "
-        + "WHERE task_id = new.task_id; END;";
+        + "WHERE row_id = new.row_id; END;";
   }
 
   /**
@@ -449,7 +449,7 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
         + "BEGIN UPDATE " + tableName + " "
         + "SET created_on = old.created_on, "
         + " modified_on = (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')) "
-        + "WHERE task_id = old.task_id; END;";
+        + "WHERE row_id = old.row_id; END;";
   }
 
   /**
