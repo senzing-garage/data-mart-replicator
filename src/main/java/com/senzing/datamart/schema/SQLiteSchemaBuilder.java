@@ -223,7 +223,7 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
         + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), "
         + "  modified_on TIMESTAMP NOT NULL "
         + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), "
-        + "PRIMARY KEY(entity_id, related_id, report_key);";
+        + "PRIMARY KEY(entity_id, related_id, report_key));";
 
     String dropReportDetailTable = "DROP TABLE IF EXISTS sz_dm_report_detail;";
 
