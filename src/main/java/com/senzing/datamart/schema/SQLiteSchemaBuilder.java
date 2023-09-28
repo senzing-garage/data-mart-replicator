@@ -417,7 +417,7 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
    * @return The create trigger statement.
    */
   protected String formatCreateSQLiteInsertTrigger(String tableName) {
-    return "CREATE OR REPLACE TRIGGER " + tableName + "_new "
+    return "CREATE TRIGGER IF NOT EXISTS " + tableName + "_new "
         + "AFTER INSERT ON " + tableName + " FOR EACH ROW "
         + "BEGIN UPDATE " + tableName + " "
         + "SET created_on = (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')),"
