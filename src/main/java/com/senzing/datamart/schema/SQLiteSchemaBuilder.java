@@ -407,7 +407,6 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
                         + count);
     rs = close(rs);
     ps = close(ps);
-    conn = close(conn);
   }
 
   /**
