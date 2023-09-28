@@ -171,10 +171,10 @@ public class SzReplicator extends Thread {
    * @throws Exception If a failure occurs.
    */
   protected static void commandLineStart(
-      String[]                        args,
-      CommandLineParser               cmdLineParser,
-      Supplier<String>                usageMessage,
-      Supplier<String>                versionMessage,
+      String[]                          args,
+      CommandLineParser                 cmdLineParser,
+      Supplier<String>                  usageMessage,
+      Supplier<String>                  versionMessage,
       CommandLineBuilder<SzReplicator>  appBuilder)
       throws Exception
   {

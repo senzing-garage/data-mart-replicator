@@ -799,6 +799,9 @@ public enum SzReplicatorOption implements CommandLineOption {
           }
           return iniFile;
 
+        case SQLITE_DATABASE_FILE:
+          return new File(params.get(0));
+
         case INIT_FILE:
           File initFile = new File(params.get(0));
           if (!initFile.exists()) {
