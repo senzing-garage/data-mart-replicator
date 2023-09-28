@@ -395,18 +395,8 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
     sqlList.add(createPendingReportInsertTrigger);
     sqlList.add(createPendingReportUpdateTrigger);
 
-    System.err.println("CREATING TABLES....");
     this.executeStatements(conn, sqlList);
-    System.err.println("CREATED TABLES.");
-
-    PreparedStatement ps 
-    = conn.prepareStatement("SELECT COUNT(*) FROM sz_dm_pending_report");
-    ResultSet rs = ps.executeQuery();
-    int count = rs.getInt(1);
-    System.out.println(" *********** (1) sz_dm_pending_report table created: "
-                        + count);
-    rs = close(rs);
-    ps = close(ps);
+    conn.commit();
   }
 
   /**
