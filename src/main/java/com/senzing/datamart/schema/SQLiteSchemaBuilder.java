@@ -401,7 +401,7 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
     = conn.prepareStatement("SELECT COUNT(*) FROM sz_dm_pending_report");
     ResultSet rs = ps.executeQuery();
     int count = rs.getInt(1);
-    System.out.println(" ************ sz_dm_pending_report table created: "
+    System.out.println(" *********** (1) sz_dm_pending_report table created: "
                         + count);
     rs.close();
     ps.close();
