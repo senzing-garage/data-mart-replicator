@@ -1,6 +1,8 @@
 package com.senzing.datamart.schema;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
@@ -241,7 +243,7 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
     String dropReportDetailIndex2
         = "DROP INDEX IF EXISTS sz_dm_rpt_detail_uix;";
 
-    String createReprtDetailNewIndex
+    String createReportDetailNewIndex
         = "CREATE INDEX IF NOT EXISTS sz_dm_rpt_det_new_ix "
         + "ON sz_dm_report_detail (creator_id);";
 
@@ -338,6 +340,8 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
       sqlList.add(dropReportInsertTrigger);
       sqlList.add(dropReportTable);
 
+      sqlList.add(dropReportDetailModIndex);
+      sqlList.add(dropReportDetailNewIndex);
       sqlList.add(dropReportDetailIndex2);
       sqlList.add(dropReportDetailIndex1);
       sqlList.add(dropReportDetailUpdateTrigger);
@@ -378,6 +382,8 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
     sqlList.add(createReportDetailTable);
     sqlList.add(createReportDetailIndex1);
     sqlList.add(createReportDetailIndex2);
+    sqlList.add(createReportDetailNewIndex);
+    sqlList.add(createReportDetailModIndex);
     sqlList.add(createReportDetailInsertTrigger);
     sqlList.add(createReportDetailUpdateTrigger);
 
@@ -387,7 +393,18 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
     sqlList.add(createPendingReportInsertTrigger);
     sqlList.add(createPendingReportUpdateTrigger);
 
+    System.err.println("CREATING TABLES....");
     this.executeStatements(conn, sqlList);
+    System.err.println("CREATED TABLES.");
+
+    PreparedStatement ps 
+    = conn.prepareStatement("SELECT COUNT(*) FROM sz_dm_pending_report");
+    ResultSet rs = ps.executeQuery();
+    int count = rs.getInt(1);
+    System.out.println(" ************ sz_dm_pending_report table created: "
+                        + count);
+    rs.close();
+    ps.close();
   }
 
   /**
