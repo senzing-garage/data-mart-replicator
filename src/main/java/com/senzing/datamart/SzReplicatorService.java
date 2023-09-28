@@ -1,5 +1,6 @@
 package com.senzing.datamart;
 
+import com.senzing.datamart.SzReplicationProvider.TaskAction;
 import com.senzing.datamart.handlers.*;
 import com.senzing.datamart.model.SzReportCode;
 import com.senzing.datamart.model.SzReportKey;
@@ -368,6 +369,16 @@ public class SzReplicatorService extends AbstractListenerService {
 
       this.ensureSchema(false);
 
+      Connection conn = this.getConnection();
+      PreparedStatement ps 
+        = conn.prepareStatement("SELECT COUNT(*) FROM sz_dm_pending_report");
+      ResultSet rs = ps.executeQuery();
+      int count = rs.getInt(1);
+      System.out.println(" ************ sz_dm_pending_report table created: "
+                          + count);
+      rs.close();
+      ps.close();
+      
       long period = getConfigLong(config,
                                   REPORT_UPDATE_PERIOD_KEY,
                                   1L,
