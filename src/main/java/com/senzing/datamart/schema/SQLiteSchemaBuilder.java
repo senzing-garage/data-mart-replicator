@@ -417,12 +417,12 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
    * @return The create trigger statement.
    */
   protected String formatCreateSQLiteInsertTrigger(String tableName) {
-    return "CREATE TRIGGER IF NOT EXISTS " + tableName + "_new "
+    return "CREATE OR REPLACE TRIGGER " + tableName + "_new "
         + "AFTER INSERT ON " + tableName + " FOR EACH ROW "
         + "BEGIN UPDATE " + tableName + " "
         + "SET created_on = (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')),"
         + " modified_on = (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')) "
-        + "WHERE row_id = new.row_id; END;";
+        + "WHERE rowid = new.rowid; END;";
   }
 
   /**
@@ -449,7 +449,7 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
         + "BEGIN UPDATE " + tableName + " "
         + "SET created_on = old.created_on, "
         + " modified_on = (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')) "
-        + "WHERE row_id = old.row_id; END;";
+        + "WHERE rowid = old.rowid; END;";
   }
 
   /**
