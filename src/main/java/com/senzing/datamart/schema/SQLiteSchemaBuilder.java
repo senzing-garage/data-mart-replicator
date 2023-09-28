@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.senzing.sql.SQLUtilities.*;
+
 /**
  * Provides a data mart schema builder for SQLite.
  */
@@ -403,8 +405,9 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
     int count = rs.getInt(1);
     System.out.println(" *********** (1) sz_dm_pending_report table created: "
                         + count);
-    rs.close();
-    ps.close();
+    rs = close(rs);
+    ps = close(ps);
+    conn = close(conn);
   }
 
   /**
