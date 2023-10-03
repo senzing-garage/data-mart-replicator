@@ -73,8 +73,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
       throws ServiceExecutionException
   {
     Connection        conn      = null;
-    PreparedStatement ps        = null;
     try {
+      // get the connection
       conn = this.getConnection();
 
       // get the entity ID
@@ -173,6 +173,9 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
       // commit the transaction -- this will release any locked rows
       conn.commit();
 
+      // close the connection here
+      conn = close(conn);
+
       // commit the follow-up scheduler
       followUpScheduler.commit();
 
@@ -188,7 +191,6 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
       throw new ServiceExecutionException(e);
 
     } finally {
-      ps = close(ps);
       conn = close(conn);
     }
   }
