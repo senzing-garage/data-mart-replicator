@@ -46,6 +46,11 @@ import static com.senzing.sql.ConnectionPool.Stat.*;
  */
 public class SzReplicator extends Thread {
   /**
+   * The maximum pool wait time.
+   */
+  private static final long MAX_POOL_WAIT_TIME = 40000L;
+
+  /**
    * The name of the JAR file for command-line excecution.
    */
   private static final String JAR_FILE_NAME = getJarName(SzReplicator.class);
@@ -701,18 +706,24 @@ public class SzReplicator extends Thread {
     if (options.containsKey(MODULE_NAME)) {
       moduleName = (String) options.get(MODULE_NAME);
     }
+    
+    boolean sqlite = options.containsKey(SQLITE_DATABASE_FILE);
 
     // get the concurrency
-    this.concurrency = DEFAULT_CONCURRENCY;
+    this.concurrency = (sqlite) ? 1 : DEFAULT_CONCURRENCY;
     if (options.containsKey(CONCURRENCY)) {
       this.concurrency = (Integer) options.get(CONCURRENCY);
+      if (sqlite && this.concurrency != 1) {
+        logInfo("Forcing concurrency of 1 due to SQLite connectivity");
+        this.concurrency = 1;
+      }
     }
 
-    final int consumerConcurrency = this.concurrency * 2;
-    final int scheduleConcurrency = this.concurrency * 2;
-    final int poolSize            = this.concurrency;
-    final int maxPoolSize         = poolSize * 3;
-    final int g2Concurrency       = this.concurrency;
+    final int   consumerConcurrency = (sqlite) ? 1 : this.concurrency * 2;
+    final int   scheduleConcurrency = (sqlite) ? 1 : this.concurrency * 2;
+    final int   poolSize            = (sqlite) ? 1 : this.concurrency;
+    final int   maxPoolSize         = (sqlite) ? 1 : poolSize * 3;
+    final int   g2Concurrency       = (sqlite) ? 1 : this.concurrency;
 
     // create the configuration for the G2Service
     JsonObjectBuilder g2ConfigBuilder = Json.createObjectBuilder();
@@ -765,7 +776,7 @@ public class SzReplicator extends Thread {
     }
 
     this.connProvider = new PoolConnectionProvider(this.connPool,
-                                                   10000L);
+                                                   MAX_POOL_WAIT_TIME);
 
     this.connProviderName = TextUtilities.randomAlphanumericText(30);
 
