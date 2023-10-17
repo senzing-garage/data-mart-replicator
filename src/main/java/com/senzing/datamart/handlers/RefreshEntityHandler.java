@@ -167,14 +167,14 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
         this.deleteEntityRow(conn, entityId, deleteOpId);
       }
 
-      // notify the provider of report updates pending
-      this.followUpOnReports(entityDelta);
-
       // commit the transaction -- this will release any locked rows
       conn.commit();
 
       // close the connection here
       conn = close(conn);
+
+      // notify the provider of report updates pending
+      this.followUpOnReports(entityDelta);
 
       // commit the follow-up scheduler
       followUpScheduler.commit();

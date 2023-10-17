@@ -111,6 +111,9 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
       // commit the transaction
       conn.commit();
 
+      // close the connection before committing the follow-up scheduler
+      conn = close(conn);
+
       // schedule follow-ups (if any)
       followUpScheduler.commit();
 

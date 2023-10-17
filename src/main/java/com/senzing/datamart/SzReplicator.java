@@ -751,7 +751,7 @@ public class SzReplicator extends Thread {
       File dbFile = (File) options.get(SQLITE_DATABASE_FILE);
       this.connector = new SQLiteConnector(dbFile);
 
-      this.connPool = new ConnectionPool(this.connector, 1);
+      this.connPool = new ConnectionPool(this.connector, poolSize, maxPoolSize);
 
       schedulingServiceClassName = SQLiteSchedulingService.class.getName();
 
