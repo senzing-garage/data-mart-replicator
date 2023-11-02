@@ -445,7 +445,6 @@ public class SzReplicatorService extends AbstractListenerService {
                 + conn.getMetaData().getDatabaseProductName() + " ]");
       }
       schemaBuilder.ensureSchema(conn, recreate);
-      conn.commit();
 
     } finally {
       conn = close(conn);
