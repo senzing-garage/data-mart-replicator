@@ -25,7 +25,7 @@ public final class SzReplicatorConstants {
    * The prefix for environment variables used that are specific to the
    * Senzing data-mart replicator.
    */
-  static final String ENV_PREFIX = "SENZING_REPLICATOR_";
+  static final String ENV_PREFIX = "SENZING_DATA_MART_";
 
   /**
    * The prefix for environment variables pertaining to the Senzing engine.

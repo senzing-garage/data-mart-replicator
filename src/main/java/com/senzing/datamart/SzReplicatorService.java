@@ -266,6 +266,15 @@ public class SzReplicatorService extends AbstractListenerService {
   }
 
   /**
+   * Gets the {@link SzReplicationProvider} for this instance.
+   * 
+   * @return The {@link SzReplicationProvider} for this instance.
+   */
+  public SzReplicationProvider getReplicationProvider() {
+    return this.provider;
+  }
+
+  /**
    * Gets the initial pending report tasks.
    *
    * @return The {@link Map} of the {@link String} report keys to {@link String}
