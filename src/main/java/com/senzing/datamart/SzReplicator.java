@@ -282,7 +282,7 @@ public class SzReplicator extends Thread {
             break;
           }
 
-          this.printStatistics();
+          //this.printStatistics();
         }
       }
     } catch (Exception e) {
