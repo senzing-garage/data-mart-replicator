@@ -199,6 +199,8 @@ public class SzEntity {
    * with the properties of the specified {@link JsonObject}.
    *
    * @param jsonObject The {@link JsonObject} describing the entity.
+   * 
+   * @return The {@link SzEntity} that was parsed from the {@link JsonObject}.
    */
   public static SzEntity parse(JsonObject jsonObject) {
     return parse(new SzEntity(), jsonObject);
@@ -209,6 +211,8 @@ public class SzEntity {
    *
    * @param entity The non-null {@link SzEntity} to populate.
    * @param jsonObject The {@link JsonObject} describing the entity.
+   * 
+   * @return The specified {@link SzEntity} that was populated.
    */
   public static <T extends SzEntity> T parse(T entity, JsonObject jsonObject) {
     Long entityId = getLong(jsonObject, "id");

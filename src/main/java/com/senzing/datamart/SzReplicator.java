@@ -6,6 +6,7 @@ import com.senzing.g2.engine.G2ProductJNI;
 import com.senzing.listener.communication.MessageConsumer;
 import com.senzing.listener.communication.rabbitmq.RabbitMQConsumer;
 import com.senzing.listener.communication.sqs.SQSConsumer;
+import com.senzing.listener.communication.sql.SQLConsumer;
 import com.senzing.listener.service.ListenerService;
 import com.senzing.listener.service.g2.G2Service;
 import com.senzing.listener.service.scheduling.AbstractSQLSchedulingService;
@@ -17,6 +18,7 @@ import com.senzing.util.AccessToken;
 import com.senzing.util.JsonUtilities;
 import com.senzing.sql.*;
 import com.senzing.util.LoggingUtilities;
+import com.senzing.util.Quantified.Statistic;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -280,7 +282,7 @@ public class SzReplicator extends Thread {
             break;
           }
 
-          this.printStatistics();
+          //this.printStatistics();
         }
       }
     } catch (Exception e) {
@@ -289,6 +291,19 @@ public class SzReplicator extends Thread {
     } finally {
       this.messageConsumer.destroy();
       this.replicatorService.destroy();
+    }
+  }
+
+  /**
+   * Destroys the replicator and causes message consumption to cease.
+   */
+  public void shutdown() {
+    this.messageConsumer.destroy();
+    this.replicatorService.destroy();
+    try {
+      this.join();
+    } catch (InterruptedException e) {
+      logWarning(e, "Interrupted while joining against replicator during destroy()");
     }
   }
 
@@ -482,6 +497,14 @@ public class SzReplicator extends Thread {
         "   The following options pertain to configuring the message queue from which to",
         "   receive the \"info\" messages.  Exactly one such queue must be configured.",
         "",
+        "   --database-info-queue [true|false]",
+        "        Configures the data mart replicator to leverage the configured database",
+        "        to obtain the INFO messages via the sz_message_queue table.  If using a",
+        "        SQLite database you should ensure messages are not being written to the",
+        "        queue by another process at the same time they are being consumed since",
+        "        SQLite does not support concurrent writes from multiple connections",
+        "        --> VIA ENVIRONMENT: " + DATABASE_INFO_QUEUE.getEnvironmentVariable(),
+        "",
         "   --sqs-info-url <url>",
         "        Specifies an Amazon SQS queue URL as the info queue.",
         "        --> VIA ENVIRONMENT: " + SQS_INFO_URL.getEnvironmentVariable(),
@@ -644,6 +667,18 @@ public class SzReplicator extends Thread {
    * {@link ConnectionProvider#REGISTRY}.
    */
   private String connProviderName;
+
+  /**
+   * The name under which to register the message queue if using a 
+   * database queue.
+   */
+  private String queueRegistryName = null;
+
+  /**
+   * The name under which to register the message queue if using a 
+   * database queue.
+   */
+  private SQLConsumer.MessageQueue sqlMessageQueue = null;
 
   /**
    * The {@link AccessToken} that was obtained when binding the
@@ -809,7 +844,13 @@ public class SzReplicator extends Thread {
 
     // build the message consumer
     JsonObjectBuilder consumerJOB = Json.createObjectBuilder();
-    if (options.containsKey(RABBIT_INFO_HOST)) {
+    if (options.containsKey(DATABASE_INFO_QUEUE)) {
+      this.queueRegistryName = TextUtilities.randomAlphanumericText(25);
+      consumerJOB.add(SQLConsumer.CONNECTION_PROVIDER_KEY, this.connProviderName);
+      consumerJOB.add(SQLConsumer.QUEUE_REGISTRY_NAME_KEY, this.queueRegistryName);
+      this.messageConsumer = new SQLConsumer();
+
+    } else if (options.containsKey(RABBIT_INFO_HOST)) {
       consumerJOB.add(RabbitMQConsumer.CONCURRENCY_KEY, consumerConcurrency);
       consumerJOB.add(RabbitMQConsumer.MQ_HOST_KEY,
                       ((String) options.get(RABBIT_INFO_HOST)));
@@ -843,5 +884,34 @@ public class SzReplicator extends Thread {
       this.messageConsumer = new SQSConsumer();
     }
     this.messageConsumer.init(consumerJOB.build());
+    if (this.queueRegistryName != null) {
+      this.sqlMessageQueue 
+        = SQLConsumer.MESSAGE_QUEUE_REGISTRY.lookup(this.queueRegistryName);
+    }
   }
+  
+  /**
+   * Gets the {@link SzReplicationProvider} for this instance.
+   * 
+   * @return The {@link SzReplicationProvider} for this instance.
+   */
+  public SzReplicationProvider getReplicationProvider() {
+    return this.replicatorService.getReplicationProvider();
+  }
+
+  /**
+   * Gets the {@link SQLConsumer.MessageQueue} instance backing the underlying
+   * {@link SQLConsumer} if database message queue is being employed rather 
+   * than RabbitMQ or Amazon SQS.  This returns <code>null</code> if this 
+   * insdtance is configured to use a RabbitMQ or Amazon SQS queue.
+   * 
+   * @return The {@link SQLConsumer.MessageQueue} instance backing the underlying
+   *         {@link SQLConsumer} if database message queue is being employed, or
+   *         <code>null</code> if the configured message queue for this instance
+   *         is RabbitMQ or Amazon SQS.
+   */
+  public SQLConsumer.MessageQueue getDatabaseMessageQueue() {
+    return this.sqlMessageQueue;
+  }
+
 }

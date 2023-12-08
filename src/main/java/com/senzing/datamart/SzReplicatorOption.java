@@ -102,11 +102,11 @@ public enum SzReplicatorOption implements CommandLineOption {
    * <ul>
    *   <li>Command Line: <code>--module-name {module-name}</code></li>
    *   <li>Command Line: <code>-moduleName {module-name}</code></li>
-   *   <li>Environment: <code>SENZING_REPLICATOR_MODULE_NAME="{module-name}"</code></li>
+   *   <li>Environment: <code>SENZING_DATA_MART_MODULE_NAME="{module-name}"</code></li>
    * </ul>
    */
   MODULE_NAME("--module-name",
-              "SENZING_REPLICATOR_MODULE_NAME",
+              ENV_PREFIX + "MODULE_NAME",
               null, 1, DEFAULT_MODULE_NAME),
 
   /**
@@ -122,11 +122,11 @@ public enum SzReplicatorOption implements CommandLineOption {
    * This option can be specified in the following ways:
    * <ul>
    *   <li>Command Line: <code>--verbose [true|false]</code></li>
-   *   <li>Environment: <code>SENZING_REPLICATOR_VERBOSE="{true|false}"</code></li>
+   *   <li>Environment: <code>SENZING_DATA_MART_VERBOSE="{true|false}"</code></li>
    * </ul>
    */
   VERBOSE("--verbose",
-          "SENZING_REPLICATOR_VERBOSE",
+          ENV_PREFIX + "VERBOSE",
           null, 0, "false"),
 
   /**
@@ -143,7 +143,7 @@ public enum SzReplicatorOption implements CommandLineOption {
    * <ul>
    *   <li>Command Line: <code>--concurrency {thread-count}</code></li>
    *   <li>Command Line: <code>-concurrency {thread-count}</code></li>
-   *   <li>Environment: <code>SENZING_REPLICATOR_CONCURRENCY="{thread-count}"</code></li>
+   *   <li>Environment: <code>SENZING_DATA_MART_CONCURRENCY="{thread-count}"</code></li>
    * </ul>
    */
   CONCURRENCY("--concurrency", ENV_PREFIX + "CONCURRENCY",
@@ -286,6 +286,35 @@ public enum SzReplicatorOption implements CommandLineOption {
 
   /**
    * <p>
+   * This presence of this option causes the data mart replicator to utilize a 
+   * database table message queue instead of Rabbit MQ or Amazon SQS.  The data
+   * mart replicator will use the same database that is configured for the data
+   * mart to find the <code>sz_message_queue</code> table from which to consume 
+   * messages.  The absence of this parameter will causes the data mart to
+   * require additional options for configuring the message queue for Rabbit MQ
+   * or Amazon SQS. A single parameter may optionally be specified as
+   * <code>true</code> or <code>false</code> with <code>false</code> simulating
+   * the absence of the option.
+   * <p>
+   * <b>NOTE:</b> If using SQLite then only a single database connection from a
+   * single process is allowed at any one time, and therefore either a process
+   * embedding the data mart must be populating the queue concurrently or
+   * population of the queue by another process must occur while the data mart
+   * replicator is <b>not</b> consuming the messages from the
+   * <code>sz_message_queue</code> table.  
+   * <p>
+   * This option can be specified in the following ways:
+   * <ul>
+   *   <li>Command Line: <code>--database-info-queue [true|false]</code></li>
+   *   <li>Environment: <code>SENZING_DATA_MART_DATABASE_INFO_QUEUE="{true|false}"</code></li>
+   * </ul>
+   */
+  DATABASE_INFO_QUEUE("--database-info-queue",
+          ENV_PREFIX + "DATABASE_INFO_QUEUE",
+          null, 0, "false"),
+
+  /**
+   * <p>
    * This option is used to specify the SQLite database file to connect to for
    * the data mart.  The single parameter to this option is the file path to
    * the SQLite database file to use.  If this option is specified the database
@@ -294,12 +323,12 @@ public enum SzReplicatorOption implements CommandLineOption {
    * This option can be specified in the following ways:
    * <ul>
    *   <li>Command Line: <code>--sqlite-database-file {file-path}</code></li>
-   *   <li>Environment: <code>SENZING_REPLICATOR_SQLITE_DATABASE_FILE="{file-path}"</code></li>
+   *   <li>Environment: <code>SENZING_DATA_MART_SQLITE_DATABASE_FILE="{file-path}"</code></li>
    * </ul>
    */
   SQLITE_DATABASE_FILE(
       "--sqlite-database-file",
-      "SENZING_REPLICATOR_SQLITE_DATABASE_FILE",
+      ENV_PREFIX + "SQLITE_DATABASE_FILE",
       null, 1),
 
   /**
@@ -314,7 +343,7 @@ public enum SzReplicatorOption implements CommandLineOption {
    * This option can be specified in the following ways:
    * <ul>
    *   <li>Command Line: <code>--postgresql-host {host-name|ip-address}</code></li>
-   *   <li>Environment: <code>SENZING_REPLICATOR_POSTGRESQL_HOST="{host-name|ip-address}"</code></li>
+   *   <li>Environment: <code>SENZING_DATA_MART_POSTGRESQL_HOST="{host-name|ip-address}"</code></li>
    * </ul>
    *
    * @see #POSTGRESQL_PORT
@@ -324,7 +353,7 @@ public enum SzReplicatorOption implements CommandLineOption {
    */
   POSTGRESQL_HOST(
       "--postgresql-host",
-      "SENZING_REPLICATOR_POSTGRESQL_HOST",
+      ENV_PREFIX + "POSTGRESQL_HOST",
       null, 1),
 
   /**
@@ -339,7 +368,7 @@ public enum SzReplicatorOption implements CommandLineOption {
    * This option can be specified in the following ways:
    * <ul>
    *   <li>Command Line: <code>--postgresql-port {port-number}</code></li>
-   *   <li>Environment: <code>SENZING_REPLICATOR_POSTGRESQL_PORT="{port-number}"</code></li>
+   *   <li>Environment: <code>SENZING_DATA_MART_POSTGRESQL_PORT="{port-number}"</code></li>
    * </ul>
    *
    * @see #POSTGRESQL_HOST
@@ -349,7 +378,7 @@ public enum SzReplicatorOption implements CommandLineOption {
    */
   POSTGRESQL_PORT(
       "--postgresql-port",
-      "SENZING_REPLICATOR_POSTGRESQL_PORT",
+      ENV_PREFIX + "POSTGRESQL_PORT",
       null, 1),
 
   /**
@@ -364,7 +393,7 @@ public enum SzReplicatorOption implements CommandLineOption {
    * This option can be specified in the following ways:
    * <ul>
    *   <li>Command Line: <code>--postgresql-database {database-name}</code></li>
-   *   <li>Environment: <code>SENZING_REPLICATOR_POSTGRESQL_DATABASE="{database-name}"</code></li>
+   *   <li>Environment: <code>SENZING_DATA_MART_POSTGRESQL_DATABASE="{database-name}"</code></li>
    * </ul>
    *
    * @see #POSTGRESQL_HOST
@@ -375,7 +404,7 @@ public enum SzReplicatorOption implements CommandLineOption {
    */
   POSTGRESQL_DATABASE(
       "--postgresql-database",
-      "SENZING_REPLICATOR_POSTGRESQL_DATABASE",
+      ENV_PREFIX + "POSTGRESQL_DATABASE",
       null, 1),
 
   /**
@@ -390,7 +419,7 @@ public enum SzReplicatorOption implements CommandLineOption {
    * This option can be specified in the following ways:
    * <ul>
    *   <li>Command Line: <code>--postgresql-user {user-name}</code></li>
-   *   <li>Environment: <code>SENZING_REPLICATOR_POSTGRESQL_USER="{user-name}"</code></li>
+   *   <li>Environment: <code>SENZING_DATA_MART_POSTGRESQL_USER="{user-name}"</code></li>
    * </ul>
    *
    * @see #POSTGRESQL_HOST
@@ -400,7 +429,7 @@ public enum SzReplicatorOption implements CommandLineOption {
    */
   POSTGRESQL_USER(
       "--postgresql-user",
-      "SENZING_REPLICATOR_POSTGRESQL_USER",
+      ENV_PREFIX + "POSTGRESQL_USER",
       null, 1),
 
   /**
@@ -415,7 +444,7 @@ public enum SzReplicatorOption implements CommandLineOption {
    * This option can be specified in the following ways:
    * <ul>
    *   <li>Command Line: <code>--postgresql-password {password}</code></li>
-   *   <li>Environment: <code>SENZING_REPLICATOR_POSTGRESQL_PASSWORD="{password}"</code></li>
+   *   <li>Environment: <code>SENZING_DATA_MART_POSTGRESQL_PASSWORD="{password}"</code></li>
    * </ul>
    *
    * @see #POSTGRESQL_HOST
@@ -425,7 +454,7 @@ public enum SzReplicatorOption implements CommandLineOption {
    */
   POSTGRESQL_PASSWORD(
       "--postgresql-password",
-      "SENZING_REPLICATOR_POSTGRESQL_PASSWORD",
+      ENV_PREFIX + "POSTGRESQL_PASSWORD",
       null, 1);
 
   /**
@@ -650,13 +679,22 @@ public enum SzReplicatorOption implements CommandLineOption {
 
       Set<CommandLineOption> sqsInfoOptions = Set.of(SQS_INFO_URL);
 
+      Set<CommandLineOption> dbInfoOptions = Set.of(DATABASE_INFO_QUEUE);
+
       // enforce that we only have one info queue
       for (SzReplicatorOption option : rabbitInfoOptions) {
         Set<CommandLineOption> conflictSet = conflictMap.get(option);
         conflictSet.addAll(sqsInfoOptions);
+        conflictSet.addAll(dbInfoOptions);
       }
       for (CommandLineOption option : sqsInfoOptions) {
         Set<CommandLineOption> conflictSet = conflictMap.get(option);
+        conflictSet.addAll(rabbitInfoOptions);
+        conflictSet.addAll(dbInfoOptions);
+      }
+      for (CommandLineOption option : dbInfoOptions) {
+        Set<CommandLineOption> conflictSet = conflictMap.get(option);
+        conflictSet.addAll(sqsInfoOptions);
         conflictSet.addAll(rabbitInfoOptions);
       }
 
@@ -778,6 +816,7 @@ public enum SzReplicatorOption implements CommandLineOption {
           return Boolean.TRUE;
 
         case VERBOSE:
+        case DATABASE_INFO_QUEUE:
           if (params.size() == 0) return Boolean.TRUE;
           String boolText = params.get(0);
           if ("false".equalsIgnoreCase(boolText)) {
