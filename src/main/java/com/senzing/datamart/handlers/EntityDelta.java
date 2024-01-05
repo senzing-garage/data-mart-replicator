@@ -1399,7 +1399,9 @@ public class EntityDelta {
       // check if other aspects of the related entity have changed
       if ((oldRelated.getMatchLevel() != newRelated.getMatchLevel())
           || (oldRelated.getMatchType() != newRelated.getMatchType())
-          || (!oldRelated.getMatchKey().equals(newRelated.getMatchKey()))) {
+          || (!oldRelated.getMatchKey().equals(newRelated.getMatchKey()))
+          || (!oldRelated.getPrinciple().equals(newRelated.getPrinciple())))
+      {
         relations.put(newRelated.getEntityId(), newRelated);
       }
     });

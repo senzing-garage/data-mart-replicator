@@ -43,6 +43,11 @@ public class SzRelationship {
   private String matchKey;
 
   /**
+   * The principle used for relating the entities.
+   */
+  private String principle;
+
+  /**
    * The {@link Map} of {@link String} data source keys to {@link Integer}
    * values indicating the number of records having that data source for
    * the entity with the lower entity ID.
@@ -88,9 +93,10 @@ public class SzRelationship {
               + resolvedEntity.getEntityId());
     }
 
-    this.matchKey   = relatedEntity.getMatchKey();
     this.matchLevel = relatedEntity.getMatchLevel();
     this.matchType  = relatedEntity.getMatchType();
+    this.matchKey   = relatedEntity.getMatchKey();
+    this.principle  = relatedEntity.getPrinciple();
 
     boolean flip = (resolvedEntity.getEntityId() > relatedEntity.getEntityId());
     long resolvedEntityId = resolvedEntity.getEntityId();
@@ -110,9 +116,10 @@ public class SzRelationship {
    *
    * @param entityId1 The first entity ID for the relationship.
    * @param entityId2 The second entity ID for the relationship.
-   * @param matchKey The non-null match key for the relationship.
    * @param matchLevel The match level for the relationship.
    * @param matchType The non-null {@link SzMatchType} for the relationship.
+   * @param matchKey The non-null match key for the relationship.
+   * @param principle The principle (ER Rule Code) for the relationship.
    * @param sourceSummary1 The {@link Map} of {@link String} data source code
    *                       keys to {@link Integer} record counts for the first
    *                       entity ID.
@@ -122,15 +129,16 @@ public class SzRelationship {
    */
   public SzRelationship(long                  entityId1,
                         long                  entityId2,
-                        String                matchKey,
                         int                   matchLevel,
                         SzMatchType           matchType,
+                        String                matchKey,
+                        String                principle,
                         Map<String, Integer>  sourceSummary1,
                         Map<String, Integer>  sourceSummary2)
     throws NullPointerException, IllegalArgumentException
   {
-    this(entityId1, entityId2, matchKey, matchLevel, matchType,
-         sourceSummary1, sourceSummary2, true);
+    this(entityId1, entityId2, matchLevel, matchType, matchKey,
+         principle, sourceSummary1, sourceSummary2, true);
   }
 
   /**
@@ -138,9 +146,10 @@ public class SzRelationship {
    *
    * @param entityId1 The first entity ID for the relationship.
    * @param entityId2 The second entity ID for the relationship.
-   * @param matchKey The non-null match key for the relationship.
    * @param matchLevel The match level for the relationship.
    * @param matchType The non-null {@link SzMatchType} for the relationship.
+   * @param matchKey The non-null match key for the relationship.
+   * @param principle The principle (ER Rule Code) for the relationship.
    * @param sourceSummary1 The {@link Map} of {@link String} data source code
    *                       keys to {@link Integer} record counts for the first
    *                       entity ID.
@@ -153,15 +162,17 @@ public class SzRelationship {
    */
   private SzRelationship(long                 entityId1,
                          long                 entityId2,
-                         String               matchKey,
                          int                  matchLevel,
                          SzMatchType          matchType,
+                         String               matchKey,
+                         String               principle,
                          Map<String, Integer> sourceSummary1,
                          Map<String, Integer> sourceSummary2,
                          boolean              copyMaps)
       throws NullPointerException, IllegalArgumentException
   {
     Objects.requireNonNull(matchKey, "The match key cannot be null.");
+    Objects.requireNonNull(principle, "The principle cannot be null.");
     Objects.requireNonNull(matchType, "The match type cannot be null.");
     Objects.requireNonNull(
         sourceSummary1, "The first source summary cannot be null");
@@ -173,8 +184,9 @@ public class SzRelationship {
     this.entityId       = (flip) ? entityId2 : entityId1;
     this.relatedId      = (flip) ? entityId1 : entityId2;
     this.matchLevel     = matchLevel;
-    this.matchKey       = matchKey;
     this.matchType      = matchType;
+    this.matchKey       = matchKey;
+    this.principle      = principle;
 
     Map<String, Integer> summary1 = (flip) ? sourceSummary2 : sourceSummary1;
     Map<String, Integer> summary2 = (flip) ? sourceSummary1 : sourceSummary2;
@@ -237,6 +249,17 @@ public class SzRelationship {
   }
 
   /**
+   * Gets the principle code identifying the Entity Resolution Rule
+   * that created this relationship.
+   *
+   * @return The principle code identifying the Entity Resolution Rule
+   *         that created this relationship.
+   */
+  public String getPrinciple() {
+    return this.principle;
+  }
+
+  /**
    * Gets the {@link Map} of {@link String} data source code keys to {@link
    * Integer} record count values describing the number of records per data
    * source for the entity in the relationship having the lesser entity ID.
@@ -272,9 +295,10 @@ public class SzRelationship {
     SzRelationship rel = (SzRelationship) object;
     return getEntityId() == rel.getEntityId()
         && this.getRelatedEntityId() == rel.getRelatedEntityId()
-        && getMatchLevel() == rel.getMatchLevel()
-        && getMatchType() == rel.getMatchType()
+        && this.getMatchLevel() == rel.getMatchLevel()
+        && this.getMatchType() == rel.getMatchType()
         && Objects.equals(this.getMatchKey(), rel.getMatchKey())
+        && Objects.equals(this.getPrinciple(), rel.getPrinciple())
         && this.getSourceSummary().equals(rel.getSourceSummary())
         && this.getRelatedSourceSummary().equals(rel.getRelatedSourceSummary());
   }
@@ -286,6 +310,7 @@ public class SzRelationship {
                         this.getMatchLevel(),
                         this.getMatchType(),
                         this.getMatchKey(),
+                        this.getPrinciple(),
                         this.getSourceSummary(),
                         this.getRelatedSourceSummary());
   }
@@ -300,9 +325,10 @@ public class SzRelationship {
   public void buildJson(JsonObjectBuilder builder) {
     builder.add("entityId", this.getEntityId());
     builder.add("relatedId", this.getRelatedEntityId());
-    builder.add("matchKey", this.getMatchKey());
     builder.add("matchLevel", this.getMatchLevel());
     builder.add("matchType", this.getMatchType().toString());
+    builder.add("matchKey", this.getMatchKey());
+    builder.add("principle", this.getPrinciple());
     SortedMap<String, Integer> sortedSummary
         = new TreeMap<>(this.getSourceSummary());
     addProperty(builder, "sourceSummary", sortedSummary);
@@ -361,9 +387,10 @@ public class SzRelationship {
 
     Long        entityId1   = getLong(jsonObject, "entityId");
     Long        entityId2   = getLong(jsonObject, "relatedId");
-    String      matchKey    = getString(jsonObject, "matchKey");
     Integer     matchLevel  = getInteger(jsonObject, "matchLevel");
     String      typeString  = getString(jsonObject, "matchType");
+    String      matchKey    = getString(jsonObject, "matchKey");
+    String      principle   = getString(jsonObject, "principle");
     SzMatchType matchType   = SzMatchType.valueOf(typeString);
 
     // get the first summary object
@@ -385,9 +412,10 @@ public class SzRelationship {
     // construct the new instance
     return new SzRelationship(entityId1,
                               entityId2,
-                              matchKey,
                               matchLevel,
                               matchType,
+                              matchKey,
+                              principle,
                               summary1,
                               summary2,
                               false);
@@ -433,7 +461,8 @@ public class SzRelationship {
       related.setEntityId(2);
       related.addRecord(new SzRecord("BAR", "BAR-1"));
       related.setEntityName("Bar Jones");
-      related.setMatchKey("NAME+SSN");
+      related.setMatchKey("ADDRESS+PHONE_NUMBER");
+      related.setPrinciple("MFF");
       related.setMatchLevel(3);
       related.setMatchType(SzMatchType.POSSIBLE_RELATION);
       resolved.addRelatedEntity(related);

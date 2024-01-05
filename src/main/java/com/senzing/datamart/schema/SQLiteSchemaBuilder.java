@@ -140,8 +140,9 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
         + "  entity_id INTEGER NOT NULL, "
         + "  related_id INTEGER NOT NULL, "
         + "  match_level INTEGER, "
-        + "  match_key TEXT, "
         + "  match_type TEXT, "
+        + "  match_key TEXT, "
+        + "  errule_code TEXT, "
         + "  relation_hash TEXT, "
         + "  prev_relation_hash TEXT, "
         + "  creator_id TEXT NOT NULL, "
@@ -156,9 +157,27 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
 
     String createRelationIndex
         = "CREATE INDEX IF NOT EXISTS sz_dm_relation_ix ON sz_dm_relation ("
-        + "related_id);";
+        + "entity_id, related_id);";
 
     String dropRelationIndex = "DROP INDEX IF EXISTS sz_dm_relation_ix;";
+
+    String createReverseRelationIndex
+        = "CREATE INDEX IF NOT EXISTS sz_dm_rev_relation_ix ON sz_dm_relation ("
+        + "related_id, entity_id);";
+
+    String dropReverseRelationIndex = "DROP INDEX IF EXISTS sz_dm_rev_relation_ix;";
+
+    String createMatchKeyRelationIndex
+        = "CREATE INDEX IF NOT EXISTS sz_dm_mkey_relation_ix ON sz_dm_relation ("
+        + "match_key, errule_code);";
+
+    String dropMatchKeyRelationIndex = "DROP INDEX IF EXISTS sz_dm_mkey_relation_ix;";
+
+    String createPrincipleRelationIndex
+        = "CREATE INDEX IF NOT EXISTS sz_dm_rule_relation_ix ON sz_dm_relation ("
+        + "errule_code, match_key);";
+
+    String dropPrincipleRelationIndex = "DROP INDEX IF EXISTS sz_dm_rule_relation_ix;";
 
     String createRelationNewIndex
         = "CREATE INDEX IF NOT EXISTS sz_dm_relation_new_ix ON sz_dm_relation ("
