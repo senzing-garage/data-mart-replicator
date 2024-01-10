@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added tracking of the "Principle" (`ERRULE_CODE`) with replicated relationships.
 - Added missing indexes on `sz_dm_relation` table for `entity_id` and `related_id`.
 - Added indexes on `sz_dm_relation` for `match_key` and `principle`
+- Added configuration for `maven-compiler-plugin`
+- Updated dependency versions:
+    - Updated AWS dependencies to version `2.22.12`
+    - Updated `maven-javadoc-plugin` to version `3.6.3`
+    - Updated `senzing-listener` to version `0.5.4`
 
 ## [1.0.0] - 2023-12-08
 
