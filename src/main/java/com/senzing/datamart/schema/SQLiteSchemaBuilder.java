@@ -91,6 +91,8 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
         + "  data_source TEXT NOT NULL, "
         + "  record_id TEXT NOT NULL, "
         + "  entity_id INTEGER NOT NULL, "
+        + "  match_key TEXT, "
+        + "  errule_code TEXT, "
         + "  creator_id TEXT NOT NULL, "
         + "  modifier_id TEXT NOT NULL, "
         + "  adopter_id TEXT NULL, "
@@ -125,6 +127,18 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
         = "CREATE INDEX IF NOT EXISTS sz_dm_record_new_ix ON sz_dm_record ("
         + "creator_id)";
 
+    String createMatchKeyRecordIndex
+        = "CREATE INDEX IF NOT EXISTS sz_dm_mkey_record_ix ON sz_dm_record ("
+        + "match_key, errule_code);";
+
+    String dropMatchKeyRecordIndex = "DROP INDEX IF EXISTS sz_dm_mkey_record_ix;";
+
+    String createPrincipleRecordIndex
+        = "CREATE INDEX IF NOT EXISTS sz_dm_rule_record_ix ON sz_dm_record ("
+        + "errule_code, match_key);";
+
+    String dropPrincipleRecordIndex = "DROP INDEX IF EXISTS sz_dm_rule_record_ix;";
+
     String dropRecordNewIndex
         = "DROP INDEX IF EXISTS sz_dm_record_new_ix;";
 
@@ -157,15 +171,9 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
 
     String createRelationIndex
         = "CREATE INDEX IF NOT EXISTS sz_dm_relation_ix ON sz_dm_relation ("
-        + "entity_id, related_id);";
-
-    String dropRelationIndex = "DROP INDEX IF EXISTS sz_dm_relation_ix;";
-
-    String createReverseRelationIndex
-        = "CREATE INDEX IF NOT EXISTS sz_dm_rev_relation_ix ON sz_dm_relation ("
         + "related_id, entity_id);";
 
-    String dropReverseRelationIndex = "DROP INDEX IF EXISTS sz_dm_rev_relation_ix;";
+    String dropRelationIndex = "DROP INDEX IF EXISTS sz_dm_relation_ix;";
 
     String createMatchKeyRelationIndex
         = "CREATE INDEX IF NOT EXISTS sz_dm_mkey_relation_ix ON sz_dm_relation ("
@@ -346,12 +354,16 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
       sqlList.add(dropRecordModIndex);
       sqlList.add(dropRecordNewIndex);
       sqlList.add(dropRecordIndex);
+      sqlList.add(dropPrincipleRecordIndex);
+      sqlList.add(dropMatchKeyRecordIndex);
       sqlList.add(dropRecordUpdateTrigger);
       sqlList.add(dropRecordInsertTrigger);
       sqlList.add(dropRecordTable);
 
       sqlList.add(dropRelationModIndex);
       sqlList.add(dropRelationNewIndex);
+      sqlList.add(dropPrincipleRelationIndex);
+      sqlList.add(dropMatchKeyRelationIndex);
       sqlList.add(dropRelationIndex);
       sqlList.add(dropRelationUpdateTrigger);
       sqlList.add(dropRelationInsertTrigger);
@@ -384,6 +396,8 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
 
     sqlList.add(createRecordTable);
     sqlList.add(createRecordIndex);
+    sqlList.add(createMatchKeyRecordIndex);
+    sqlList.add(createPrincipleRecordIndex);
     sqlList.add(createRecordNewIndex);
     sqlList.add(createRecordModIndex);
     sqlList.add(createRecordInsertTrigger);
@@ -391,6 +405,8 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
 
     sqlList.add(createRelationTable);
     sqlList.add(createRelationIndex);
+    sqlList.add(createMatchKeyRelationIndex);
+    sqlList.add(createPrincipleRelationIndex);
     sqlList.add(createRelationNewIndex);
     sqlList.add(createRelationModIndex);
     sqlList.add(createRelationInsertTrigger);

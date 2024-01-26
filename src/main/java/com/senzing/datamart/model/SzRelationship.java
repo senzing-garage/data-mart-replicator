@@ -456,10 +456,10 @@ public class SzRelationship {
       SzResolvedEntity resolved = new SzResolvedEntity();
       resolved.setEntityId(1);
       resolved.setEntityName("Foo Smith");
-      resolved.addRecord(new SzRecord("FOO", "FOO-1"));
+      resolved.addRecord(new SzRecord("FOO", "FOO-1", null, null));
       SzRelatedEntity related = new SzRelatedEntity();
       related.setEntityId(2);
-      related.addRecord(new SzRecord("BAR", "BAR-1"));
+      related.addRecord(new SzRecord("BAR", "BAR-1", null, null));
       related.setEntityName("Bar Jones");
       related.setMatchKey("ADDRESS+PHONE_NUMBER");
       related.setPrinciple("MFF");

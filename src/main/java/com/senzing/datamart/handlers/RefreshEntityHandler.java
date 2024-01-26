@@ -6,6 +6,7 @@ import com.senzing.listener.service.exception.ServiceExecutionException;
 import com.senzing.listener.service.g2.G2Service;
 import com.senzing.listener.service.locking.ResourceKey;
 import com.senzing.listener.service.scheduling.Scheduler;
+import com.senzing.sql.SQLUtilities;
 
 import javax.json.JsonObject;
 import java.sql.*;
@@ -412,7 +413,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                                    EntityDelta  entityDelta,
                                    Scheduler    followUpScheduler)
       throws SQLException {
-    Set<SzRecord> addedRecords = entityDelta.getAddedRecords();
+    Map<SzRecordKey, SzRecord> addedRecords = entityDelta.getAddedRecords();
     if (addedRecords.size() == 0) return 0;
 
     PreparedStatement ps = null;
@@ -422,20 +423,25 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
     try {
       ps = conn.prepareStatement(
           "INSERT INTO sz_dm_record AS t1 ("
-              + " data_source, record_id, entity_id, creator_id, modifier_id) "
+              + " data_source, record_id, entity_id, match_key,"
+              + " errule_code, creator_id, modifier_id) "
               + "VALUES (?, ?, ?, ?, ?) "
               + "ON CONFLICT (data_source, record_id) DO UPDATE SET"
               + " entity_id = EXCLUDED.entity_id,"
+              + " match_key = EXCLUDED.match_key, "
+              + " errule_code = EXCLUDED.errule_code, "
               + " modifier_id = EXCLUDED.modifier_id, "
               + " adopter_id = (CASE WHEN (t1.entity_id = 0) "
               + "THEN (EXCLUDED.modifier_id) ELSE(NULL) END)");
 
-      this.batchUpdate(ps, addedRecords, (ps2, record) -> {
+      this.batchUpdate(ps, addedRecords.values(), (ps2, record) -> {
         ps2.setString(1, record.getDataSource());
         ps2.setString(2, record.getRecordId());
         ps2.setLong(3, entityDelta.getEntityId());
-        ps2.setString(4, operationId);
-        ps2.setString(5, operationId);
+        ps2.setString(4, record.getMatchKey());
+        ps2.setString(5, record.getPrinciple());
+        ps2.setString(6, operationId);
+        ps2.setString(7, operationId);
         return 1;
       });
 
@@ -443,7 +449,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
       // now get the created records -- we don't need the modified ones
       ps = conn.prepareStatement(
-          "SELECT data_source, record_id "
+          "SELECT data_source, record_id, match_key, errule_code "
               + "FROM sz_dm_record WHERE entity_id = ? AND creator_id = ?");
 
       ps.setLong(1, entityDelta.getEntityId());
@@ -453,8 +459,10 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
       while (rs.next()) {
         String dataSource = rs.getString(1);
         String recordId   = rs.getString(2);
+        String matchKey   = SQLUtilities.getString(rs, 3);
+        String principle  = SQLUtilities.getString(rs, 4);
 
-        SzRecord record = new SzRecord(dataSource, recordId);
+        SzRecord record = new SzRecord(dataSource, recordId, matchKey, principle);
         // flag the record as created (even if it was adopted)
         entityDelta.createdRecord(record);
         createdCount++;
@@ -557,8 +565,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
    * the correct match type and data source summaries and that the removed
    * relations are deleted.  Additionally, this will track all rows that were
    * actually inserted or updated using the {@link
-   * EntityDelta#trackStoredRelationship(long, long, SzMatchType, Map, Map)}
-   * function on the specified {@link EntityDelta} and all rows that were
+   * EntityDelta#trackStoredRelationship(long, long, SzMatchType, String, String,
+   * Map, Map)} function on the specified {@link EntityDelta} and all rows that were
    * deleted using the {@link EntityDelta#trackDeletedRelationship(long, long,
    * SzMatchType, Map, Map)} method.
    *
@@ -637,8 +645,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
    * Ensures the added and changed relationship rows exist in the database with
    * the correct match type and data source summaries.  Additionally, this will
    * track all rows that were actually inserted or updated using the {@link
-   * EntityDelta#trackStoredRelationship(long, long, SzMatchType, Map, Map)}
-   * function on the specified {@link EntityDelta}.
+   * EntityDelta#trackStoredRelationship(long, long, SzMatchType, String, String,
+   * Map, Map)} function on the specified {@link EntityDelta}.
    *
    * @param conn The JDBC {@link Connection} to use.
    * @param entityDelta The {@link EntityDelta} to use.
@@ -756,6 +764,12 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
         SzMatchType prevMatchType = (prevRelation == null) ? null
             : prevRelation.getMatchType();
 
+        String prevMatchKey = (prevRelation == null) ? null
+            : prevRelation.getMatchKey();
+
+        String prevPrinciple = (prevRelation == null) ? null
+            : prevRelation.getPrinciple();
+
         Map<String, Integer> sourceSummary = (prevRelation == null) ? null
             : prevRelation.getSourceSummary();
 
@@ -766,12 +780,16 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
         entityDelta.trackStoredRelationship(relationship.getEntityId(),
                                             relationship.getRelatedEntityId(),
                                             prevMatchType,
+                                            prevMatchKey,
+                                            prevPrinciple,
                                             sourceSummary,
                                             relatedSummary);
 
         // check if we need to schedule a follow-up
         if (prevRelation == null || (entityDelta.getOldEntity() == null)
-            || prevRelation.getMatchType() != relationship.getMatchType())
+            || prevMatchType != relationship.getMatchType()
+            || !Objects.equals(prevMatchKey, relationship.getMatchKey())
+            || !Objects.equals(prevPrinciple, relationship.getPrinciple()))
         {
           followUpOnRelatedEntity(
               followUpScheduler, followUpSet, entityId, relatedId);
@@ -823,8 +841,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
    * Ensures the added and changed relationship rows exist in the database with
    * the correct match type and data source summaries.  Additionally, this will
    * track all rows that were actually inserted or updated using the {@link
-   * EntityDelta#trackStoredRelationship(long, long, SzMatchType, Map, Map)}
-   * function on the specified {@link EntityDelta}.
+   * EntityDelta#trackStoredRelationship(long, long, SzMatchType, String, String,
+   * Map, Map)} function on the specified {@link EntityDelta}.
    *
    * @param conn The JDBC {@link Connection} to use.
    * @param entityDelta The {@link EntityDelta} to use.
@@ -1121,7 +1139,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
       ps = close(ps);
     }
   }
-
+  
   /**
    * This method handles notifying that we need to schedule report aggregation
    * follow-up tasks for the modified reports.

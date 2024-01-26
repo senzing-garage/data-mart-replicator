@@ -25,13 +25,13 @@ public class SzResolvedEntity extends SzEntity {
    * values containing the distinct data sources related to this entity
    * by the related entities by the respective match type.
    */
-  public SortedMap<SzMatchType, SortedSet<String>> relatedSources;
+  public SortedMap<SzSourceRelationKey, SortedSet<String>> relatedSources;
 
   /**
    * The unmodifiable view of {@link #relatedSources} with unmodifiable
    * {@link SortedSet} values.
    */
-  public SortedMap<SzMatchType, SortedSet<String>> unmodifiableRelatedSources;
+  public SortedMap<SzSourceRelationKey, SortedSet<String>> unmodifiableRelatedSources;
 
   /**
    * Default constructor.
@@ -40,18 +40,6 @@ public class SzResolvedEntity extends SzEntity {
     this.relatedEntities            = new LinkedHashMap<>();
     this.relatedSources             = new TreeMap<>();
     this.unmodifiableRelatedSources = new TreeMap<>();
-
-    for (SzMatchType matchType: SzMatchType.values()) {
-      SortedSet<String> sources = new TreeSet<>();
-
-      SortedSet<String> unmodifiableSources
-          = Collections.unmodifiableSortedSet(sources);
-
-      this.relatedSources.put(matchType, sources);
-      this.unmodifiableRelatedSources.put(matchType, unmodifiableSources);
-    }
-    this.unmodifiableRelatedSources
-        = Collections.unmodifiableSortedMap(this.unmodifiableRelatedSources);
   }
 
   /**
@@ -82,9 +70,7 @@ public class SzResolvedEntity extends SzEntity {
       }
     }
     this.relatedEntities.clear();
-    this.relatedSources.values().forEach(sources -> {
-      sources.clear();
-    });
+    this.relatedSources.clear();
     entities.forEach(entity -> {
       this.relatedEntities.put(entity.getEntityId(), entity);
       this.trackRelatedSources(entity);
@@ -116,8 +102,19 @@ public class SzResolvedEntity extends SzEntity {
    */
   private void trackRelatedSources(SzRelatedEntity entity) {
     SzMatchType       matchType = entity.getMatchType();
-    SortedSet<String> sources   = this.relatedSources.get(matchType);
-    sources.addAll(entity.getSourceSummary().keySet());
+    String            matchKey  = entity.getMatchKey();
+    String            principle = entity.getPrinciple();
+
+    SzSourceRelationKey.variants(matchType, matchKey, principle).forEach(key -> {
+      SortedSet<String> sources = this.relatedSources.get(key);
+      if (sources == null) {
+        sources = new TreeSet<>();
+        this.relatedSources.put(key, sources);
+        this.unmodifiableRelatedSources.put(
+          key, Collections.unmodifiableSet(sources));
+      }
+      sources.addAll(entity.getSourceSummary().keySet());
+    });
   }
 
   /**
@@ -252,17 +249,18 @@ public class SzResolvedEntity extends SzEntity {
   }
 
   /**
-   * Gets the <b>unmodifiable</b> {@link Map} of {@link SzMatchType} keys to
-   * alphabetically-sorted {@link SortedSet} values containing the {@link
+   * Gets the <b>unmodifiable</b> {@link Map} of {@link SzSourceRelationKey}
+   * keys to alphabetically-sorted {@link SortedSet} values containing the {@link
    * String} data source codes for data sources of all entities related by that
-   * respective {@link SzMatchType}.
+   * respective {@link SzSourceRelationKey}.
    *
-   * @return The <b>unmodifiable</b> {@link Map} of {@link SzMatchType} keys to
-   *         alphabetically-sorted {@link SortedSet} values containing the
-   *         {@link String} data source codes for data sources of all entities
-   *         related by that respective {@link SzMatchType}.
+   * @return The <b>unmodifiable</b> {@link Map} of {@link SzSourceRelationKey}
+   *         keys to alphabetically-sorted {@link SortedSet} values containing
+   *         the {@link String} data source codes for data sources of all entities
+   *         related by that respective {@link SzSourceRelationKey}.
    */
-  public SortedMap<SzMatchType, SortedSet<String>> getRelatedSources() {
-    return this.unmodifiableRelatedSources;
+  public SortedMap<SzSourceRelationKey, SortedSet<String>> getRelatedSources() {
+    return Collections.unmodifiableSortedMap(
+      this.unmodifiableRelatedSources);
   }
 }

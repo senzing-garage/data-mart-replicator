@@ -23,8 +23,8 @@ import static com.senzing.util.LoggingUtilities.*;
  */
 public class EntityDelta {
   /**
-   * The key for a cross-relation report statistic comprising two data sources
-   * and a match type.
+   * The key for a cross-relation report statistic comprising two data sources,
+   * a match type, an optional principle and an optional match key.
    */
   public static class CrossRelationKey {
     /**
@@ -36,11 +36,21 @@ public class EntityDelta {
      * The second data source.
      */
     private String source2;
-
+    
     /**
      * The {@link SzMatchType} describing the associated match type.
      */
     private SzMatchType matchType;
+
+    /**
+     * The match key associated with the relationships.
+     */
+    private String matchKey;
+
+    /**
+     * The principle associated with the relationships.
+     */
+    private String principle;
 
     /**
      * Constructs with the specified data source codes and {@link SzMatchType}.
@@ -48,13 +58,17 @@ public class EntityDelta {
      * @param source The data source code representing both the "from" and
      *               "to" data source.
      * @param matchType The {@link SzMatchType} describing the match type.
+     * @param matchKey The optional match key for the relationships.
+     * @param principle The optional principle for the relationships.
      * @throws NullPointerException If any of the parameter is <code>null</code>
      */
     public CrossRelationKey(String      source,
-                            SzMatchType matchType)
+                            SzMatchType matchType,
+                            String      matchKey,
+                            String      principle)
         throws NullPointerException
     {
-      this(source, source, matchType);
+      this(source, source, matchType, matchKey, principle);
     }
 
     /**
@@ -63,16 +77,26 @@ public class EntityDelta {
      * @param source1 The first ("from") data source code.
      * @param source2 The second ("to") data source code.
      * @param matchType The {@link SzMatchType} describing the match type.
+     * @param matchKey The match key for the relationships.
+     * @param principle The principle for the relationships.
      * @throws NullPointerException If any of the parameter is <code>null</code>
      */
     public CrossRelationKey(String      source1,
                             String      source2,
-                            SzMatchType matchType)
+                            SzMatchType matchType,
+                            String      matchKey,
+                            String      principle)                      
       throws NullPointerException
     {
+      Objects.requireNonNull(source1, "The first data source cannot be null");
+      Objects.requireNonNull(source2, "The second data source cannot be null");
+      Objects.requireNonNull(matchType, "The match type cannot be null");
+
       this.source1    = source1;
       this.source2    = source2;
       this.matchType  = matchType;
+      this.matchKey   = matchKey;
+      this.principle  = principle;
     }
 
     /**
@@ -103,6 +127,24 @@ public class EntityDelta {
     }
 
     /**
+     * Gets the match key associted with the relationships.
+     * 
+     * @return The match key associted with the relationships.
+     */
+    public String getMatchKey() {
+      return this.matchKey;
+    }
+
+    /**
+     * Gets the principle associated with the relationships.
+     * 
+     * @return The principle associated with the relationships.
+     */
+    public String getPrinciple() {
+      return this.principle;
+    }
+
+    /**
      * Gets the hash code for this instance.
      *
      * @return The hash code for this instance.
@@ -111,7 +153,9 @@ public class EntityDelta {
     public int hashCode() {
       return Objects.hash(this.getSource1(),
                           this.getSource2(),
-                          this.getMatchType());
+                          this.getMatchType(),
+                          this.getMatchKey(),
+                          this.getPrinciple());
     }
 
     /**
@@ -130,7 +174,9 @@ public class EntityDelta {
       CrossRelationKey key = (CrossRelationKey) obj;
       return Objects.equals(this.getSource1(), key.getSource1())
           && Objects.equals(this.getSource2(), key.getSource2())
-          && Objects.equals(this.getMatchType(), key.getMatchType());
+          && Objects.equals(this.getMatchType(), key.getMatchType()
+          && Objects.equals(this.getMatchKey(), key.getMatchKey(),
+          && Objects.equals(this.getPrinciple(), key.getPrinciple());
     }
 
     /**
@@ -142,7 +188,8 @@ public class EntityDelta {
     @Override
     public String toString() {
       return this.getSource1() + ":" + this.getSource2() + "["
-          + this.getMatchType() + "]";
+          + this.getMatchType() + ":" + this.getPrinciple()
+          + ":" + this.getMatchKey() + "]";
     }
   }
 
@@ -283,24 +330,28 @@ public class EntityDelta {
   private Map<String, Integer> dataSourceDeltas;
 
   /**
-   * The records that were added to the entity, which may be an empty list.
+   * The {@link Map} of {@link SzRecordKey} keys to {@link SzRecord} values
+   * describing the records that were added to the entity.
    */
-  private Set<SzRecord> addedRecords;
+  private Map<SzRecordKey, SzRecord> addedRecords;
 
   /**
-   * The {@link Set} of {@link SzRecord} instances that have been created.
+   * The {@link Map} of {@link SzRecordKey} keys to {@link SzRecord} values 
+   * describing the records that have been created.
    */
-  private Set<SzRecord> createdRecords;
+  private Map<SzRecordKey, SzRecord> createdRecords;
 
   /**
-   * The records that were removed from the entity, which may be an empty list.
+   * The {@link Map} of {@link SzRecordKey} keys to {@link SzRecord} values
+   * describing records that were removed from the entity.
    */
-  private Set<SzRecord> removedRecords;
+  private Map<SzRecordKey, SzRecord> removedRecords;
 
   /**
-   * The {@link Set} of {@link SzRecord} instances that have been deleted.
+   * The {@link Map} of {@link SzRecordKey} keys to {@link SzRecord} values
+   * describing the records that have been deleted.
    */
-  private Set<SzRecord> deletedRecords;
+  private Map<SzRecordKey, SzRecord> deletedRecords;
 
   /**
    * The {@link SortedSet} of {@link ResourceKey} instances.
@@ -391,15 +442,15 @@ public class EntityDelta {
     boolean dataSourcesChanged = (!oldDataSources.equals(newDataSources));
 
     // determine the record count delta
-    Set<SzRecord> oldRecords = getRecords(oldEntity);
-    Set<SzRecord> newRecords = getRecords(newEntity);
+    Map<SzRecordKey, SzRecord> oldRecords = getRecords(oldEntity);
+    Map<SzRecordKey, SzRecord> newRecords = getRecords(newEntity);
 
     this.recordDelta = newRecords.size() - oldRecords.size();
 
     // determine the added records
     this.addedRecords = findAddedRecords(oldRecords, newRecords);
 
-    this.addedRecords.forEach(record -> {
+    this.addedRecords.values().forEach(record -> {
       this.resourceKeys.add(new ResourceKey(
           "RECORD", record.getDataSource(), record.getRecordId()));
     });
@@ -407,7 +458,7 @@ public class EntityDelta {
     // determine the removed records
     this.removedRecords = findRemovedRecords(oldRecords, newRecords);
 
-    this.removedRecords.forEach(record -> {
+    this.removedRecords.values().forEach(record -> {
       this.resourceKeys.add(new ResourceKey(
           "RECORD", record.getDataSource(), record.getRecordId()));
     });
@@ -526,32 +577,33 @@ public class EntityDelta {
   }
 
   /**
-   * Gets the {@link Set} of {@link SzRecord} instances describing the records
-   * for the old version of the entity.  If the entity did not previously exist
-   * (i.e.: the old entity is <code>null</code>) then this returns an empty
-   * {@link Set}.
+   * Gets the {@link Map} of {@link SzRecordKey} keys to {@link SzRecord} values
+   * describing the records for the old version of the entity.  If the entity
+   * did not previously exist (i.e.: the old entity is <code>null</code>) then
+   * this returns an empty {@link Map}.
    *
-   * @return The {@link Set} of {@link SzRecord} instances describing the
-   * records for the old version of the entity, or <code>null</code> if
-   * the entity did not previously exist.
+   * @return The {@link Map} of {@link SzRecordKey} keys to {@link SzRecord}
+   *         values describing the records for the old version of the entity, 
+   *         or an empty {@link Map} if the entity did not previously exist.
    */
-  public Set<SzRecord> getOldRecords() {
+  public Map<SzRecordKey, SzRecord> getOldRecords() {
     SzResolvedEntity entity = this.getOldEntity();
-    return (entity == null) ? Collections.emptySet() : entity.getRecords();
+    return (entity == null) ? Collections.emptyMap() : entity.getRecords();
   }
 
   /**
-   * Gets the {@link Set} of {@link SzRecord} instances describing the records
-   * for the new version of the entity.  If the entity was deleted (i.e.: the
-   * new entity is <code>null</code>) then this returns an empty {@link Set}.
+   * Gets the {@link Map} of {@link SzRecordKey} keys to {@link SzRecord} values
+   * describing the records for the new version of the entity.  If the entity was
+   * deleted (i.e.: the new entity is <code>null</code>) then this returns an
+   * empty {@link Map}.
    *
-   * @return The {@link Set} of {@link SzRecord} instances describing the
-   * records for the new version of the entity, or <code>null</code> if
-   * the entity was deleted.
+   * @return The {@link Map} of {@link SzRecordKey} keys to {@link SzRecord} 
+   *         values describing the records for the new version of the entity,
+   *         or an empty {@link Map} if the entity was deleted.
    */
-  public Set<SzRecord> getNewRecords() {
+  public Map<SzRecordKey, SzRecord> getNewRecords() {
     SzResolvedEntity entity = this.getNewEntity();
-    return (entity == null) ? Collections.emptySet() : entity.getRecords();
+    return (entity == null) ? Collections.emptyMap() : entity.getRecords();
   }
 
   /**
@@ -803,6 +855,12 @@ public class EntityDelta {
    * @param oldMatchType      The previous {@link SzMatchType} stored in the
    *                          data mart database, or <code>null</code> if not
    *                          previously stored.
+   * @param oldMatchKey       The previous match key stored in the data mart database
+   *                          for the relationship, or <code>null</code> if not 
+   *                          previously stored.
+   * @param oldPrinciple      The previous principle (entity resolution rule code)
+   *                          stored in the data mart database, or <code>null</code>
+   *                          if not previously stored.
    * @param oldSourceSummary  The {@link Map} of {@link String} data source keys
    *                          to {@link Integer} values providing the data
    *                          source record summary of the entity identified by
@@ -822,6 +880,8 @@ public class EntityDelta {
   public void trackStoredRelationship(long                  entityId,
                                       long                  relatedId,
                                       SzMatchType           oldMatchType,
+                                      String                oldMatchKey,
+                                      String                oldPrinciple,
                                       Map<String, Integer>  oldSourceSummary,
                                       Map<String, Integer>  oldRelatedSummary)
   {
@@ -889,6 +949,8 @@ public class EntityDelta {
 
     // get the current match type
     SzMatchType matchType = related.getMatchType();
+    String      principle = related.getPrinciple();
+    String      matchKey  = related.getMatchKey();
 
     // create final ID's to use in lambda expression
     final long fromId = entityId;
@@ -898,11 +960,12 @@ public class EntityDelta {
                  + " WITH: matchType=[ " + matchType + " ] AND oldMatchType=[ "
                  + oldMatchType + " ]");
 
-    // check if we need to decrement counts for an old match type
-    if (matchType != oldMatchType && oldMatchType != null) {
-      // get the statistic
-      SzReportStatistic statistic = STATISTIC_LOOKUP.get(oldMatchType);
+    // check if we need to decrement counts for an old match type, principle
+    // and/or match key
+    Set<String> decrementStats = decrementStatVariants(
+      oldMatchType, matchType, oldPrinciple, principle, oldMatchType, matchKey);
 
+    decrementStats.forEach(statistic -> {
       logDebug("ENTITY " + fromId + " HANDLING RELATION TO " + toId
                    + " WITH: " + oldRelCounts);
 
@@ -917,23 +980,23 @@ public class EntityDelta {
             ? DATA_SOURCE_SUMMARY : CROSS_SOURCE_SUMMARY;
 
         logDebug("A) ENTITY " + fromId + ": UNTRACKING RELATION TO "
-                     + toId + " for " + reportCode + ":" + statistic + ":"
+                     + toId + " for " + reportCode + ":[" + statistic + "]:"
                      + source1 + ":" + source2);
 
-        // decrement the relationship count for this relationship
+        // decrement the relationship count for this relationship for each stat
         reportUpdates.add(
-            builder(
-                reportCode, statistic, source1, source2, fromId, toId)
-                .relations(-1).build());
+          builder(reportCode, statistic, source1, source2, fromId, toId)
+            .relations(-1).build());
       });
-    }
+    });
 
-    // check if we need to increment counts for the new match type
-    if (matchType != oldMatchType && matchType != null) {
-      // get the statistic
-      SzReportStatistic statistic = STATISTIC_LOOKUP.get(matchType);
+    // check if we need to increment counts for the new match type, 
+    // principle and/or match key
+    Set<String> incrementStats = incrementStatVariants(
+      oldMatchType, matchType, oldPrinciple, principle, oldMatchType, matchKey);
 
-      // handle decrementing the counts accordingly
+    incrementStats.forEach(statistic -> {
+      // handle incrementing the counts accordingly
       newRelCounts.forEach((sourcePair, counts) -> {
         String  source1     = sourcePair.get(0);
         String  source2     = sourcePair.get(1);
@@ -943,23 +1006,23 @@ public class EntityDelta {
             ? DATA_SOURCE_SUMMARY : CROSS_SOURCE_SUMMARY;
 
         logDebug("B) ENTITY " + fromId + ": TRACKING RELATION TO "
-                     + toId + " for " + reportCode + ":" + statistic
-                     + ":" + source1 + ":" + source2);
+                     + toId + " for " + reportCode + ":[" + statistic
+                     + "]:" + source1 + ":" + source2);
 
-        // increment the relationship count for this relationship
+        // increment the relationship count for this relationship for each stat
         reportUpdates.add(
-            builder(
-                reportCode, statistic, source1, source2, fromId, toId)
-                .relations(1).build());
-      });
-    }
+          builder(
+            reportCode, statistic, source1, source2, fromId, toId)
+              .relations(1).build());
+        });
+    });
 
-    // check if the match type is the same and compute the deltas
-    if (matchType == oldMatchType && matchType != null && oldMatchType != null)
-    {
-      // get the statistic
-      SzReportStatistic statistic = STATISTIC_LOOKUP.get(matchType);
+    // find the stats for which we need to compute the deltas
+    Set<String> deltaStats = deltaStatVariants(
+      oldMatchType, matchType, oldPrinciple, principle, oldMatchType, matchKey);
 
+    // iterate over the statistics
+    deltaStats.forEach(statistic -> {
       Set<List<String>> allSourcePairs = new LinkedHashSet<>();
       allSourcePairs.addAll(newRelCounts.keySet());
       allSourcePairs.addAll(oldRelCounts.keySet());
@@ -980,9 +1043,10 @@ public class EntityDelta {
         if (oldCounts != null && newCounts == null)
         {
           logDebug("C) ENTITY " + fromId + ": UNTRACKING RELATION TO "
-                       + toId + " for " + reportCode + ":" + statistic + ":"
+                       + toId + " for " + reportCode + ":[" + statistic + "]:"
                        + source1 + ":" + source2);
 
+          
           // decrement the relationship count for this relationship
           reportUpdates.add(
               builder(
@@ -994,7 +1058,7 @@ public class EntityDelta {
         if (oldCounts == null && newCounts != null)
         {
           logDebug("D) ENTITY " + fromId + ": TRACKING RELATION TO "
-                       + toId + " for " + reportCode + ":" + statistic + ":"
+                       + toId + " for " + reportCode + ":[" + statistic + "]:"
                        + source1 + ":" + source2);
 
           // increment the relationship count for this relationship
@@ -1029,6 +1093,12 @@ public class EntityDelta {
    * @param relatedId         The entity ID of the second entity in the relationship.
    * @param oldMatchType      The non-null previous {@link SzMatchType} stored in
    *                          the data mart database.
+   * @param oldMatchKey       The previous match key stored in the data mart database
+   *                          for the relationship, or <code>null</code> if not 
+   *                          previously stored.
+   * @param oldPrinciple      The previous principle (entity resolution rule code)
+   *                          stored in the data mart database, or <code>null</code>
+   *                          if not previously stored.
    * @param oldSourceSummary  The non-null {@link Map} of {@link String} data
    *                          source keys to {@link Integer} values providing
    *                          the data source record summary of the entity
@@ -1048,6 +1118,8 @@ public class EntityDelta {
   public void trackDeletedRelationship(long                  entityId,
                                        long                  relatedId,
                                        SzMatchType           oldMatchType,
+                                       String                oldMatchKey,
+                                       String                oldPrinciple,
                                        Map<String, Integer>  oldSourceSummary,
                                        Map<String, Integer>  oldRelatedSummary)
       throws NullPointerException, IllegalArgumentException
@@ -1078,6 +1150,16 @@ public class EntityDelta {
         "Previous match type cannot be null if deleted.  entityId=[ "
             + entityId + " ], relatedId=[ " + relatedId + " ]");
 
+    Objects.requireNonNull(
+        oldMatchKey,
+        "Previous match key cannot be null if deleted.  entityId=[ "
+            + entityId + " ], relatedId=[ " + relatedId + " ]");
+
+    Objects.requireNonNull(
+        oldPrinciple,
+        "Previous principle cannot be null if deleted.  entityId=[ "
+          + entityId + " ], relatedId=[ " + relatedId + " ]");
+      
     // check both entity ID's are not equal
     if (entityId == relatedId) {
       throw new IllegalArgumentException(
@@ -1122,16 +1204,19 @@ public class EntityDelta {
 
       SzReportCode reportCode = (sameSource)
           ? DATA_SOURCE_SUMMARY : CROSS_SOURCE_SUMMARY;
+      
+      statisticVariants(statistic, oldPrinciple, oldMatchKey).forEach(stat -> {
 
-      logDebug("E) ENTITY " + fromId + ": UNTRACKING RELATION TO "
-                   + toId + " for " + reportCode + ":" + statistic + ":"
-                   + source1 + ":" + source2);
+        logDebug("E) ENTITY " + fromId + ": UNTRACKING RELATION TO "
+          + toId + " for " + reportCode + ":" + stat + ":"
+          + source1 + ":" + source2);
 
-      // decrement the relationship count for this relationship
-      reportUpdates.add(
-          builder(
-              reportCode, statistic, source1, source2, fromId, toId)
-              .relations(-1).build());
+        // decrement the relationship count for this relationship
+        reportUpdates.add(
+            builder(
+                reportCode, stat, source1, source2, fromId, toId)
+                .relations(-1).build());
+      });
     });
   }
 
@@ -1974,5 +2059,292 @@ public class EntityDelta {
    */
   public SortedSet<ResourceKey> getResourceKeys() {
     return this.resourceKeys;
+  }
+
+  /**
+   * Creates the variant compbinations of the specified {@link Statistic} 
+   * formatted by itself, with only the principle, only the match key and
+   * with both the principle and match key.
+   * 
+   * @param statistic The {@link SzReportStatistic} to use.
+   * @param principle The principle to use for the variant combinations.
+   * @param matchKey The match key to use for the variant combinations.
+   * 
+   * @return The {@link Set} of variants.
+   */
+  private static Set<String> statisticVariants(
+    SzReportStatistic statistic,
+    String            principle,
+    String            matchKey)
+  {
+    // normalize the parameters
+    if (principle != null)        principle = principle.trim();
+    if (matchKey != null)         matchKey  = matchKey.trim();
+    if (principle.length() == 0)  principle = null;
+    if (matchKey.length() == 0)   matchKey  = null;
+
+    Set<String> result = new TreeSet<>();
+    result.add(statistic.toString());
+
+    if (principle == null && matchKey == null) return result;
+    result.add(statistic.principle(principle).format());
+    result.add(statistic.matchKey(matchKey).format());
+    result.add(statistic.principle(principle).matchKey(matchKey).format());
+    return result;
+  }
+
+  /**
+   * Creates the {@link Set} of variant statistic combinations that need to
+   * be decremented based on the change in relationship match type, principle,
+   * and/or match key.
+   * 
+   * @param oldMatchType The old match type for the relationship, or 
+   *                     <code>null</code> if this is a new relationship.
+   * @param newMatchType The new match type for the relationship, or
+   *                     <code>null</code> if the relationship no longer exists.
+   * @param oldPrinciple The old principle for the relationship, or 
+   *                     <code>null</code> if this is a new relationship.
+   * @param newPrinciple The new principle for the relationship, or
+   *                     <code>null</code> if the relationship no longer exists.
+   * @param oldMatchKey The old match key for the relationship, or 
+   *                    <code>null</code> if this is a new relationship.
+   * @param newMatchKey The new match key for the relationship, or
+   *                    <code>null</code> if the relationship no longer exists.
+   * 
+   * @return The {@link Set} of {@link String} statistics that need to be
+   *         decremented.
+   */
+  private static Set<String> decrementStatVariants(
+      SzMatchType   oldMatchType,
+      SzMatchType   newMatchType,
+      String        oldPrinciple,
+      String        newPrinciple,
+      String        oldMatchKey,
+      String        newMatchKey)
+  {
+    checkStatVariantParameters(oldMatchType, newMatchType, oldPrinciple,
+                               newPrinciple, oldMatchKey, newMatchKey);
+
+    Set<String> result = new TreeSet<>();
+
+    // check if nothing to decrement
+    if (oldMatchType == null 
+        || ((oldMatchType == newMatchType) 
+            && (Objects.equals(oldPrinciple, newPrinciple))
+            && (Objects.equals(oldMatchKey, newMatchKey))))
+    {
+      return result;
+    }
+
+    // get the old statistic
+    SzReportStatistic statistic = STATISTIC_LOOKUP.get(oldMatchType);
+
+    // check if decrementing based on match type -- then everything goes
+    if (oldMatchType != newMatchType) {
+      return statisticVariants(statistic, oldPrinciple, oldMatchKey);
+    }
+
+    // we have the same match type so check the principle
+    if (!Objects.equals(oldPrinciple, newPrinciple)) {
+      result.add(statistic.principle(oldPrinciple).format());
+      result.add(statistic.principle(oldPrinciple).matchKey(oldMatchKey).format());
+    }
+
+    // we have the same match type so check the match key
+    if (!Objects.equals(oldMatchKey, newMatchKey)) {
+      result.add(statistic.matchKey(oldMatchKey).format());
+      result.add(statistic.matchKey(oldMatchKey).principle(oldPrinciple).format());
+    }
+
+    // return the result
+    return result;
+  }
+
+  /**
+   * Creates the {@link Set} of variant statistic combinations that need to
+   * be incremented based on the change in relationship match type, principle,
+   * and/or match key.
+   * 
+   * @param oldMatchType The old match type for the relationship, or 
+   *                     <code>null</code> if this is a new relationship.
+   * @param newMatchType The new match type for the relationship, or
+   *                     <code>null</code> if the relationship no longer exists.
+   * @param oldPrinciple The old principle for the relationship, or 
+   *                     <code>null</code> if this is a new relationship.
+   * @param newPrinciple The new principle for the relationship, or
+   *                     <code>null</code> if the relationship no longer exists.
+   * @param oldMatchKey The old match key for the relationship, or 
+   *                    <code>null</code> if this is a new relationship.
+   * @param newMatchKey The new match key for the relationship, or
+   *                    <code>null</code> if the relationship no longer exists.
+   * 
+   * @return The {@link Set} of {@link String} statistics that need to be
+   *         decremented.
+   */
+  private static Set<String> incrementStatVariants(
+      SzMatchType   oldMatchType,
+      SzMatchType   newMatchType,
+      String        oldPrinciple,
+      String        newPrinciple,
+      String        oldMatchKey,
+      String        newMatchKey)
+  {
+    checkStatVariantParameters(oldMatchType, newMatchType, oldPrinciple,
+                               newPrinciple, oldMatchKey, newMatchKey);
+
+    Set<String> result = new TreeSet<>();
+
+    // check if nothing to increment
+    if (newMatchType == null 
+        || ((oldMatchType == newMatchType) 
+            && (Objects.equals(oldPrinciple, newPrinciple))
+            && (Objects.equals(oldMatchKey, newMatchKey))))
+    {
+      return result;
+    }
+
+    // get the new statistic
+    SzReportStatistic statistic = STATISTIC_LOOKUP.get(newMatchType);
+
+    // check if incrementing based on match type -- then everything goes
+    if (oldMatchType != newMatchType) {
+      return statisticVariants(statistic, newPrinciple, newMatchKey);
+    }
+
+    // we have the same match type so check the principle
+    if (!Objects.equals(oldPrinciple, newPrinciple)) {
+      result.add(statistic.principle(newPrinciple).format());
+      result.add(statistic.principle(newPrinciple).matchKey(newMatchKey).format());
+    }
+
+    // we have the same match type so check the match key
+    if (!Objects.equals(oldMatchKey, newMatchKey)) {
+      result.add(statistic.matchKey(newMatchKey).format());
+      result.add(statistic.matchKey(newMatchKey).principle(newPrinciple).format());
+    }
+
+    // return the result
+    return result;
+  }
+
+  /**
+   * Creates the {@link Set} of variant statistic combinations that require 
+   * deltas to be handled for data source combinations when the match type,
+   * principle and/or match key are the same.
+   * 
+   * @param oldMatchType The old match type for the relationship, or 
+   *                     <code>null</code> if this is a new relationship.
+   * @param newMatchType The new match type for the relationship, or
+   *                     <code>null</code> if the relationship no longer exists.
+   * @param oldPrinciple The old principle for the relationship, or 
+   *                     <code>null</code> if this is a new relationship.
+   * @param newPrinciple The new principle for the relationship, or
+   *                     <code>null</code> if the relationship no longer exists.
+   * @param oldMatchKey The old match key for the relationship, or 
+   *                    <code>null</code> if this is a new relationship.
+   * @param newMatchKey The new match key for the relationship, or
+   *                    <code>null</code> if the relationship no longer exists.
+   * 
+   * @return The {@link Set} of {@link String} statistics that need to be
+   *         decremented.
+   */
+  private static Set<String> deltaStatVariants(
+      SzMatchType   oldMatchType,
+      SzMatchType   newMatchType,
+      String        oldPrinciple,
+      String        newPrinciple,
+      String        oldMatchKey,
+      String        newMatchKey)
+  {
+    checkStatVariantParameters(oldMatchType, newMatchType, oldPrinciple,
+                               newPrinciple, oldMatchKey, newMatchKey);
+
+    Set<String> result = new TreeSet<>();
+
+    // check if nothing for which to compute deltas
+    if ((newMatchType == null && oldMatchType == null) 
+        || (newMatchType != oldMatchType)) {
+      return result;
+    }
+
+    // get the old statistic
+    SzReportStatistic statistic = STATISTIC_LOOKUP.get(newMatchType);
+
+    // we have the same match type so add the base statistic
+    result.add(statistic);
+
+    // check if the principle is also the same
+    if (Objects.equals(oldPrinciple, newPrinciple)) {
+      result.add(statistic.principle(newPrinciple).format());
+    }
+
+    // check if the match key is also the same
+    if (Objects.equals(oldMatchKey, newMatchKey)) {
+      result.add(statistic.matchKey(newMatchKey).format());
+    }
+
+    // check if both the principle and match key are the same
+    if (Objects.equals(oldPrinciple, newPrinciple)
+        && Objects.equals(oldMatchKey, newMatchKey))
+    {
+      result.add(statistic.matchKey(newMatchKey).principle(newPrinciple).format());
+    }
+
+    // return the result
+    return result;
+  }
+
+  /**
+   * Checks for sanity in the match type, principle and match key parameters
+   * for when computing the stat variants.
+   * 
+   * @param oldMatchType The old match type for the relationship, or 
+   *                     <code>null</code> if this is a new relationship.
+   * @param newMatchType The new match type for the relationship, or
+   *                     <code>null</code> if the relationship no longer exists.
+   * @param oldPrinciple The old principle for the relationship, or 
+   *                     <code>null</code> if this is a new relationship.
+   * @param newPrinciple The new principle for the relationship, or
+   *                     <code>null</code> if the relationship no longer exists.
+   * @param oldMatchKey The old match key for the relationship, or 
+   *                    <code>null</code> if this is a new relationship.
+   * @param newMatchKey The new match key for the relationship, or
+   *                    <code>null</code> if the relationship no longer exists.
+   * 
+   * @throws IllegalArgumentException If a null value is encountered with the
+   *                                  corresponding parameters NOT also being
+   *                                  null.
+   */
+  private static void checkStatVariantParameters(
+      SzMatchType   oldMatchType,
+      SzMatchType   newMatchType,
+      String        oldPrinciple,
+      String        newPrinciple,
+      String        oldMatchKey,
+      String        newMatchKey)
+    throws IllegalArgumentException 
+  {
+    // check the parameters for the old relationship
+    if ((oldMatchType == null || oldPrinciple == null || oldMatchKey == null)
+        && (oldMatchType != null || oldPrinciple != null || oldMatchKey != nul))
+    {
+      throw new IllegalArgumentException(
+        "If the relationship did not previously exist then the old match type, "
+        + "principle AND match key must all be null.  If it did previously exist, "
+        + "then ALL must NOT be null.  mathType=[ " + oldMatchType 
+        + " ], principle=[ " + oldPrinciple + " ], matchKey=[ " + oldMatchKey
+        + " ]");
+    }
+
+    // check the parameters for the new relationship
+    if ((newMatchType == null || newPrinciple == null || newMatchKey == null)
+        && (newMatchType != null || newPrinciple != null || newMatchKey != nul))
+    {
+      throw new IllegalArgumentException(
+        "If the relationship no longer exists then the new match type, principle "
+        + "AND match key must all be null.  If it does exist, then ALL must NOT "
+        + "be null.  mathType=[ " + oldMatchType + " ], principle=[ " 
+        + oldPrinciple + " ], matchKey=[ " + oldMatchKey + " ]");
+    }
   }
 }
