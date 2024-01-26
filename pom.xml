@@ -7,7 +7,7 @@
   <version>1.0.0</version>
   <name>Senzing G2 Data Mart Replicator</name>
   <description>The Senzing listener implementation that replicates data to the data mart.</description>
-  <url>http://github.com/Senzing/g2-sdk-java</url>
+  <url>http://github.com/senzing-garage/g2-sdk-java</url>
   <licenses>
     <license>
       <name>The Apache License, Version 2.0</name>
@@ -23,9 +23,9 @@
     </developer>
   </developers>
   <scm>
-    <connection>scm:git:git://github.com/Senzing/data-mart-replicator.git</connection>
-    <developerConnection>scm:git:ssh://github.com:Senzing/data-mart-replicator.git</developerConnection>
-    <url>http://github.com/Senzing/data-mart-replicator/tree/main</url>
+    <connection>scm:git:git://github.com/senzing-garage/data-mart-replicator.git</connection>
+    <developerConnection>scm:git:ssh://github.com:senzing-garage/data-mart-replicator.git</developerConnection>
+    <url>http://github.com/senzing-garage/data-mart-replicator/tree/main</url>
   </scm>
   <dependencies>
     <dependency>

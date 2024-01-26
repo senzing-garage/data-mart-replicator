@@ -1,3 +1,5 @@
 # Default code owner
 
-/.github/ @Senzing/senzing-devsecops
+* @senzing-garage/senzing-java-developers
+
+/.github/ @senzing-garage/senzing-devsecops
