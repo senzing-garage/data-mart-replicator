@@ -36,6 +36,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
   private static final long ENTITY_FLAGS
       = G2_ENTITY_INCLUDE_ENTITY_NAME
       | G2_ENTITY_INCLUDE_RECORD_DATA
+      | G2_ENTITY_INCLUDE_RECORD_MATCHING_INFO
       | G2_ENTITY_INCLUDE_ALL_RELATIONS
       | G2_ENTITY_INCLUDE_RELATED_MATCHING_INFO
       | G2_ENTITY_INCLUDE_RELATED_RECORD_DATA;
@@ -500,7 +501,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                                      Scheduler    followUpScheduler)
       throws SQLException
   {
-    Set<SzRecord> removedRecords = entityDelta.getRemovedRecords();
+    Map<SzRecordKey, SzRecord> removedRecords = entityDelta.getRemovedRecords();
     if (removedRecords.size() == 0) return 0;
 
     PreparedStatement ps = null;
@@ -511,7 +512,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
               + "WHERE data_source = ? AND record_id = ? AND entity_id = ?");
 
       List<Integer> rowCounts
-          = this.batchUpdate(ps, removedRecords, (ps2, record) -> {
+          = this.batchUpdate(ps, removedRecords.values(), (ps2, record) -> {
         ps2.setString(1, operationId);
         ps2.setString(2, record.getDataSource());
         ps2.setString(3, record.getRecordId());
@@ -526,7 +527,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
       // now get the modified records
       ps = conn.prepareStatement(
-          "SELECT data_source, record_id"
+          "SELECT data_source, record_id, match_key, errule_code "
               + " FROM sz_dm_record WHERE entity_id = 0 AND modifier_id = ?");
 
       ps.setString(1, operationId);
@@ -538,7 +539,9 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
         String    dataSource  = rs.getString(1);
         String    recordId    = rs.getString(2);
-        SzRecord  record      = new SzRecord(dataSource, recordId);
+        String    matchKey    = rs.getString(3);
+        String    principle   = rs.getString(4);
+        SzRecord  record      = new SzRecord(dataSource, recordId, matchKey, principle);
 
         entityDelta.orphanedRecord(record);
       }
@@ -568,7 +571,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
    * EntityDelta#trackStoredRelationship(long, long, SzMatchType, String, String,
    * Map, Map)} function on the specified {@link EntityDelta} and all rows that were
    * deleted using the {@link EntityDelta#trackDeletedRelationship(long, long,
-   * SzMatchType, Map, Map)} method.
+   * SzMatchType, String, String, Map, Map)} method.
    *
    * @param conn The JDBC {@link Connection} to use.
    * @param entityDelta The {@link EntityDelta} to use.
@@ -987,6 +990,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
         entityDelta.trackDeletedRelationship(relationship.getEntityId(),
                                              relationship.getRelatedEntityId(),
                                              relationship.getMatchType(),
+                                             relationship.getMatchKey(),
+                                             relationship.getPrinciple(),
                                              relationship.getSourceSummary(),
                                              relationship.getRelatedSourceSummary());
 

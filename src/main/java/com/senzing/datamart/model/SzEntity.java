@@ -212,6 +212,7 @@ public class SzEntity {
    *
    * @param entity The non-null {@link SzEntity} to populate.
    * @param jsonObject The {@link JsonObject} describing the entity.
+   * @param <T> The type of {@link SzEntity} that will be populated.
    * 
    * @return The specified {@link SzEntity} that was populated.
    */

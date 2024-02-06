@@ -136,7 +136,7 @@ public class SzRecord {
     SzRecord that = (SzRecord) o;
     return Objects.equals(this.getRecordKey(), that.getRecordKey())
         && Objects.equals(this.getMatchKey(), that.getMatchKey())
-        && Objects.equals(this.getPrinciple(), that.getPrincple());
+        && Objects.equals(this.getPrinciple(), that.getPrinciple());
   }
 
   @Override
@@ -223,7 +223,7 @@ public class SzRecord {
       rule = JsonUtilities.getString(jsonObject, "principle");
     }
     if (rule == null) {
-      rule = JsonUtilities.getString(jsonObject "ERRULE_CODE");
+      rule = JsonUtilities.getString(jsonObject, "ERRULE_CODE");
     }
 
     // set the properties
