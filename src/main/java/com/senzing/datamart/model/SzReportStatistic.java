@@ -115,8 +115,13 @@ public enum SzReportStatistic {
       if (this.principle == null && this.matchKey == null) {
         return this.statistic.toString();
       }
-      return this.statistic + ":" + this.principle + ":" + this.matchKey;
-    }
+      String prin = this.principle == null ? "" : this.principle.trim();
+      if (this.matchKey == null) {
+        return this.statistic + ":" + prin;
+      }
+      String mkey = this.matchKey == null ? "" : this.matchKey.trim();
+      return this.statistic + ":" + prin + ":" + mkey;
+    } 
 
     /**
      * Overridden to return the result from {@link #format()}.

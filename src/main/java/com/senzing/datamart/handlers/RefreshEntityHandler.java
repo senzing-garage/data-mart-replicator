@@ -20,6 +20,7 @@ import static com.senzing.datamart.SzReplicationProvider.*;
 import static com.senzing.datamart.model.SzReportCode.*;
 import static com.senzing.listener.service.AbstractListenerService.*;
 import static com.senzing.util.LoggingUtilities.*;
+import static java.sql.Types.*;
 
 /**
  * Provides a handler for refreshing an affected entity.
@@ -426,7 +427,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
           "INSERT INTO sz_dm_record AS t1 ("
               + " data_source, record_id, entity_id, match_key,"
               + " errule_code, creator_id, modifier_id) "
-              + "VALUES (?, ?, ?, ?, ?) "
+              + "VALUES (?, ?, ?, ?, ?, ?, ?) "
               + "ON CONFLICT (data_source, record_id) DO UPDATE SET"
               + " entity_id = EXCLUDED.entity_id,"
               + " match_key = EXCLUDED.match_key, "
@@ -436,11 +437,20 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
               + "THEN (EXCLUDED.modifier_id) ELSE(NULL) END)");
 
       this.batchUpdate(ps, addedRecords.values(), (ps2, record) -> {
+        // get normalized match key and principle
+        String matchKey = record.getMatchKey();
+        String principle = record.getPrinciple();
+
         ps2.setString(1, record.getDataSource());
         ps2.setString(2, record.getRecordId());
         ps2.setLong(3, entityDelta.getEntityId());
-        ps2.setString(4, record.getMatchKey());
-        ps2.setString(5, record.getPrinciple());
+        
+        if (matchKey == null) ps2.setNull(4, VARCHAR);
+        else ps2.setString(4, matchKey);
+
+        if (principle == null) ps2.setNull(5, VARCHAR);
+        else ps2.setString(5, principle);
+
         ps2.setString(6, operationId);
         ps2.setString(7, operationId);
         return 1;

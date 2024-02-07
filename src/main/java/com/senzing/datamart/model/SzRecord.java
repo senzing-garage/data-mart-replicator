@@ -59,6 +59,14 @@ public class SzRecord {
                   String      matchKey,
                   String      principle) {
     Objects.requireNonNull(recordKey, "The record key cannot be null");
+
+    // normalize the match key and principle
+    matchKey  = (matchKey == null) ? null : matchKey.trim();
+    principle = (principle == null) ? null : principle.trim();
+    if (matchKey != null && matchKey.length() == 0) matchKey = null;
+    if (principle != null && principle.length() == 0) principle = null;
+
+    // set the fields
     this.recordKey  = recordKey;
     this.matchKey   = matchKey;
     this.principle  = principle;
