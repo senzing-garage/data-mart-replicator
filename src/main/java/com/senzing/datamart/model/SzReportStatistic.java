@@ -82,7 +82,7 @@ public enum SzReportStatistic {
      * @return This {@link Formatter} instance.
      */
     public Formatter principle(String principle) {
-      if (this.principle != null) {
+      if (principle != null) {
         principle = principle.trim();
         if (principle.length() == 0) principle = null;
       }
@@ -98,7 +98,7 @@ public enum SzReportStatistic {
      * @return This {@link Formatter} instance.
      */
     public Formatter matchKey(String matchKey) {
-      if (this.matchKey != null) {
+      if (matchKey != null) {
         matchKey = matchKey.trim();
         if (matchKey.length() == 0) matchKey = null;
       }
@@ -182,7 +182,7 @@ public enum SzReportStatistic {
         matchKey  = null;
 
       } if (index >= 0) {
-        principle = (index == 0) ? null : text.substring(0, index);
+        principle = (index == 0) ? null : text.substring(0, index).trim();
         text = (index == text.length() - 1) ? "" : text.substring(index+1);
         text = text.trim();
         matchKey = (text.length() == 0) ? null : text;
