@@ -46,6 +46,7 @@ public enum SzMatchType {
 
   /**
    * Gets the code from this instance.
+   * @return The code from this instance.
    */
   public String getCode() {
     return this.code;

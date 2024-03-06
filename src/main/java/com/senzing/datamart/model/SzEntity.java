@@ -29,14 +29,14 @@ public class SzEntity {
   /**
    * The associated records.
    */
-  private Set<SzRecord> records;
+  private Map<SzRecordKey, SzRecord> records;
 
   /**
    * Default constructor.
    */
   public SzEntity() {
     this.sourceSummary = new LinkedHashMap<>();
-    this.records       = new LinkedHashSet<>();
+    this.records       = new LinkedHashMap<>();
   }
 
   /**
@@ -89,13 +89,14 @@ public class SzEntity {
   }
 
   /**
-   * Gets the associated records as an <b>unmodifiable</b> {@link List} of
-   * {@link SzRecord} instances.
+   * Gets the associated records as an <b>unmodifiable</b> {@link Map} of
+   * {@link SzRecordKey} keys to {@link SzRecord} values.
    *
-   * @return The <b>unmodifiable</b> {@link List} of {@link SzRecord} instances.
+   * @return An <b>unmodifiable</b> {@link Map} of {@link SzRecordKey} keys
+   *         to {@link SzRecord} values desribing the records for this entity.
    */
-  public Set<SzRecord> getRecords() {
-    return Collections.unmodifiableSet(this.records);
+  public Map<SzRecordKey, SzRecord> getRecords() {
+    return Collections.unmodifiableMap(this.records);
   }
 
   /**
@@ -119,7 +120,7 @@ public class SzEntity {
    * @param record The {@link SzRecord} describing the record to add.
    */
   public void addRecord(SzRecord record) {
-    if (this.records.contains(record)) return;
+    if (this.records.containsKey(record.getRecordKey())) return;
 
     String dataSource = record.getDataSource();
     Integer count = this.sourceSummary.get(dataSource);
@@ -128,7 +129,7 @@ public class SzEntity {
     } else {
       this.sourceSummary.put(dataSource, count + 1);
     }
-    this.records.add(record);
+    this.records.put(record.getRecordKey(), record);
   }
 
   /**
@@ -151,10 +152,10 @@ public class SzEntity {
       builder.add("name", this.getEntityName());
     }
     JsonArrayBuilder jab = Json.createArrayBuilder();
-    Set<SzRecord> records = this.getRecords();
+    Map<SzRecordKey, SzRecord> records = this.getRecords();
     if (records != null && records.size() > 0) {
-      SortedSet<SzRecord> sortedRecords = new TreeSet<>(records);
-      for (SzRecord record : sortedRecords) {
+      SortedMap<SzRecordKey, SzRecord> sortedRecords = new TreeMap<>(records);
+      for (SzRecord record : sortedRecords.values()) {
         JsonObjectBuilder job = Json.createObjectBuilder();
         record.buildJson(job);
         jab.add(job);
@@ -211,6 +212,7 @@ public class SzEntity {
    *
    * @param entity The non-null {@link SzEntity} to populate.
    * @param jsonObject The {@link JsonObject} describing the entity.
+   * @param <T> The type of {@link SzEntity} that will be populated.
    * 
    * @return The specified {@link SzEntity} that was populated.
    */

@@ -11,43 +11,130 @@ import java.util.Objects;
  * Encapsulates the information for the record that is replicated for the data
  * mart.
  */
-public class SzRecord implements Comparable<SzRecord> {
+public class SzRecord {
   /**
-   * The data source code for the record.
+   * The {@link SzRecordKey} describing the data source code and record ID
+   * pair that identify this record.
    */
-  private String dataSource;
+  private SzRecordKey recordKey;
 
   /**
-   * The record ID for the record.
+   * The match key that bound this record to its respective entity, or
+   * <code>null</code> if this is the first record in that entity.
    */
-  private String recordId;
+  private String matchKey;
 
   /**
-   * Constructs with the specified data source and record ID.
+   * The principle that bound this record to its respective entity, or
+   * <code>null</code> if this is the first record in that entity.
+   */
+  private String principle;
+
+  /**
+   * Constructs with the specified data source, record ID, optional match key 
+   * and optional principle.
+   * 
    * @param dataSource The data source code for the data source.
    * @param recordId The record ID for the record.
+   * @param matchKey The match key that bound this record to its entity or
+   *                 <code>null</code> if this was the first record in the entity.
+   * @param principle The principle that bound this record to its entity or
+   *                 <code>null</code> if this was the first record in the entity.
+   * 
+   * @throws NullPointerException If the data source or record ID are
+   *                              <code>null</code>.
    */
-  public SzRecord(String dataSource, String recordId) {
-    this.dataSource = dataSource;
-    this.recordId   = recordId;
+  public SzRecord(String    dataSource, 
+                  String    recordId, 
+                  String    matchKey,
+                  String    principle) 
+  {
+    this(new SzRecordKey(dataSource, recordId), matchKey, principle);
   }
 
   /**
-   * Gets the data source code for the record.
+   * 
+   */
+  public SzRecord(SzRecordKey recordKey,
+                  String      matchKey,
+                  String      principle) {
+    Objects.requireNonNull(recordKey, "The record key cannot be null");
+
+    // normalize the match key and principle
+    matchKey  = (matchKey == null) ? null : matchKey.trim();
+    principle = (principle == null) ? null : principle.trim();
+    if (matchKey != null && matchKey.length() == 0) matchKey = null;
+    if (principle != null && principle.length() == 0) principle = null;
+
+    // set the fields
+    this.recordKey  = recordKey;
+    this.matchKey   = matchKey;
+    this.principle  = principle;
+  }
+
+  /**
+   * Gets the data source code for the record.  This is a convenience
+   * function for calling {@link SzRecordKey#getDataSource()} on the
+   * result from {@link #getRecordKey()}.
    *
    * @return The data source code for the record.
+   * 
+   * @see #getRecordKey()
+   * @see SzRecordKey#getDataSource()
    */
   public String getDataSource() {
-    return this.dataSource;
+    return this.getRecordKey().getDataSource();
   }
 
   /**
-   * Gets the record ID for the record.
+   * Gets the record ID for the record.  This is a convenience
+   * function for calling {@link SzRecordKey#getRecordId()} on the
+   * result from {@link #getRecordKey()}.
    *
    * @return The record ID for the record.
+   * 
+   * @see #getRecordKey()
+   * @see SzRecordKey#getRecordId()
    */
   public String getRecordId() {
-    return this.recordId;
+    return this.getRecordKey().getRecordId();
+  }
+
+  /**
+   * Gets the {@link SzRecordKey} containing the data source code and
+   * record ID pair that identify this record.
+   * 
+   * @return The {@link SzRecordKey} containing the data source code and
+   *         record ID pair that identify this record.
+   */
+  public SzRecordKey getRecordKey() {
+    return this.recordKey;
+  }
+
+  /**
+   * Gets the match key that bound this record to its respective entity.
+   * This returns <code>null</code> if this is the first record in that
+   * entity.
+   * 
+   * @return The match key that bound this record to its its respective 
+   *         entity, or <code>null</code> if this is the first record in
+   *         that entity.
+   */
+  public String getMatchKey() {
+    return this.matchKey;
+  }
+
+  /**
+   * Gets the principle that bound this record to its respective entity.
+   * This returns <code>null</code> if this is the first record in that
+   * entity.
+   * 
+   * @return The principle that bound this record to its its respective 
+   *         entity, or <code>null</code> if this is the first record in
+   *         that entity.
+   */
+  public String getPrinciple() {
+    return this.principle;
   }
 
   @Override
@@ -55,35 +142,16 @@ public class SzRecord implements Comparable<SzRecord> {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     SzRecord that = (SzRecord) o;
-    return Objects.equals(this.getDataSource(), that.getDataSource())
-        && Objects.equals(this.getRecordId(), that.getRecordId());
+    return Objects.equals(this.getRecordKey(), that.getRecordKey())
+        && Objects.equals(this.getMatchKey(), that.getMatchKey())
+        && Objects.equals(this.getPrinciple(), that.getPrinciple());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.getDataSource(), this.getRecordId());
-  }
-
-  /**
-   * Implemented to order {@link SzRecord} instances first by data source code
-   * and then by record ID.  A <code>null</code> reference compares less-than a
-   * non-null reference.
-   *
-   * @param record The record to compare to.
-   * @return A negative number if this instance is less-than the specified
-   *         {@link SzRecord}, a positive number if this instance is
-   *         greater-than the specified instance, or zero (0) if they are equal.
-   */
-  public int compareTo(SzRecord record) {
-    if (record == null) return -1;
-    String src1 = this.getDataSource();
-    String src2 = record.getDataSource();
-    int diff = src1.compareTo(src2);
-    if (diff != 0) return diff;
-    String id1 = this.getRecordId();
-    String id2 = record.getRecordId();
-    diff = id1.compareTo(id2);
-    return diff;
+    return Objects.hash(this.getRecordKey(),
+                        this.getMatchKey(), 
+                        this.getPrinciple());
   }
 
   /**
@@ -93,8 +161,17 @@ public class SzRecord implements Comparable<SzRecord> {
    * @param builder The {@link JsonObjectBuilder} to populate.
    */
   public void buildJson(JsonObjectBuilder builder) {
-    builder.add("src", this.getDataSource());
-    builder.add("id", this.getRecordId());
+    // handle the key fields
+    this.getRecordKey().buildJson(builder);
+
+    String matchKey = this.getMatchKey();
+    if (matchKey != null) {
+      builder.add("mkey", matchKey);
+    }
+    String principle = this.getPrinciple();
+    if (principle != null) {
+      builder.add("rule", principle);
+    }
   }
 
   /**
@@ -136,28 +213,29 @@ public class SzRecord implements Comparable<SzRecord> {
    * @return The {@link SzRecord} describing the record.
    */
   public static SzRecord parse(JsonObject jsonObject) {
-    String src = JsonUtilities.getString(jsonObject, "src");
-    if (src == null) {
-      src = JsonUtilities.getString(jsonObject, "dataSourceCode");
+    // parse the record key (data source code and record ID)
+    SzRecordKey key = SzRecordKey.parse(jsonObject);
+
+    // get the match key
+    String mkey = JsonUtilities.getString(jsonObject, "mkey");
+    if (mkey == null) {
+      mkey = JsonUtilities.getString(jsonObject, "matchKey");
     }
-    if (src == null) {
-      src = JsonUtilities.getString(jsonObject, "DATA_SOURCE");
+    if (mkey == null) {
+      mkey = JsonUtilities.getString(jsonObject, "MATCH_KEY");
     }
-    String id = JsonUtilities.getString(jsonObject, "id");
-    if (id == null) {
-      id = JsonUtilities.getString(jsonObject, "recordId");
+    
+    // get the principle
+    String rule = JsonUtilities.getString(jsonObject, "rule");
+    if (rule == null) {
+      rule = JsonUtilities.getString(jsonObject, "principle");
     }
-    if (id == null) {
-      id = JsonUtilities.getString(jsonObject, "RECORD_ID");
-    }
-    if (src == null || id == null) {
-      throw new IllegalArgumentException(
-          "The specified JsonObject does not have the required fields.  src=[ "
-              + src + " ], id=[ " + id + " ], jsonObject=[ " + jsonObject + " ]");
+    if (rule == null) {
+      rule = JsonUtilities.getString(jsonObject, "ERRULE_CODE");
     }
 
     // set the properties
-    return new SzRecord(src, id);
+    return new SzRecord(key, mkey, rule);
   }
 
   @Override

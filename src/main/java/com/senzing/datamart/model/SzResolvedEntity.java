@@ -1,6 +1,5 @@
 package com.senzing.datamart.model;
 
-
 import com.senzing.util.ZipUtilities;
 
 import javax.json.*;
@@ -21,37 +20,10 @@ public class SzResolvedEntity extends SzEntity {
   public Map<Long, SzRelatedEntity> relatedEntities;
 
   /**
-   * The {@link SortedMap} of {@link SzMatchType} keys to {@link SortedSet}
-   * values containing the distinct data sources related to this entity
-   * by the related entities by the respective match type.
-   */
-  public SortedMap<SzMatchType, SortedSet<String>> relatedSources;
-
-  /**
-   * The unmodifiable view of {@link #relatedSources} with unmodifiable
-   * {@link SortedSet} values.
-   */
-  public SortedMap<SzMatchType, SortedSet<String>> unmodifiableRelatedSources;
-
-  /**
    * Default constructor.
    */
   public SzResolvedEntity() {
-    this.relatedEntities            = new LinkedHashMap<>();
-    this.relatedSources             = new TreeMap<>();
-    this.unmodifiableRelatedSources = new TreeMap<>();
-
-    for (SzMatchType matchType: SzMatchType.values()) {
-      SortedSet<String> sources = new TreeSet<>();
-
-      SortedSet<String> unmodifiableSources
-          = Collections.unmodifiableSortedSet(sources);
-
-      this.relatedSources.put(matchType, sources);
-      this.unmodifiableRelatedSources.put(matchType, unmodifiableSources);
-    }
-    this.unmodifiableRelatedSources
-        = Collections.unmodifiableSortedMap(this.unmodifiableRelatedSources);
+    this.relatedEntities = new LinkedHashMap<>();
   }
 
   /**
@@ -82,12 +54,8 @@ public class SzResolvedEntity extends SzEntity {
       }
     }
     this.relatedEntities.clear();
-    this.relatedSources.values().forEach(sources -> {
-      sources.clear();
-    });
     entities.forEach(entity -> {
       this.relatedEntities.put(entity.getEntityId(), entity);
-      this.trackRelatedSources(entity);
     });
   }
 
@@ -105,19 +73,6 @@ public class SzResolvedEntity extends SzEntity {
           + entity);
     }
     this.relatedEntities.put(entity.getEntityId(), entity);
-    this.trackRelatedSources(entity);
-  }
-
-  /**
-   * Tracks the related sources for the specified {@link SzMatchType}.
-   *
-   * @param entity The {@link SzRelatedEntity} for which to track the related
-   *               sources.
-   */
-  private void trackRelatedSources(SzRelatedEntity entity) {
-    SzMatchType       matchType = entity.getMatchType();
-    SortedSet<String> sources   = this.relatedSources.get(matchType);
-    sources.addAll(entity.getSourceSummary().keySet());
   }
 
   /**
@@ -125,9 +80,6 @@ public class SzResolvedEntity extends SzEntity {
    */
   public void clearRelatedEntities() {
     this.relatedEntities.clear();
-    this.relatedSources.values().forEach(sources -> {
-      sources.clear();
-    });
   }
 
   /**
@@ -251,18 +203,4 @@ public class SzResolvedEntity extends SzEntity {
     return Objects.hash(super.hashCode(), this.getRelatedEntities());
   }
 
-  /**
-   * Gets the <b>unmodifiable</b> {@link Map} of {@link SzMatchType} keys to
-   * alphabetically-sorted {@link SortedSet} values containing the {@link
-   * String} data source codes for data sources of all entities related by that
-   * respective {@link SzMatchType}.
-   *
-   * @return The <b>unmodifiable</b> {@link Map} of {@link SzMatchType} keys to
-   *         alphabetically-sorted {@link SortedSet} values containing the
-   *         {@link String} data source codes for data sources of all entities
-   *         related by that respective {@link SzMatchType}.
-   */
-  public SortedMap<SzMatchType, SortedSet<String>> getRelatedSources() {
-    return this.unmodifiableRelatedSources;
-  }
 }

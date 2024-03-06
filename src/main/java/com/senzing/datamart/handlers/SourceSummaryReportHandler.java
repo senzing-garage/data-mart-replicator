@@ -103,11 +103,11 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
       // get the G2Service
       G2Service g2Service = this.getG2Service();
 
-      Set<SzRecord> deleteSet = new LinkedHashSet<>();
-      Map<SzRecord,Long> reconnectMap = new LinkedHashMap<>();
+      Set<SzRecordKey> deleteSet = new LinkedHashSet<>();
+      Map<SzRecordKey,Long> reconnectMap = new LinkedHashMap<>();
       while (rs.next()) {
-        String recordId = rs.getString(1);
-        SzRecord record = new SzRecord(dataSource, recordId);
+        String      recordId  = rs.getString(1);
+        SzRecordKey recordKey = new SzRecordKey(dataSource, recordId);
 
         Long    entityId = null;
         String  jsonText = null;
@@ -115,7 +115,7 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
           jsonText = g2Service.getEntity(dataSource, recordId, ENTITY_FLAGS);
 
         } catch(ServiceExecutionException e){
-          logWarning(e, "FAILED TO CHECK IF RECORD STILL EXISTS: " + record);
+          logWarning(e, "FAILED TO CHECK IF RECORD STILL EXISTS: " + recordKey);
           continue;
         }
         if (jsonText != null) {
@@ -130,7 +130,7 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
           entityId = JsonUtilities.getLong(jsonObject, "ENTITY_ID");
 
           if (entityId == null) {
-            logWarning("Skipping orphan record + " + record
+            logWarning("Skipping orphan record + " + recordKey
                            + " due to missing entity ID in entity JSON: "
                            + jsonText);
             continue;
@@ -148,7 +148,7 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
           ps2 = close(ps2);
           if (entityCount == 0) {
             logDebug("Entity " + entityId + " for orphan record "
-                         + record + " has not yet been replicated.  "
+                         + recordKey + " has not yet been replicated.  "
                          + "Scheduling follow-up....");
 
             followUpScheduler.createTaskBuilder(REFRESH_ENTITY.toString())
@@ -160,19 +160,19 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
 
           } else if (entityCount > 1) {
             logWarning("Entity " + entityId + " for orhan record "
-                           + record + " has " + entityCount
+                           + recordKey + " has " + entityCount
                            + " data-mart rows.");
             continue;
           }
         }
         if (entityId == null) {
-          logDebug("Determined that record is truly deleted: " + record);
-          deleteSet.add(new SzRecord(dataSource, recordId));
+          logDebug("Determined that record is truly deleted: " + recordKey);
+          deleteSet.add(new SzRecordKey(dataSource, recordId));
 
         } else {
-          logDebug("Queueing record " + record
+          logDebug("Queueing record " + recordKey
                        + " for reconnection to entity " + entityId);
-          reconnectMap.put(record, entityId);
+          reconnectMap.put(recordKey, entityId);
         }
       }
 
@@ -189,18 +189,18 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
 
         List<Integer> rowCounts = this.batchUpdate(
             ps, reconnectMap.entrySet(), (ps2, entry) -> {
-              SzRecord  record    = entry.getKey();
-              Long      entityId  = entry.getValue();
+              SzRecordKey recordKey = entry.getKey();
+              Long        entityId  = entry.getValue();
               ps2.setLong(1, entityId);
               ps2.setString(2, operationId);
-              ps2.setString(3, record.getDataSource());
-              ps2.setString(4, record.getRecordId());
+              ps2.setString(3, recordKey.getDataSource());
+              ps2.setString(4, recordKey.getRecordId());
               ps2.setString(5, operationId);
               return -1;
             });
 
         int index = 0, reconnectedCount = 0;
-        for (Map.Entry<SzRecord, Long> entry : reconnectMap.entrySet()) {
+        for (Map.Entry<SzRecordKey, Long> entry : reconnectMap.entrySet()) {
           int rowCount = rowCounts.get(index++);
           if (rowCount == 0) {
             logWarning("FAILED TO RECONNECT RECORD " + entry.getKey()
@@ -234,11 +234,11 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
         });
 
         int index = 0, deletedCount = 0;
-        for (SzRecord record : deleteSet) {
+        for (SzRecordKey recordKey : deleteSet) {
           int rowCount = rowCounts.get(index++);
           if (rowCount == 0) {
             throw new IllegalStateException(
-                "Failed to delete leased orphan record row: " + record);
+                "Failed to delete leased orphan record row: " + recordKey);
           }
           deletedCount++;
         }

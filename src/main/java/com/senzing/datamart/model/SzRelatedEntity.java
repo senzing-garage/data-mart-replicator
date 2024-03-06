@@ -28,12 +28,18 @@ public class SzRelatedEntity extends SzEntity {
   private String matchKey;
 
   /**
+   * The principle used for relating the entities.
+   */
+  private String principle;
+
+  /**
    * Default constructor.
    */
   public SzRelatedEntity() {
     this.matchLevel = 0;
     this.matchType  = null;
     this.matchKey   = null;
+    this.principle  = null;
   }
 
   /**
@@ -94,6 +100,28 @@ public class SzRelatedEntity extends SzEntity {
   }
 
   /**
+   * Gets the principle code identifying the Entity Resolution Rule
+   * that created this relationship.
+   *
+   * @return The principle code identifying the Entity Resolution Rule
+   *         that created this relationship.
+   */
+  public String getPrinciple() {
+    return this.principle;
+  }
+
+  /**
+   * Sets the principle code identifying the Entity Resolution Rule
+   * that created this relationship.
+   *
+   * @param principle The principle code identifying the Entity
+   *                  Resolution Rule that created this relationship.
+   */
+  public void setPrinciple(String principle) {
+    this.principle = principle;
+  }
+
+  /**
    * Populates the specified {@link JsonObjectBuilder} with the properties
    * of this instance.
    *
@@ -102,8 +130,9 @@ public class SzRelatedEntity extends SzEntity {
   public void buildJson(JsonObjectBuilder builder) {
     super.buildJson(builder);
     builder.add("matchLevel", this.getMatchLevel());
-    builder.add("matchKey", this.getMatchKey());
     builder.add("matchType", this.getMatchType().getCode());
+    builder.add("matchKey", this.getMatchKey());
+    builder.add("principle", this.getPrinciple());
   }
 
   /**
@@ -151,6 +180,13 @@ public class SzRelatedEntity extends SzEntity {
     }
     entity.setMatchKey(matchKey);
 
+    // get and set the principle
+    String principle = getString(jsonObject, "principle");
+    if (principle == null) {
+      principle = getString(jsonObject, "ERRULE_CODE");
+    }
+    entity.setPrinciple(principle);
+
     // return the entity
     return entity;
   }
@@ -163,7 +199,8 @@ public class SzRelatedEntity extends SzEntity {
     SzRelatedEntity that = (SzRelatedEntity) o;
     return this.getMatchLevel() == that.getMatchLevel()
         && this.getMatchType() == that.getMatchType()
-        && Objects.equals(this.getMatchKey(), that.getMatchKey());
+        && Objects.equals(this.getMatchKey(), that.getMatchKey())
+        && Objects.equals(this.getPrinciple(), that.getPrinciple());
   }
 
   @Override
@@ -171,6 +208,7 @@ public class SzRelatedEntity extends SzEntity {
     return Objects.hash(super.hashCode(),
                         this.getMatchLevel(),
                         this.getMatchType(),
-                        this.getMatchKey());
+                        this.getMatchKey(),
+                        this.getPrinciple());
   }
 }
