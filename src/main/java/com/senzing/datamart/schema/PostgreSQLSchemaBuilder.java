@@ -370,9 +370,11 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
     sqlList.add(createEntityTable);
     sqlList.add(createEntityNewIndex);
     sqlList.add(createEntityModIndex);
+    sqlList.add(dropEntityTrigger);
     sqlList.add(createEntityTrigger);
 
     sqlList.add(createRecordTable);
+    sqlList.add(dropRecordTrigger);
     sqlList.add(createRecordTrigger);
     sqlList.add(createRecordIndex);
     sqlList.add(createMatchKeyRecordIndex);
@@ -381,6 +383,7 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
     sqlList.add(createRecordModIndex);
 
     sqlList.add(createRelationTable);
+    sqlList.add(dropRelationTrigger);
     sqlList.add(createRelationTrigger);
     sqlList.add(createRelationIndex);
     sqlList.add(createMatchKeyRelationIndex);
@@ -389,9 +392,11 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
     sqlList.add(createRelationModIndex);
 
     sqlList.add(createReportTable);
+    sqlList.add(dropReportTrigger);
     sqlList.add(createReportTrigger);
 
     sqlList.add(createReportDetailTable);
+    sqlList.add(dropReportDetailTrigger);
     sqlList.add(createReportDetailTrigger);
     sqlList.add(createReportDetailIndex1);
     sqlList.add(createReportDetailIndex2);
@@ -399,6 +404,7 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
     sqlList.add(createReportDetailModIndex);
 
     sqlList.add(createPendingReportTable);
+    sqlList.add(dropPendingReportTrigger);
     sqlList.add(createPendingReportTrigger);
     sqlList.add(createPendingReportIndex1);
     sqlList.add(createPendingReportIndex2);
@@ -417,7 +423,7 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
    * @return The create trigger statement.
    */
   protected String formatCreatePostgreSQLTrigger(String tableName) {
-    return "CREATE OR REPLACE TRIGGER " + tableName + "_trig "
+    return "CREATE TRIGGER " + tableName + "_trig "
         + "BEFORE INSERT OR UPDATE "
         + "ON " + tableName + " "
         + "FOR EACH ROW "
