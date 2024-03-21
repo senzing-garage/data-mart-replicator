@@ -4,7 +4,7 @@
   <groupId>com.senzing</groupId>
   <artifactId>data-mart-replicator</artifactId>
   <packaging>jar</packaging>
-  <version>1.1.1</version>
+  <version>1.1.2</version>
   <name>Senzing G2 Data Mart Replicator</name>
   <description>The Senzing listener implementation that replicates data to the data mart.</description>
   <url>http://github.com/senzing-garage/g2-sdk-java</url>
@@ -36,7 +36,7 @@
     <dependency>
       <groupId>com.senzing</groupId>
       <artifactId>senzing-listener</artifactId>
-      <version>[0.5.6,0.5.9999999]</version>
+      <version>[0.5.7,0.5.9999999]</version>
     </dependency>
     <dependency>
       <groupId>org.xerial</groupId>
