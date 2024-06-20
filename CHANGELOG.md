@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2024-06-20
+
+### Changed in 1.1.3
+
+- Updated `senzing-commons-java` dependency from version `3.2.0` to `3.3.0`
+- Updated `senzing-listener` dependency from version `0.5.7` to `0.5.9`
+- Updated  `postgresql` dependency from version `42.7.2` to `42.7.3`
+- Updated `jackson-annotations` dependency from version `2.16.1` to `2.17.1`
+- Updated `jackson-databind` dependency from version `2.16.1` to `2.17.1`
+- Updated `jackson-core` dependency from version `2.16.1` to `2.17.1`
+- Updated `jackson-module-jaxb-annotations` dependency from version `2.16.1` to `2.17.1`
+- Updated `jackson-datatype-joda` dependency from version `2.16.1` to `2.17.1`
+- Updated Amazon `sqs` dependney from version `2.24.12` to `2.26.4`
+- Updated `amqp-client` dependency from version `5.20.0` to `5.21.0`
+- Updated `slf4j-api` dependency from version `2.0.12` to `2.0.13`
+- Updated `slf4j-simple` dependency from version `2.0.12` to `2.0.13`
+- Updated `maven-compiler-plugin` dependency from version `3.12.1` to `3.13.0`
+- Updated `maven-source-plugin` dependency from version `3.3.0` to `3.3.1`
+- Updated `maven-javadoc-plugin` dependency from version `3.6.3` to `3.7.0`
+- Updated `maven-shade-plugin` dependency from version `3.5.2` to `3.6.0`
+
 ## [1.1.2] - 2024-03-21
 
 ### Changed in 1.1.2
