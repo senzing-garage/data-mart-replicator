@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] - 2024-08-02
+
+### Changed in 1.1.4
+
+- Updated `senzing-listener` dependency from version `0.5.9` to `1.0.0`
+- Updated `jackson-annotations` dependency from version `2.17.1` to `2.17.2`
+- Updated `jackson-databind` dependency from version `2.17.1` to `2.17.2`
+- Updated `jackson-core` dependency from version `2.17.1` to `2.17.2`
+- Updated `jackson-module-jaxb-annotations` dependency from version `2.17.1` to `2.17.2`
+- Updated `jackson-datatype-joda` dependency from version `2.17.1` to `2.17.2`
+- Updated `junit-jupiter` dependency from version `5.10.2` to `5.10.3`
+- Updated Amazon `sqs` dependney from version `2.26.4` to `2.26.27`
+- Updated `maven-javadoc-plugin` dependency from version `3.7.0` to `3.8.0`
+
 ## [1.1.3] - 2024-06-20
 
 ### Changed in 1.1.3
