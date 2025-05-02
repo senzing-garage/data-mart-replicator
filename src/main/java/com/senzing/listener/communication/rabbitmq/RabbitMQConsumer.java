@@ -20,14 +20,15 @@ import static com.senzing.util.LoggingUtilities.*;
 import static com.senzing.io.IOUtilities.UTF_8;
 
 /**
- * A consumer for RabbitMQ.  The initialization parameters include:
+ * A consumer for RabbitMQ. The initialization parameters include:
  * <ul>
- *   <li>{@link #MQ_HOST_KEY} (required)</li>
- *   <li>{@link #MQ_PORT_KEY} (optional, default port used if not specified)</li>
- *   <li>{@link #MQ_VIRTUAL_HOST_KEY} (optional)</li>
- *   <li>{@link #MQ_QUEUE_KEY} (required)</li>
- *   <li>{@link #MQ_USER_KEY} (optional, no authentication if not specified)</li>
- *   <li>{@link #MQ_PASSWORD_KEY} (required if {@link #MQ_USER_KEY} is specified)</li>
+ * <li>{@link #MQ_HOST_KEY} (required)</li>
+ * <li>{@link #MQ_PORT_KEY} (optional, default port used if not specified)</li>
+ * <li>{@link #MQ_VIRTUAL_HOST_KEY} (optional)</li>
+ * <li>{@link #MQ_QUEUE_KEY} (required)</li>
+ * <li>{@link #MQ_USER_KEY} (optional, no authentication if not specified)</li>
+ * <li>{@link #MQ_PASSWORD_KEY} (required if {@link #MQ_USER_KEY} is
+ * specified)</li>
  * </ul>
  */
 public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
@@ -137,6 +138,7 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
    * passed in.
    * <p>
    * The configuration is in JSON format:
+   * 
    * <pre>
    * {
    *   "mqQueue": "&lt;queue name&gt;",              # required value
@@ -147,14 +149,14 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
    *   "mqPassword": "&lt;password&gt;"              # not required
    * }
    * </pre>
+   * 
    * @param config Configuration string containing the needed information to
    *               connect to RabbitMQ.
    *
    * @throws MessageConsumerSetupException If a failure occurs.
    */
   @Override
-  protected void doInit(JsonObject config) throws MessageConsumerSetupException
-  {
+  protected void doInit(JsonObject config) throws MessageConsumerSetupException {
     try {
       // get the queue name
       this.queueName = getConfigString(config, MQ_QUEUE_KEY, true);
@@ -164,14 +166,14 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
 
       // get the queue port
       this.queuePort = getConfigInteger(config,
-                                        MQ_PORT_KEY,
-                                        false,
-                                        1);
+          MQ_PORT_KEY,
+          false,
+          1);
 
       // get the virtual host
       this.virtualHost = getConfigString(config,
-                                         MQ_VIRTUAL_HOST_KEY,
-                                         false);
+          MQ_VIRTUAL_HOST_KEY,
+          false);
 
       // get the user name (optional)
       this.userName = getConfigString(config, MQ_USER_KEY, false);
@@ -187,11 +189,10 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
 
       // check if the and user name and password are not consistent
       if ((this.userName != null && this.password == null)
-          || (this.userName == null && this.password != null))
-      {
+          || (this.userName == null && this.password != null)) {
         throw new MessageConsumerSetupException(
             "Either both or neither of the " + MQ_USER_KEY + " and "
-            + MQ_PASSWORD_KEY + " configuration parameters must be provided.");
+                + MQ_PASSWORD_KEY + " configuration parameters must be provided.");
       }
 
     } catch (MessageConsumerSetupException e) {
@@ -203,7 +204,7 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
   }
 
   /**
-   * Sets up a RabbitMQ consumer and then receives messages from RabbidMQ and
+   * Sets up a RabbitMQ consumer and then receives messages from RabbitMQ and
    * feeds to service.
    * 
    * @param processor Processes messages
@@ -212,8 +213,7 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
    */
   @Override
   protected void doConsume(MessageProcessor processor)
-      throws MessageConsumerException
-  {
+      throws MessageConsumerException {
     try {
       // construct the factory
       ConnectionFactory factory = new ConnectionFactory();
@@ -239,7 +239,7 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
 
       Connection connection = factory.newConnection();
       this.channel = this.getChannel(connection, queueName);
-      
+
       this.messageProcessor = processor;
 
       DeliverCallback deliverCallback = (consumerTag, delivery) -> {
@@ -250,7 +250,8 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
 
       // this call will run in the background until basicCancel() is called
       this.consumerTag = this.channel.basicConsume(
-          queueName, AUTO_ACK, deliverCallback, consumerTag -> { });
+          queueName, AUTO_ACK, deliverCallback, consumerTag -> {
+          });
 
     } catch (IOException | TimeoutException e) {
       throw new MessageConsumerSetupException(e);
@@ -278,7 +279,8 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
   @Override
   protected synchronized void throttleConsumption() {
     // check if currently consuming
-    if (this.consumerTag == null) return;
+    if (this.consumerTag == null)
+      return;
 
     // cancel consumption temporarily
     if (this.channel != null && this.consumerTag != null) {
@@ -296,18 +298,19 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
     Thread thread = new Thread(() -> {
       // now wait until the number of pending messages decreases
       super.throttleConsumption();
-  
+
       DeliverCallback deliverCallback = (consumerTag, delivery) -> {
         // enqueue the next message for processing -- this call may wait
         // for enough room in the queue for the messages to be enqueued
         this.enqueueMessages(this.messageProcessor, delivery);
       };
-      
+
       synchronized (RabbitMQConsumer.this) {
         try {
-        // now reinstate consumption
-        this.consumerTag = this.channel.basicConsume(
-          queueName, AUTO_ACK, deliverCallback, consumerTag -> { });
+          // now reinstate consumption
+          this.consumerTag = this.channel.basicConsume(
+              queueName, AUTO_ACK, deliverCallback, consumerTag -> {
+              });
 
         } catch (IOException e) {
           logError(e, "Failure to resume consumption after throttling.");
@@ -315,7 +318,7 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
       }
     });
 
-    thread.start();    
+    thread.start();
   }
 
   @Override
@@ -325,7 +328,7 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
 
     } catch (IOException e) {
       logWarning(e, "Ignoring exception while acknowledging message:",
-                 message);
+          message);
     }
   }
 
@@ -344,36 +347,34 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
   }
 
   private Channel getChannel(Connection connection, String queueName)
-      throws IOException
-  {
+      throws IOException {
     try {
       return this.declareQueue(connection,
-                               queueName,
-                               true,
-                               false,
-                               false,
-                               null);
+          queueName,
+          true,
+          false,
+          false,
+          null);
 
     } catch (IOException e) {
       // Possibly the queue is already declared and as non-durable.
       // Retry with durable = false.
       return declareQueue(connection,
-                          queueName,
-                          false,
-                          false,
-                          false,
-                          null);
+          queueName,
+          false,
+          false,
+          false,
+          null);
     }
   }
 
-  private Channel declareQueue(Connection           connection,
-                               String               queueName,
-                               boolean              durable,
-                               boolean              exclusive,
-                               boolean              autoDelete,
-                               Map<String, Object>  arguments)
-      throws IOException
-  {
+  private Channel declareQueue(Connection connection,
+      String queueName,
+      boolean durable,
+      boolean exclusive,
+      boolean autoDelete,
+      Map<String, Object> arguments)
+      throws IOException {
     Channel channel = connection.createChannel();
     channel.queueDeclare(queueName, durable, exclusive, autoDelete, arguments);
     return channel;

@@ -1,6 +1,5 @@
 package com.senzing.listener.service.locking;
 
-
 import com.senzing.listener.service.exception.ServiceExecutionException;
 import com.senzing.listener.service.exception.ServiceSetupException;
 
@@ -35,13 +34,13 @@ public abstract class AbstractLockingService implements LockingService {
    * @param state The {@link State} for this instance.
    */
   protected synchronized void setState(State state) {
-    Objects.requireNonNull(state,"State cannot be null");
+    Objects.requireNonNull(state, "State cannot be null");
     this.state = state;
     this.notifyAll();
   }
 
   /**
-   * Implemented to handle any base initialziation, manage the {@link State}
+   * Implemented to handle any base initialization, manage the {@link State}
    * of this instance and delegate to {@link #doInit(JsonObject)}.
    *
    * @param config The {@link JsonObject} providing the configuration.
@@ -114,19 +113,18 @@ public abstract class AbstractLockingService implements LockingService {
    * a sorted {@link List} of {@link ResourceKey} instances.
    *
    * @param resourceKeys The {@link Set} of resource keys
-   * @param wait The number of milliseconds to wait for the locks.
+   * @param wait         The number of milliseconds to wait for the locks.
    * @return The {@link LockToken} associated with the acquired locks, or
    *         <code>null</code> if the resources could not all be locked within
    *         the allotted time.
    * @throws ServiceExecutionException If a failure occurs in attempting to
    *                                   acquire the locks.
-   * @throws IllegalStateException If the {@link State} of this instance is
-   *                               not {@link State#INITIALIZED}.
+   * @throws IllegalStateException     If the {@link State} of this instance is
+   *                                   not {@link State#INITIALIZED}.
    */
   @Override
   public LockToken acquireLocks(Set<ResourceKey> resourceKeys, long wait)
-      throws ServiceExecutionException, IllegalStateException
-  {
+      throws ServiceExecutionException, IllegalStateException {
     // validate the arguments
     Objects.requireNonNull(
         resourceKeys, "Set of resource keys cannot be null");
@@ -134,7 +132,7 @@ public abstract class AbstractLockingService implements LockingService {
       throw new IllegalArgumentException(
           "The specified set of resource keys cannot be empty.");
     }
-    for (ResourceKey key: resourceKeys) {
+    for (ResourceKey key : resourceKeys) {
       Objects.requireNonNull(
           key, "The specified set of resource "
               + "keys cannot contain null elements: " + resourceKeys);
@@ -161,7 +159,7 @@ public abstract class AbstractLockingService implements LockingService {
    * after the {@link State} of this instance has been validated.
    *
    * @param resourceKeys The sorted {@link List} of unique resource keys
-   * @param wait The number of milliseconds to wait for the locks.
+   * @param wait         The number of milliseconds to wait for the locks.
    * @return The {@link LockToken} associated with the acquired locks, or
    *         <code>null</code> if the resources could not all be locked within
    *         the allotted time.
@@ -169,7 +167,7 @@ public abstract class AbstractLockingService implements LockingService {
    *                                   acquire the locks.
    */
   protected abstract LockToken doAcquireLocks(List<ResourceKey> resourceKeys,
-                                              long              wait)
+      long wait)
       throws ServiceExecutionException;
 
   /**
@@ -181,23 +179,22 @@ public abstract class AbstractLockingService implements LockingService {
    *
    * @return The number of resources whose locks were released.
    *
-   * @throws NullPointerException If the specified {@link LockToken} is
-   *                              <code>null</code>.
-   * @throws IllegalArgumentException If the specified {@link LockToken} is not
-   *                                  recognized.
+   * @throws NullPointerException      If the specified {@link LockToken} is
+   *                                   <code>null</code>.
+   * @throws IllegalArgumentException  If the specified {@link LockToken} is not
+   *                                   recognized.
    * @throws ServiceExecutionException If a failure occurs in attempting to
    *                                   acquire the locks.
-   * @throws IllegalStateException If the {@link State} of this instance is
-   *                               not {@link State#INITIALIZED} or {@link
-   *                               State#DESTROYING}.
+   * @throws IllegalStateException     If the {@link State} of this instance is
+   *                                   not {@link State#INITIALIZED} or {@link
+   *                                   State#DESTROYING}.
    */
   @Override
   public int releaseLocks(LockToken lockToken)
       throws ServiceExecutionException,
-             NullPointerException,
-             IllegalArgumentException,
-             IllegalStateException
-  {
+      NullPointerException,
+      IllegalArgumentException,
+      IllegalStateException {
     Objects.requireNonNull(lockToken, "LockToken cannot be null");
     synchronized (this) {
       State state = this.getState();
@@ -220,8 +217,8 @@ public abstract class AbstractLockingService implements LockingService {
    *
    * @return The number of resources whose locks were released.
    *
-   * @throws IllegalArgumentException If the specified {@link LockToken} is not
-   *                                  recognized.
+   * @throws IllegalArgumentException  If the specified {@link LockToken} is not
+   *                                   recognized.
    * @throws ServiceExecutionException If a failure occurs in attempting to
    *                                   acquire the locks.
    */

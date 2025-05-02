@@ -40,14 +40,14 @@ mvn install
 ## Running
 
 Running the Senzing Data Mart Replicator requires a database in which to create the data mart tables that will be used
-to save the statistics.  While SQLite can be used, it is limited to single connection access for writes.  As such,
-PostgreSQL is recommended.  The command line options let you configure the database for the data mart.  Additionally,
-the Senzing G2 API is required along with a Senzing Entity Repository.  While the Data Mart itself does not connect to
-the Senzing Entity Repository, it initializes the Senzing G2 API which does connection using the Senzing Engine 
-Configuraiton JSON.  Finally, the Senzing Engine that is loading, modifying or deleting records from the entity
+to save the statistics. While SQLite can be used, it is limited to single connection access for writes. As such,
+PostgreSQL is recommended. The command line options let you configure the database for the data mart. Additionally,
+the Senzing G2 API is required along with a Senzing Entity Repository. While the Data Mart itself does not connect to
+the Senzing Entity Repository, it initializes the Senzing G2 API which does connection using the Senzing Engine
+Configuration JSON. Finally, the Senzing Engine that is loading, modifying or deleting records from the entity
 repository will need to publish its INFO messages to an Amazon SQS message queue, Rabbit MQ message queue, or a Senzing
-SQL database message queue provided through the Senzing Listener framework.  The INFO messages can be consumed from 
-any of these message queues which is confifgured via the command-line options to the Data Mart Replicator.
+SQL database message queue provided through the Senzing Listener framework. The INFO messages can be consumed from
+any of these message queues which is configured via the command-line options to the Data Mart Replicator.
 
 ### Usage:
 
@@ -65,7 +65,7 @@ The output will detail all the command-line options and environment variables to
 
 java -jar data-mart-replicator-1.0.0.jar <options>
 
-<options> includes: 
+<options> includes:
 
 [ Standard Options ]
    --help
@@ -177,27 +177,27 @@ java -jar data-mart-replicator-1.0.0.jar <options>
         --> VIA ENVIRONMENT: SENZING_DATA_MART_SQLITE_DATABASE_FILE
 
    --postgresql-host <hostname>
-        Used to specify the hostname for connecting to PostgreSQL as the 
+        Used to specify the hostname for connecting to PostgreSQL as the
         data-mart database.
         --> VIA ENVIRONMENT: SENZING_DATA_MART_POSTGRESQL_HOST
 
    --postgresql-port <port>
-        Used to specify the port number for connecting to PostgreSQL as the 
+        Used to specify the port number for connecting to PostgreSQL as the
         data-mart database.
         --> VIA ENVIRONMENT: SENZING_DATA_MART_POSTGRESQL_PORT
 
    --postgresql-database <database>
-        Used to specify the database name for connecting to PostgreSQL as the 
+        Used to specify the database name for connecting to PostgreSQL as the
         data-mart database.
         --> VIA ENVIRONMENT: SENZING_DATA_MART_POSTGRESQL_DATABASE
 
    --postgresql-user <user name>
-        Used to specify the user name for connecting to PostgreSQL as the 
+        Used to specify the user name for connecting to PostgreSQL as the
         data-mart database.
         --> VIA ENVIRONMENT: SENZING_DATA_MART_POSTGRESQL_USER
 
    --postgresql-password <password>
-        Used to specify the password for connecting to PostgreSQL as the 
+        Used to specify the password for connecting to PostgreSQL as the
         data-mart database.
         --> VIA ENVIRONMENT: SENZING_DATA_MART_POSTGRESQL_PASSWORD
 ```

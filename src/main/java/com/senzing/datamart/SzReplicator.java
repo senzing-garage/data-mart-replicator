@@ -53,7 +53,7 @@ public class SzReplicator extends Thread {
   private static final long MAX_POOL_WAIT_TIME = 40000L;
 
   /**
-   * The name of the JAR file for command-line excecution.
+   * The name of the JAR file for command-line execution.
    */
   private static final String JAR_FILE_NAME = getJarName(SzReplicator.class);
 
@@ -68,11 +68,11 @@ public class SzReplicator extends Thread {
   private static final ZoneId BUILD_ZONE = ZoneId.of("America/Los_Angeles");
 
   /**
-   * The {@link DateTimeFormatter} for interpretting the build number as a
+   * The {@link DateTimeFormatter} for interpreting the build number as a
    * LocalDateTime instance.
    */
-  private static final DateTimeFormatter BUILD_DATE_FORMATTER
-      = DateTimeFormatter.ofPattern(BUILD_DATE_PATTERN).withZone(BUILD_ZONE);
+  private static final DateTimeFormatter BUILD_DATE_FORMATTER = DateTimeFormatter.ofPattern(BUILD_DATE_PATTERN)
+      .withZone(BUILD_ZONE);
 
   /**
    * The date-time pattern for the build number.
@@ -83,8 +83,7 @@ public class SzReplicator extends Thread {
    * The {@link DateTimeFormatter} for interpreting the build number as a
    * LocalDateTime instance.
    */
-  private static final DateTimeFormatter BUILD_NUMBER_FORMATTER
-      = DateTimeFormatter.ofPattern(BUILD_NUMBER_PATTERN);
+  private static final DateTimeFormatter BUILD_NUMBER_FORMATTER = DateTimeFormatter.ofPattern(BUILD_NUMBER_PATTERN);
 
   /**
    * The {@link String} token used to identify development builds when parsing
@@ -101,10 +100,10 @@ public class SzReplicator extends Thread {
    */
   public static void main(String[] args) throws Exception {
     commandLineStart(args,
-                     SzReplicator::parseCommandLine,
-                     SzReplicator::getUsageString,
-                     SzReplicator::getVersionString,
-                     SzReplicator::build);
+        SzReplicator::parseCommandLine,
+        SzReplicator::getUsageString,
+        SzReplicator::getVersionString,
+        SzReplicator::build);
   }
 
   /**
@@ -112,7 +111,7 @@ public class SzReplicator extends Thread {
    * {@link Map} of {@link CommandLineOption} keys to {@link Object} command
    * line values.
    *
-   * @param args The arguments to parse.
+   * @param args                The arguments to parse.
    * @param deprecationWarnings The {@link List} to populate with deprecation
    *                            warnings if any are found in the command line.
    * @return The {@link Map} describing the command-line arguments.
@@ -120,10 +119,8 @@ public class SzReplicator extends Thread {
    */
   protected static Map<CommandLineOption, Object> parseCommandLine(
       String[] args, List<DeprecatedOptionWarning> deprecationWarnings)
-      throws CommandLineException
-  {
-    Map<CommandLineOption, CommandLineValue> optionValues
-        = CommandLineUtilities.parseCommandLine(
+      throws CommandLineException {
+    Map<CommandLineOption, CommandLineValue> optionValues = CommandLineUtilities.parseCommandLine(
         SzReplicatorOption.class,
         args,
         SzReplicatorOption.PARAMETER_PROCESSOR,
@@ -159,8 +156,7 @@ public class SzReplicator extends Thread {
    * @throws Exception If a failure occurs.
    */
   private static SzReplicator build(Map<CommandLineOption, Object> options)
-      throws Exception
-  {
+      throws Exception {
     return new SzReplicator(options);
   }
 
@@ -178,19 +174,18 @@ public class SzReplicator extends Thread {
    * @throws Exception If a failure occurs.
    */
   protected static void commandLineStart(
-      String[]                          args,
-      CommandLineParser                 cmdLineParser,
-      Supplier<String>                  usageMessage,
-      Supplier<String>                  versionMessage,
-      CommandLineBuilder<SzReplicator>  appBuilder)
-      throws Exception
-  {
-    Map<CommandLineOption, Object> options   = null;
-    List<DeprecatedOptionWarning> warnings  = new LinkedList<>();
+      String[] args,
+      CommandLineParser cmdLineParser,
+      Supplier<String> usageMessage,
+      Supplier<String> versionMessage,
+      CommandLineBuilder<SzReplicator> appBuilder)
+      throws Exception {
+    Map<CommandLineOption, Object> options = null;
+    List<DeprecatedOptionWarning> warnings = new LinkedList<>();
     try {
       options = cmdLineParser.parseCommandLine(args, warnings);
 
-      for (DeprecatedOptionWarning warning: warnings) {
+      for (DeprecatedOptionWarning warning : warnings) {
         System.out.println(warning);
         System.out.println();
       }
@@ -270,11 +265,9 @@ public class SzReplicator extends Thread {
       synchronized (monitor) {
         while (true) {
           monitor.wait(60000L);
-          ListenerService.State listenerState
-              = this.replicatorService.getState();
+          ListenerService.State listenerState = this.replicatorService.getState();
 
-          MessageConsumer.State consumerState
-              = this.messageConsumer.getState();
+          MessageConsumer.State consumerState = this.messageConsumer.getState();
 
           // check if something has interrupted processing
           if (listenerState != ListenerService.State.AVAILABLE
@@ -282,7 +275,7 @@ public class SzReplicator extends Thread {
             break;
           }
 
-          //this.printStatistics();
+          // this.printStatistics();
         }
       }
     } catch (Exception e) {
@@ -316,14 +309,14 @@ public class SzReplicator extends Thread {
     stats.putAll(this.replicatorService.getStatistics());
     stats.putAll(this.connPool.getStatistics());
 
-    long    now     = System.nanoTime();
-    double  elapsed = ((double) (now - this.startTimeNanos)) / 1000000000.0;
+    long now = System.nanoTime();
+    double elapsed = ((double) (now - this.startTimeNanos)) / 1000000000.0;
 
     Number completeCount = stats.get(taskGroupCompleteCount);
-    long   completed = completeCount.longValue();
+    long completed = completeCount.longValue();
 
-    MessageConsumer     consumer  = this.messageConsumer;
-    SzReplicatorService service   = this.replicatorService;
+    MessageConsumer consumer = this.messageConsumer;
+    SzReplicatorService service = this.replicatorService;
 
     System.out.println();
     System.out.println("=====================================================");
@@ -334,11 +327,11 @@ public class SzReplicator extends Thread {
   /**
    *
    */
-  private static void printStatisticsMap(Map<Statistic,Number> stats) {
+  private static void printStatisticsMap(Map<Statistic, Number> stats) {
     stats.forEach((key, value) -> {
       String units = key.getUnits();
       System.out.println("  " + key.getName() + ": " + value
-                             + ((units != null) ? " " + units : ""));
+          + ((units != null) ? " " + units : ""));
     });
   }
 
@@ -364,7 +357,7 @@ public class SzReplicator extends Thread {
    */
   protected static void printJarVersion(PrintWriter pw) {
     pw.println("[ " + JAR_FILE_NAME + " version "
-                   + BuildInfo.MAVEN_VERSION + " ]");
+        + BuildInfo.MAVEN_VERSION + " ]");
   }
 
   /**
@@ -379,17 +372,15 @@ public class SzReplicator extends Thread {
     String jsonText = productApi.version();
     JsonObject jsonObj = JsonUtilities.parseJsonObject(jsonText);
 
-
     String nativeApiVersion = JsonUtilities.getString(jsonObj, "VERSION");
-    String buildVersion     = JsonUtilities.getString(jsonObj, "BUILD_VERSION");
-    String buildNumber      = JsonUtilities.getString(jsonObj, "BUILD_NUMBER");
+    String buildVersion = JsonUtilities.getString(jsonObj, "BUILD_VERSION");
+    String buildNumber = JsonUtilities.getString(jsonObj, "BUILD_NUMBER");
 
     Date buildDate = null;
     if (buildNumber != null && buildNumber.length() > 0
-        && buildNumber.indexOf(DEVELOPMENT_VERSION_TOKEN) < 0)
-    {
+        && buildNumber.indexOf(DEVELOPMENT_VERSION_TOKEN) < 0) {
       LocalDateTime localDateTime = LocalDateTime.parse(buildNumber,
-                                                        BUILD_NUMBER_FORMATTER);
+          BUILD_NUMBER_FORMATTER);
       ZonedDateTime zonedDateTime = localDateTime.atZone(BUILD_ZONE);
       buildDate = Date.from(zonedDateTime.toInstant());
 
@@ -400,11 +391,10 @@ public class SzReplicator extends Thread {
     String formattedBuildDate = BUILD_DATE_FORMATTER.format(
         Instant.ofEpochMilli(buildDate.getTime()));
 
-    JsonObject compatVersion
-        = JsonUtilities.getJsonObject(jsonObj, "COMPATIBILITY_VERSION");
+    JsonObject compatVersion = JsonUtilities.getJsonObject(jsonObj, "COMPATIBILITY_VERSION");
 
     String configCompatVersion = JsonUtilities.getString(compatVersion,
-                                                     "CONFIG_VERSION");
+        "CONFIG_VERSION");
 
     pw.println(" - Senzing Replicator Version   : " + BuildInfo.MAVEN_VERSION);
     pw.println(" - Senzing Native API Version   : " + nativeApiVersion);
@@ -669,13 +659,13 @@ public class SzReplicator extends Thread {
   private String connProviderName;
 
   /**
-   * The name under which to register the message queue if using a 
+   * The name under which to register the message queue if using a
    * database queue.
    */
   private String queueRegistryName = null;
 
   /**
-   * The name under which to register the message queue if using a 
+   * The name under which to register the message queue if using a
    * database queue.
    */
   private SQLConsumer.MessageQueue sqlMessageQueue = null;
@@ -705,8 +695,7 @@ public class SzReplicator extends Thread {
    * @throws Exception If a failure occurs.
    */
   public SzReplicator(SzReplicatorOptions options)
-    throws Exception
-  {
+      throws Exception {
     this(options.buildOptionsMap());
   }
 
@@ -717,8 +706,7 @@ public class SzReplicator extends Thread {
    * @throws Exception If a failure occurs.
    */
   protected SzReplicator(Map<CommandLineOption, Object> options)
-    throws Exception
-  {
+      throws Exception {
     this(null, options);
   }
 
@@ -732,16 +720,15 @@ public class SzReplicator extends Thread {
    *                    construct the API server instance.
    * @throws Exception If a failure occurs.
    */
-  protected SzReplicator(AccessToken                    accessToken,
-                         Map<CommandLineOption, Object> options)
-      throws Exception
-  {
+  protected SzReplicator(AccessToken accessToken,
+      Map<CommandLineOption, Object> options)
+      throws Exception {
     // get the module name
     String moduleName = DEFAULT_MODULE_NAME;
     if (options.containsKey(MODULE_NAME)) {
       moduleName = (String) options.get(MODULE_NAME);
     }
-    
+
     boolean sqlite = options.containsKey(SQLITE_DATABASE_FILE);
 
     // get the concurrency
@@ -754,11 +741,11 @@ public class SzReplicator extends Thread {
       }
     }
 
-    final int   consumerConcurrency = (sqlite) ? 1 : this.concurrency * 2;
-    final int   scheduleConcurrency = (sqlite) ? 1 : this.concurrency * 2;
-    final int   poolSize            = (sqlite) ? 1 : this.concurrency;
-    final int   maxPoolSize         = (sqlite) ? 1 : poolSize * 3;
-    final int   g2Concurrency       = (sqlite) ? 1 : this.concurrency;
+    final int consumerConcurrency = (sqlite) ? 1 : this.concurrency * 2;
+    final int scheduleConcurrency = (sqlite) ? 1 : this.concurrency * 2;
+    final int poolSize = (sqlite) ? 1 : this.concurrency;
+    final int maxPoolSize = (sqlite) ? 1 : poolSize * 3;
+    final int g2Concurrency = (sqlite) ? 1 : this.concurrency;
 
     // create the configuration for the G2Service
     JsonObjectBuilder g2ConfigBuilder = Json.createObjectBuilder();
@@ -791,27 +778,27 @@ public class SzReplicator extends Thread {
       schedulingServiceClassName = SQLiteSchedulingService.class.getName();
 
     } else {
-      String  host      = (String) options.get(POSTGRESQL_HOST);
-      Integer port      = (Integer) options.get(POSTGRESQL_PORT);
-      String  database  = (String) options.get(POSTGRESQL_DATABASE);
-      String  user      = (String) options.get(POSTGRESQL_USER);
-      String  password  = (String) options.get(POSTGRESQL_PASSWORD);
+      String host = (String) options.get(POSTGRESQL_HOST);
+      Integer port = (Integer) options.get(POSTGRESQL_PORT);
+      String database = (String) options.get(POSTGRESQL_DATABASE);
+      String user = (String) options.get(POSTGRESQL_USER);
+      String password = (String) options.get(POSTGRESQL_PASSWORD);
       this.connector = new PostgreSqlConnector(host,
-                                               port,
-                                               database,
-                                               user,
-                                               password);
+          port,
+          database,
+          user,
+          password);
 
       this.connPool = new ConnectionPool(this.connector,
-                                         TransactionIsolation.READ_COMMITTED,
-                                         poolSize,
-                                         maxPoolSize);
+          TransactionIsolation.READ_COMMITTED,
+          poolSize,
+          maxPoolSize);
 
       schedulingServiceClassName = PostgreSQLSchedulingService.class.getName();
     }
 
     this.connProvider = new PoolConnectionProvider(this.connPool,
-                                                   MAX_POOL_WAIT_TIME);
+        MAX_POOL_WAIT_TIME);
 
     this.connProviderName = TextUtilities.randomAlphanumericText(30);
 
@@ -821,23 +808,23 @@ public class SzReplicator extends Thread {
     // handle the scheduling service config
     JsonObjectBuilder schedulingJOB = Json.createObjectBuilder();
     schedulingJOB.add(AbstractSchedulingService.CONCURRENCY_KEY,
-                      scheduleConcurrency);
+        scheduleConcurrency);
     schedulingJOB.add(AbstractSQLSchedulingService.CONNECTION_PROVIDER_KEY,
-                      this.connProviderName);
+        this.connProviderName);
 
     // handle the replicator config
     JsonObjectBuilder replicatorJOB = Json.createObjectBuilder();
     replicatorJOB.add(SzReplicatorService.SCHEDULING_SERVICE_CLASS_KEY,
-                      schedulingServiceClassName);
+        schedulingServiceClassName);
 
     replicatorJOB.add(SzReplicatorService.SCHEDULING_SERVICE_CONFIG_KEY,
-                      schedulingJOB);
+        schedulingJOB);
 
     replicatorJOB.add(SzReplicatorService.G2_SERVICE_CONFIG_KEY,
-                      g2ConfigBuilder);
+        g2ConfigBuilder);
 
     replicatorJOB.add(SzReplicatorService.CONNECTION_PROVIDER_KEY,
-                      this.connProviderName);
+        this.connProviderName);
 
     this.replicatorService = new SzReplicatorService();
     this.replicatorService.init(replicatorJOB.build());
@@ -853,24 +840,24 @@ public class SzReplicator extends Thread {
     } else if (options.containsKey(RABBIT_INFO_HOST)) {
       consumerJOB.add(RabbitMQConsumer.CONCURRENCY_KEY, consumerConcurrency);
       consumerJOB.add(RabbitMQConsumer.MQ_HOST_KEY,
-                      ((String) options.get(RABBIT_INFO_HOST)));
+          ((String) options.get(RABBIT_INFO_HOST)));
       consumerJOB.add(RabbitMQConsumer.MQ_USER_KEY,
-                      ((String) options.get(RABBIT_INFO_USER)));
+          ((String) options.get(RABBIT_INFO_USER)));
       consumerJOB.add(RabbitMQConsumer.MQ_PASSWORD_KEY,
-                      ((String) options.get(RABBIT_INFO_PASSWORD)));
+          ((String) options.get(RABBIT_INFO_PASSWORD)));
       consumerJOB.add(RabbitMQConsumer.MQ_QUEUE_KEY,
-                      ((String) options.get(RABBIT_INFO_QUEUE)));
+          ((String) options.get(RABBIT_INFO_QUEUE)));
 
       // check if we have the port parameter
       if (options.containsKey(RABBIT_INFO_PORT)) {
         consumerJOB.add(RabbitMQConsumer.MQ_PORT_KEY,
-                        ((Integer) options.get(RABBIT_INFO_PORT)));
+            ((Integer) options.get(RABBIT_INFO_PORT)));
       }
 
       // check if we have the virtual host parameter
       if (options.containsKey(RABBIT_INFO_VIRTUAL_HOST)) {
         consumerJOB.add(RabbitMQConsumer.MQ_VIRTUAL_HOST_KEY,
-                        ((String) options.get(RABBIT_INFO_VIRTUAL_HOST)));
+            ((String) options.get(RABBIT_INFO_VIRTUAL_HOST)));
       }
 
       this.messageConsumer = new RabbitMQConsumer();
@@ -880,16 +867,15 @@ public class SzReplicator extends Thread {
 
       // build an SQS message consumer
       consumerJOB.add(SQSConsumer.SQS_URL_KEY,
-                      ((String) options.get(SQS_INFO_URL)));
+          ((String) options.get(SQS_INFO_URL)));
       this.messageConsumer = new SQSConsumer();
     }
     this.messageConsumer.init(consumerJOB.build());
     if (this.queueRegistryName != null) {
-      this.sqlMessageQueue 
-        = SQLConsumer.MESSAGE_QUEUE_REGISTRY.lookup(this.queueRegistryName);
+      this.sqlMessageQueue = SQLConsumer.MESSAGE_QUEUE_REGISTRY.lookup(this.queueRegistryName);
     }
   }
-  
+
   /**
    * Gets the {@link SzReplicationProvider} for this instance.
    * 
@@ -901,9 +887,9 @@ public class SzReplicator extends Thread {
 
   /**
    * Gets the {@link SQLConsumer.MessageQueue} instance backing the underlying
-   * {@link SQLConsumer} if database message queue is being employed rather 
-   * than RabbitMQ or Amazon SQS.  This returns <code>null</code> if this 
-   * insdtance is configured to use a RabbitMQ or Amazon SQS queue.
+   * {@link SQLConsumer} if database message queue is being employed rather
+   * than RabbitMQ or Amazon SQS. This returns <code>null</code> if this
+   * instance is configured to use a RabbitMQ or Amazon SQS queue.
    * 
    * @return The {@link SQLConsumer.MessageQueue} instance backing the underlying
    *         {@link SQLConsumer} if database message queue is being employed, or

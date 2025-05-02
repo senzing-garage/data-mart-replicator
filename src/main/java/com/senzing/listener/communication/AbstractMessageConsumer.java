@@ -28,10 +28,9 @@ import static com.senzing.util.LoggingUtilities.*;
  *
  * @param <M> The type for the framework-specific messages received.
  */
-public abstract class AbstractMessageConsumer<M> implements MessageConsumer
-{
+public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
   /**
-   * The default concurrency.  The default is to serialize message handling in
+   * The default concurrency. The default is to serialize message handling in
    * a single thread.
    */
   public static final int DEFAULT_CONCURRENCY = 1;
@@ -49,7 +48,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
   /**
    * The initialization parameter to specify the number of milliseconds to
-   * sleep between checking to see if message processing should cease.  If not
+   * sleep between checking to see if message processing should cease. If not
    * configured then the value is set to {@link #DEFAULT_TIMEOUT}.
    * If the value is specified it should be non-negative.
    */
@@ -85,14 +84,14 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
     concurrency(THREAD_UNITS),
 
     /**
-     * The timeout to use when waiting for new messages to show up  and to
+     * The timeout to use when waiting for new messages to show up and to
      * check to see if message processing has ceased.
      */
     timeout(MILLISECOND_UNITS),
 
     /**
      * The average number of milliseconds for a message to be pulled from the
-     * vendor message queue until it has been completely processed.  For batches
+     * vendor message queue until it has been completely processed. For batches
      * this means that every message in the batch has been processed.
      */
     averageRoundTrip(MILLISECOND_UNITS),
@@ -115,7 +114,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
     /**
      * The number of messages that have made the round trip from the vendor
      * message queue to the point where they are completely processed (for
-     * batches this means all contained info messages are processed).  Some
+     * batches this means all contained info messages are processed). Some
      * messages may make the round trip more than once if a failure occurs in
      * processing part or all of the message.
      */
@@ -149,7 +148,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
     /**
      * The number of messages from the vendor message queue that will be
-     * retried.  The messages from the queue may be batches and a failure from
+     * retried. The messages from the queue may be batches and a failure from
      * one or more messages within the batch will cause the batch to be retried,
      * so the number of message retries could actually be less than the number
      * of failures.
@@ -196,7 +195,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
     /**
      * The time spent (in milliseconds) calling {@link
      * #dequeueMessage(MessageProcessor)} function to dequeue a message from the
-     * internal queue.  This includes time waiting for the first message to
+     * internal queue. This includes time waiting for the first message to
      * arrive or the next message to arrive after the last message has been
      * handled.
      */
@@ -219,7 +218,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
     /**
      * The time spent (in milliseconds) in the synchronization wait of
      * {@link #dequeueMessage(MessageProcessor)} waiting for a message to become
-     * available for processing.  This should be the majority of the time spent
+     * available for processing. This should be the majority of the time spent
      * in {@link #dequeueMessageWaitLoop}, but isolates the non-busy sleeping
      * time awaiting notification of message arrival.
      */
@@ -232,9 +231,9 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
     /**
      * The number of milliseconds spent calling {@link
-     * #enqueueMessages(MessageProcessor, Object)}.  This can be high if we have
+     * #enqueueMessages(MessageProcessor, Object)}. This can be high if we have
      * to wait for the pending queue shrink before we can add more messages to
-     * it.  This built-in wait is done to throttle pulling from the vendor
+     * it. This built-in wait is done to throttle pulling from the vendor
      * message queue when we have enough messages already pending processing.
      */
     enqueue(MILLISECOND_UNITS),
@@ -322,7 +321,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
   private State state = UNINITIALIZED;
 
   /**
-   * Flag indicating if we are currently processing messages.  This is used to
+   * Flag indicating if we are currently processing messages. This is used to
    * synchronize destruction and wait until in-flight messages that have been
    * postponed are handled.
    */
@@ -437,8 +436,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
    * Flag to use to suppress checking if already processing when backgrounding
    * message processing.
    */
-  private static final ThreadLocal<Boolean> SUPPRESS_PROCESSING_CHECK
-      = new ThreadLocal<>();
+  private static final ThreadLocal<Boolean> SUPPRESS_PROCESSING_CHECK = new ThreadLocal<>();
 
   /**
    * Implemented to return the {@link State} of this instance.
@@ -457,13 +455,13 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
    * @param state The {@link State} for this instance.
    */
   protected synchronized void setState(State state) {
-    Objects.requireNonNull(state,"State cannot be null");
+    Objects.requireNonNull(state, "State cannot be null");
     this.state = state;
     this.notifyAll();
   }
 
   /**
-   * Gets the number of queued messages that are pending.  These are messages
+   * Gets the number of queued messages that are pending. These are messages
    * from message batches that have been pulled from the MQ framework and
    * added to the queue.
    *
@@ -474,7 +472,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
   }
 
   /**
-   * Returns the maximum number of messages allowed in the pending queue.  When
+   * Returns the maximum number of messages allowed in the pending queue. When
    * this limit is reached enqueueing additional messages will be blocked until
    * the queue reduces in size.
    *
@@ -486,8 +484,8 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
   }
 
   /**
-   * Checks if this instance is current processing messages.  This is used to
-   * synchronize destruction.  The {@link #doDestroy()} method is not called
+   * Checks if this instance is current processing messages. This is used to
+   * synchronize destruction. The {@link #doDestroy()} method is not called
    * until processing ceases.
    *
    * @return <code>true</code> if this instance is still processing messages,
@@ -510,7 +508,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
   /**
    * Call this to increment the number of times dequeue has been called with
-   * or without a message ready to be dequeued.  This function is thread-safe
+   * or without a message ready to be dequeued. This function is thread-safe
    * with respect to other statistics.
    *
    * @param hit <code>true</code> if we have a "hit" and there is a message
@@ -528,9 +526,9 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
   /**
    * Returns the "hit ratio" for attempting to dequeue a message from the
-   * internal queue and finding a message ready to be dequeued.  If this is
+   * internal queue and finding a message ready to be dequeued. If this is
    * low then the internal queue needs to be filled at a faster rate from
-   * the vendor-specific message queue.  This returns <code>null</code> if
+   * the vendor-specific message queue. This returns <code>null</code> if
    * no attempt have been made to dequeue a message.
    *
    * @return The "hit ratio" of attempts to dequeue a message and finding one
@@ -569,9 +567,9 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
       statsMap.put(messageRetryCount, this.getMessageRetryCount());
       statsMap.put(processCount, this.getProcessedInfoMessageCount());
       statsMap.put(Stat.processSuccessCount,
-                   this.getInfoMessageSuccessCount());
+          this.getInfoMessageSuccessCount());
       statsMap.put(Stat.processFailureCount,
-                   this.getInfoMessageFailureCount());
+          this.getInfoMessageFailureCount());
       statsMap.put(Stat.processRetryCount, this.getInfoMessageRetryCount());
       statsMap.put(parallelism, this.getParallelism());
       statsMap.put(dequeueHitRatio, this.getDequeueHitRatio());
@@ -615,15 +613,15 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
         this.lockingService.init(null);
 
         this.concurrency = getConfigInteger(config,
-                                            CONCURRENCY_KEY,
-                                            1,
-                                            DEFAULT_CONCURRENCY);
+            CONCURRENCY_KEY,
+            1,
+            DEFAULT_CONCURRENCY);
 
         // get the standard timeout
         this.timeout = getConfigLong(config,
-                                     TIMEOUT_KEY,
-                                     0L,
-                                     DEFAULT_TIMEOUT);
+            TIMEOUT_KEY,
+            0L,
+            DEFAULT_TIMEOUT);
 
         // create the list of pending messages
         this.pendingMessages = new LinkedList<>();
@@ -655,7 +653,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
    *                                       initialization.
    */
   protected abstract void doInit(JsonObject config)
-    throws MessageConsumerSetupException;
+      throws MessageConsumerSetupException;
 
   /**
    * Implemented to verify that the state of this instance is currently
@@ -669,8 +667,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
    */
   @Override
   public void consume(MessageProcessor processor)
-      throws MessageConsumerException
-  {
+      throws MessageConsumerException {
     synchronized (this) {
       if (this.getState() != State.INITIALIZED) {
         throw new IllegalStateException(
@@ -690,7 +687,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
   }
 
   /**
-   * Implement this to initiate consumption.  The implementation should return
+   * Implement this to initiate consumption. The implementation should return
    * immediately and should not loop indefinitely while consuming messages.
    * This may require launching a background thread to loop for message
    * consumption.
@@ -749,7 +746,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
   protected abstract void doDestroy();
 
   /**
-   * Gets the concurrency of the consumer.  The returned value will be a
+   * Gets the concurrency of the consumer. The returned value will be a
    * positive number greater than or equal to one (1).
    *
    * @return The concurrency of the consumer.
@@ -760,11 +757,11 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
   /**
    * Gets the number of milliseconds to sleep between checking to see if message
-   * processing should cease.  This timeout is used when there are no postponed
+   * processing should cease. This timeout is used when there are no postponed
    * messages due to contention.
    *
    * @return The number of milliseconds to sleep between checking to see if
-   *         message processing should cease.  This timeout is used when there
+   *         message processing should cease. This timeout is used when there
    *         are no postponed messages due to contention.
    */
   protected long getTimeout() {
@@ -775,7 +772,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
    * Returns the average number of milliseconds required for the round trip
    * of a message from the time it is dequeued from the vendor message queue
    * and its info messages are enqueued for processing until they have all been
-   * processed (for non-batch messages then consider it a batch of one).  This
+   * processed (for non-batch messages then consider it a batch of one). This
    * returns <code>null</code> if no batches have been completed.
    *
    * @return The average number of milliseconds required for the round trip of
@@ -787,7 +784,8 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
    */
   public Long getAverageRoundTripMillis() {
     synchronized (this.getStatisticsMonitor()) {
-      if (this.processedBatchCount == 0L) return null;
+      if (this.processedBatchCount == 0L)
+        return null;
       return this.totalRoundTripMillis / this.processedBatchCount;
     }
   }
@@ -797,7 +795,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
    * of a single message from the time it is dequeued from the vendor message
    * queue and its info messages are enqueued for processing until they have
    * all been processed (for non-batch messages then consider it a batch of
-   * one).  This returns <code>null</code> if no batches have been completed.
+   * one). This returns <code>null</code> if no batches have been completed.
    *
    * @return longest number of milliseconds required for the round trip of a
    *         single message from the time it is dequeued from the vendor message
@@ -808,15 +806,16 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
    */
   public Long getLongestRoundTripMillis() {
     synchronized (this.getStatisticsMonitor()) {
-      if (this.processedBatchCount == 0L) return null;
+      if (this.processedBatchCount == 0L)
+        return null;
       return this.longestRoundTripMillis;
     }
   }
 
   /**
    * Returns the number of MQ-vendor messages that have been dequeued from
-   * the messaging service and have completed processing.  Each message may or
-   * may not be a batch of info messages.  For a batch to be completed, each
+   * the messaging service and have completed processing. Each message may or
+   * may not be a batch of info messages. For a batch to be completed, each
    * of the info messages contained in the batch must have been processed.
    *
    * @return The number of MQ-vendor messages (i.e.: batches) that have been
@@ -831,10 +830,10 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
   /**
    * Returns the number of MQ-vendor messages that will be or have been retried
    * because of a failure that prevents them from being acknowledged to or
-   * deleted from the MQ-vendor queue.  Each message may or may not be a batch
+   * deleted from the MQ-vendor queue. Each message may or may not be a batch
    * of info messages, any of which may fail and trigger retry for the entire
    * batch when the message is not acknowledged or deleted from the MQ-vendor
-   * queue.  For a batch to not be retried, then every info messages contained
+   * queue. For a batch to not be retried, then every info messages contained
    * in the batch must have be processed without a failure.
    *
    * @return The number of MQ-vendor messages (i.e.: batches) that have been
@@ -850,9 +849,9 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
   /**
    * Returns the number of info messages that will be or have been retried
    * because of a failure in processing that info message or due to a failure
-   * in processing another info message that belongs to the same batch.  This
-   * number will exceed the number of MQ-vendor messages if those mesages are
-   * batches of more than one info message.  Further, successfully processed
+   * in processing another info message that belongs to the same batch. This
+   * number will exceed the number of MQ-vendor messages if those messages are
+   * batches of more than one info message. Further, successfully processed
    * messages may still be retried if another info message from the same batch
    * experiences a processing failure that prevents the MQ-vendor message from
    * being acknowledged to or deleted from the MQ-vendor message queue.
@@ -869,7 +868,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
   /**
    * Returns the average number of milliseconds required to process the info
-   * messages.  This returns <code>null</code> if no messages have been
+   * messages. This returns <code>null</code> if no messages have been
    * processed.
    *
    * @return The average number of milliseconds required to process the info
@@ -877,7 +876,8 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
    */
   public Long getAverageProcessMillis() {
     synchronized (this.getStatisticsMonitor()) {
-      if (this.processedMessageCount == 0L) return null;
+      if (this.processedMessageCount == 0L)
+        return null;
       return this.totalProcessMillis / this.processedMessageCount;
     }
   }
@@ -885,7 +885,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
   /**
    * Gets the ratio of the total processing time across all threads to the
    * total active processing of the message scheduler to indicate the level
-   * of parallelism achieved.  This returns <code>null</code> if the actively
+   * of parallelism achieved. This returns <code>null</code> if the actively
    * processing time is zero.
    *
    * @return The ratio of the total processing time across all threads to the
@@ -895,13 +895,14 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
     synchronized (this.getStatisticsMonitor()) {
       String timerKey = activelyProcessing.toString();
       Long activeTime = this.timers.getElapsedTime(timerKey);
-      if (activeTime == 0L) return null;
-      return (((double)this.totalProcessMillis) / ((double) activeTime));
+      if (activeTime == 0L)
+        return null;
+      return (((double) this.totalProcessMillis) / ((double) activeTime));
     }
   }
 
   /**
-   * Returns the number of info messages that have been processed.  This may be
+   * Returns the number of info messages that have been processed. This may be
    * equal to or greater than the number of MQ-vendor messages that have been
    * completed because some MQ-vendor messages are batches of info messages.
    *
@@ -915,7 +916,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
   /**
    * Returns the number of info messages that have been processed successfully
-   * without an exception.  This may be equal to or greater than the number of
+   * without an exception. This may be equal to or greater than the number of
    * MQ-vendor messages that have been completed because some MQ-vendor messages
    * are batches of info messages and some messages are retried after success
    * because they belong to a batch that gets retried.
@@ -930,7 +931,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
   /**
    * Returns the number of info messages that experienced a failure during
-   * processing in the form of an exception being thrown.  This may be equal to
+   * processing in the form of an exception being thrown. This may be equal to
    * or greater than the number of MQ-vendor messages that have been completed
    * because some MQ-vendor messages are batches of info messages and failed
    * messages will get retried eventually.
@@ -946,13 +947,13 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
   /**
    * Enqueues the one or more info messages contained in the specified
-   * framework-specific message.  If the message text is <code>null</code>
-   * or empty-string then this method does nothing.  If the message text
+   * framework-specific message. If the message text is <code>null</code>
+   * or empty-string then this method does nothing. If the message text
    * contains text that cannot be parsed as JSON then the unrecognized message
    * is logged and no messages are enqueued.
    *
    * @param processor The {@link MessageProcessor} to enqueue with.
-   * @param message The framework-specific message that was received.
+   * @param message   The framework-specific message that was received.
    */
   protected void enqueueMessages(MessageProcessor processor, M message) {
     if (this.getState() != CONSUMING) {
@@ -967,9 +968,11 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
       logDebug("RECEIVED MESSAGE: ", messageText);
 
-      if (messageText == null) return;
+      if (messageText == null)
+        return;
       messageText = messageText.trim();
-      if (messageText.length() == 0) return;
+      if (messageText.length() == 0)
+        return;
 
       List<InfoMessage<M>> infoMessages = null;
       try {
@@ -999,13 +1002,13 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
   }
 
   /**
-   * Throttles comsumption until the number of pending messages is less than
+   * Throttles consumption until the number of pending messages is less than
    * half the maximum pending count.
    */
   protected synchronized void throttleConsumption() {
     this.timerStart(throttleEnqueue);
     // wait until we work down to half the maximum pending count
-    while (this.pendingMessages.size() >= (this.getMaximumPendingCount()/2)) {
+    while (this.pendingMessages.size() >= (this.getMaximumPendingCount() / 2)) {
       try {
         long timeout = this.getTimeout();
         this.timerStart(throttleWait);
@@ -1026,8 +1029,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
    * @param processor The {@link MessageProcessor} to use for processing.
    */
   protected synchronized void backgroundProcessMessages(
-      MessageProcessor  processor)
-  {
+      MessageProcessor processor) {
     // first check if we are even consuming
     synchronized (this) {
       // check if not consuming messages
@@ -1067,9 +1069,9 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
   /**
    * Provides a loop that continues to schedule and process messages as long as
    * the {@link State} of this instance obtained from {@link #getState()} is
-   * {@link State#CONSUMING}.  If the state transitions out of {@link
+   * {@link State#CONSUMING}. If the state transitions out of {@link
    * State#CONSUMING} then only previously postponed messages will be handled
-   * before the processing terminates.  This method does not return until
+   * before the processing terminates. This method does not return until
    * processing is complete.
    *
    * @param processor The {@link MessageProcessor} to use for consuming the
@@ -1110,8 +1112,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
       this.timerStart(processMessages, betweenMessages);
 
       // loop over the messages
-      while (this.getState() == CONSUMING || this.getPendingMessageCount() > 0)
-      {
+      while (this.getState() == CONSUMING || this.getPendingMessageCount() > 0) {
         // initialize the message
         this.timerStart(dequeue, dequeueBlocking);
         InfoMessage<M> msg = this.dequeueMessage(processor);
@@ -1182,8 +1183,8 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
       } finally {
         this.timerPause(processMessages,
-                        activelyProcessing,
-                        waitingForMessages);
+            activelyProcessing,
+            waitingForMessages);
 
         synchronized (this) {
           this.processing = false;
@@ -1206,8 +1207,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
    * @return The {@link InfoMessage} that was dequeued.
    */
   protected synchronized InfoMessage<M> dequeueMessage(
-      MessageProcessor  processor)
-  {
+      MessageProcessor processor) {
     this.timerPause(dequeueBlocking);
     this.timerStart(dequeueMessageWaitLoop);
 
@@ -1215,14 +1215,13 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
     boolean hit = true;
 
     // wait for a message to be available
-    while ((this.getState() == CONSUMING) && (this.pendingMessages.size() == 0))
-    {
+    while ((this.getState() == CONSUMING) && (this.pendingMessages.size() == 0)) {
       // if we get here then no message was ready, set hit flag to false
       hit = false;
 
       // toggle the timers
       this.toggleActiveAndWaitingTimers(this.pendingMessages.size(),
-                                        this.workerPool.isBusy());
+          this.workerPool.isBusy());
 
       // determine how long to wait
       long timeout = this.getTimeout();
@@ -1259,7 +1258,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
     // toggle the timers
     this.toggleActiveAndWaitingTimers(this.pendingMessages.size(),
-                                      this.workerPool.isBusy());
+        this.workerPool.isBusy());
 
     this.updateDequeueHitRatio(false);
 
@@ -1272,15 +1271,15 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
    * {@link InfoMessage} and {@link Timers} in a thread-safe manner.
    *
    * @param message The completed {@link InfoMessage}.
-   * @param timers The {@link Timers} used to process the {@link InfoMessage}.
+   * @param timers  The {@link Timers} used to process the {@link InfoMessage}.
    */
   protected void recordStatistics(InfoMessage<M> message, Timers timers) {
     synchronized (this.getStatisticsMonitor()) {
-      MessageBatch<M> batch           = message.getBatch();
-      boolean         lastInBatch     = message.isLastInBatch();
-      boolean         firstFailure    = message.isFirstFailure();
-      String          timerKey        = serviceProcess.toString();
-      long            serviceMillis   = timers.getElapsedTime(timerKey);
+      MessageBatch<M> batch = message.getBatch();
+      boolean lastInBatch = message.isLastInBatch();
+      boolean firstFailure = message.isFirstFailure();
+      String timerKey = serviceProcess.toString();
+      long serviceMillis = timers.getElapsedTime(timerKey);
       this.processedMessageCount++;
       this.totalProcessMillis += serviceMillis;
       if (firstFailure) {
@@ -1306,16 +1305,16 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
   /**
    * Handles the {@link AsyncResult} from the {@link AsyncWorkerPool} after it
-   * is received.  This extracts the {@link ProcessResult} value and traps any
-   * exceptions (there should be none).  It records the timings from the
+   * is received. This extracts the {@link ProcessResult} value and traps any
+   * exceptions (there should be none). It records the timings from the
    * processing and calls {@link #postProcess(InfoMessage)}.
    *
    * @param result The {@link AsyncResult} to handle, or <code>null</code> if
    *               no result was returned.
    */
-  protected void handleAsyncResult(AsyncResult<ProcessResult<M>> result)
-  {
-    if (result == null) return;
+  protected void handleAsyncResult(AsyncResult<ProcessResult<M>> result) {
+    if (result == null)
+      return;
     ProcessResult<M> processResult = null;
     try {
       processResult = result.getValue();
@@ -1326,7 +1325,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
       logError(cannotHappen, "UNEXPECTED EXCEPTION: ");
       throw new IllegalStateException(cannotHappen);
     }
-    InfoMessage<M>  message = processResult.getInfoMessage();
+    InfoMessage<M> message = processResult.getInfoMessage();
     this.timerStart(postProcess);
     this.postProcess(message);
     this.timerPause(postProcess);
@@ -1404,7 +1403,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
      * Constructs with the framework-specific message object and the text of
      * the message body.
      *
-     * @param message The framework-specific message object.
+     * @param message     The framework-specific message object.
      * @param messageText The text of the message body.
      */
     public MessageBatch(M message, String messageText) {
@@ -1422,8 +1421,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
           // assume we have a JSON array of JSON objects
           JsonArray jsonArray = parseJsonArray(messageText);
           this.infoMessages = new ArrayList<>(jsonArray.size());
-          for (JsonObject jsonObject : jsonArray.getValuesAs(JsonObject.class))
-          {
+          for (JsonObject jsonObject : jsonArray.getValuesAs(JsonObject.class)) {
             InfoMessage<M> pending = new InfoMessage<>(this, jsonObject);
             this.infoMessages.add(pending);
           }
@@ -1431,8 +1429,8 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
         }
 
         // set the pending count
-        this.enqueueTimeNanos   = System.nanoTime();
-        this.pendingCount       = this.infoMessages.size();
+        this.enqueueTimeNanos = System.nanoTime();
+        this.pendingCount = this.infoMessages.size();
         this.completedTimeNanos = -1L;
 
       } catch (RuntimeException e) {
@@ -1447,7 +1445,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
      * {@link MessageBatch} instance.
      *
      * @return The framework-specific message object associated with this
-     *        {@link MessageBatch} instance.
+     *         {@link MessageBatch} instance.
      */
     public M getMessage() {
       return this.message;
@@ -1459,12 +1457,12 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
      *
      * @return The <b>unmodifiable</b> {@link List} of associated {@link
      *         InfoMessage} instances.
-     * }
+     *         }
      */
     public List<InfoMessage<M>> getInfoMessages() {
       return this.infoMessages;
     }
-    
+
     /**
      * Checks if the entire batch of messages has been processed and all are
      * flagged disposable.
@@ -1473,7 +1471,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
      *         otherwise <code>false</code>.
      */
     public synchronized boolean isDisposable() {
-      for (InfoMessage msg: this.infoMessages) {
+      for (InfoMessage msg : this.infoMessages) {
         if (!msg.isDisposable()) {
           return false;
         }
@@ -1495,24 +1493,25 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
     /**
      * Gets the number of nanoseconds since this instance was constructed up
      * until all messages in the batch have been processed (or failed) or
-     * up until the current time if some messages are still pening.
+     * up until the current time if some messages are still pending.
      *
      * @return The number of nanoseconds
      */
     public synchronized long getLifespanNanos() {
       long end = (this.completedTimeNanos < 0L)
-          ? System.nanoTime() : this.completedTimeNanos;
+          ? System.nanoTime()
+          : this.completedTimeNanos;
       return (end - this.enqueueTimeNanos);
     }
 
     /**
-     * Decrements the pending count.  This is a private message called by the
-     * {@link InfoMessage} when it is marked as processed.  The return value
+     * Decrements the pending count. This is a private message called by the
+     * {@link InfoMessage} when it is marked as processed. The return value
      * is negative if pending info messages remain and this is the first time
-     * it is called with <code>true</code> for the failed parameter.  The
+     * it is called with <code>true</code> for the failed parameter. The
      * return value is <code>null</code> if there are no remaining pending info
      * messages and this is the first time it is called with <code>true</code>
-     * for the failed parameter.  In all other cases the return value is a
+     * for the failed parameter. In all other cases the return value is a
      * non-negative integer indicating how many info messages remain pending.
      *
      * @param failed <code>true</code> if the calling info message has failed
@@ -1522,7 +1521,8 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
      */
     private synchronized Integer decrementPendingCount(boolean failed) {
       boolean failed0 = this.failed;
-      if (failed) this.failed = true;
+      if (failed)
+        this.failed = true;
       this.pendingCount--;
       if (this.pendingCount == 0) {
         this.completedTimeNanos = System.nanoTime();
@@ -1537,7 +1537,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
   /**
    * Describes a single pending info message which is associated with a
-   * batch.  If a single message then a batch of one.
+   * batch. If a single message then a batch of one.
    *
    * @param <M> The message type.
    */
@@ -1574,16 +1574,16 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
     /**
      * Constructs a pending message.
      *
-     * @param batch The {@link MessageBatch} to associate.
+     * @param batch   The {@link MessageBatch} to associate.
      * @param message The {@link JsonObject} for the sub-message.
      */
     public InfoMessage(MessageBatch<M> batch, JsonObject message)
 
     {
-      this.batch        = batch;
-      this.message      = message;
-      this.disposable   = null;
-      this.lastInBatch  = false;
+      this.batch = batch;
+      this.message = message;
+      this.disposable = null;
+      this.lastInBatch = false;
     }
 
     /**
@@ -1639,7 +1639,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
     }
 
     /**
-     * Checks if this message can be disposed after processing.  If the message
+     * Checks if this message can be disposed after processing. If the message
      * has not yet been processed (i.e.: it is still pending) then this method
      * returns <code>null</code>.
      *
@@ -1685,40 +1685,39 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
   /**
    * Utility method for obtaining a {@link String} configuration parameter
-   * with options to check if missing and required.  This will throw
-   * a {@link MessageConsumerSetupException} if it fails.  Any {@link String}
+   * with options to check if missing and required. This will throw
+   * a {@link MessageConsumerSetupException} if it fails. Any {@link String}
    * value that is obtained will be trimmed of leading and trailing whitespace
    * and if empty will be returned as <code>null</code>.
    *
-   * @param config The {@link JsonObject} configuration.
-   * @param key The configuration parameter key.
+   * @param config   The {@link JsonObject} configuration.
+   * @param key      The configuration parameter key.
    * @param required <code>true</code> if required, otherwise
    *                 <code>false</code>.
    * @return The {@link String} configuration value.
    * @throws MessageConsumerSetupException If the parameter value is required
    *                                       but is missing.
    */
-  protected static String getConfigString(JsonObject  config,
-                                          String      key,
-                                          boolean     required)
-      throws MessageConsumerSetupException
-  {
+  protected static String getConfigString(JsonObject config,
+      String key,
+      boolean required)
+      throws MessageConsumerSetupException {
     return getConfigString(config, key, required, true);
   }
 
   /**
    * Utility method for obtaining a {@link String} configuration parameter
-   * with options to check if missing and required.  This will throw
-   * a {@link MessageConsumerSetupException} if it fails.  Any {@link String}
+   * with options to check if missing and required. This will throw
+   * a {@link MessageConsumerSetupException} if it fails. Any {@link String}
    * value that is obtained will be trimmed of leading and trailing whitespace.
    * Resultant empty-string values will optionally be converted to
    * <code>null</code> if the normalization parameter is set to
    * <code>true</code> and will be returned as-is if <code>false</code>.
    *
-   * @param config The {@link JsonObject} configuration.
-   * @param key The configuration parameter key.
-   * @param required <code>true</code> if required, otherwise
-   *                 <code>false</code>.
+   * @param config    The {@link JsonObject} configuration.
+   * @param key       The configuration parameter key.
+   * @param required  <code>true</code> if required, otherwise
+   *                  <code>false</code>.
    * @param normalize <code>true</code> if empty or pure whitespace strings
    *                  should be returned as <code>null</code>, otherwise
    *                  <code>false</code> to return them as-is.
@@ -1726,12 +1725,11 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
    * @throws MessageConsumerSetupException If a failure occurs in obtaining the
    *                                       parameter value.
    */
-  protected static String getConfigString(JsonObject  config,
-                                          String      key,
-                                          boolean     required,
-                                          boolean     normalize)
-      throws MessageConsumerSetupException
-  {
+  protected static String getConfigString(JsonObject config,
+      String key,
+      boolean required,
+      boolean normalize)
+      throws MessageConsumerSetupException {
     // check if required and missing
     if (required && !config.containsKey(key)) {
       throw new MessageConsumerSetupException(
@@ -1744,7 +1742,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
     if (required && normalize && result == null) {
       throw new MessageConsumerSetupException(
           "Following configuration parameter is specified as null "
-          + "or empty string: " + key);
+              + "or empty string: " + key);
     }
 
     // return the result
@@ -1753,23 +1751,22 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
   /**
    * Utility method for obtaining a {@link String} configuration parameter
-   * with option to return a default value if missing.  This will throw
-   * a {@link MessageConsumerSetupException} if it fails.  Any {@link String}
+   * with option to return a default value if missing. This will throw
+   * a {@link MessageConsumerSetupException} if it fails. Any {@link String}
    * value that is obtained will be trimmed of leading and trailing whitespace
    * and if empty will be returned as <code>null</code>.
    *
-   * @param config The {@link JsonObject} configuration.
-   * @param key The configuration parameter key.
+   * @param config       The {@link JsonObject} configuration.
+   * @param key          The configuration parameter key.
    * @param defaultValue The default value to return if the value is missing.
    * @return The {@link String} configuration value.
    * @throws MessageConsumerSetupException If the value is required but not
    *                                       present.
    */
-  protected static String getConfigString(JsonObject  config,
-                                          String      key,
-                                          String      defaultValue)
-      throws MessageConsumerSetupException
-  {
+  protected static String getConfigString(JsonObject config,
+      String key,
+      String defaultValue)
+      throws MessageConsumerSetupException {
     try {
       return getConfigString(config, key, defaultValue, true);
 
@@ -1782,35 +1779,35 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
   /**
    * Utility method for obtaining a {@link String} configuration parameter
-   * with option to return a default value if missing.  This will throw
+   * with option to return a default value if missing. This will throw
    * a {@link MessageConsumerSetupException} if it fails. Any {@link String}
    * value that is obtained will be trimmed of leading and trailing whitespace.
    * Resultant empty-string values will optionally be converted to
    * <code>null</code> if the normalization parameter is set to
    * <code>true</code> and will be returned as-is if <code>false</code>.
    *
-   * @param config The {@link JsonObject} configuration.
-   * @param key The configuration parameter key.
+   * @param config       The {@link JsonObject} configuration.
+   * @param key          The configuration parameter key.
    * @param defaultValue The default value to return if the value is missing.
-   * @param normalize <code>true</code> if empty or pure whitespace strings
-   *                  should be returned as <code>null</code>, otherwise
-   *                  <code>false</code> to return them as-is.
+   * @param normalize    <code>true</code> if empty or pure whitespace strings
+   *                     should be returned as <code>null</code>, otherwise
+   *                     <code>false</code> to return them as-is.
    * @return The {@link String} configuration value.
    * @throws MessageConsumerSetupException If the value could not be
    *                                       interpreted as a {@link String}
    *                                       for some reason.
    */
-  protected static String getConfigString(JsonObject  config,
-                                          String      key,
-                                          String      defaultValue,
-                                          boolean     normalize)
-      throws MessageConsumerSetupException
-  {
+  protected static String getConfigString(JsonObject config,
+      String key,
+      String defaultValue,
+      boolean normalize)
+      throws MessageConsumerSetupException {
     try {
       String result = JsonUtilities.getString(config, key, defaultValue);
 
       // trim the whitespace (regardless of normalization)
-      if (result != null) result = result.trim();
+      if (result != null)
+        result = result.trim();
 
       // optionally normalize empty string to null
       if (normalize && result != null && result.length() == 0) {
@@ -1830,27 +1827,26 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
   /**
    * Utility method for obtaining an {@link Integer} configuration parameter
    * with options to check if missing and required or if it is less than an
-   * optional minimum value.  This will throw {@link
+   * optional minimum value. This will throw {@link
    * MessageConsumerSetupException} if it fails.
    *
-   * @param config The {@link JsonObject} configuration.
-   * @param key The configuration parameter key.
+   * @param config   The {@link JsonObject} configuration.
+   * @param key      The configuration parameter key.
    * @param required <code>true</code> if required, otherwise
    *                 <code>false</code>.
-   * @param minimum The minimum integer value allowed, or <code>null</code>
-   *                if no minimum is enforced.
+   * @param minimum  The minimum integer value allowed, or <code>null</code>
+   *                 if no minimum is enforced.
    * @return The {@link String} configuration value.
    * @throws MessageConsumerSetupException If the value is required and not
    *                                       present or if it is present and less
    *                                       than the optionally specified minimum
    *                                       value or could not an integer.
    */
-  protected static Integer getConfigInteger(JsonObject   config,
-                                            String       key,
-                                            boolean      required,
-                                            Integer      minimum)
-      throws MessageConsumerSetupException
-  {
+  protected static Integer getConfigInteger(JsonObject config,
+      String key,
+      boolean required,
+      Integer minimum)
+      throws MessageConsumerSetupException {
     // check if required and missing
     if (required && !config.containsKey(key)) {
       throw new MessageConsumerSetupException(
@@ -1862,25 +1858,24 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
   /**
    * Utility method for obtaining an {@link Integer} configuration parameter
    * with options to check if missing and required or if it is less than an
-   * optional minimum value.  This will throw {@link
+   * optional minimum value. This will throw {@link
    * MessageConsumerSetupException} if it fails.
    *
-   * @param config The {@link JsonObject} configuration.
-   * @param key The configuration parameter key.
-   * @param minimum The minimum integer value allowed, or <code>null</code>
-   *                if no minimum is enforced.
+   * @param config       The {@link JsonObject} configuration.
+   * @param key          The configuration parameter key.
+   * @param minimum      The minimum integer value allowed, or <code>null</code>
+   *                     if no minimum is enforced.
    * @param defaultValue The default value to return if the value is missing.
    * @return The {@link String} configuration value.
    * @throws MessageConsumerSetupException If the value is present and less
    *                                       than the optionally specified minimum
    *                                       value or could not an integer.
    */
-  protected static Integer getConfigInteger(JsonObject   config,
-                                            String       key,
-                                            Integer      minimum,
-                                            Integer      defaultValue)
-      throws MessageConsumerSetupException
-  {
+  protected static Integer getConfigInteger(JsonObject config,
+      String key,
+      Integer minimum,
+      Integer defaultValue)
+      throws MessageConsumerSetupException {
     Integer result = null;
     try {
       result = JsonUtilities.getInteger(config, key, defaultValue);
@@ -1894,7 +1889,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
     if (result != null && minimum != null && result < minimum) {
       throw new MessageConsumerSetupException(
           "The " + key + " configuration parameter cannot be less than "
-          + minimum + ": " + result);
+              + minimum + ": " + result);
     }
     return result;
   }
@@ -1902,27 +1897,26 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
   /**
    * Utility method for obtaining a {@link Long} configuration parameter
    * with options to check if missing and required or if it is less than an
-   * optional minimum value.  This will throw {@link
+   * optional minimum value. This will throw {@link
    * MessageConsumerSetupException} if it fails.
    *
-   * @param config The {@link JsonObject} configuration.
-   * @param key The configuration parameter key.
+   * @param config   The {@link JsonObject} configuration.
+   * @param key      The configuration parameter key.
    * @param required <code>true</code> if required, otherwise
    *                 <code>false</code>.
-   * @param minimum The minimum integer value allowed, or <code>null</code>
-   *                if no minimum is enforced.
+   * @param minimum  The minimum integer value allowed, or <code>null</code>
+   *                 if no minimum is enforced.
    * @return The {@link String} configuration value.
    * @throws MessageConsumerSetupException If the value is required and not
    *                                       present or if it is present and less
    *                                       than the optionally specified minimum
    *                                       value or could not a long integer.
    */
-  protected static Long getConfigLong(JsonObject  config,
-                                      String      key,
-                                      boolean     required,
-                                      Long        minimum)
-      throws MessageConsumerSetupException
-  {
+  protected static Long getConfigLong(JsonObject config,
+      String key,
+      boolean required,
+      Long minimum)
+      throws MessageConsumerSetupException {
     // check if required and missing
     if (required && !config.containsKey(key)) {
       throw new MessageConsumerSetupException(
@@ -1935,25 +1929,24 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
   /**
    * Utility method for obtaining a {@link Long} configuration parameter
    * with options to check if missing and required or if it is less than an
-   * optional minimum value.  This will throw {@link
+   * optional minimum value. This will throw {@link
    * MessageConsumerSetupException} if it fails.
    *
-   * @param config The {@link JsonObject} configuration.
-   * @param key The configuration parameter key.
-   * @param minimum The minimum integer value allowed, or <code>null</code>
-   *                if no minimum is enforced.
+   * @param config       The {@link JsonObject} configuration.
+   * @param key          The configuration parameter key.
+   * @param minimum      The minimum integer value allowed, or <code>null</code>
+   *                     if no minimum is enforced.
    * @param defaultValue The default value to return if the value is missing.
    * @return The {@link String} configuration value.
    * @throws MessageConsumerSetupException If the value is less than the
    *                                       optionally specified minimum value
    *                                       or if it is not a long integer.
    */
-  protected static Long getConfigLong(JsonObject  config,
-                                      String      key,
-                                      Long        minimum,
-                                      Long        defaultValue)
-      throws MessageConsumerSetupException
-  {
+  protected static Long getConfigLong(JsonObject config,
+      String key,
+      Long minimum,
+      Long defaultValue)
+      throws MessageConsumerSetupException {
     Long result = null;
     try {
       result = JsonUtilities.getLong(config, key, defaultValue);
@@ -1974,11 +1967,11 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
   /**
    * Utility method for obtaining a {@link Boolean} configuration parameter
-   * with options to check if missing and required.  This will throw {@link
+   * with options to check if missing and required. This will throw {@link
    * MessageConsumerSetupException} if it fails.
    *
-   * @param config The {@link JsonObject} configuration.
-   * @param key The configuration parameter key.
+   * @param config   The {@link JsonObject} configuration.
+   * @param key      The configuration parameter key.
    * @param required <code>true</code> if required, otherwise
    *                 <code>false</code>.
    * @return The {@link String} configuration value.
@@ -1986,9 +1979,9 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
    *                                       present or if it is present and could
    *                                       not be interpreted as a boolean.
    */
-  protected static Boolean getConfigBoolean(JsonObject  config,
-                                            String      key,
-                                            boolean     required)
+  protected static Boolean getConfigBoolean(JsonObject config,
+      String key,
+      boolean required)
       throws MessageConsumerSetupException {
     // check if required and missing
     if (required && !config.containsKey(key)) {
@@ -2002,22 +1995,21 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
   /**
    * Utility method for obtaining a {@link Long} configuration parameter
    * with options to check if missing and required or if it is less than an
-   * optional minimum value.  This will throw {@link
+   * optional minimum value. This will throw {@link
    * MessageConsumerSetupException} if it fails.
    *
-   * @param config The {@link JsonObject} configuration.
-   * @param key The configuration parameter key.
+   * @param config       The {@link JsonObject} configuration.
+   * @param key          The configuration parameter key.
    * @param defaultValue The default value to return if the value is missing.
    * @return The {@link String} configuration value.
    *
    * @throws MessageConsumerSetupException If the value is present but could not
    *                                       be interpreted as a boolean.
    */
-  protected static Boolean getConfigBoolean(JsonObject  config,
-                                            String      key,
-                                            Boolean     defaultValue)
-    throws MessageConsumerSetupException
-  {
+  protected static Boolean getConfigBoolean(JsonObject config,
+      String key,
+      Boolean defaultValue)
+      throws MessageConsumerSetupException {
     try {
       return JsonUtilities.getBoolean(config, key, defaultValue);
 
@@ -2031,13 +2023,15 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
   /**
    * Converts the specified {@link Stat} instances to an array of
    * {@link String} instances.
+   * 
    * @param statistics The {@link Stat} instances to convert.
    * @return The array of {@link String} instances describing the specified
    *         {@link Stat} instances.
    */
   private String[] convertTimerKeys(Stat... statistics) {
     String[] names = (statistics == null || statistics.length == 0)
-        ? null : new String[statistics.length];
+        ? null
+        : new String[statistics.length];
     if (names != null) {
       for (int index = 0; index < statistics.length; index++) {
         names[index] = statistics[index].toString();
@@ -2049,6 +2043,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
   /**
    * Merges the specified {@link Timers} with this instances {@link Timers}
    * in a thread safe manner.
+   * 
    * @param timers The {@link Timers} to merge.
    */
   protected void timerMerge(Timers timers) {
@@ -2059,13 +2054,13 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
   /**
    * Toggles the active and waiting timers.
+   * 
    * @param pendingCount The number of pending messages.
-   * @param busy <code>true</code> if the worker pool is busy, otherwise
-   *             <code>false</code>.
+   * @param busy         <code>true</code> if the worker pool is busy, otherwise
+   *                     <code>false</code>.
    */
-  protected void toggleActiveAndWaitingTimers(int     pendingCount,
-                                              boolean busy)
-  {
+  protected void toggleActiveAndWaitingTimers(int pendingCount,
+      boolean busy) {
     synchronized (this.getStatisticsMonitor()) {
       // check if there are messages
       if (busy) {
@@ -2087,7 +2082,8 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
   /**
    * Resumes the associated {@link Timers} in a thread-safe manner.
-   * @param statistic The {@link Stat} to resume.
+   * 
+   * @param statistic  The {@link Stat} to resume.
    * @param addlTimers The additional {@link Stat} instances to resume.
    */
   protected void timerResume(Stat statistic, Stat... addlTimers) {
@@ -2103,7 +2099,8 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
   /**
    * Starts the associated {@link Timers} in a thread-safe manner.
-   * @param statistic The {@link Stat} to start.
+   * 
+   * @param statistic  The {@link Stat} to start.
    * @param addlTimers The additional {@link Stat} instances to start.
    */
   protected void timerStart(Stat statistic, Stat... addlTimers) {
@@ -2119,7 +2116,8 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
   /**
    * Pauses the associated {@link Timers} in a thread-safe manner.
-   * @param statistic The {@link Stat} to pause.
+   * 
+   * @param statistic  The {@link Stat} to pause.
    * @param addlTimers The additional {@link Stat} instances to pause.
    */
   protected void timerPause(Stat statistic, Stat... addlTimers) {
@@ -2135,6 +2133,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
   /**
    * The encapsulation of the result from the async workers.
+   * 
    * @param <M> The vendor-specific message type.
    */
   protected static class ProcessResult<M> {
@@ -2150,8 +2149,9 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
     /**
      * Constructs with the specified parameters.
+     * 
      * @param infoMessage The {@link InfoMessage} to associate with the result.
-     * @param timers The {@link Timers} to associate with the result.
+     * @param timers      The {@link Timers} to associate with the result.
      */
     public ProcessResult(InfoMessage<M> infoMessage, Timers timers) {
       this.infoMessage = infoMessage;
@@ -2160,6 +2160,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
     /**
      * Gets the associated {@link InfoMessage}.
+     * 
      * @return The associated {@link InfoMessage}.
      */
     public InfoMessage<M> getInfoMessage() {
@@ -2168,6 +2169,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer
 
     /**
      * Gets the associated {@link Timers}.
+     * 
      * @return The associated {@link Timers}.
      */
     public Timers getTimers() {

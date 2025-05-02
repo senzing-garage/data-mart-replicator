@@ -36,7 +36,7 @@ public class SzEntity {
    */
   public SzEntity() {
     this.sourceSummary = new LinkedHashMap<>();
-    this.records       = new LinkedHashMap<>();
+    this.records = new LinkedHashMap<>();
   }
 
   /**
@@ -93,7 +93,7 @@ public class SzEntity {
    * {@link SzRecordKey} keys to {@link SzRecord} values.
    *
    * @return An <b>unmodifiable</b> {@link Map} of {@link SzRecordKey} keys
-   *         to {@link SzRecord} values desribing the records for this entity.
+   *         to {@link SzRecord} values describing the records for this entity.
    */
   public Map<SzRecordKey, SzRecord> getRecords() {
     return Collections.unmodifiableMap(this.records);
@@ -120,7 +120,8 @@ public class SzEntity {
    * @param record The {@link SzRecord} describing the record to add.
    */
   public void addRecord(SzRecord record) {
-    if (this.records.containsKey(record.getRecordKey())) return;
+    if (this.records.containsKey(record.getRecordKey()))
+      return;
 
     String dataSource = record.getDataSource();
     Integer count = this.sourceSummary.get(dataSource);
@@ -210,9 +211,9 @@ public class SzEntity {
   /**
    * Parses the specified JSON and populates the specified {@link SzEntity}.
    *
-   * @param entity The non-null {@link SzEntity} to populate.
+   * @param entity     The non-null {@link SzEntity} to populate.
    * @param jsonObject The {@link JsonObject} describing the entity.
-   * @param <T> The type of {@link SzEntity} that will be populated.
+   * @param <T>        The type of {@link SzEntity} that will be populated.
    * 
    * @return The specified {@link SzEntity} that was populated.
    */
@@ -249,8 +250,10 @@ public class SzEntity {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o)
+      return true;
+    if (o == null || getClass() != o.getClass())
+      return false;
     SzEntity that = (SzEntity) o;
     return this.getEntityId() == that.getEntityId()
         && Objects.equals(this.getEntityName(), that.getEntityName())
@@ -261,9 +264,9 @@ public class SzEntity {
   @Override
   public int hashCode() {
     return Objects.hash(this.getEntityId(),
-                        this.getEntityName(),
-                        this.getSourceSummary(),
-                        this.getRecords());
+        this.getEntityName(),
+        this.getSourceSummary(),
+        this.getRecords());
   }
 
   @Override

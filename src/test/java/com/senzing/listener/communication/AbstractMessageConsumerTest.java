@@ -44,32 +44,31 @@ public class AbstractMessageConsumerTest {
   static {
     double value = PRNG.nextDouble();
   }
-  private Set<Long> prevousAffectedSet = null;
+  private Set<Long> previousAffectedSet = null;
   private int noOverlapCount = 0;
 
   private Set<Long> getAffectedSet(int minEntityId,
-                                  int maxEntityId,
-                                  int maxAffected)
-  {
+      int maxEntityId,
+      int maxAffected) {
     int idSpread = (maxEntityId - minEntityId);
     Set<Long> affectedSet = new LinkedHashSet<>();
     int affectedCount = Math.max(1, PRNG.nextInt(maxAffected));
     for (int index2 = 0; index2 < affectedCount; index2++) {
       long entityId = ((long) (minEntityId + PRNG.nextInt(idSpread)));
-      entityId = Math.min(entityId,  (long) maxEntityId);
+      entityId = Math.min(entityId, (long) maxEntityId);
       affectedSet.add(entityId);
     }
 
     synchronized (this) {
-      if (prevousAffectedSet != null) {
+      if (previousAffectedSet != null) {
         boolean overlap = false;
         for (Long entityId : affectedSet) {
-          if (prevousAffectedSet.contains(entityId)) {
+          if (previousAffectedSet.contains(entityId)) {
             overlap = true;
             break;
           }
         }
-        noOverlapCount = (overlap) ? 0 : (noOverlapCount+1);
+        noOverlapCount = (overlap) ? 0 : (noOverlapCount + 1);
 
         // check if we have had no contention in a while and force it if not
         if (noOverlapCount > 20) {
@@ -79,13 +78,13 @@ public class AbstractMessageConsumerTest {
             affectedSet.remove(affectedSet.iterator().next());
           }
           // then add one from the previous to create overlap
-          affectedSet.add(prevousAffectedSet.iterator().next());
+          affectedSet.add(previousAffectedSet.iterator().next());
           noOverlapCount = 0;
         }
       }
 
       // set the previous and return
-      prevousAffectedSet = affectedSet;
+      previousAffectedSet = affectedSet;
     }
     return Collections.unmodifiableSet(affectedSet);
   }
@@ -101,15 +100,14 @@ public class AbstractMessageConsumerTest {
   }
 
   public int buildInfoBatches(List<Message> messageList,
-                              int           batchCount,
-                              List<String>  dataSources,
-                              int           minBatchSize,
-                              int           maxBatchSize,
-                              int           minEntityId,
-                              int           maxEntityid,
-                              int           maxAffected,
-                              double        failureRate)
-  {
+      int batchCount,
+      List<String> dataSources,
+      int minBatchSize,
+      int maxBatchSize,
+      int minEntityId,
+      int maxEntityid,
+      int maxAffected,
+      double failureRate) {
     // fabricate record IDs
     int nextRecordId = (int) Math.pow(
         10, (Math.floor(Math.log10(batchCount * maxBatchSize)) + 1));
@@ -128,12 +126,12 @@ public class AbstractMessageConsumerTest {
         count++;
         JsonObjectBuilder job = Json.createObjectBuilder();
         buildInfoMessage(job,
-                         messageId,
-                         failureCount,
-                         null,
-                         getDataSource(dataSources),
-                         getRecordId(nextRecordId++),
-                         getAffectedSet(minEntityId, maxEntityid, maxAffected));
+            messageId,
+            failureCount,
+            null,
+            getDataSource(dataSources),
+            getRecordId(nextRecordId++),
+            getAffectedSet(minEntityId, maxEntityid, maxAffected));
         JsonObject jsonObject = job.build();
         String messageText = toJsonText(jsonObject);
         messageList.add(new Message(messageId, messageText));
@@ -142,13 +140,13 @@ public class AbstractMessageConsumerTest {
         count += batchSize;
         JsonArrayBuilder jab = Json.createArrayBuilder();
         nextRecordId = buildInfoBatch(jab,
-                                      batchSize,
-                                      dataSources,
-                                      nextRecordId,
-                                      failureCount,
-                                      minEntityId,
-                                      maxEntityid,
-                                      maxAffected);
+            batchSize,
+            dataSources,
+            nextRecordId,
+            failureCount,
+            minEntityId,
+            maxEntityid,
+            maxAffected);
         JsonArray jsonArray = jab.build();
         String messageText = toJsonText(jsonArray);
         messageList.add(new Message(messageId, messageText));
@@ -157,178 +155,169 @@ public class AbstractMessageConsumerTest {
     return count;
   }
 
-  public Message buildInfoBatch(int               batchSize,
-                                List<String>      dataSources,
-                                int               nextRecordId,
-                                int               maxFailureCount,
-                                int               minEntityId,
-                                int               maxEntityId,
-                                int               maxAffected)
-  {
+  public Message buildInfoBatch(int batchSize,
+      List<String> dataSources,
+      int nextRecordId,
+      int maxFailureCount,
+      int minEntityId,
+      int maxEntityId,
+      int maxAffected) {
     JsonArrayBuilder jab = Json.createArrayBuilder();
     int messageId = nextRecordId;
     buildInfoBatch(jab,
-                   batchSize,
-                   dataSources,
-                   nextRecordId,
-                   maxFailureCount,
-                   minEntityId,
-                   maxEntityId,
-                   maxAffected);
+        batchSize,
+        dataSources,
+        nextRecordId,
+        maxFailureCount,
+        minEntityId,
+        maxEntityId,
+        maxAffected);
     JsonArray jsonArray = jab.build();
     String messageText = toJsonText(jsonArray);
     return new Message(messageId, messageText);
   }
 
-  public int buildInfoBatch(JsonArrayBuilder    builder,
-                            int                 batchSize,
-                            List<String>        dataSources,
-                            int                 nextRecordId,
-                            int                 maxFailureCount,
-                            int                 minEntityId,
-                            int                 maxEntityId,
-                            int                 maxAffected)
-  {
+  public int buildInfoBatch(JsonArrayBuilder builder,
+      int batchSize,
+      List<String> dataSources,
+      int nextRecordId,
+      int maxFailureCount,
+      int minEntityId,
+      int maxEntityId,
+      int maxAffected) {
     int messageId = nextRecordId; // all in the batch belong to same message
     for (int index1 = 0; index1 < batchSize; index1++) {
       JsonObjectBuilder job = Json.createObjectBuilder();
       int failureCount = (maxFailureCount == 0)
-          ? 0 : PRNG.nextInt(maxFailureCount);
+          ? 0
+          : PRNG.nextInt(maxFailureCount);
       buildInfoMessage(job,
-                       messageId,
-                       failureCount,
-                       null,
-                       getDataSource(dataSources),
-                       getRecordId(nextRecordId++),
-                       getAffectedSet(minEntityId, maxEntityId, maxAffected));
+          messageId,
+          failureCount,
+          null,
+          getDataSource(dataSources),
+          getRecordId(nextRecordId++),
+          getAffectedSet(minEntityId, maxEntityId, maxAffected));
       builder.add(job);
     }
     return nextRecordId;
   }
 
-  public String buildInfoMessage(int                messageId,
-                                 String             dataSource,
-                                 String             recordId,
-                                 long...            affectedEntityIds)
-  {
+  public String buildInfoMessage(int messageId,
+      String dataSource,
+      String recordId,
+      long... affectedEntityIds) {
     return buildInfoMessage(messageId,
-                            0,
-                            null,
-                            dataSource,
-                            recordId,
-                            affectedEntityIds);
+        0,
+        null,
+        dataSource,
+        recordId,
+        affectedEntityIds);
   }
 
-  public String buildInfoMessage(int                messageId,
-                                 int                failureCount,
-                                 Long               processingTime,
-                                 String             dataSource,
-                                 String             recordId,
-                                 long...            affectedEntityIds)
-  {
+  public String buildInfoMessage(int messageId,
+      int failureCount,
+      Long processingTime,
+      String dataSource,
+      String recordId,
+      long... affectedEntityIds) {
     JsonObjectBuilder job = Json.createObjectBuilder();
     buildInfoMessage(job,
-                     messageId,
-                     failureCount,
-                     processingTime,
-                     dataSource,
-                     recordId,
-                     affectedEntityIds);
+        messageId,
+        failureCount,
+        processingTime,
+        dataSource,
+        recordId,
+        affectedEntityIds);
     JsonObject jsonObject = job.build();
     return JsonUtilities.toJsonText(jsonObject);
   }
 
-  public String buildInfoMessage(int                messageId,
-                                 String             dataSource,
-                                 String             recordId,
-                                 Set<Long>          affectedEntityIds)
-  {
+  public String buildInfoMessage(int messageId,
+      String dataSource,
+      String recordId,
+      Set<Long> affectedEntityIds) {
     return buildInfoMessage(messageId,
-                            0,
-                            null,
-                            dataSource,
-                            recordId,
-                            affectedEntityIds);
+        0,
+        null,
+        dataSource,
+        recordId,
+        affectedEntityIds);
   }
 
-  public String buildInfoMessage(int                messageId,
-                                 int                failureCount,
-                                 Long               processingTime,
-                                 String             dataSource,
-                                 String             recordId,
-                                 Set<Long>          affectedEntityIds)
-  {
+  public String buildInfoMessage(int messageId,
+      int failureCount,
+      Long processingTime,
+      String dataSource,
+      String recordId,
+      Set<Long> affectedEntityIds) {
     JsonObjectBuilder job = Json.createObjectBuilder();
     buildInfoMessage(job,
-                     messageId,
-                     failureCount,
-                     processingTime,
-                     dataSource,
-                     recordId,
-                     affectedEntityIds);
+        messageId,
+        failureCount,
+        processingTime,
+        dataSource,
+        recordId,
+        affectedEntityIds);
     JsonObject jsonObject = job.build();
     return JsonUtilities.toJsonText(jsonObject);
   }
 
-  public void buildInfoMessage(JsonObjectBuilder  builder,
-                               int                messageId,
-                               String             dataSource,
-                               String             recordId,
-                               long...            affectedEntityIds)
-  {
+  public void buildInfoMessage(JsonObjectBuilder builder,
+      int messageId,
+      String dataSource,
+      String recordId,
+      long... affectedEntityIds) {
     this.buildInfoMessage(builder,
-                          messageId,
-                          0,
-                          null,
-                          dataSource,
-                          recordId,
-                          affectedEntityIds);
+        messageId,
+        0,
+        null,
+        dataSource,
+        recordId,
+        affectedEntityIds);
   }
 
-  public void buildInfoMessage(JsonObjectBuilder  builder,
-                               int                messageId,
-                               int                failureCount,
-                               Long               processTime,
-                               String             dataSource,
-                               String             recordId,
-                               long...            affectedEntityIds)
-  {
+  public void buildInfoMessage(JsonObjectBuilder builder,
+      int messageId,
+      int failureCount,
+      Long processTime,
+      String dataSource,
+      String recordId,
+      long... affectedEntityIds) {
     Set<Long> affectedSet = new LinkedHashSet<>();
     for (long entityId : affectedEntityIds) {
       affectedSet.add(entityId);
     }
     this.buildInfoMessage(builder,
-                          messageId,
-                          failureCount,
-                          processTime,
-                          dataSource,
-                          recordId,
-                          affectedSet);
+        messageId,
+        failureCount,
+        processTime,
+        dataSource,
+        recordId,
+        affectedSet);
   }
 
-  public void buildInfoMessage(JsonObjectBuilder  builder,
-                               int                messageId,
-                               String             dataSource,
-                               String             recordId,
-                               Set<Long>          affectedEntityIds)
-  {
+  public void buildInfoMessage(JsonObjectBuilder builder,
+      int messageId,
+      String dataSource,
+      String recordId,
+      Set<Long> affectedEntityIds) {
     buildInfoMessage(builder,
-                     messageId,
-                     0,
-                     null,
-                     dataSource,
-                     recordId,
-                     affectedEntityIds);
+        messageId,
+        0,
+        null,
+        dataSource,
+        recordId,
+        affectedEntityIds);
   }
 
-  public void buildInfoMessage(JsonObjectBuilder  builder,
-                               int                messageId,
-                               int                failureCount,
-                               Long               processTime,
-                               String             dataSource,
-                               String             recordId,
-                               Set<Long>          affectedEntityIds)
-  {
+  public void buildInfoMessage(JsonObjectBuilder builder,
+      int messageId,
+      int failureCount,
+      Long processTime,
+      String dataSource,
+      String recordId,
+      Set<Long> affectedEntityIds) {
     builder.add("MESSAGE_ID", messageId);
     if (failureCount > 0) {
       builder.add("FAILURE_COUNT", failureCount);
@@ -339,7 +328,7 @@ public class AbstractMessageConsumerTest {
     builder.add("DATA_SOURCE", dataSource);
     builder.add("RECORD_ID", recordId);
     JsonArrayBuilder jab = Json.createArrayBuilder();
-    for (long entityId: affectedEntityIds) {
+    for (long entityId : affectedEntityIds) {
       JsonObjectBuilder job2 = Json.createObjectBuilder();
       job2.add("ENTITY_ID", entityId);
       job2.add("LENS_CODE", "DEFAULT");
@@ -352,20 +341,25 @@ public class AbstractMessageConsumerTest {
     private int id;
     private String body;
     private Long processingTime = null;
+
     public Message(int id, String msgText) {
       this(id, null, msgText);
     }
+
     public Message(int id, Long processingTime, String msgText) {
       this.id = id;
       this.body = msgText;
       this.processingTime = processingTime;
     }
+
     public int getId() {
       return this.id;
     }
+
     public String getBody() {
       return this.body;
     }
+
     public String toString() {
       return "Message (" + this.getId() + "): " + this.getBody();
     }
@@ -375,21 +369,26 @@ public class AbstractMessageConsumerTest {
   public static class RecordId {
     private String dataSource;
     private String recordId;
+
     public RecordId(String dataSource, String recordId) {
       this.dataSource = dataSource;
-      this.recordId   = recordId;
+      this.recordId = recordId;
     }
+
     public String getDataSource() {
       return this.dataSource;
     }
+
     public String getRecordId() {
       return this.recordId;
     }
 
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || this.getClass() != o.getClass()) return false;
+      if (this == o)
+        return true;
+      if (o == null || this.getClass() != o.getClass())
+        return false;
       RecordId that = (RecordId) o;
       return Objects.equals(this.getDataSource(), that.getDataSource())
           && Objects.equals(this.getRecordId(), that.getRecordId());
@@ -407,10 +406,9 @@ public class AbstractMessageConsumerTest {
   }
 
   public static class TestMessageConsumer
-      extends AbstractMessageConsumer<Message>
-  {
+      extends AbstractMessageConsumer<Message> {
     private List<Message> messageQueue = new LinkedList<>();
-    private IdentityHashMap<Message,Long> dequeuedMap = new IdentityHashMap<>();
+    private IdentityHashMap<Message, Long> dequeuedMap = new IdentityHashMap<>();
     private Thread consumptionThread = null;
     private int dequeueCount;
     private long dequeueSleep;
@@ -418,22 +416,21 @@ public class AbstractMessageConsumerTest {
     private long expectedFailureCount = 0L;
     private long expectedMessageRetryCount = 0L;
     private long expectedInfoMessageRetryCount = 0L;
-    public TestMessageConsumer(int            dequeueCount,
-                               long           dequeueSleep,
-                               long           visibilityTimeout,
-                               List<Message>  messages)
-    {
-      this.dequeueCount       = dequeueCount;
-      this.dequeueSleep       = dequeueSleep;
-      this.visibilityTimeout  = visibilityTimeout;
-      for (Message message: messages) {
+
+    public TestMessageConsumer(int dequeueCount,
+        long dequeueSleep,
+        long visibilityTimeout,
+        List<Message> messages) {
+      this.dequeueCount = dequeueCount;
+      this.dequeueSleep = dequeueSleep;
+      this.visibilityTimeout = visibilityTimeout;
+      for (Message message : messages) {
         this.messageQueue.add(message);
         String body = message.getBody().trim();
         List<JsonObject> jsonObjects = new ArrayList<>();
         if (body.startsWith("[")) {
           JsonArray jsonArray = parseJsonArray(body);
-          for (JsonObject jsonObject : jsonArray.getValuesAs(JsonObject.class))
-          {
+          for (JsonObject jsonObject : jsonArray.getValuesAs(JsonObject.class)) {
             jsonObjects.add(jsonObject);
           }
         } else {
@@ -452,25 +449,34 @@ public class AbstractMessageConsumerTest {
       }
 
     }
+
     public int getDequeueCount() {
       return this.dequeueCount;
     }
+
     public long getDequeueSleep() {
       return this.dequeueSleep;
     }
+
     public long getVisibilityTimeout() {
       return this.visibilityTimeout;
     }
+
     public long getExpectedFailureCount() {
       return this.expectedFailureCount;
     }
+
     public long getExpectedMessageRetryCount() {
       return this.expectedMessageRetryCount;
     }
+
     public long getExpectedInfoMessageRetryCount() {
       return this.expectedInfoMessageRetryCount;
     }
-    protected void doInit(JsonObject config) { }
+
+    protected void doInit(JsonObject config) {
+    }
+
     protected void doDestroy() {
       // join to the consumption thread
       try {
@@ -482,6 +488,7 @@ public class AbstractMessageConsumerTest {
         // ignore
       }
     }
+
     protected void doConsume(MessageProcessor processor) {
       this.consumptionThread = new Thread(() -> {
         long start = System.nanoTime() - 15000000000L;
@@ -489,21 +496,22 @@ public class AbstractMessageConsumerTest {
         int restoreCount = 0;
         while (this.getState() == CONSUMING) {
           long end = System.nanoTime();
-          if (((end - start)/1000000L) > 10000L) {
+          if (((end - start) / 1000000L) > 10000L) {
             start = end;
-            //if (timeoutCount > 0) {
-            //  restoreCount += timeoutCount;
-            //  System.err.println("RESTORED " + timeoutCount
-            //                         + " MESSAGES DUE TO VISIBILITY TIMEOUT "
-            //                      + "(" + restoreCount + " TOTAL)");
-            //  timeoutCount = 0;
-            //}
+            // if (timeoutCount > 0) {
+            // restoreCount += timeoutCount;
+            // System.err.println("RESTORED " + timeoutCount
+            // + " MESSAGES DUE TO VISIBILITY TIMEOUT "
+            // + "(" + restoreCount + " TOTAL)");
+            // timeoutCount = 0;
+            // }
           }
           // dequeue messages
           for (int index = 0; index < this.dequeueCount; index++) {
             Message msg = null;
             synchronized (this.messageQueue) {
-              if (this.messageQueue.size() == 0) break;
+              if (this.messageQueue.size() == 0)
+                break;
               msg = this.messageQueue.remove(0);
               long now = System.nanoTime() / 1000000L;
               this.dequeuedMap.put(msg, now);
@@ -513,12 +521,11 @@ public class AbstractMessageConsumerTest {
 
           // check for messages that have timed out and enqueue them again
           synchronized (this.messageQueue) {
-            Iterator<Map.Entry<Message,Long>> iter
-                = this.dequeuedMap.entrySet().iterator();
+            Iterator<Map.Entry<Message, Long>> iter = this.dequeuedMap.entrySet().iterator();
             while (iter.hasNext()) {
-              Map.Entry<Message,Long> entry = iter.next();
-              Message msg       = entry.getKey();
-              Long    timestamp = entry.getValue();
+              Map.Entry<Message, Long> entry = iter.next();
+              Message msg = entry.getKey();
+              Long timestamp = entry.getValue();
               long now = System.nanoTime() / 1000000L;
               if (now - timestamp > this.visibilityTimeout) {
                 iter.remove();
@@ -535,11 +542,11 @@ public class AbstractMessageConsumerTest {
             // ignore
           }
         }
-        //if (timeoutCount > 0) {
-        //  restoreCount += timeoutCount;
-        //  System.err.println("RESTORED " + timeoutCount
-        //                         + " MESSAGES DUE TO VISIBILITY TIMEOUT "
-        //                         + "(" + restoreCount + " TOTAL)");
+        // if (timeoutCount > 0) {
+        // restoreCount += timeoutCount;
+        // System.err.println("RESTORED " + timeoutCount
+        // + " MESSAGES DUE TO VISIBILITY TIMEOUT "
+        // + "(" + restoreCount + " TOTAL)");
         // }
       });
 
@@ -558,8 +565,7 @@ public class AbstractMessageConsumerTest {
   }
 
   public static class MessageCounts
-      implements Cloneable, Comparable<MessageCounts>
-  {
+      implements Cloneable, Comparable<MessageCounts> {
     private String messageText;
     private int beginCount = 0;
     private int successCount = 0;
@@ -568,6 +574,7 @@ public class AbstractMessageConsumerTest {
     private long lastBeginTime = 0L;
     private long lastEndTime = 0L;
     private Integer messageId = null;
+
     public MessageCounts(String message) {
       this.messageText = message;
       try {
@@ -587,6 +594,7 @@ public class AbstractMessageConsumerTest {
         }
       }
     }
+
     public Object clone() {
       try {
         return super.clone();
@@ -594,6 +602,7 @@ public class AbstractMessageConsumerTest {
         throw new IllegalStateException("Unexpected clone failure");
       }
     }
+
     public int hashCode() {
       synchronized (this) {
         return Objects.hash(
@@ -606,10 +615,14 @@ public class AbstractMessageConsumerTest {
             this.getFailureCount());
       }
     }
+
     public boolean equals(Object that) {
-      if (that == null) return false;
-      if (this == that) return true;
-      if (this.getClass() != that.getClass()) return false;
+      if (that == null)
+        return false;
+      if (this == that)
+        return true;
+      if (this.getClass() != that.getClass())
+        return false;
       MessageCounts counts = (MessageCounts) that;
       int thisPriority = System.identityHashCode(this);
       int thatPriority = System.identityHashCode(that);
@@ -619,26 +632,28 @@ public class AbstractMessageConsumerTest {
         synchronized (second) {
           return Objects.equals(this.getMessageId(), counts.getMessageId())
               && Objects.equals(this.getMessageText(),
-                                counts.getMessageText())
+                  counts.getMessageText())
               && Objects.equals(this.getFirstBeginTime(),
-                                counts.getFirstBeginTime())
+                  counts.getFirstBeginTime())
               && Objects.equals(this.getLastBeginTime(),
-                                counts.getLastBeginTime())
+                  counts.getLastBeginTime())
               && Objects.equals(this.getLastEndTime(),
-                                counts.getLastEndTime())
+                  counts.getLastEndTime())
               && Objects.equals(this.getBeginCount(),
-                                counts.getBeginCount())
+                  counts.getBeginCount())
               && Objects.equals(this.getSuccessCount(),
-                                counts.getSuccessCount())
+                  counts.getSuccessCount())
               && Objects.equals(this.getFailureCount(),
-                                counts.getFailureCount());
+                  counts.getFailureCount());
         }
       }
     }
 
     public int compareTo(MessageCounts that) {
-      if (that == null) return 1;
-      if (that == this) return 0;
+      if (that == null)
+        return 1;
+      if (that == this)
+        return 0;
       int thisPriority = System.identityHashCode(this);
       int thatPriority = System.identityHashCode(that);
       MessageCounts first = (thisPriority < thatPriority) ? this : that;
@@ -647,52 +662,86 @@ public class AbstractMessageConsumerTest {
       synchronized (first) {
         synchronized (second) {
           long diff = this.getLastBeginTime() - that.getLastBeginTime();
-          if (diff != 0) return (diff < 0) ? -1 : 1;
+          if (diff != 0)
+            return (diff < 0) ? -1 : 1;
           diff = this.getFirstBeginTime() - that.getFirstBeginTime();
-          if (diff != 0) return (diff < 0) ? -1 : 1;
+          if (diff != 0)
+            return (diff < 0) ? -1 : 1;
           diff = this.getLastEndTime() - that.getLastEndTime();
-          if (diff != 0) return (diff < 0) ? -1 : 1;
+          if (diff != 0)
+            return (diff < 0) ? -1 : 1;
           diff = (this.getMessageId() - that.getMessageId());
-          if (diff != 0) return (diff < 0) ? -1 : 1;
+          if (diff != 0)
+            return (diff < 0) ? -1 : 1;
           diff = (this.getBeginCount() - that.getBeginCount());
-          if (diff != 0) return (diff < 0) ? -1 : 1;
+          if (diff != 0)
+            return (diff < 0) ? -1 : 1;
           diff = (this.getSuccessCount() - that.getSuccessCount());
-          if (diff != 0) return (diff < 0) ? -1 : 1;
+          if (diff != 0)
+            return (diff < 0) ? -1 : 1;
           diff = (this.getFailureCount() - that.getFailureCount());
-          if (diff != 0) return (diff < 0) ? -1 : 1;
+          if (diff != 0)
+            return (diff < 0) ? -1 : 1;
           return (this.getMessageText().compareTo(that.getMessageText()));
         }
       }
     }
+
     public Integer getMessageId() {
       return this.messageId;
     }
+
     public synchronized void recordBegin() {
       this.beginCount++;
       long now = System.nanoTime();
-      if (this.firstBeginTime == 0) this.firstBeginTime = now;
+      if (this.firstBeginTime == 0)
+        this.firstBeginTime = now;
       this.lastBeginTime = now;
     }
+
     public synchronized void recordSuccess() {
       this.successCount++;
       this.lastEndTime = System.nanoTime();
     }
+
     public synchronized void recordFailure() {
       this.failureCount++;
       this.lastEndTime = System.nanoTime();
     }
-    public String getMessageText() { return this.messageText; }
-    public synchronized int getBeginCount() { return this.beginCount; }
-    public synchronized int getSuccessCount() { return this.successCount; }
-    public synchronized int getFailureCount() { return this.failureCount; }
-    public synchronized long getFirstBeginTime() { return this.firstBeginTime; }
-    public synchronized long getLastBeginTime() { return this.lastBeginTime; }
-    public synchronized long getLastEndTime() { return this.lastEndTime; }
+
+    public String getMessageText() {
+      return this.messageText;
+    }
+
+    public synchronized int getBeginCount() {
+      return this.beginCount;
+    }
+
+    public synchronized int getSuccessCount() {
+      return this.successCount;
+    }
+
+    public synchronized int getFailureCount() {
+      return this.failureCount;
+    }
+
+    public synchronized long getFirstBeginTime() {
+      return this.firstBeginTime;
+    }
+
+    public synchronized long getLastBeginTime() {
+      return this.lastBeginTime;
+    }
+
+    public synchronized long getLastEndTime() {
+      return this.lastEndTime;
+    }
+
     public static String toString(Collection<MessageCounts> countsList) {
-      StringWriter  sw = new StringWriter();
-      PrintWriter   pw = new PrintWriter(sw);
+      StringWriter sw = new StringWriter();
+      PrintWriter pw = new PrintWriter(sw);
       pw.println();
-      for (MessageCounts counts: countsList) {
+      for (MessageCounts counts : countsList) {
         pw.println("     " + counts);
       }
       pw.println();
@@ -716,8 +765,7 @@ public class AbstractMessageConsumerTest {
     private static final Map<MessagePart, String> ACTION_MAP = Map.of(
         RECORD, "RECORD", AFFECTED_ENTITY, "ENTITY");
 
-    private static final ThreadLocal<MessageCounts> MESSAGE_COUNTS
-        = new ThreadLocal<>();
+    private static final ThreadLocal<MessageCounts> MESSAGE_COUNTS = new ThreadLocal<>();
 
     private long minProcessingTime = 10L;
     private long maxProcessingTime = 60L;
@@ -733,13 +781,13 @@ public class AbstractMessageConsumerTest {
       super(ACTION_MAP);
     }
 
-    public TestService(long procesingTime, double failureRate) {
-      this(procesingTime, procesingTime, failureRate);
+    public TestService(long processingTime, double failureRate) {
+      this(processingTime, processingTime, failureRate);
     }
 
     public TestService(long minProcessingTime,
-                       long maxProcessingTime,
-                       double failureRate) {
+        long maxProcessingTime,
+        double failureRate) {
       super(ACTION_MAP);
       this.minProcessingTime = minProcessingTime;
       this.maxProcessingTime = maxProcessingTime;
@@ -781,9 +829,8 @@ public class AbstractMessageConsumerTest {
     }
 
     public synchronized void awaitSuccess(TestMessageConsumer consumer,
-                                          int                 minSuccessCount,
-                                          ConnectionPool      pool)
-    {
+        int minSuccessCount,
+        ConnectionPool pool) {
       long start = System.nanoTime() / 1000000L;
       int successCount = this.getSuccessCount();
       boolean processing = this.isProcessing();
@@ -791,7 +838,7 @@ public class AbstractMessageConsumerTest {
         long now = System.nanoTime() / 1000000L;
         if ((now - start) > 10000L) {
           start = now;
-          //printStatistics(consumer, this, pool);
+          // printStatistics(consumer, this, pool);
         }
         try {
           this.wait(this.maxProcessingTime);
@@ -804,13 +851,13 @@ public class AbstractMessageConsumerTest {
       }
     }
 
-    private synchronized void beginHandling(String              action,
-                                            Map<String, Object> parameters,
-                                            int                 multiplicity,
-                                            String              taskAsJson)
-    {
+    private synchronized void beginHandling(String action,
+        Map<String, Object> parameters,
+        int multiplicity,
+        String taskAsJson) {
       this.handlingCount++;
-      if (this.aborted) return;
+      if (this.aborted)
+        return;
       Object key = null;
       switch (action) {
         case "RECORD":
@@ -831,9 +878,8 @@ public class AbstractMessageConsumerTest {
       if (key != null) {
         if (this.tasksByEntity.containsKey(key)) {
           this.aborted = true;
-          ProcessScopeLockingService lockingService
-              = (ProcessScopeLockingService)
-              this.getSchedulingService().getLockingService();
+          ProcessScopeLockingService lockingService = (ProcessScopeLockingService) this.getSchedulingService()
+              .getLockingService();
           lockingService.dumpLocks();
 
           throw new IllegalStateException(
@@ -846,10 +892,10 @@ public class AbstractMessageConsumerTest {
     }
 
     private synchronized MessageCounts beginProcessing(JsonObject message,
-                                                       String     jsonText)
-    {
+        String jsonText) {
       this.processingCount++;
-      if (this.aborted) return null;
+      if (this.aborted)
+        return null;
       MessageCounts counts = this.countsByMessage.get(jsonText);
       if (counts == null) {
         counts = new MessageCounts(jsonText);
@@ -860,17 +906,17 @@ public class AbstractMessageConsumerTest {
       return counts;
     }
 
-    private synchronized boolean isAborted () {
+    private synchronized boolean isAborted() {
       return this.aborted;
     }
 
-    private synchronized void endHandling(String              action,
-                                          Map<String, Object> parameters,
-                                          int                 multiplicity,
-                                          String              taskAsJson)
-    {
+    private synchronized void endHandling(String action,
+        Map<String, Object> parameters,
+        int multiplicity,
+        String taskAsJson) {
       this.handlingCount--;
-      if (this.aborted) return;
+      if (this.aborted)
+        return;
       Object key = null;
       switch (action) {
         case "RECORD":
@@ -905,16 +951,15 @@ public class AbstractMessageConsumerTest {
         this.tasksByEntity.remove(key);
       }
 
-
       this.notifyAll();
     }
 
     private synchronized MessageCounts endProcessing(JsonObject jsonObject,
-                                                     String     jsonText,
-                                                     boolean    success)
-    {
+        String jsonText,
+        boolean success) {
       this.processingCount--;
-      if (this.aborted) return null;
+      if (this.aborted)
+        return null;
 
       MessageCounts counts = this.countsByMessage.get(jsonText);
       if (counts == null) {
@@ -922,8 +967,10 @@ public class AbstractMessageConsumerTest {
         throw new IllegalStateException(
             "Missing message counts for message: " + jsonText);
       }
-      if (success) counts.recordSuccess();
-      else counts.recordFailure();
+      if (success)
+        counts.recordSuccess();
+      else
+        counts.recordFailure();
       this.notifyAll();
       MESSAGE_COUNTS.set(null);
       return counts;
@@ -935,8 +982,7 @@ public class AbstractMessageConsumerTest {
     }
 
     @Override
-    public void process(JsonObject message) throws ServiceExecutionException
-    {
+    public void process(JsonObject message) throws ServiceExecutionException {
       String jsonText = JsonUtilities.toJsonText(message);
       try {
         MessageCounts counts = this.beginProcessing(message, jsonText);
@@ -970,8 +1016,7 @@ public class AbstractMessageConsumerTest {
 
     @Override
     protected void scheduleTasks(JsonObject message, Scheduler scheduler)
-        throws ServiceExecutionException
-    {
+        throws ServiceExecutionException {
       super.scheduleTasks(message, scheduler);
 
       // check for a forced failure
@@ -987,13 +1032,13 @@ public class AbstractMessageConsumerTest {
       }
 
     }
+
     @Override
-    protected void handleTask(String              action,
-                              Map<String, Object> parameters,
-                              int                 multiplicity,
-                              Scheduler           followUpScheduler)
-        throws ServiceExecutionException
-    {
+    protected void handleTask(String action,
+        Map<String, Object> parameters,
+        int multiplicity,
+        Scheduler followUpScheduler)
+        throws ServiceExecutionException {
       String jsonText = this.taskAsJson(action, parameters, multiplicity);
       this.beginHandling(action, parameters, multiplicity, jsonText);
 
@@ -1026,10 +1071,8 @@ public class AbstractMessageConsumerTest {
         }
 
         if ("RECORD".equals(action) && (followUpScheduler != null)
-            && (PRNG.nextDouble() < 0.50))
-        {
-          String dataSource
-              = parameters.get(DATA_SOURCE_PARAMETER_KEY).toString();
+            && (PRNG.nextDouble() < 0.50)) {
+          String dataSource = parameters.get(DATA_SOURCE_PARAMETER_KEY).toString();
 
           // schedule a follow-up task
           followUpScheduler.createTaskBuilder("INCREMENT_RECORD_COUNT")
@@ -1046,91 +1089,91 @@ public class AbstractMessageConsumerTest {
     }
 
     @Override
-    public void doDestroy () {
+    public void doDestroy() {
       // do nothing
     }
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {1, 2, 3, 4, 8})
+  @ValueSource(ints = { 1, 2, 3, 4, 8 })
   public void basicTest(int concurrency) {
     List<Message> messages = new LinkedList<>();
     messages.add(new Message(1, buildInfoMessage(1,
-                                                 "CUSTOMERS",
-                                                 "001",
-                                                 1, 2, 3)));
+        "CUSTOMERS",
+        "001",
+        1, 2, 3)));
     messages.add(new Message(2, buildInfoMessage(2,
-                                                 "CUSTOMERS",
-                                                 "002",
-                                                 1, 4)));
+        "CUSTOMERS",
+        "002",
+        1, 4)));
     messages.add(new Message(3, buildInfoMessage(3,
-                                                 "CUSTOMERS",
-                                                 "003",
-                                                 2, 5)));
+        "CUSTOMERS",
+        "003",
+        2, 5)));
     messages.add(new Message(4, buildInfoMessage(4,
-                                                 "CUSTOMERS",
-                                                 "004",
-                                                 4, 5)));
+        "CUSTOMERS",
+        "004",
+        4, 5)));
     messages.add(new Message(5, buildInfoMessage(5,
-                                                 "CUSTOMERS",
-                                                 "005",
-                                                 6, 7)));
+        "CUSTOMERS",
+        "005",
+        6, 7)));
 
     this.performTest(messages,
-                     messages.size(),
-                     concurrency,
-                     null,
-                     null,
-                     null,
-                     null,
-                     null,
-                     0.0,
-                     null);
+        messages.size(),
+        concurrency,
+        null,
+        null,
+        null,
+        null,
+        null,
+        0.0,
+        null);
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {1, 2, 3, 4, 8})
+  @ValueSource(ints = { 1, 2, 3, 4, 8 })
   public void errantTest(int concurrency) {
     List<Message> messages = new LinkedList<>();
     messages.add(new Message(1, buildInfoMessage(1,
-                                                 "CUSTOMERS",
-                                                 "001",
-                                                 1, 2, 3)));
+        "CUSTOMERS",
+        "001",
+        1, 2, 3)));
     messages.add(new Message(2, buildInfoMessage(2,
-                                                 1,
-                                                 null,
-                                                 "CUSTOMERS",
-                                                 "002",
-                                                 1, 4)));
+        1,
+        null,
+        "CUSTOMERS",
+        "002",
+        1, 4)));
     messages.add(new Message(3, buildInfoMessage(3,
-                                                 "CUSTOMERS",
-                                                 "003",
-                                                 2, 5)));
+        "CUSTOMERS",
+        "003",
+        2, 5)));
     messages.add(new Message(4, buildInfoMessage(4,
-                                                 1,
-                                                 null,
-                                                 "CUSTOMERS",
-                                                 "004",
-                                                 4, 5)));
+        1,
+        null,
+        "CUSTOMERS",
+        "004",
+        4, 5)));
     messages.add(new Message(5, buildInfoMessage(5,
-                                                 "CUSTOMERS",
-                                                 "005",
-                                                 6, 7)));
+        "CUSTOMERS",
+        "005",
+        6, 7)));
 
     this.performTest(messages,
-                     messages.size(),
-                     concurrency,
-                     null,
-                     null,
-                     2500L,
-                     null,
-                     null,
-                     0.0,
-                     null);
+        messages.size(),
+        concurrency,
+        null,
+        null,
+        2500L,
+        null,
+        null,
+        0.0,
+        null);
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {8, 16, 24})
+  @ValueSource(ints = { 8, 16, 24 })
   public void loadTest(int concurrency) {
     List<Message> batches = new LinkedList<>();
     int messageCount = buildInfoBatches(
@@ -1147,34 +1190,34 @@ public class AbstractMessageConsumerTest {
     System.err.println();
     System.err.println("=====================================================");
     System.err.println("Testing " + batches.size() + " batches comprising "
-                           + messageCount + " messages with concurrency of "
-                           + concurrency + ".");
+        + messageCount + " messages with concurrency of "
+        + concurrency + ".");
 
     long start = System.nanoTime() / 1000000L;
     this.performTest(batches,
-                     messageCount,
-                     concurrency,
-                     30,
-                     50L,
-                     5000L,
-                     2L,
-                     5L,
-                     0.0,
-                     null);
+        messageCount,
+        concurrency,
+        30,
+        50L,
+        5000L,
+        2L,
+        5L,
+        0.0,
+        null);
     long duration = (System.nanoTime() / 1000000L) - start;
     System.err.println("TOTAL TIME: " + (duration) + " ms");
   }
 
   protected void performTest(List<Message> messages,
-                             int messageCount,
-                             Integer concurrency,
-                             Integer dequeueCount,
-                             Long dequeueSleep,
-                             Long visibilityTimeout,
-                             Long minProcessingTime,
-                             Long maxProcessingTime,
-                             Double failureRate,
-                             Map<Integer, Set<Integer>> orderAfterMap) {
+      int messageCount,
+      Integer concurrency,
+      Integer dequeueCount,
+      Long dequeueSleep,
+      Long visibilityTimeout,
+      Long minProcessingTime,
+      Long maxProcessingTime,
+      Double failureRate,
+      Map<Integer, Set<Integer>> orderAfterMap) {
     StringBuilder sb = new StringBuilder();
     String prefix = "";
     if (concurrency != null) {
@@ -1274,10 +1317,10 @@ public class AbstractMessageConsumerTest {
       }
       builder1.add(CONNECTION_PROVIDER_KEY, providerName);
       builder2.add(AbstractListenerService.SCHEDULING_SERVICE_CONFIG_KEY,
-                   builder1);
+          builder1);
       if (usePostgreSQL) {
         builder2.add(AbstractListenerService.SCHEDULING_SERVICE_CLASS_KEY,
-                     PostgreSQLSchedulingService.class.getName());
+            PostgreSQLSchedulingService.class.getName());
       }
 
       service.init(builder2.build());
@@ -1305,7 +1348,7 @@ public class AbstractMessageConsumerTest {
       // do nothing
     }
     consumer.destroy();
-    //Map<Stat, Number> stats = printStatistics(consumer, service);
+    // Map<Stat, Number> stats = printStatistics(consumer, service);
     Map<Statistic, Number> stats = consumer.getStatistics();
 
     Number messageRetryCount = stats.get(Stat.messageRetryCount);
@@ -1314,13 +1357,13 @@ public class AbstractMessageConsumerTest {
 
     if (failureRate == 0.0) {
       assertEquals(consumer.getExpectedFailureCount(), statsFailureCount,
-                   "Wrong number of info message failures");
+          "Wrong number of info message failures");
       assertEquals(consumer.getExpectedMessageRetryCount(),
-                   messageRetryCount,
-                   "Wrong number of message (batch) retries");
+          messageRetryCount,
+          "Wrong number of message (batch) retries");
       assertEquals(consumer.getExpectedInfoMessageRetryCount(),
-                   processRetryCount,
-                   "Wrong number of info message retries");
+          processRetryCount,
+          "Wrong number of info message retries");
     }
 
     // get the exceptions
@@ -1332,7 +1375,7 @@ public class AbstractMessageConsumerTest {
         e.printStackTrace();
       }
       fail("Failed with " + failureCount + " exceptions.  " + testInfo
-               + ", failures=[ " + service.getFailures() + " ]");
+          + ", failures=[ " + service.getFailures() + " ]");
     }
 
     // get the counts
@@ -1354,24 +1397,25 @@ public class AbstractMessageConsumerTest {
         continue;
       }
       Integer messageId = getInteger(jsonObject, "MESSAGE_ID");
-      if (messageId == null) continue;
+      if (messageId == null)
+        continue;
       MessageCounts counts = countsMap.get(messageId);
 
       if (counts == null) {
         fail("Failed to find statistics for message: " + messageBody);
       }
       assertTrue((counts.getSuccessCount() > 0),
-                 "Message never succeeded: " + counts + " / " + messageBody);
+          "Message never succeeded: " + counts + " / " + messageBody);
 
       int maxFailures = getInteger(jsonObject, "FAILURE_COUNT", -1);
       if ((maxFailures < 0 && failureRate == 0) || (maxFailures == 0)) {
         assertEquals(0, counts.getFailureCount(),
-                     "Received a failure for a message where none was "
-                         + "expected: " + counts + " / " + messageBody);
+            "Received a failure for a message where none was "
+                + "expected: " + counts + " / " + messageBody);
       } else if (maxFailures > 0) {
         assertEquals(maxFailures, counts.getFailureCount(),
-                     "Received an unexpected number of failures for "
-                         + "a message: " + counts + " / " + messageBody);
+            "Received an unexpected number of failures for "
+                + "a message: " + counts + " / " + messageBody);
       }
     }
 
@@ -1381,31 +1425,30 @@ public class AbstractMessageConsumerTest {
 
         if (msgCounts == null) {
           fail("Bad test data.  Unrecognized message ID (" + messageId
-                   + ") in ordering map: " + orderAfterMap + " / "
-                   + countsMap);
+              + ") in ordering map: " + orderAfterMap + " / "
+              + countsMap);
         }
         afterSet.forEach(afterMessageId -> {
           MessageCounts afterCounts = countsMap.get(afterMessageId);
           if (afterCounts == null) {
             fail("Bad test data.  Unrecognized message ID (" + afterMessageId
-                     + ") in ordering map: " + orderAfterMap + " / "
-                     + countsMap);
+                + ") in ordering map: " + orderAfterMap + " / "
+                + countsMap);
           }
           long msgBegin = msgCounts.getLastBeginTime();
           long afterBegin = afterCounts.getLastBeginTime();
           assertTrue(msgBegin > afterBegin,
-                     "Message " + messageId + " was unexpectedly "
-                         + "processed before message " + afterMessageId + ": "
-                         + msgBegin + " <= " + afterBegin + " / "
-                         + MessageCounts.toString(countsList));
+              "Message " + messageId + " was unexpectedly "
+                  + "processed before message " + afterMessageId + ": "
+                  + msgBegin + " <= " + afterBegin + " / "
+                  + MessageCounts.toString(countsList));
         });
       });
     }
   }
 
   private static Map<Statistic, Number> printStatistics(
-      TestMessageConsumer consumer, TestService service, ConnectionPool pool)
-  {
+      TestMessageConsumer consumer, TestService service, ConnectionPool pool) {
     System.err.println();
     System.err.println("=====================================================");
     System.err.println("MESSAGES COMPLETED: " + service.getSuccessCount());
@@ -1440,20 +1483,18 @@ public class AbstractMessageConsumerTest {
     stats.forEach((key, value) -> {
       String units = key.getUnits();
       System.out.println("  " + key + ": " + value
-                             + ((units != null) ? " " + units : ""));
+          + ((units != null) ? " " + units : ""));
     });
 
     System.err.println();
     System.err.println("-----------------------------------------------------");
-    AbstractSchedulingService schedulingService
-        = (AbstractSchedulingService) service.getSchedulingService();
-    Map<Statistic, Number> stats2
-        = schedulingService.getStatistics();
+    AbstractSchedulingService schedulingService = (AbstractSchedulingService) service.getSchedulingService();
+    Map<Statistic, Number> stats2 = schedulingService.getStatistics();
     System.err.println("SCHEDULING STATISTICS:");
     stats2.forEach((key, value) -> {
       String units = key.getUnits();
       System.out.println("  " + key + ": " + value
-                             + ((units != null) ? " " + units : ""));
+          + ((units != null) ? " " + units : ""));
     });
 
     return stats;

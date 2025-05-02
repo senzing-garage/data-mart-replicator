@@ -30,7 +30,7 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
   private static final long ENTITY_FLAGS = 0L;
 
   /**
-   * Constructs with the specified {@link SzReplicationProvider}.  This
+   * Constructs with the specified {@link SzReplicationProvider}. This
    * constructs the super class with {@link
    * TaskAction#UPDATE_CROSS_SOURCE_SUMMARY} as the supported action.
    *
@@ -49,13 +49,12 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
    * directly from the record table where the entity ID is set to zero (0).
    */
   @Override
-  protected int overrideRecordDelta(Connection            conn,
-                                    SzReportKey           reportKey,
-                                    List<SzReportUpdate>  updates,
-                                    int                   computedSum,
-                                    Scheduler             followUpScheduler)
-      throws SQLException
-  {
+  protected int overrideRecordDelta(Connection conn,
+      SzReportKey reportKey,
+      List<SzReportUpdate> updates,
+      int computedSum,
+      Scheduler followUpScheduler)
+      throws SQLException {
     // check if not ENTITY_COUNT statistic
     if (!ENTITY_COUNT.toString().equals(reportKey.getStatistic())) {
       return computedSum;
@@ -67,7 +66,8 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
       int recordDelta = 0;
 
       for (SzReportUpdate update : updates) {
-        if (update.getRecordDelta() < 0) continue;
+        if (update.getRecordDelta() < 0)
+          continue;
         recordDelta += update.getRecordDelta();
       }
 
@@ -104,17 +104,17 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
       G2Service g2Service = this.getG2Service();
 
       Set<SzRecordKey> deleteSet = new LinkedHashSet<>();
-      Map<SzRecordKey,Long> reconnectMap = new LinkedHashMap<>();
+      Map<SzRecordKey, Long> reconnectMap = new LinkedHashMap<>();
       while (rs.next()) {
-        String      recordId  = rs.getString(1);
+        String recordId = rs.getString(1);
         SzRecordKey recordKey = new SzRecordKey(dataSource, recordId);
 
-        Long    entityId = null;
-        String  jsonText = null;
+        Long entityId = null;
+        String jsonText = null;
         try {
           jsonText = g2Service.getEntity(dataSource, recordId, ENTITY_FLAGS);
 
-        } catch(ServiceExecutionException e){
+        } catch (ServiceExecutionException e) {
           logWarning(e, "FAILED TO CHECK IF RECORD STILL EXISTS: " + recordKey);
           continue;
         }
@@ -131,8 +131,8 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
 
           if (entityId == null) {
             logWarning("Skipping orphan record + " + recordKey
-                           + " due to missing entity ID in entity JSON: "
-                           + jsonText);
+                + " due to missing entity ID in entity JSON: "
+                + jsonText);
             continue;
           }
 
@@ -148,8 +148,8 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
           ps2 = close(ps2);
           if (entityCount == 0) {
             logDebug("Entity " + entityId + " for orphan record "
-                         + recordKey + " has not yet been replicated.  "
-                         + "Scheduling follow-up....");
+                + recordKey + " has not yet been replicated.  "
+                + "Scheduling follow-up....");
 
             followUpScheduler.createTaskBuilder(REFRESH_ENTITY.toString())
                 .resource(ENTITY_RESOURCE_KEY, entityId)
@@ -159,9 +159,9 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
             continue;
 
           } else if (entityCount > 1) {
-            logWarning("Entity " + entityId + " for orhan record "
-                           + recordKey + " has " + entityCount
-                           + " data-mart rows.");
+            logWarning("Entity " + entityId + " for orphan record "
+                + recordKey + " has " + entityCount
+                + " data-mart rows.");
             continue;
           }
         }
@@ -171,7 +171,7 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
 
         } else {
           logDebug("Queueing record " + recordKey
-                       + " for reconnection to entity " + entityId);
+              + " for reconnection to entity " + entityId);
           reconnectMap.put(recordKey, entityId);
         }
       }
@@ -190,7 +190,7 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
         List<Integer> rowCounts = this.batchUpdate(
             ps, reconnectMap.entrySet(), (ps2, entry) -> {
               SzRecordKey recordKey = entry.getKey();
-              Long        entityId  = entry.getValue();
+              Long entityId = entry.getValue();
               ps2.setLong(1, entityId);
               ps2.setString(2, operationId);
               ps2.setString(3, recordKey.getDataSource());
@@ -204,16 +204,16 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
           int rowCount = rowCounts.get(index++);
           if (rowCount == 0) {
             logWarning("FAILED TO RECONNECT RECORD " + entry.getKey()
-                           + " TO ENTITY " + entry.getValue());
+                + " TO ENTITY " + entry.getValue());
           } else {
             logDebug("Reconnected record " + entry.getKey()
-                         + " to entity " + entry.getValue());
+                + " to entity " + entry.getValue());
             reconnectedCount++;
           }
         }
         logDebug("Reconnected " + reconnectedCount + " out of "
-                     + reconnectMap.size() + " records from " + dataSource
-                     + " data source");
+            + reconnectMap.size() + " records from " + dataSource
+            + " data source");
       }
 
       rs = close(rs);

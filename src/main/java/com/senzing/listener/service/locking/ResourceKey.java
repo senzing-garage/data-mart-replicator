@@ -1,6 +1,5 @@
 package com.senzing.listener.service.locking;
 
-
 import com.senzing.cmdline.CommandLineUtilities;
 
 import java.io.Serializable;
@@ -18,8 +17,7 @@ import static com.senzing.io.IOUtilities.UTF_8;
  * Provides a key for identifying a resource that can be locked via the
  * {@link LockingService}.
  */
-public final class ResourceKey implements Serializable, Comparable<ResourceKey>
-{
+public final class ResourceKey implements Serializable, Comparable<ResourceKey> {
   /**
    * The resource type.
    */
@@ -39,8 +37,8 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey>
    * entity ID or a data source code followed by a record ID).
    *
    * @param resourceType The type of resource being identified.
-   * @param components Zero or more key components that more specifically
-   *                   identify the resource.
+   * @param components   Zero or more key components that more specifically
+   *                     identify the resource.
    * @throws NullPointerException If the resource type is <code>null</code>.
    */
   public ResourceKey(String resourceType, String... components) {
@@ -54,13 +52,13 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey>
    * (e.g.: <code>"RECORD"</code>, <code>"ENTITY"</code>, or
    * <code>"REPORT"</code>) followed by zero or more key components that more
    * specifically identify the resource within the type of resource (e.g.: an
-   * entity ID or a data source code followed by a record ID).  This constructor
+   * entity ID or a data source code followed by a record ID). This constructor
    * version converts the one or more {@link Object} component instances to
    * {@link String} instances.
    *
    * @param resourceType The type of resource being identified.
-   * @param components Zero or more key components that more specifically
-   *                   identify the resource.
+   * @param components   Zero or more key components that more specifically
+   *                     identify the resource.
    * @throws NullPointerException If the resource type is <code>null</code>.
    */
   public ResourceKey(String resourceType, Object... components) {
@@ -78,7 +76,7 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey>
   }
 
   /**
-   * Returns the resource type that identifies the type of resource.  Examples
+   * Returns the resource type that identifies the type of resource. Examples
    * may be <code>"ENTITY"</code>, <code>"RECORD"</code> or
    * <code>"REPORT"</code>.
    *
@@ -91,7 +89,7 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey>
   /**
    * Returns the <b>unmodifiable</b> {@link List} of {@link String} components
    * that more specifically identify the resource being locked within the
-   * resource type.  The returned {@link List} may be empty, but will <b>not</b>
+   * resource type. The returned {@link List} may be empty, but will <b>not</b>
    * be <code>null</code>; however, elements in the {@link List} may be
    * <code>null</code>.
    *
@@ -115,7 +113,7 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey>
   }
 
   /**
-   * Overirden to return <code>true</code> if and only if the specified
+   * Overridden to return <code>true</code> if and only if the specified
    * parameter is a non-null reference to an instance of the same class with
    * an equivalent resource type and all component parts in the same order.
    *
@@ -125,9 +123,12 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey>
    */
   @Override
   public boolean equals(Object obj) {
-    if (obj == null) return false;
-    if (this == obj) return true;
-    if (this.getClass() != obj.getClass()) return false;
+    if (obj == null)
+      return false;
+    if (this == obj)
+      return true;
+    if (this.getClass() != obj.getClass())
+      return false;
     ResourceKey key = (ResourceKey) obj;
     return Objects.equals(this.getResourceType(), key.getResourceType())
         && Objects.equals(this.getComponents(), key.getComponents());
@@ -146,20 +147,26 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey>
   @Override
   public int compareTo(ResourceKey key) {
     int diff = this.getResourceType().compareTo(key.getResourceType());
-    if (diff != 0) return diff;
+    if (diff != 0)
+      return diff;
     List<String> comp1 = this.getComponents();
     List<String> comp2 = key.getComponents();
     diff = comp1.size() - comp2.size();
-    if (diff != 0) return diff;
+    if (diff != 0)
+      return diff;
     int count = comp1.size();
     for (int index = 0; index < count; index++) {
       String s1 = comp1.get(index);
       String s2 = comp2.get(index);
-      if (Objects.equals(s1, s2)) continue;
-      if (s1 == null && s2 != null) return -1;
-      if (s1 != null && s2 == null) return 1;
+      if (Objects.equals(s1, s2))
+        continue;
+      if (s1 == null && s2 != null)
+        return -1;
+      if (s1 != null && s2 == null)
+        return 1;
       diff = s1.compareTo(s2);
-      if (diff != 0) return diff;
+      if (diff != 0)
+        return diff;
     }
     return 0;
   }
@@ -184,8 +191,8 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey>
   }
 
   /**
-   * Parses the encoded text as a {@link ResourceKey}.  The encoding is done
-   * by the {@link #toString()} method.  This method returns <code>null</code>
+   * Parses the encoded text as a {@link ResourceKey}. The encoding is done
+   * by the {@link #toString()} method. This method returns <code>null</code>
    * if the specified parameter is <code>null</code>.
    *
    * @param text The text to parse.
@@ -197,10 +204,10 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey>
    *                                  white space.
    */
   public static ResourceKey parse(String text)
-    throws IllegalArgumentException
-  {
+      throws IllegalArgumentException {
     // return null if parameter is null
-    if (text == null) return null;
+    if (text == null)
+      return null;
 
     // trim leading and trailing whitespace
     text = text.trim();
@@ -227,6 +234,7 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey>
   /**
    * Simple test main that constructs a {@link ResourceKey} and converts it to
    * a {@link String}.
+   * 
    * @param args The command-line arguments.
    */
   public static void main(String[] args) {
@@ -237,7 +245,8 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey>
       }
       String resourceType = args[0];
       String[] components = (args.length > 1)
-          ? CommandLineUtilities.shiftArguments(args, 1) : new String[0];
+          ? CommandLineUtilities.shiftArguments(args, 1)
+          : new String[0];
 
       ResourceKey key = new ResourceKey(resourceType, components);
 

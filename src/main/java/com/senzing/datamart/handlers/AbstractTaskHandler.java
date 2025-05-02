@@ -46,19 +46,18 @@ public abstract class AbstractTaskHandler implements TaskHandler {
    * Constructs with the specified {@link SzReplicationProvider} to back this
    * task handler and the supported {@link TaskAction}.
    *
-   * @param provider The {@link SzReplicationProvider} to use.
+   * @param provider        The {@link SzReplicationProvider} to use.
    * @param supportedAction The first supported {@link TaskAction}.
    */
   protected AbstractTaskHandler(SzReplicationProvider provider,
-                                TaskAction            supportedAction)
-  {
+      TaskAction supportedAction) {
     Objects.requireNonNull(
         provider, "The SzReplicationProvider cannot be null");
     Objects.requireNonNull(
         supportedAction, "The supported task action cannot be null");
 
-    this.replicationProvider  = provider;
-    this.supportedAction      = supportedAction.toString();
+    this.replicationProvider = provider;
+    this.supportedAction = supportedAction.toString();
   }
 
   /**
@@ -74,7 +73,7 @@ public abstract class AbstractTaskHandler implements TaskHandler {
    * Gets the {@link G2Service} from the backing {@link SzReplicationProvider}.
    *
    * @return The {@link G2Service} from the backing {@link
-   * SzReplicationProvider}.
+   *         SzReplicationProvider}.
    */
   protected G2Service getG2Service() {
     return this.replicationProvider.getG2Service();
@@ -85,14 +84,14 @@ public abstract class AbstractTaskHandler implements TaskHandler {
    * SzReplicationProvider}.
    *
    * @return The {@link ConnectionProvider} from the backing {@link
-   * SzReplicationProvider}.
+   *         SzReplicationProvider}.
    */
   protected ConnectionProvider getConnectionProvider() {
     return this.replicationProvider.getConnectionProvider();
   }
 
   /**
-   * Gets a JDBC {@link Connection} to use.  The caller should close the
+   * Gets a JDBC {@link Connection} to use. The caller should close the
    * {@link Connection} to release it back to the pool for others to use.
    *
    * @return The {@link Connection} that was obtained.
@@ -109,7 +108,7 @@ public abstract class AbstractTaskHandler implements TaskHandler {
    * SzReplicationProvider}.
    *
    * @return The {@link DatabaseType} from the backing {@link
-   * SzReplicationProvider}.
+   *         SzReplicationProvider}.
    */
   protected DatabaseType getDatabaseType() {
     return this.replicationProvider.getDatabaseType();
@@ -123,8 +122,8 @@ public abstract class AbstractTaskHandler implements TaskHandler {
    * @param reportKey    The report key for the report statistic that should be
    *                     updated.
    */
-  protected void scheduleReportFollowUp(String      reportAction,
-                                        SzReportKey reportKey) {
+  protected void scheduleReportFollowUp(String reportAction,
+      SzReportKey reportKey) {
     this.replicationProvider.scheduleReportFollowUp(reportAction, reportKey);
   }
 
@@ -137,9 +136,8 @@ public abstract class AbstractTaskHandler implements TaskHandler {
    * @param reportKey    The report key for the report statistic that should be
    *                     updated.
    */
-  protected void scheduleReportFollowUp(TaskAction  reportAction,
-                                        SzReportKey reportKey)
-  {
+  protected void scheduleReportFollowUp(TaskAction reportAction,
+      SzReportKey reportKey) {
     this.scheduleReportFollowUp(reportAction.toString(), reportKey);
   }
 
@@ -152,33 +150,31 @@ public abstract class AbstractTaskHandler implements TaskHandler {
    */
   @Override
   public Boolean waitUntilReady(long timeoutMillis)
-      throws InterruptedException
-  {
+      throws InterruptedException {
     return this.replicationProvider.waitUntilReady(timeoutMillis);
   }
 
   /**
    * Implemented to check if the specified action is the support action and if
-   * not throws an {@link IllegalArgumentException}.  If it is the supported
+   * not throws an {@link IllegalArgumentException}. If it is the supported
    * action then {@link #handleTask(Map, int, Scheduler)} is called.
    *
    * {@inheritDoc}
    */
   @Override
-  public void handleTask(String               action,
-                         Map<String, Object>  parameters,
-                         int                  multiplicity,
-                         Scheduler            followUpScheduler)
-      throws ServiceExecutionException
-  {
+  public void handleTask(String action,
+      Map<String, Object> parameters,
+      int multiplicity,
+      Scheduler followUpScheduler)
+      throws ServiceExecutionException {
     logDebug("HANDLING TASK: " + action + " ( x " + multiplicity + " )",
-             "WITH PARAMETERS: " + parameters);
+        "WITH PARAMETERS: " + parameters);
 
     Objects.requireNonNull(action, "The action cannot be null");
     if (!action.equals(this.getSupportedAction())) {
       throw new IllegalArgumentException(
           "This TaskHandler implementation cannot handle the specified "
-          + "action.  action=[ " + action + " ], supported=[ "
+              + "action.  action=[ " + action + " ], supported=[ "
               + this.getSupportedAction() + " ]");
     }
     this.handleTask(parameters, multiplicity, followUpScheduler);
@@ -187,15 +183,16 @@ public abstract class AbstractTaskHandler implements TaskHandler {
   /**
    * THis method must be implemented to handle the supported task.
    *
-   * @param parameters The {@link Map} of {@link String} keys to {@link Object}
-   *                   values for the task parameters.
-   * @param multiplicity The multiplicity for the task.
+   * @param parameters        The {@link Map} of {@link String} keys to
+   *                          {@link Object}
+   *                          values for the task parameters.
+   * @param multiplicity      The multiplicity for the task.
    * @param followUpScheduler The follow-up scheduler for the task.
    * @throws ServiceExecutionException If a failure occurs.
    */
-  protected abstract void handleTask(Map<String, Object>  parameters,
-                                     int                  multiplicity,
-                                     Scheduler            followUpScheduler)
+  protected abstract void handleTask(Map<String, Object> parameters,
+      int multiplicity,
+      Scheduler followUpScheduler)
       throws ServiceExecutionException;
 
   /**
@@ -238,16 +235,16 @@ public abstract class AbstractTaskHandler implements TaskHandler {
   protected interface Binder<T> {
     /**
      * Binds the properties of the specified value to the specified {@link
-     * PreparedStatement}.  This method optionally returns the expected
-     * number of rows or the exact expected number of rows.  If
-     * <code>null</code> is returned then no expection is made on the
-     * returned number of rows.  If a non-negative number is returned then
-     * that exact number of rows is expected to be updated/selected.  If a
+     * PreparedStatement}. This method optionally returns the expected
+     * number of rows or the exact expected number of rows. If
+     * <code>null</code> is returned then no exception is made on the
+     * returned number of rows. If a non-negative number is returned then
+     * that exact number of rows is expected to be updated/selected. If a
      * negative number is returned then the absolute value of that return
      * value is an upper bound for the maximum number of rows to be
      * updated/selected.
      *
-     * @param ps The {@link PreparedStatement} to bind to.
+     * @param ps    The {@link PreparedStatement} to bind to.
      * @param value The value that holds the properties to be bound.
      * @return The number of expected rows to be returned when executing a
      *         query or the number of expected rows to be updated if executing
@@ -266,14 +263,14 @@ public abstract class AbstractTaskHandler implements TaskHandler {
    * PreparedStatement} as a batch update, executes the batch and
    * verifies the number of updated rows according to the return value
    * from {@link Binder#bind(PreparedStatement, Object)} for each respective
-   * value.  This method will cap the batch size at {@link #MAX_BATCH_SIZE},
+   * value. This method will cap the batch size at {@link #MAX_BATCH_SIZE},
    * execute the batch and start a new batch repeatedly until all updates
    * have been performed.
    *
-   * @param ps The {@link PreparedStatement} to bind.
+   * @param ps     The {@link PreparedStatement} to bind.
    * @param binder The {@link Binder} to use for binding to the {@link
    *               PreparedStatement}.
-   * @param data The {@link Collection} of data values to bind.
+   * @param data   The {@link Collection} of data values to bind.
    * @return The {@link List} of row counts for the updated rows, corresponding
    *         in iteration order to the specified {@link Collection} of data
    *         values for which the row count applies.
@@ -282,18 +279,18 @@ public abstract class AbstractTaskHandler implements TaskHandler {
    * @throws SQLException If a JDBC failure occurs.
    */
   protected <T> List<Integer> batchUpdate(PreparedStatement ps,
-                                          Collection<T>     data,
-                                          Binder<T>         binder)
+      Collection<T> data,
+      Binder<T> binder)
       throws SQLException {
 
-    int           batchCount      = 0;
-    List<Integer> rowCounts       = new ArrayList<>(data.size());
-    List<Integer> expectedCounts  = new ArrayList<>(data.size());
+    int batchCount = 0;
+    List<Integer> rowCounts = new ArrayList<>(data.size());
+    List<Integer> expectedCounts = new ArrayList<>(data.size());
     for (T value : data) {
       expectedCounts.add(binder.bind(ps, value));
       ps.addBatch();
       batchCount++;
-      // if we exceeed the maximum batch size then execute early
+      // if we exceed the maximum batch size then execute early
       if (batchCount > MAX_BATCH_SIZE) {
         for (int rowCount : ps.executeBatch()) {
           rowCounts.add(rowCount);
@@ -320,26 +317,27 @@ public abstract class AbstractTaskHandler implements TaskHandler {
       Integer expectedRowCount = expectedCounts.get(index);
 
       // check if no expectation
-      if (expectedRowCount == null) continue;
+      if (expectedRowCount == null)
+        continue;
 
       // check if the expectation is an exact count
       boolean exact = (expectedRowCount >= 0);
 
       // if not exact then convert to an upper bound
-      if (!exact) expectedRowCount = -1 * expectedRowCount;
+      if (!exact)
+        expectedRowCount = -1 * expectedRowCount;
 
       // get the actual row count
       int actualRowCount = rowCounts.get(index);
 
-      // check the actual row count versus the expected rowc ount
+      // check the actual row count versus the expected row count
       if ((exact && (actualRowCount != expectedRowCount))
-          || (!exact && (actualRowCount > expectedRowCount)))
-      {
+          || (!exact && (actualRowCount > expectedRowCount))) {
         sb.append(prefix).append("{ [ expected=[ ");
         sb.append((exact) ? String.valueOf(expectedRowCount)
-                      : ("[0, " + expectedRowCount + "]"));
+            : ("[0, " + expectedRowCount + "]"));
         sb.append(" ], actual=[ " + actualRowCount + " ], updatedValue=[ "
-                      + value + " ] }");
+            + value + " ] }");
         prefix = ", ";
         errorCount++;
       }

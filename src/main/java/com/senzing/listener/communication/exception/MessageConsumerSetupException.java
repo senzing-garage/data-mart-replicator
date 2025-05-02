@@ -6,6 +6,7 @@ package com.senzing.listener.communication.exception;
 public class MessageConsumerSetupException extends MessageConsumerException {
   /**
    * Constructs with the specified message.
+   * 
    * @param message The message with which to construct.
    */
   public MessageConsumerSetupException(String message) {
@@ -16,7 +17,7 @@ public class MessageConsumerSetupException extends MessageConsumerException {
    * Constructs with the specified {@link Exception} describing the
    * underlying failure that occurred.
    *
-   * @param cause The {@link Exception} descrbing the underlying failure
+   * @param cause The {@link Exception} describing the underlying failure
    *              that occurred.
    */
   public MessageConsumerSetupException(Exception cause) {
@@ -28,12 +29,11 @@ public class MessageConsumerSetupException extends MessageConsumerException {
    * describing the underlying failure that occurred.
    *
    * @param message The message with which to construct.
-   * @param cause The {@link Exception} descrbing the underlying failure
-   *              that occurred.
+   * @param cause   The {@link Exception} describing the underlying failure
+   *                that occurred.
    */
-  public MessageConsumerSetupException(String     message,
-                                       Exception  cause)
-  {
+  public MessageConsumerSetupException(String message,
+      Exception cause) {
     super(message, cause);
   }
 }

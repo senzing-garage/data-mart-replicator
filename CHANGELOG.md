@@ -49,7 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `senzing-listener` dependency from version `1.0.0` to `1.0.1`
 - Updated `jackson-xxxxx` dependencies from version `2.17.2` to `2.18.0`
 - Updated `amqp-client` dependency from version `5.21.0` to `5.22.0`
-- Updated Amazon `sqs` dependney from version `2.26.27` to `2.28.17`
+- Updated Amazon `sqs` dependency from version `2.26.27` to `2.28.17`
 - Updated `slf4j-xxxxx` dependencies from version `2.0.13` to `2.0.16`
 - Updated `junit-jupiter` dependency from version `5.10.3` to `5.11.2`
 - Updated `postgresql` dependency from version `42.7.3` to `42.7.4`
@@ -66,7 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `jackson-module-jaxb-annotations` dependency from version `2.17.1` to `2.17.2`
 - Updated `jackson-datatype-joda` dependency from version `2.17.1` to `2.17.2`
 - Updated `junit-jupiter` dependency from version `5.10.2` to `5.10.3`
-- Updated Amazon `sqs` dependney from version `2.26.4` to `2.26.27`
+- Updated Amazon `sqs` dependency from version `2.26.4` to `2.26.27`
 - Updated `maven-javadoc-plugin` dependency from version `3.7.0` to `3.8.0`
 
 ## [1.1.3] - 2024-06-20
@@ -75,13 +75,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Updated `senzing-commons-java` dependency from version `3.2.0` to `3.3.0`
 - Updated `senzing-listener` dependency from version `0.5.7` to `0.5.9`
-- Updated  `postgresql` dependency from version `42.7.2` to `42.7.3`
+- Updated `postgresql` dependency from version `42.7.2` to `42.7.3`
 - Updated `jackson-annotations` dependency from version `2.16.1` to `2.17.1`
 - Updated `jackson-databind` dependency from version `2.16.1` to `2.17.1`
 - Updated `jackson-core` dependency from version `2.16.1` to `2.17.1`
 - Updated `jackson-module-jaxb-annotations` dependency from version `2.16.1` to `2.17.1`
 - Updated `jackson-datatype-joda` dependency from version `2.16.1` to `2.17.1`
-- Updated Amazon `sqs` dependney from version `2.24.12` to `2.26.4`
+- Updated Amazon `sqs` dependency from version `2.24.12` to `2.26.4`
 - Updated `amqp-client` dependency from version `5.20.0` to `5.21.0`
 - Updated `slf4j-api` dependency from version `2.0.12` to `2.0.13`
 - Updated `slf4j-simple` dependency from version `2.0.12` to `2.0.13`
@@ -109,7 +109,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed in 1.1.0
 
 - Added tracking of the "Principle" (`ERRULE_CODE`) with replicated relationships
-- Added tracking of the Match Key (`MATCH_KEY`) and "Principle" (`ERRULE_CODE`) 
+- Added tracking of the Match Key (`MATCH_KEY`) and "Principle" (`ERRULE_CODE`)
   with replicated records
 - Modified index on `sz_dm_relation` table for `related_id` + `entity_id`
 - Added indexes on `sz_dm_relation` for `match_key` and `principle`
@@ -117,12 +117,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added tracking of Principle and Match Key variants of summary statistics
 - Added configuration for `maven-compiler-plugin`
 - Updated dependency versions:
-    - Updated AWS dependencies to version `2.24.12`
-    - Updated `maven-javadoc-plugin` to version `3.6.3`
-    - Updated `senzing-listener` to version `0.5.5`
-    - Updqted `senzing-commons-java` to version `3.2.0`
-    - Updated Jackson dependencies to version `2.16.1`
-    - Updted SLF4J dependencies to version `2.0.12`
+  - Updated AWS dependencies to version `2.24.12`
+  - Updated `maven-javadoc-plugin` to version `3.6.3`
+  - Updated `senzing-listener` to version `0.5.5`
+  - Updated `senzing-commons-java` to version `3.2.0`
+  - Updated Jackson dependencies to version `2.16.1`
+  - Updated SLF4J dependencies to version `2.0.12`
 
 ## [1.0.0] - 2023-12-08
 
