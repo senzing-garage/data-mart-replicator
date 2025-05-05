@@ -5,7 +5,7 @@ package com.senzing.listener.communication;
  */
 public enum ConsumerType {
   /**
-   * Uses for database message queuue via <code>sz_message_queue</code> table.
+   * Uses for database message queue via <code>sz_message_queue</code> table.
    */
   DATABASE,
 

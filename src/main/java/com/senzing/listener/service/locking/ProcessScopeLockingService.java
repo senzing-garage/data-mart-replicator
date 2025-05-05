@@ -14,8 +14,7 @@ import static com.senzing.listener.service.locking.LockScope.*;
  * the scope of the current process using in-memory data constructs.
  */
 public class ProcessScopeLockingService extends AbstractLockingService
-    implements LockingService
-{
+    implements LockingService {
   /**
    * The {@link Map} of {@link LockToken} instances to the {@link Set} of
    * {@link ResourceKey} instances that have locks associated with that token.
@@ -56,13 +55,14 @@ public class ProcessScopeLockingService extends AbstractLockingService
     System.err.println("***************************************************");
 
   }
+
   /**
    * Implemented to do nothing since no additional initialization is required.
    */
   @Override
   protected void doInit(JsonObject config) throws ServiceSetupException {
-    this.locksToResourcesMap  = new HashMap<>();
-    this.resourceToLockMap    = new HashMap<>();
+    this.locksToResourcesMap = new HashMap<>();
+    this.resourceToLockMap = new HashMap<>();
   }
 
   /**
@@ -98,8 +98,7 @@ public class ProcessScopeLockingService extends AbstractLockingService
    */
   @Override
   protected LockToken doAcquireLocks(List<ResourceKey> resourceKeys, long wait)
-      throws ServiceExecutionException
-  {
+      throws ServiceExecutionException {
     synchronized (this) {
       boolean available = true;
       long start = System.nanoTime();
@@ -122,7 +121,7 @@ public class ProcessScopeLockingService extends AbstractLockingService
           duration = (System.nanoTime() - start) / 1000000L;
 
           if (wait < 0L || duration < wait) {
-            long timeout = (wait < 0L) ? -1L : Math.max(0L, wait-duration);
+            long timeout = (wait < 0L) ? -1L : Math.max(0L, wait - duration);
             try {
               if (timeout < 0L) {
                 this.wait();
@@ -139,12 +138,13 @@ public class ProcessScopeLockingService extends AbstractLockingService
       } while (!available && (wait < 0L || duration < wait));
 
       // check if not available
-      if (!available) return null;
+      if (!available)
+        return null;
 
       // if available, then create the locks
       LockToken lockToken = new LockToken(this.getScope());
-      for (ResourceKey key: resourceKeys) {
-        this.resourceToLockMap.put(key,  lockToken);
+      for (ResourceKey key : resourceKeys) {
+        this.resourceToLockMap.put(key, lockToken);
       }
       this.locksToResourcesMap.put(
           lockToken, new LinkedHashSet<>(resourceKeys));
@@ -164,27 +164,26 @@ public class ProcessScopeLockingService extends AbstractLockingService
    */
   @Override
   protected int doReleaseLocks(LockToken lockToken)
-      throws ServiceExecutionException, IllegalArgumentException
-  {
+      throws ServiceExecutionException, IllegalArgumentException {
     synchronized (this) {
       // verify the lock token
       if (!this.locksToResourcesMap.containsKey(lockToken)) {
         throw new IllegalArgumentException(
-            "Unrecognied lock token: " + lockToken);
+            "Unrecognized lock token: " + lockToken);
       }
 
       // get the set of locked resource keys
       Set<ResourceKey> keys = this.locksToResourcesMap.remove(lockToken);
 
       // iterate over the keys
-      for (ResourceKey key: keys) {
+      for (ResourceKey key : keys) {
         LockToken token = this.resourceToLockMap.remove(key);
         if (!token.equals(lockToken)) {
           throw new IllegalStateException(
               "Lock token associated with resource key does not match lock "
-              + "token that holds the lock on the resource.  resourceKeys=[ "
-              + keys + " ], lockToken=[ " + token + " ], expectedLockToken=[ "
-              + lockToken + " ]");
+                  + "token that holds the lock on the resource.  resourceKeys=[ "
+                  + keys + " ], lockToken=[ " + token + " ], expectedLockToken=[ "
+                  + lockToken + " ]");
         }
       }
 

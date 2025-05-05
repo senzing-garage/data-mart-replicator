@@ -26,6 +26,9 @@ target
 .idea
 *.iml
 
-# VS Code
+# Visual Studio code
+.vscode/*
+!.vscode/cspell.json
+*.code-workspace
+.history
 .project
-.vscode/

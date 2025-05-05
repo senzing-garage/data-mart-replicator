@@ -20,24 +20,24 @@ import static com.senzing.util.JsonUtilities.*;
  * {@link SzReplicator}.
  */
 public class SzReplicatorOptions {
-  private JsonObject  jsonInit                  = null;
-  private int         concurrency               = DEFAULT_CONCURRENCY;
-  private String      moduleName                = DEFAULT_MODULE_NAME;
-  private boolean     verbose                   = false;
-  private boolean     useDatabaseQueue          = false;
-  private String      rabbitInfoUser            = null;
-  private String      rabbitInfoPassword        = null;
-  private String      rabbitInfoHost            = null;
-  private Integer     rabbitInfoPort            = null;
-  private String      rabbitInfoVHost           = null;
-  private String      rabbitInfoQueue           = null;
-  private String      sqsInfoUrl                = null;
-  private File        sqliteDatabaseFile        = null;
-  private String      postgreSqlHost            = null;
-  private Integer     postgreSqlPort            = null;
-  private String      postgreSqlDatabase        = null;
-  private String      postgreSqlUser            = null;
-  private String      postgreSqlPassword        = null;
+  private JsonObject jsonInit = null;
+  private int concurrency = DEFAULT_CONCURRENCY;
+  private String moduleName = DEFAULT_MODULE_NAME;
+  private boolean verbose = false;
+  private boolean useDatabaseQueue = false;
+  private String rabbitInfoUser = null;
+  private String rabbitInfoPassword = null;
+  private String rabbitInfoHost = null;
+  private Integer rabbitInfoPort = null;
+  private String rabbitInfoVHost = null;
+  private String rabbitInfoQueue = null;
+  private String sqsInfoUrl = null;
+  private File sqliteDatabaseFile = null;
+  private String postgreSqlHost = null;
+  private Integer postgreSqlPort = null;
+  private String postgreSqlDatabase = null;
+  private String postgreSqlUser = null;
+  private String postgreSqlPassword = null;
 
   /**
    * Constructs with the native Senzing JSON initialization parameters as a
@@ -47,7 +47,7 @@ public class SzReplicatorOptions {
    */
   public SzReplicatorOptions(JsonObject jsonInit) {
     Objects.requireNonNull(jsonInit,
-                           "JSON init parameters cannot be null");
+        "JSON init parameters cannot be null");
     this.jsonInit = jsonInit;
   }
 
@@ -73,7 +73,7 @@ public class SzReplicatorOptions {
   }
 
   /**
-   * Gets the module name to initialize with.  If <code>null</code> is returned
+   * Gets the module name to initialize with. If <code>null</code> is returned
    * then {@link SzReplicatorConstants#DEFAULT_MODULE_NAME} is used.
    *
    * @return The module name to initialize with, or <code>null</code> is
@@ -85,7 +85,7 @@ public class SzReplicatorOptions {
   }
 
   /**
-   * Sets the module name to initialize with.  Set to <code>null</code> if the
+   * Sets the module name to initialize with. Set to <code>null</code> if the
    * default value of {@link SzReplicatorConstants#DEFAULT_MODULE_NAME} is to be
    * used.
    *
@@ -121,12 +121,12 @@ public class SzReplicatorOptions {
   }
 
   /**
-   * Sets the whether or not the configured database should be used to 
+   * Sets the whether or not the configured database should be used to
    * provide the info message queue via the <code>sz_message_queue</code>
    * table rather than using Rabbit MQ or Amazon SQS.
    *
-   * @param useDatabaseQueue <code>true</code> if the configured database 
-   *                         should be used for the info message queue, 
+   * @param useDatabaseQueue <code>true</code> if the configured database
+   *                         should be used for the info message queue,
    *                         otherwise <code>false</code>.
    */
   public void setUseDatabaseQueue(boolean useDatabaseQueue) {
@@ -138,13 +138,12 @@ public class SzReplicatorOptions {
    * the <code>sz_message_queue</code> table instead of using Rabbit MQ
    * or Amazon SQS.
    * 
-   * @return <code>true</code> if the configured datbase should be used 
+   * @return <code>true</code> if the configured database should be used
    *         for the info message queue, otherwise <code>false</code>
    */
   public boolean isUsingDatabaseQueue() {
     return this.useDatabaseQueue;
   }
-
 
   /**
    * Gets the number of threads that the server will create for the engine.
@@ -169,7 +168,8 @@ public class SzReplicatorOptions {
    */
   public SzReplicatorOptions setConcurrency(Integer concurrency) {
     this.concurrency = (concurrency != null)
-        ? concurrency : DEFAULT_CONCURRENCY;
+        ? concurrency
+        : DEFAULT_CONCURRENCY;
     return this;
   }
 
@@ -472,7 +472,8 @@ public class SzReplicatorOptions {
    * @return The specified {@link JsonObjectBuilder}.
    */
   public JsonObjectBuilder buildJson(JsonObjectBuilder builder) {
-    if (builder == null) builder = Json.createObjectBuilder();
+    if (builder == null)
+      builder = Json.createObjectBuilder();
     JsonUtilities.add(builder, "initJson", this.getJsonInitParameters());
     JsonUtilities.add(builder, "verbose", this.isVerbose());
     JsonUtilities.add(builder, "concurrency", this.getConcurrency());
@@ -520,8 +521,7 @@ public class SzReplicatorOptions {
    */
   public static SzReplicatorOptions parse(JsonObject jsonObject) {
     final JsonObject obj = jsonObject;
-    SzReplicatorOptions opts
-        = new SzReplicatorOptions(getJsonObject(obj, "initJson"));
+    SzReplicatorOptions opts = new SzReplicatorOptions(getJsonObject(obj, "initJson"));
 
     opts.setConcurrency(getInteger(obj, "concurrency"));
     opts.setModuleName(getString(obj, "moduleName"));
@@ -534,7 +534,7 @@ public class SzReplicatorOptions {
     opts.setRabbitInfoQueue(getString(obj, "rabbitInfoQueue"));
     opts.setSqsInfoUrl(getString(obj, "sqsInfoUrl"));
     opts.setSqliteDatabaseFile(new File(getString(obj,
-                                                  "sqliteDatabaseFile")));
+        "sqliteDatabaseFile")));
     opts.setPostgreSqlHost(getString(obj, "postgreSqlHost"));
     opts.setPostgreSqlPort(getInteger(obj, "postgreSqlPort"));
     opts.setPostgreSqlDatabase(getString(obj, "postgreSqlDatabase"));
@@ -552,24 +552,24 @@ public class SzReplicatorOptions {
    */
   protected Map<CommandLineOption, Object> buildOptionsMap() {
     Map<CommandLineOption, Object> map = new HashMap<>();
-    put(map, MODULE_NAME,               this.getModuleName());
-    put(map, INIT_JSON,                 this.getJsonInitParameters());
-    put(map, VERBOSE,                   this.isVerbose());
-    put(map, CONCURRENCY,               this.getConcurrency());
-    put(map, RABBIT_INFO_USER,          this.getRabbitInfoUser());
-    put(map, RABBIT_INFO_PASSWORD,      this.getRabbitInfoPassword());
-    put(map, RABBIT_INFO_HOST,          this.getRabbitInfoHost());
-    put(map, RABBIT_INFO_PORT,          this.getRabbitInfoPort());
-    put(map, RABBIT_INFO_VIRTUAL_HOST,  this.getRabbitInfoVirtualHost());
-    put(map, RABBIT_INFO_QUEUE,         this.getRabbitInfoQueue());
-    put(map, SQS_INFO_URL,              this.getSqsInfoUrl());
-    put(map, DATABASE_INFO_QUEUE,       this.isUsingDatabaseQueue());
-    put(map, SQLITE_DATABASE_FILE,      this.getSqliteDatabaseFile());
-    put(map, POSTGRESQL_HOST,           this.getPostgreSqlHost());
-    put(map, POSTGRESQL_PORT,           this.getPostgreSqlPort());
-    put(map, POSTGRESQL_DATABASE,       this.getPostgreSqlDatabase());
-    put(map, POSTGRESQL_USER,           this.getPostgreSqlUser());
-    put(map, POSTGRESQL_PASSWORD,       this.getPostgreSqlPassword());
+    put(map, MODULE_NAME, this.getModuleName());
+    put(map, INIT_JSON, this.getJsonInitParameters());
+    put(map, VERBOSE, this.isVerbose());
+    put(map, CONCURRENCY, this.getConcurrency());
+    put(map, RABBIT_INFO_USER, this.getRabbitInfoUser());
+    put(map, RABBIT_INFO_PASSWORD, this.getRabbitInfoPassword());
+    put(map, RABBIT_INFO_HOST, this.getRabbitInfoHost());
+    put(map, RABBIT_INFO_PORT, this.getRabbitInfoPort());
+    put(map, RABBIT_INFO_VIRTUAL_HOST, this.getRabbitInfoVirtualHost());
+    put(map, RABBIT_INFO_QUEUE, this.getRabbitInfoQueue());
+    put(map, SQS_INFO_URL, this.getSqsInfoUrl());
+    put(map, DATABASE_INFO_QUEUE, this.isUsingDatabaseQueue());
+    put(map, SQLITE_DATABASE_FILE, this.getSqliteDatabaseFile());
+    put(map, POSTGRESQL_HOST, this.getPostgreSqlHost());
+    put(map, POSTGRESQL_PORT, this.getPostgreSqlPort());
+    put(map, POSTGRESQL_DATABASE, this.getPostgreSqlDatabase());
+    put(map, POSTGRESQL_USER, this.getPostgreSqlUser());
+    put(map, POSTGRESQL_PASSWORD, this.getPostgreSqlPassword());
     return map;
   }
 
@@ -577,34 +577,35 @@ public class SzReplicatorOptions {
    * Constructs a new instance with the values contained in the specified
    * {@link Map} of command-line options values.
    * 
-   * @param optionsMap The {@link Map} of {@link SzReplicatorOption} keys to 
+   * @param optionsMap The {@link Map} of {@link SzReplicatorOption} keys to
    *                   command-line option values.
    * 
    * @return The {@link SzReplicatorOptions} instance created from the specified
    *         {@link Map}, or <code>null</code> if the specified parameter is
    *         <code>null</code>.
    * 
-   * @throws IllegalArgumentException If any of the options have invalid or 
+   * @throws IllegalArgumentException If any of the options have invalid or
    *                                  unexpected values.
    * 
-   * @throws IOException If the INI file or INIT JSON file cannot be read.
+   * @throws IOException              If the INI file or INIT JSON file cannot be
+   *                                  read.
    */
-  public static SzReplicatorOptions build(Map<SzReplicatorOption,Object> optionsMap) 
-    throws IllegalArgumentException, IOException
-  {
-    if (optionsMap == null) return null;
-    File        iniFile  = (File) optionsMap.get(INI_FILE);
-    JsonObject  initFile = (JsonObject) optionsMap.get(INIT_FILE);
-    JsonObject  initJson = (JsonObject) optionsMap.get(INIT_JSON);
+  public static SzReplicatorOptions build(Map<SzReplicatorOption, Object> optionsMap)
+      throws IllegalArgumentException, IOException {
+    if (optionsMap == null)
+      return null;
+    File iniFile = (File) optionsMap.get(INI_FILE);
+    JsonObject initFile = (JsonObject) optionsMap.get(INIT_FILE);
+    JsonObject initJson = (JsonObject) optionsMap.get(INIT_JSON);
 
     // check which was specified
     if (iniFile != null) {
       // check if the other options are present
       if (initFile != null || initJson != null) {
         throw new IllegalArgumentException(
-          "The specified map must contain exactly one of the options for "
-          + "initializing G2.  With INI_FILE specified, neither INIT_FILE "
-          + "nor INIT_JSON can be specified.");
+            "The specified map must contain exactly one of the options for "
+                + "initializing G2.  With INI_FILE specified, neither INIT_FILE "
+                + "nor INIT_JSON can be specified.");
       }
 
       // get the initialization JSON from the INI file
@@ -614,9 +615,9 @@ public class SzReplicatorOptions {
       // check if the other options are present
       if (initJson != null) {
         throw new IllegalArgumentException(
-          "The specified map must contain exactly one of the options for "
-          + "initializing G2.  If INIT_FILE is specified then you cannot "
-          + "specify INIT_JSON.");
+            "The specified map must contain exactly one of the options for "
+                + "initializing G2.  If INIT_FILE is specified then you cannot "
+                + "specify INIT_JSON.");
       }
 
       // get the initialization JSON directly from the file
@@ -625,9 +626,9 @@ public class SzReplicatorOptions {
     } else if (initJson == null) {
       // none of the options were specified
       throw new IllegalArgumentException(
-        "The specified map must contain exactly one of the options for "
-        + "initializing G2.  Either INI_FILE, INIT_FILE or INIT_JSON must "
-        + "be specified.");
+          "The specified map must contain exactly one of the options for "
+              + "initializing G2.  Either INI_FILE, INIT_FILE or INIT_JSON must "
+              + "be specified.");
     }
 
     // construct the replicator options
@@ -710,7 +711,7 @@ public class SzReplicatorOptions {
           break;
         default:
           throw new IllegalStateException(
-            "Unhandled SzReplicatorOption value: " + option);
+              "Unhandled SzReplicatorOption value: " + option);
       }
     });
 
@@ -724,37 +725,36 @@ public class SzReplicatorOptions {
    * 
    * @param option The {@link SzReplicatorOption}.
    * 
-   * @param value The value for the option.
+   * @param value  The value for the option.
    * 
-   * @param type The required type for the option.
+   * @param type   The required type for the option.
    * 
-   * @throws IllegalArgumentException If the specified value is 
+   * @throws IllegalArgumentException If the specified value is
    *                                  <code>null</code> or not of the
    *                                  expected type.
    */
   private static void checkOptionValue(SzReplicatorOption option,
-                                       Object             value,
-                                       Class<?>           type)
-    throws IllegalArgumentException 
-  {
+      Object value,
+      Class<?> type)
+      throws IllegalArgumentException {
     if (value == null || !type.isInstance(value)) {
       throw new IllegalArgumentException(
-        option + " parameter requires a non-null " + type.getSimpleName() 
-        + " value: " + value);
+          option + " parameter requires a non-null " + type.getSimpleName()
+              + " value: " + value);
     }
   }
+
   /**
    * Utility method to only put non-null values in the specified {@link Map}
    * with the specified {@link SzReplicatorOption} key and {@link Object} value.
    *
-   * @param map The {@link Map} to put the key-value pair into.
+   * @param map    The {@link Map} to put the key-value pair into.
    * @param option The {@link SzReplicatorOption} key.
-   * @param value The {@link Object} value.
+   * @param value  The {@link Object} value.
    */
-  private static void put(Map<CommandLineOption, Object>  map,
-                          SzReplicatorOption              option,
-                          Object                          value)
-  {
+  private static void put(Map<CommandLineOption, Object> map,
+      SzReplicatorOption option,
+      Object value) {
     if (value != null) {
       map.put(option, value);
     }

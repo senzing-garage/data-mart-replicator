@@ -77,8 +77,7 @@ public class SzInfoMessage implements Serializable {
    * entities property} when parsing raw Senzing INFO message JSON to construct
    * instances of this class.
    */
-  public static final String RAW_INTERESTING_ENTITIES_KEY
-      = "INTERESTING_ENTITIES";
+  public static final String RAW_INTERESTING_ENTITIES_KEY = "INTERESTING_ENTITIES";
 
   /**
    * The JSON property key for serializing and deserializing the entities
@@ -144,35 +143,38 @@ public class SzInfoMessage implements Serializable {
   /**
    * Constructs with the data source, record ID and flags.
    *
-   * @param dataSource The data source for this instance.
-   * @param recordId The record ID for this instance.
-   * @param affectedEntities The {@link Collection} of {@link Long} entity ID's
-   *                         identifying the affected entities.
+   * @param dataSource          The data source for this instance.
+   * @param recordId            The record ID for this instance.
+   * @param affectedEntities    The {@link Collection} of {@link Long} entity ID's
+   *                            identifying the affected entities.
    * @param interestingEntities The {@link Collection} of {@link
    *                            SzInterestingEntity} instances describing the
    *                            associated interesting entities.
-   * @param notices The {@link Collection} of {@link SzNotice} instances
-   *                descrbing the associated notices.
+   * @param notices             The {@link Collection} of {@link SzNotice}
+   *                            instances
+   *                            describing the associated notices.
    */
-  public SzInfoMessage(String                           dataSource,
-                       String                           recordId,
-                       Collection<Long>                 affectedEntities,
-                       Collection<SzInterestingEntity>  interestingEntities,
-                       Collection<SzNotice>             notices)
-  {
-    this.dataSource           = dataSource;
-    this.recordId             = recordId;
+  public SzInfoMessage(String dataSource,
+      String recordId,
+      Collection<Long> affectedEntities,
+      Collection<SzInterestingEntity> interestingEntities,
+      Collection<SzNotice> notices) {
+    this.dataSource = dataSource;
+    this.recordId = recordId;
 
     this.affectedEntities = (affectedEntities == null)
-        ? new LinkedHashSet<>() : new LinkedHashSet<>(affectedEntities);
+        ? new LinkedHashSet<>()
+        : new LinkedHashSet<>(affectedEntities);
     this.affectedEntities.remove(null); // remove any null entries
 
     this.interestingEntities = (interestingEntities == null)
-        ? new LinkedList<>() : new ArrayList<>(interestingEntities);
+        ? new LinkedList<>()
+        : new ArrayList<>(interestingEntities);
     this.interestingEntities.remove(null); // remove any null entries
 
     this.notices = (notices == null)
-        ? new LinkedList<>() : new ArrayList<>(notices);
+        ? new LinkedList<>()
+        : new ArrayList<>(notices);
     this.notices.remove(null); // remove any null entries
   }
 
@@ -267,8 +269,7 @@ public class SzInfoMessage implements Serializable {
    *                            SzInterestingEntity} instances.
    */
   public void setInterestingEntities(
-      Collection<SzInterestingEntity> interestingEntities)
-  {
+      Collection<SzInterestingEntity> interestingEntities) {
     this.interestingEntities.clear();
     if (interestingEntities != null) {
       this.interestingEntities.addAll(interestingEntities);
@@ -307,8 +308,7 @@ public class SzInfoMessage implements Serializable {
    *
    * @param notices The {@link Collection} of {@link SzNotice} instances.
    */
-  public void setNotices(Collection<SzNotice> notices)
-  {
+  public void setNotices(Collection<SzNotice> notices) {
     this.notices.clear();
     if (notices != null) {
       this.notices.addAll(notices);
@@ -330,8 +330,10 @@ public class SzInfoMessage implements Serializable {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || this.getClass() != o.getClass()) return false;
+    if (this == o)
+      return true;
+    if (o == null || this.getClass() != o.getClass())
+      return false;
     SzInfoMessage that = (SzInfoMessage) o;
     return Objects.equals(this.getDataSource(), that.getDataSource())
         && Objects.equals(this.getRecordId(), that.getRecordId())
@@ -345,15 +347,15 @@ public class SzInfoMessage implements Serializable {
   @Override
   public int hashCode() {
     return Objects.hash(this.getDataSource(),
-                        this.getRecordId(),
-                        this.getAffectedEntities(),
-                        this.getInterestingEntities(),
-                        this.getNotices());
+        this.getRecordId(),
+        this.getAffectedEntities(),
+        this.getInterestingEntities(),
+        this.getNotices());
   }
 
   /**
    * Serializes this instance as JSON to the specified {@link
-   * JsonObjectBuilder}.  If the specified {@link JsonObjectBuilder} is
+   * JsonObjectBuilder}. If the specified {@link JsonObjectBuilder} is
    * <code>null</code> then a new instance is created, populated and then
    * returned.
    *
@@ -366,13 +368,14 @@ public class SzInfoMessage implements Serializable {
    * @see #toJsonObject()
    */
   public JsonObjectBuilder toJsonObjectBuilder(JsonObjectBuilder builder) {
-    if (builder == null) builder = Json.createObjectBuilder();
+    if (builder == null)
+      builder = Json.createObjectBuilder();
     JsonUtilities.add(builder, DATA_SOURCE_KEY, this.getDataSource());
     JsonUtilities.add(builder, RECORD_ID_KEY, this.getRecordId());
 
     // add the affected entity ID array
     JsonArrayBuilder jab = Json.createArrayBuilder();
-    for (Long entityId: this.getAffectedEntities()) {
+    for (Long entityId : this.getAffectedEntities()) {
       JsonUtilities.add(jab, entityId);
     }
     builder.add(AFFECTED_ENTITIES_KEY, jab);
@@ -440,7 +443,7 @@ public class SzInfoMessage implements Serializable {
   }
 
   /**
-   * Serializes this instance as JSON text and returns the JSON text.  The
+   * Serializes this instance as JSON text and returns the JSON text. The
    * returned JSON should <b>not</b> be pretty-printed.
    *
    * @return The JSON text that was generated.
@@ -452,7 +455,7 @@ public class SzInfoMessage implements Serializable {
   /**
    * Parses the specified JSON text that is formatted as if generated by
    * {@linkplain #toJsonText() serializing} an instance of this class and
-   * creates a new instance of this class as described by the JSON.  If the
+   * creates a new instance of this class as described by the JSON. If the
    * required JSON properties are not found then an exception is thrown.
    *
    * @param jsonText The JSON text to parse.
@@ -465,9 +468,9 @@ public class SzInfoMessage implements Serializable {
    *                                  properties.
    */
   public static SzInfoMessage fromJson(String jsonText)
-    throws IllegalArgumentException
-  {
-    if (jsonText == null) return null;
+      throws IllegalArgumentException {
+    if (jsonText == null)
+      return null;
     return fromJson(JsonUtilities.parseJsonObject(jsonText));
   }
 
@@ -475,7 +478,7 @@ public class SzInfoMessage implements Serializable {
    * Parses the JSON described by the specified {@link JsonObject} where that
    * JSON is formatted as if generated by {@linkplain #toJsonObject()
    * serializing} an instance of this class and creates a new instance of this
-   * class as described by the JSON.  If the required JSON properties are not
+   * class as described by the JSON. If the required JSON properties are not
    * found then an exception is thrown.
    *
    * @param jsonObject The {@link JsonObject} describing the JSON to parse.
@@ -489,21 +492,20 @@ public class SzInfoMessage implements Serializable {
    *
    */
   public static SzInfoMessage fromJson(JsonObject jsonObject)
-    throws IllegalArgumentException
-  {
+      throws IllegalArgumentException {
     return fromJson(jsonObject,
-                    DATA_SOURCE_KEY,
-                    RECORD_ID_KEY,
-                    AFFECTED_ENTITIES_KEY,
-                    INTERESTING_ENTITIES_KEY,
-                    ENTITIES_KEY,
-                    NOTICES_KEY);
+        DATA_SOURCE_KEY,
+        RECORD_ID_KEY,
+        AFFECTED_ENTITIES_KEY,
+        INTERESTING_ENTITIES_KEY,
+        ENTITIES_KEY,
+        NOTICES_KEY);
   }
 
   /**
    * Parses the specified JSON text that is formatted as a raw Senzing INFO
    * message part and creates a new instance of this class as described by the
-   * JSON.  If the required JSON properties are not found then an exception is
+   * JSON. If the required JSON properties are not found then an exception is
    * thrown.
    *
    * @param jsonText The JSON text to parse.
@@ -516,16 +518,16 @@ public class SzInfoMessage implements Serializable {
    *                                  properties.
    */
   public static SzInfoMessage fromRawJson(String jsonText)
-      throws IllegalArgumentException
-  {
-    if (jsonText == null) return null;
+      throws IllegalArgumentException {
+    if (jsonText == null)
+      return null;
     return fromRawJson(JsonUtilities.parseJsonObject(jsonText));
   }
 
   /**
    * Parses the JSON described by the specified {@link JsonObject} where that
    * JSON is formatted as a raw Senzing INFO message part and creates a new
-   * instance of this class as described by the JSON.  If the required JSON
+   * instance of this class as described by the JSON. If the required JSON
    * properties are not found then an exception is thrown.
    *
    * @param jsonObject The {@link JsonObject} describing the JSON to parse.
@@ -539,36 +541,38 @@ public class SzInfoMessage implements Serializable {
    *
    */
   public static SzInfoMessage fromRawJson(JsonObject jsonObject)
-      throws IllegalArgumentException
-  {
+      throws IllegalArgumentException {
     return fromJson(jsonObject,
-                    RAW_DATA_SOURCE_KEY,
-                    RAW_RECORD_ID_KEY,
-                    RAW_AFFECTED_ENTITIES_KEY,
-                    RAW_INTERESTING_ENTITIES_KEY,
-                    RAW_ENTITIES_KEY,
-                    RAW_NOTICES_KEY);
+        RAW_DATA_SOURCE_KEY,
+        RAW_RECORD_ID_KEY,
+        RAW_AFFECTED_ENTITIES_KEY,
+        RAW_INTERESTING_ENTITIES_KEY,
+        RAW_ENTITIES_KEY,
+        RAW_NOTICES_KEY);
   }
 
   /**
    * Internal method that parses the JSON described by the specified {@link
    * JsonObject} using the specified JSON property keys for the various parts.
    *
-   * @param jsonObject The {@link JsonObject} describing the JSON.
+   * @param jsonObject             The {@link JsonObject} describing the JSON.
    *
-   * @param dataSourceKey The JSON property key for the data source property.
+   * @param dataSourceKey          The JSON property key for the data source
+   *                               property.
    *
-   * @param recordIdKey The JSON property key for the record ID property.
+   * @param recordIdKey            The JSON property key for the record ID
+   *                               property.
    *
-   * @param affectedEntitiesKey The JSON property key for the affected entities
-   *                            property.
+   * @param affectedEntitiesKey    The JSON property key for the affected entities
+   *                               property.
    *
    * @param interestingEntitiesKey The JSON property key for the interesting
    *                               entities property.
    *
-   * @param entitiesKey The JSON property key for the entities property.
+   * @param entitiesKey            The JSON property key for the entities
+   *                               property.
    *
-   * @param noticesKey The JSON property key for the notices property.
+   * @param noticesKey             The JSON property key for the notices property.
    *
    * @return The created {@link SzInfoMessage} instance, or <code>null</code>
    *         if the specified parameter is <code>null</code>.
@@ -577,20 +581,19 @@ public class SzInfoMessage implements Serializable {
    *                                  or does not contain the required JSON
    *                                  properties.
    */
-  private static SzInfoMessage fromJson(JsonObject  jsonObject,
-                                        String      dataSourceKey,
-                                        String      recordIdKey,
-                                        String      affectedEntitiesKey,
-                                        String      interestingEntitiesKey,
-                                        String      entitiesKey,
-                                        String      noticesKey)
-      throws IllegalArgumentException
-  {
-    if (jsonObject == null) return null;
+  private static SzInfoMessage fromJson(JsonObject jsonObject,
+      String dataSourceKey,
+      String recordIdKey,
+      String affectedEntitiesKey,
+      String interestingEntitiesKey,
+      String entitiesKey,
+      String noticesKey)
+      throws IllegalArgumentException {
+    if (jsonObject == null)
+      return null;
     if (!jsonObject.containsKey(dataSourceKey)
         || !jsonObject.containsKey(recordIdKey)
-        || !jsonObject.containsKey(affectedEntitiesKey))
-    {
+        || !jsonObject.containsKey(affectedEntitiesKey)) {
       throw new IllegalArgumentException(
           "The specified JSON must at contain the \"" + dataSourceKey
               + "\", \"" + recordIdKey + "\", and \""
@@ -613,9 +616,9 @@ public class SzInfoMessage implements Serializable {
 
     // parse the interesting entities
     JsonObject object = JsonUtilities.getJsonObject(jsonObject,
-                                                    interestingEntitiesKey);
-    List<SzInterestingEntity> entities  = null;
-    List<SzNotice>            notices   = null;
+        interestingEntitiesKey);
+    List<SzInterestingEntity> entities = null;
+    List<SzNotice> notices = null;
 
     if (object != null) {
       arr = JsonUtilities.getJsonArray(object, entitiesKey);
