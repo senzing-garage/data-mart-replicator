@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2025-06-09
+
+### Changed in 1.2.2
+
+- Updated dependencies:
+  - Updated `senzing-commons-java` dependencies from version `3.3.3` to `3.3.4`
+  - Updated `postgresql` dependency from version `42.7.5` to `42.7.6`
+  - Updated `jackson-xxxx` dependencies from version `2.18.3` to `2.19.0`
+  - Updated `junit-jupiter` from version `5.12.2` to `5.13.1`
+  - Updated Amazon `sqs` from version `2.31.22` to `2.31.59`
+
 ## [1.2.1] - 2025-04-16
 
 ### Changed in 1.2.1
