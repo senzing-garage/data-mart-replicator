@@ -13,4 +13,4 @@ updates:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
     schedule:
-      interval: "monthly"
+      interval: "daily"
