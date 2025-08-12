@@ -117,6 +117,7 @@ public class SzReplicator extends Thread {
    * @return The {@link Map} describing the command-line arguments.
    * @throws CommandLineException If a command-line parsing failure occurs.
    */
+  @SuppressWarnings({"unchecked", "rawtypes"})
   protected static Map<CommandLineOption, Object> parseCommandLine(
       String[] args, List<DeprecatedOptionWarning> deprecationWarnings)
       throws CommandLineException {

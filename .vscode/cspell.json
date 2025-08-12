@@ -53,7 +53,8 @@
       "unleased",
       "UNTRACKING",
       "xerial",
-      "Xlint"
+      "Xlint",
+      "rawtypes"
     ],
   "ignorePaths": [
     ".git/**",
