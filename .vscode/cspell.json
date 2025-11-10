@@ -8,6 +8,7 @@
       "alnum",
       "alse",
       "amqp",
+      "amqps",
       "awssdk",
       "backgrounding",
       "BIGSERIAL",
@@ -15,6 +16,7 @@
       "CCLA",
       "cmdline",
       "CODEOWNER",
+      "CONFIGFILE",
       "databind",
       "datamart",
       "Dgit",
@@ -44,6 +46,7 @@
       "prin",
       "PRNG",
       "rabbitmq",
+      "rawtypes",
       "reinit",
       "sched",
       "Senzing",
@@ -52,9 +55,9 @@
       "toplevel",
       "unleased",
       "UNTRACKING",
+      "vhost",
       "xerial",
-      "Xlint",
-      "rawtypes"
+      "Xlint"
     ],
   "ignorePaths": [
     ".git/**",

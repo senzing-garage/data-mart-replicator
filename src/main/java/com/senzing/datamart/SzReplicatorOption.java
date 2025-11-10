@@ -15,929 +15,700 @@ import static com.senzing.util.LoggingUtilities.multilineFormat;
 /**
  * The startup options for the data mart replicator.
  */
-public enum SzReplicatorOption implements CommandLineOption {
-  /**
-   * <p>
-   * Option for displaying help/usage for the replicator.  This option can
-   * only be provided by itself and has no parameters.
-   * <p>
-   * This option can be specified in the following ways:
-   * <ul>
-   *   <li>Command Line: <code>--help</code></li>
-   * </ul>
-   */
-  HELP("--help", null, null, true, 0),
-
-  /**
-   * <p>
-   * Option for displaying the version number of the replicator.  This option
-   * can only be provided by itself and has no parameters.
-   * <p>
-   * This option can be specified in the following ways:
-   * <ul>
-   *   <li>Command Line: <code>--version</code></li>
-   * </ul>
-   */
-  VERSION("--version", null, null, true, 0),
-
-  /**
-   * <p>
-   * Option for specifying the INI file to initialize the Senzing API's with.
-   * The parameter to this option should be a file path to an INI file.
-   * Alternatively, one can specify {@link #INIT_FILE} or {@link #INIT_JSON}.
-   * <p>
-   * This option can be specified in the following ways:
-   * <ul>
-   *   <li>Command Line: <code>--ini-file {file-path}</code></li>
-   *   <li>Command Line: <code>-iniFile {file-path}</code></li>
-   *   <li>Environment: <code>SENZING_ENGINE_CONFIGURATION_INI_FILE="{file-path}"</code></li>
-   * </ul>
-   */
-  INI_FILE("--ini-file",
-           "SENZING_ENGINE_CONFIGURATION_INI_FILE",
-           null, true, 1),
-
-  /**
-   * <p>
-   * Option for specifying the JSON init file to initialize the Senzing API's
-   * with.  The parameter to this option should be a file path to a JSON init
-   * file.  Alternatively, one can specify {@link #INI_FILE} or
-   * {@link #INIT_JSON}.
-   * <p>
-   * This option can be specified in the following ways:
-   * <ul>
-   *   <li>Command Line: <code>--init-file {file-path}</code></li>
-   *   <li>Command Line: <code>-initFile {file-path}</code></li>
-   *   <li>Environment: <code>SENZING_ENGINE_CONFIGURATION_JSON_FILE="{file-path}"</code></li>
-   * </ul>
-   */
-  INIT_FILE("--init-file",
-            "SENZING_ENGINE_CONFIGURATION_JSON_FILE",
-            null, true, 1),
-
-  /**
-   * <p>
-   * Option for specifying the JSON text to initialize the Senzing API's
-   * with.  The parameter to this option should be the actual JSON text with
-   * which to initialize.  Alternatively, one can specify {@link #INI_FILE} or
-   * {@link #INIT_FILE}.
-   * <p>
-   * This option can be specified in the following ways:
-   * <ul>
-   *   <li>Command Line: <code>--init-json {json-text}</code></li>
-   *   <li>Command Line: <code>-initJson {json-text}</code></li>
-   *   <li>Environment: <code>SENZING_ENGINE_CONFIGURATION_JSON="{json-text}"</code></li>
-   * </ul>
-   */
-  INIT_JSON("--init-json",
-            "SENZING_ENGINE_CONFIGURATION_JSON",
-            null, true, 1),
-
-  /**
-   * <p>
-   * Option for specifying the module name to initialize the Senzing API's
-   * with.  The default value is {@link SzReplicatorConstants#DEFAULT_MODULE_NAME}.
-   * <p>
-   * This option can be specified in the following ways:
-   * <ul>
-   *   <li>Command Line: <code>--module-name {module-name}</code></li>
-   *   <li>Command Line: <code>-moduleName {module-name}</code></li>
-   *   <li>Environment: <code>SENZING_DATA_MART_MODULE_NAME="{module-name}"</code></li>
-   * </ul>
-   */
-  MODULE_NAME("--module-name",
-              ENV_PREFIX + "MODULE_NAME",
-              null, 1, DEFAULT_MODULE_NAME),
-
-  /**
-   * <p>
-   * This presence of this option causes the Senzing G2 API's to be initialized
-   * in verbose mode, but its absence causes the Senzing API's to be initialized
-   * in standard mode (the default).  This option is used with {@link #INI_FILE},
-   * {@link #INIT_FILE}, or {@link #INIT_JSON} to control the Senzing API
-   * initialization.  A single parameter may optionally be specified as
-   * <code>true</code> or <code>false</code> with <code>false</code> simulating
-   * the absence of the option.
-   * <p>
-   * This option can be specified in the following ways:
-   * <ul>
-   *   <li>Command Line: <code>--verbose [true|false]</code></li>
-   *   <li>Environment: <code>SENZING_DATA_MART_VERBOSE="{true|false}"</code></li>
-   * </ul>
-   */
-  VERBOSE("--verbose",
-          ENV_PREFIX + "VERBOSE",
-          null, 0, "false"),
-
-  /**
-   * <p>
-   * This option sets the number of threads available for executing Senzing API
-   * functions (i.e.: the number of engine threads).  The single parameter to
-   * this option should be a positive integer.  If not specified, then this
-   * defaults to {@link SzReplicatorConstants#DEFAULT_CONCURRENCY}.  The
-   * concurrency of each other component in the system is scaled from this
-   * setting so more threads will exist, but only this specified number will
-   * do with the native Senzing API.
-   * <p>
-   * This option can be specified in the following ways:
-   * <ul>
-   *   <li>Command Line: <code>--concurrency {thread-count}</code></li>
-   *   <li>Command Line: <code>-concurrency {thread-count}</code></li>
-   *   <li>Environment: <code>SENZING_DATA_MART_CONCURRENCY="{thread-count}"</code></li>
-   * </ul>
-   */
-  CONCURRENCY("--concurrency", ENV_PREFIX + "CONCURRENCY",
-              null, 1, DEFAULT_CONCURRENCY_PARAM),
-
-  /**
-   * <p>
-   * This option is used to specify the URL to an Amazon SQS queue to be used
-   * for obtaining the info messages.  The single parameter to this option is
-   * the URL.  If this option is specified then the info queue parameters for
-   * RabbitMQ and Kafka are not allowed.
-   * <p>
-   * This option can be specified in the following ways:
-   * <ul>
-   *   <li>Command Line: <code>--sqs-info-url {url}</code></li>
-   *   <li>Environment: <code>SENZING_SQS_INFO_URL="{url}"</code></li>
-   * </ul>
-   */
-  SQS_INFO_URL("--sqs-info-url",
-               "SENZING_SQS_INFO_QUEUE_URL", null, 1),
-
-  /**
-   * <p>
-   * This option is used to specify the user name for connecting to RabbitMQ as
-   * part of specifying a RabbitMQ info queue.  The single parameter to this
-   * option is a user name.  If this option is specified then the other options
-   * required for a RabbitMQ info queue are required and the info queue
-   * parameters pertaining to SQS and Kafka are not allowed.
-   * <p>
-   * This option can be specified in the following ways:
-   * <ul>
-   *   <li>Command Line: <code>--rabbit-info-host {username}</code></li>
-   *   <li>Environment: <code>SENZING_RABBITMQ_INFO_USERNAME="{username}"</code></li>
-   *   <li>Environment: <code>SENZING_RABBITMQ_USERNAME="{username}" (fallback)</code></li>
-   * </ul>
-   */
-  RABBIT_INFO_USER(
-      "--rabbit-info-user",
-      "SENZING_RABBITMQ_INFO_USERNAME",
-      List.of("SENZING_RABBITMQ_USERNAME"), 1),
-
-  /**
-   * <p>
-   * This option is used to specify the password for connecting to RabbitMQ as
-   * part of specifying a RabbitMQ info queue.  The single parameter to this
-   * option is a password.  If this option is specified then the other options
-   * required for a RabbitMQ info queue are required and the info queue
-   * parameters pertaining to SQS and Kafka are not allowed.
-   * <p>
-   * This option can be specified in the following ways:
-   * <ul>
-   *   <li>Command Line: <code>--rabbit-info-password {password}</code></li>
-   *   <li>Environment: <code>SENZING_RABBITMQ_INFO_PASSWORD="{password}"</code></li>
-   *   <li>Environment: <code>SENZING_RABBITMQ_PASSWORD="{password}" (fallback)</code></li>
-   * </ul>
-   */
-  RABBIT_INFO_PASSWORD(
-      "--rabbit-info-password",
-      "SENZING_RABBITMQ_INFO_PASSWORD",
-      List.of("SENZING_RABBITMQ_PASSWORD"), 1),
-
-  /**
-   * <p>
-   * This option is used to specify the hostname for connecting to RabbitMQ as
-   * part of specifying a RabbitMQ info queue.  The single parameter to this
-   * option is a hostname or IP address.  If this option is specified then the
-   * other options required for a RabbitMQ info queue are required and the
-   * info queue parameters pertaining to SQS and Kafka are not allowed.
-   * <p>
-   * This option can be specified in the following ways:
-   * <ul>
-   *   <li>Command Line: <code>--rabbit-info-host {hostname}</code></li>
-   *   <li>Environment: <code>SENZING_RABBITMQ_INFO_HOST="{hostname}"</code></li>
-   *   <li>Environment: <code>SENZING_RABBITMQ_HOST="{hostname}" (fallback)</code></li>
-   * </ul>
-   */
-  RABBIT_INFO_HOST(
-      "--rabbit-info-host",
-      "SENZING_RABBITMQ_INFO_HOST",
-      List.of("SENZING_RABBITMQ_HOST"), 1),
-
-  /**
-   * <p>
-   * This option is used to specify the port number for connecting to RabbitMQ
-   * as part of specifying a RabbitMQ info queue.  The single parameter to this
-   * option is a port number.  If this option is specified then the other
-   * options required for a RabbitMQ info queue are required and the info queue
-   * parameters pertaining to SQS and Kafka are not allowed.
-   * <p>
-   * This option can be specified in the following ways:
-   * <ul>
-   *   <li>Command Line: <code>--rabbit-info-port {port}</code></li>
-   *   <li>Environment: <code>SENZING_RABBITMQ_INFO_PORT="{port}"</code></li>
-   *   <li>Environment: <code>SENZING_RABBITMQ_PORT="{port}" (fallback)</code></li>
-   * </ul>
-   */
-  RABBIT_INFO_PORT(
-      "--rabbit-info-port",
-      "SENZING_RABBITMQ_INFO_PORT",
-      List.of("SENZING_RABBITMQ_PORT"), 1),
-
-  /**
-   * <p>
-   * This option is used to specify the virtual host for connecting to RabbitMQ
-   * as part of specifying a RabbitMQ info queue.  The single parameter to this
-   * option is a virtual host name.  If this option is specified then the other
-   * options required for a RabbitMQ info queue are required and the info queue
-   * parameters pertaining to SQS and Kafka are not allowed.
-   * <p>
-   * This option can be specified in the following ways:
-   * <ul>
-   *   <li>Command Line: <code>--rabbit-info-virtual-host {virtual-host}</code></li>
-   *   <li>Environment: <code>SENZING_RABBITMQ_INFO_VIRTUAL_HOST="{virtual-host}"</code></li>
-   *   <li>Environment: <code>SENZING_RABBITMQ_VIRTUAL_HOST="{virtual-host}" (fallback)</code></li>
-   * </ul>
-   */
-  RABBIT_INFO_VIRTUAL_HOST(
-      "--rabbit-info-virtual-host",
-      "SENZING_RABBITMQ_INFO_VIRTUAL_HOST",
-      List.of("SENZING_RABBITMQ_VIRTUAL_HOST"), 1),
-
-  /**
-   * <p>
-   * This option is used to specify the routing key for connecting to RabbitMQ
-   * as part of specifying a RabbitMQ info queue.  The single parameter to this
-   * option is a routing key.  If this option is specified then the other
-   * options required for a RabbitMQ info queue are required and the info queue
-   * parameters pertaining to SQS and Kafka are not allowed.
-   * <p>
-   * This option can be specified in the following ways:
-   * <ul>
-   *   <li>Command Line: <code>--rabbit-info-queue {queue-name}</code></li>
-   *   <li>Environment: <code>SENZING_RABBITMQ_INFO_QUEUE="{queue-name}"</code></li>
-   * </ul>
-   */
-  RABBIT_INFO_QUEUE(
-      "--rabbit-info-queue",
-      "SENZING_RABBITMQ_INFO_QUEUE",
-      null, 1),
-
-  /**
-   * <p>
-   * This presence of this option causes the data mart replicator to utilize a 
-   * database table message queue instead of Rabbit MQ or Amazon SQS.  The data
-   * mart replicator will use the same database that is configured for the data
-   * mart to find the <code>sz_message_queue</code> table from which to consume 
-   * messages.  The absence of this parameter will causes the data mart to
-   * require additional options for configuring the message queue for Rabbit MQ
-   * or Amazon SQS. A single parameter may optionally be specified as
-   * <code>true</code> or <code>false</code> with <code>false</code> simulating
-   * the absence of the option.
-   * <p>
-   * <b>NOTE:</b> If using SQLite then only a single database connection from a
-   * single process is allowed at any one time, and therefore either a process
-   * embedding the data mart must be populating the queue concurrently or
-   * population of the queue by another process must occur while the data mart
-   * replicator is <b>not</b> consuming the messages from the
-   * <code>sz_message_queue</code> table.  
-   * <p>
-   * This option can be specified in the following ways:
-   * <ul>
-   *   <li>Command Line: <code>--database-info-queue [true|false]</code></li>
-   *   <li>Environment: <code>SENZING_DATA_MART_DATABASE_INFO_QUEUE="{true|false}"</code></li>
-   * </ul>
-   */
-  DATABASE_INFO_QUEUE("--database-info-queue",
-          ENV_PREFIX + "DATABASE_INFO_QUEUE",
-          null, 0, "false"),
-
-  /**
-   * <p>
-   * This option is used to specify the SQLite database file to connect to for
-   * the data mart.  The single parameter to this option is the file path to
-   * the SQLite database file to use.  If this option is specified the database
-   * options for other database types cannot be specified.
-   * <p>
-   * This option can be specified in the following ways:
-   * <ul>
-   *   <li>Command Line: <code>--sqlite-database-file {file-path}</code></li>
-   *   <li>Environment: <code>SENZING_DATA_MART_SQLITE_DATABASE_FILE="{file-path}"</code></li>
-   * </ul>
-   */
-  SQLITE_DATABASE_FILE(
-      "--sqlite-database-file",
-      ENV_PREFIX + "SQLITE_DATABASE_FILE",
-      null, 1),
-
-  /**
-   * <p>
-   * This option is used to specify the PostgreSQL database server host to
-   * connect to for the data mart.  The single parameter to this option is
-   * server host name or IP address for the PostgreSQL database server.  If
-   * this option is specified the database options for other database types
-   * (e.g.: {@link #SQLITE_DATABASE_FILE}) cannot be specified and the other
-   * PostgreSQL options (e.g.: {@link #POSTGRESQL_PORT}) are required.
-   * <p>
-   * This option can be specified in the following ways:
-   * <ul>
-   *   <li>Command Line: <code>--postgresql-host {host-name|ip-address}</code></li>
-   *   <li>Environment: <code>SENZING_DATA_MART_POSTGRESQL_HOST="{host-name|ip-address}"</code></li>
-   * </ul>
-   *
-   * @see #POSTGRESQL_PORT
-   * @see #POSTGRESQL_DATABASE
-   * @see #POSTGRESQL_USER
-   * @see #POSTGRESQL_PORT
-   */
-  POSTGRESQL_HOST(
-      "--postgresql-host",
-      ENV_PREFIX + "POSTGRESQL_HOST",
-      null, 1),
-
-  /**
-   * <p>
-   * This option is used to specify the PostgreSQL database server port to
-   * connect to for the data mart.  The single parameter to this option is the
-   * port number for the PostgreSQL database server.  If this option is
-   * specified the database options for other database types (e.g.: {@link
-   * #SQLITE_DATABASE_FILE}) cannot be specified and the other PostgreSQL
-   * options (e.g.: {@link #POSTGRESQL_PORT}) are required.
-   * <p>
-   * This option can be specified in the following ways:
-   * <ul>
-   *   <li>Command Line: <code>--postgresql-port {port-number}</code></li>
-   *   <li>Environment: <code>SENZING_DATA_MART_POSTGRESQL_PORT="{port-number}"</code></li>
-   * </ul>
-   *
-   * @see #POSTGRESQL_HOST
-   * @see #POSTGRESQL_DATABASE
-   * @see #POSTGRESQL_USER
-   * @see #POSTGRESQL_PORT
-   */
-  POSTGRESQL_PORT(
-      "--postgresql-port",
-      ENV_PREFIX + "POSTGRESQL_PORT",
-      null, 1),
-
-  /**
-   * <p>
-   * This option is used to specify the PostgreSQL database name for the data
-   * mart.  The single parameter to this option is the PostgreSQL database name
-   * for the data mart.  If this option is specified the database options for
-   * other database types (e.g.: {@link #SQLITE_DATABASE_FILE}) cannot be
-   * specified and the other PostgreSQL options (e.g.: {@link
-   * #POSTGRESQL_HOST}) are required.
-   * <p>
-   * This option can be specified in the following ways:
-   * <ul>
-   *   <li>Command Line: <code>--postgresql-database {database-name}</code></li>
-   *   <li>Environment: <code>SENZING_DATA_MART_POSTGRESQL_DATABASE="{database-name}"</code></li>
-   * </ul>
-   *
-   * @see #POSTGRESQL_HOST
-   * @see #POSTGRESQL_PORT
-   * @see #POSTGRESQL_USER
-   * @see #POSTGRESQL_PORT
-   *
-   */
-  POSTGRESQL_DATABASE(
-      "--postgresql-database",
-      ENV_PREFIX + "POSTGRESQL_DATABASE",
-      null, 1),
-
-  /**
-   * <p>
-   * This option is used to specify the PostgreSQL database user name to login
-   * to the PostgreSQL database server for the data mart.  The single parameter
-   * to this option is the user name for the PostgreSQL database server.  If
-   * this option is specified the database options for other database types
-   * (e.g.: {@link #SQLITE_DATABASE_FILE}) cannot be specified and the other
-   * PostgreSQL options (e.g.: {@link #POSTGRESQL_HOST}) are required.
-   * <p>
-   * This option can be specified in the following ways:
-   * <ul>
-   *   <li>Command Line: <code>--postgresql-user {user-name}</code></li>
-   *   <li>Environment: <code>SENZING_DATA_MART_POSTGRESQL_USER="{user-name}"</code></li>
-   * </ul>
-   *
-   * @see #POSTGRESQL_HOST
-   * @see #POSTGRESQL_PORT
-   * @see #POSTGRESQL_DATABASE
-   * @see #POSTGRESQL_PORT
-   */
-  POSTGRESQL_USER(
-      "--postgresql-user",
-      ENV_PREFIX + "POSTGRESQL_USER",
-      null, 1),
-
-  /**
-   * <p>
-   * This option is used to specify the PostgreSQL database user password to
-   * login to the PostgreSQL database server for the data mart.  The single
-   * parameter to this option is the password for the PostgreSQL database user.
-   * If this option is specified the database options for other database types
-   * (e.g.: {@link #SQLITE_DATABASE_FILE}) cannot be specified and the other
-   * PostgreSQL options (e.g.: {@link #POSTGRESQL_HOST}) are required.
-   * <p>
-   * This option can be specified in the following ways:
-   * <ul>
-   *   <li>Command Line: <code>--postgresql-password {password}</code></li>
-   *   <li>Environment: <code>SENZING_DATA_MART_POSTGRESQL_PASSWORD="{password}"</code></li>
-   * </ul>
-   *
-   * @see #POSTGRESQL_HOST
-   * @see #POSTGRESQL_PORT
-   * @see #POSTGRESQL_DATABASE
-   * @see #POSTGRESQL_USER
-   */
-  POSTGRESQL_PASSWORD(
-      "--postgresql-password",
-      ENV_PREFIX + "POSTGRESQL_PASSWORD",
-      null, 1);
-
-  /**
-   * Constructs with the specified parameters.
-   *
-   * @param cmdLineFlag    The command-line flag.
-   * @param envVariable    The primary environment variable.
-   * @param envFallbacks   The {@link List} of fallback environment variables.
-   * @param parameterCount The number of parameters for the option.
-   */
-  SzReplicatorOption(String       cmdLineFlag,
-                     String       envVariable,
-                     List<String> envFallbacks,
-                     int          parameterCount)
-  {
-    this(cmdLineFlag, envVariable, envFallbacks, false, parameterCount);
-  }
-
-  /**
-   * Constructs with the specified parameters.
-   *
-   * @param cmdLineFlag       The command-line flag.
-   * @param envVariable       The primary environment variable.
-   * @param envFallbacks      The {@link List} of fallback environment variables.
-   * @param parameterCount    The number of parameters for the option.
-   * @param defaultParameters The default parameter values for the option if not
-   *                          specified.
-   */
-  SzReplicatorOption(String       cmdLineFlag,
-                     String       envVariable,
-                     List<String> envFallbacks,
-                     int          parameterCount,
-                     String...    defaultParameters)
-  {
-    this(cmdLineFlag,
-         envVariable,
-         envFallbacks,
-         false,
-         parameterCount,
-         defaultParameters);
-  }
-
-  /**
-   * Constructs with the specified parameters.
-   *
-   * @param cmdLineFlag       The command-line flag.
-   * @param envVariable       The primary environment variable.
-   * @param envFallbacks      The {@link List} of fallback environment variables.
-   * @param parameterCount    The number of parameters for the option.
-   * @param defaultParameters The default parameter value for the option if not
-   *                          specified.
-   */
-  SzReplicatorOption(String       cmdLineFlag,
-                     String       envVariable,
-                     List<String> envFallbacks,
-                     boolean      primary,
-                     int          parameterCount,
-                     String...    defaultParameters)
-  {
-    this.primary = primary;
-    this.cmdLineFlag = cmdLineFlag;
-    this.envVariable = envVariable;
-    this.minParamCount = (parameterCount < 0) ? 0 : parameterCount;
-    this.maxParamCount = parameterCount;
-    this.envFallbacks = (envFallbacks == null)
-        ? null : List.copyOf(envFallbacks);
-    this.defaultParameters = (defaultParameters == null)
-        ? Collections.emptyList() : List.of(defaultParameters);
-  }
-
-  /**
-   * Whether or not the option is a primary option.
-   */
-  private boolean primary = false;
-
-  /**
-   * The command-line flag for the option.
-   */
-  private String cmdLineFlag = null;
-
-  /**
-   * The environment variable for the option.
-   */
-  private String envVariable = null;
-
-  /**
-   * The fallback environment variables for the option in descending
-   * priority order.
-   */
-  private List<String> envFallbacks = null;
-
-  /**
-   * The minimum number of expected parameters.
-   */
-  private int minParamCount = 0;
-
-  /**
-   * The maximum number of expected parameters.
-   */
-  private int maxParamCount = -1;
-
-  /**
-   * The default parameter values for the option.
-   */
-  private List<String> defaultParameters = null;
-
-  /**
-   * The {@link Map} of option keys to values that are sets of dependency sets.
-   */
-  private static final Map<SzReplicatorOption, Set<Set<CommandLineOption>>> DEPENDENCIES;
-
-  /**
-   * The {@link Map} of option keys to values that are sets of conflicting
-   * options.
-   */
-  private static final Map<SzReplicatorOption, Set<CommandLineOption>> CONFLICTING_OPTIONS;
-
-  /**
-   * The {@link Map} of {@link String} keys mapping command-line flags to
-   * {@link SzReplicatorOption} values.
-   */
-  private static final Map<String, SzReplicatorOption> OPTIONS_BY_FLAG;
-
-  @Override
-  public String getCommandLineFlag() {
-    return this.cmdLineFlag;
-  }
-
-  @Override
-  public int getMinimumParameterCount() {
-    return this.minParamCount;
-  }
-
-  @Override
-  public int getMaximumParameterCount() {
-    return this.maxParamCount;
-  }
-
-  @Override
-  public List<String> getDefaultParameters() {
-    return this.defaultParameters;
-  }
-
-  @Override
-  public boolean isPrimary() {
-    return this.primary;
-  }
-
-  @Override
-  public String getEnvironmentVariable() {
-    return this.envVariable;
-  }
-
-  @Override
-  public List<String> getEnvironmentFallbacks() {
-    return this.envFallbacks;
-  }
-
-  @Override
-  public Set<CommandLineOption> getConflicts() {
-    return CONFLICTING_OPTIONS.get(this);
-  }
-
-  @Override
-  public Set<Set<CommandLineOption>> getDependencies() {
-    return DEPENDENCIES.get(this);
-  }
-
-  @Override
-  public boolean isSensitive() {
-    switch (this) {
-      case RABBIT_INFO_PASSWORD:
-      case POSTGRESQL_PASSWORD:
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  static {
-    Map<SzReplicatorOption, Set<Set<CommandLineOption>>> dependencyMap
-        = new LinkedHashMap<>();
-    Map<SzReplicatorOption, Set<CommandLineOption>> conflictMap
-        = new LinkedHashMap<>();
-    Map<String, SzReplicatorOption> lookupMap = new LinkedHashMap<>();
-
-    try {
-      // iterate over the options
-      for (SzReplicatorOption option : SzReplicatorOption.values()) {
-        conflictMap.put(option, new LinkedHashSet<>());
-        dependencyMap.put(option, new LinkedHashSet<>());
-        lookupMap.put(option.getCommandLineFlag().toLowerCase(), option);
-      }
-
-      SzReplicatorOption[] exclusiveOptions = {HELP, VERSION};
-      for (SzReplicatorOption option : SzReplicatorOption.values()) {
-        for (SzReplicatorOption exclOption : exclusiveOptions) {
-          if (option == exclOption) continue;
-          Set<CommandLineOption> set = conflictMap.get(exclOption);
-          set.add(option);
-          set = conflictMap.get(option);
-          set.add(exclOption);
-        }
-      }
-
-      SzReplicatorOption[] initOptions
-          = {INI_FILE, INIT_FILE, INIT_JSON};
-
-      // handle the messaging options
-      Set<SzReplicatorOption> rabbitInfoOptions = Set.of(
-          RABBIT_INFO_USER,
-          RABBIT_INFO_PASSWORD,
-          RABBIT_INFO_HOST,
-          RABBIT_INFO_PORT,
-          RABBIT_INFO_VIRTUAL_HOST,
-          RABBIT_INFO_QUEUE);
-
-      Set<CommandLineOption> requiredRabbit = Set.of(RABBIT_INFO_USER,
-                                                     RABBIT_INFO_PASSWORD,
-                                                     RABBIT_INFO_HOST,
-                                                     RABBIT_INFO_QUEUE);
-
-      Set<CommandLineOption> sqsInfoOptions = Set.of(SQS_INFO_URL);
-
-      Set<CommandLineOption> dbInfoOptions = Set.of(DATABASE_INFO_QUEUE);
-
-      // enforce that we only have one info queue
-      for (SzReplicatorOption option : rabbitInfoOptions) {
-        Set<CommandLineOption> conflictSet = conflictMap.get(option);
-        conflictSet.addAll(sqsInfoOptions);
-        conflictSet.addAll(dbInfoOptions);
-      }
-      for (CommandLineOption option : sqsInfoOptions) {
-        Set<CommandLineOption> conflictSet = conflictMap.get(option);
-        conflictSet.addAll(rabbitInfoOptions);
-        conflictSet.addAll(dbInfoOptions);
-      }
-      for (CommandLineOption option : dbInfoOptions) {
-        Set<CommandLineOption> conflictSet = conflictMap.get(option);
-        conflictSet.addAll(sqsInfoOptions);
-        conflictSet.addAll(rabbitInfoOptions);
-      }
-
-      // make the optional rabbit options dependent on the required ones
-      for (SzReplicatorOption option : rabbitInfoOptions) {
-        if (requiredRabbit.contains(option)) continue;
-        Set<Set<CommandLineOption>> dependencySets = dependencyMap.get(option);
-        dependencySets.add(requiredRabbit);
-      }
-
-      // create a set of SQLite options
-      Set<CommandLineOption> sqliteOptions = Set.of(SQLITE_DATABASE_FILE);
-
-      // create the set of PostgreSQL options
-      Set<CommandLineOption> postgreSqlOptions = Set.of(POSTGRESQL_HOST,
-                                                        POSTGRESQL_PORT,
-                                                        POSTGRESQL_DATABASE,
-                                                        POSTGRESQL_USER,
-                                                        POSTGRESQL_PASSWORD);
-
-      Set<SzReplicatorOption> requiredPostgreSQL = Set.of(POSTGRESQL_HOST,
-                                                          POSTGRESQL_DATABASE,
-                                                          POSTGRESQL_USER,
-                                                          POSTGRESQL_PASSWORD);
-
-      // setup dependencies and conflicts for the PostgreSQL options
-      for (CommandLineOption option: postgreSqlOptions) {
-        // get the set of dependency sets
-        Set<Set<CommandLineOption>> dependencySets = dependencyMap.get(option);
-
-        // create a new set
-        Set<CommandLineOption> dependSet = new LinkedHashSet<>();
-
-        // add all required PostgreSQL options to the set
-        dependSet.addAll(requiredPostgreSQL);
-
-        // remove the current option
-        dependSet.remove(option);
-
-        // add the dependency set
-        if (dependSet.size() > 0) {
-          dependencySets.add(Collections.unmodifiableSet(dependSet));
-        }
-
-        // now set the conflicts
-        conflictMap.put((SzReplicatorOption) option, sqliteOptions);
-      }
-
-      // setup conflicts for the database options
-      conflictMap.put(SQLITE_DATABASE_FILE, postgreSqlOptions);
-
-      List<Set<CommandLineOption>> baseDependSets = new LinkedList<>();
-      Set<CommandLineOption> dependSet = new LinkedHashSet<>();
-      dependSet.add(SQS_INFO_URL);
-      dependSet.add(SQLITE_DATABASE_FILE);
-      baseDependSets.add(Collections.unmodifiableSet(dependSet));
-
-      dependSet = new LinkedHashSet<>();
-      dependSet.add(SQS_INFO_URL);
-      dependSet.addAll(requiredPostgreSQL);
-      baseDependSets.add(Collections.unmodifiableSet(dependSet));
-
-      dependSet = new LinkedHashSet<>();
-      dependSet.add(SQLITE_DATABASE_FILE);
-      dependSet.addAll(requiredRabbit);
-      baseDependSets.add(Collections.unmodifiableSet(dependSet));
-
-      dependSet = new LinkedHashSet<>();
-      dependSet.addAll(requiredPostgreSQL);
-      dependSet.addAll(requiredRabbit);
-      baseDependSets.add(Collections.unmodifiableSet(dependSet));
-
-      // make the primary options dependent on one set of info queue options
-      for (SzReplicatorOption option : initOptions) {
-        Set<Set<CommandLineOption>> dependencySets = dependencyMap.get(option);
-
-        dependencySets.addAll(baseDependSets);
-      }
-
-    } catch (Exception e) {
-      e.printStackTrace();
-      throw new ExceptionInInitializerError(e);
-
-    } finally {
-      DEPENDENCIES = Collections.unmodifiableMap(dependencyMap);
-      CONFLICTING_OPTIONS = Collections.unmodifiableMap(conflictMap);
-      OPTIONS_BY_FLAG = Collections.unmodifiableMap(lookupMap);
-    }
-  }
-
-  /**
-   * The {@link ParameterProcessor} implementation for this class.
-   */
-  private static class ParamProcessor implements ParameterProcessor {
+@SuppressWarnings("rawtypes")
+public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, SzReplicatorOption> {
     /**
-     * Processes the parameters for the specified option.
-     *
-     * @param option The {@link SzReplicatorOption} to process.
-     * @param params The {@link List} of parameters for the option.
-     * @return The processed value.
-     * @throws IllegalArgumentException If the specified {@link
-     *                                  CommandLineOption} is not an instance of
-     *                                  {@link SzReplicatorOption} or is otherwise
-     *                                  unrecognized.
+     * <p>
+     * Option for displaying help/usage for the replicator. This option can only be
+     * provided by itself and has no parameters.
+     * <p>
+     * This option can be specified in the following ways:
+     * <ul>
+     * <li>Command Line: <code>--help</code></li>
+     * </ul>
      */
-    public Object process(CommandLineOption option, List<String> params)
-    {
-      if (!(option instanceof SzReplicatorOption)) {
-        throw new IllegalArgumentException(
-            "Unhandled command line option: " + option.getCommandLineFlag()
-                + " / " + option);
-      }
+    HELP("--help", null, null, true, 0),
 
-      // down-cast
-      SzReplicatorOption replicatorOption = (SzReplicatorOption) option;
-      switch (replicatorOption) {
-        case HELP:
-        case VERSION:
-          return Boolean.TRUE;
+    /**
+     * <p>
+     * Option for displaying the version number of the replicator. This option can
+     * only be provided by itself and has no parameters.
+     * <p>
+     * This option can be specified in the following ways:
+     * <ul>
+     * <li>Command Line: <code>--version</code></li>
+     * </ul>
+     */
+    VERSION("--version", null, null, true, 0),
 
-        case VERBOSE:
-        case DATABASE_INFO_QUEUE:
-          if (params.size() == 0) return Boolean.TRUE;
-          String boolText = params.get(0);
-          if ("false".equalsIgnoreCase(boolText)) {
-            return Boolean.FALSE;
-          }
-          if ("true".equalsIgnoreCase(boolText)) {
-            return Boolean.TRUE;
-          }
-          throw new IllegalArgumentException(
-              "The specified parameter for "
-                  + option.getCommandLineFlag()
-                  + " must be true or false: " + params.get(0));
+    /**
+     * <p>
+     * Option for ignoring environment variables when setting the values for other
+     * command-line options. A single parameter may optionally be specified as
+     * <code>true</code> or <code>false</code> with <code>false</code> simulating
+     * the absence of the option.
+     * <p>
+     * This option can be specified in the following ways:
+     * <ul>
+     * <li>Command Line: <code>--ignore-environment [true|false]</code></li>
+     * </ul>
+     */
+    IGNORE_ENVIRONMENT("--ignore-environment", null, 
+                       null, 0, "false"),
 
-        case INI_FILE:
-          File iniFile = new File(params.get(0));
-          if (!iniFile.exists()) {
-            throw new IllegalArgumentException(
-                "Specified INI file does not exist: " + iniFile);
-          }
-          return iniFile;
+    /**
+     * <p>
+     * Option for specifying the module name to initialize the Senzing API's
+     * with. The default value is {@link
+     * SzGrpcServerConstants#DEFAULT_INSTANCE_NAME}.
+     * <p>
+     * This option can be specified in the following ways:
+     * <ul>
+     * <li>Command Line: <code>-n {module-name}</code></li>
+     * <li>Command Line: <code>--instance-name {module-name}</code></li>
+     * <li>Environment:
+     * <code>SENZING_TOOLS_CORE_INSTANCE_NAME="{module-name}"</code></li>
+     * </ul>
+     */
+    CORE_INSTANCE_NAME("--core-instance-name", 
+                       ENV_PREFIX + "CORE_INSTANCE_NAME",
+                       null, 1, DEFAULT_INSTANCE_NAME),
 
-        case SQLITE_DATABASE_FILE:
-          return new File(params.get(0));
+    /**
+     * <p>
+     * Option for specifying the core settings JSON with which to initialize
+     * the Core Senzing SDK. The parameter to this option should be the
+     * settings as a JSON object <b>or</b> the path to a file containing the
+     * settings JSON.
+     * <p>
+     * This option can be specified in the following ways:
+     * <ul>
+     * <li>Command Line: <code>--core-settings [{file-path}|{json-text}]</code></li>
+     * <li>Environment:
+     * <code>SENZING_TOOLS_CORE_SETTINGS="[{file-path}|{json-text}]"</code></li>
+     * </ul>
+     */
+    CORE_SETTINGS("--core-settings",
+                  ENV_PREFIX + "CORE_SETTINGS",
+                  List.of("SENZING_ENGINE_CONFIGURATION_JSON"),
+                  true, 1),
 
-        case INIT_FILE:
-          File initFile = new File(params.get(0));
-          if (!initFile.exists()) {
-            throw new IllegalArgumentException(
-                "Specified JSON init file does not exist: " + initFile);
-          }
-          String jsonText;
-          try {
-            jsonText = readTextFileAsString(initFile, "UTF-8");
+    /**
+     * <p>
+     * This option is used with {@link #CORE_SETTINGS} to force a specific
+     * configuration ID to be used for initialization and prevent automatic
+     * reinitialization to pickup the latest default config ID.
+     * <p>
+     * This option can be specified in the following ways:
+     * <ul>
+     * <li>Command Line: <code>--config-id {config-id}</code></li>
+     * <li>Environment: <code>SENZING_TOOLS_CORE_CONFIG_ID="{config-id}"</code></li>
+     * </ul>
+     */
+    CORE_CONFIG_ID("--core-config-id",
+                   ENV_PREFIX + "CORE_CONFIG_ID", null, 1),
 
-          } catch (IOException e) {
-            throw new RuntimeException(
-                multilineFormat(
-                    "Failed to read JSON initialization file: "
-                        + initFile,
-                    "",
-                    "Cause: " + e.getMessage()));
-          }
-          try {
-            return JsonUtilities.parseJsonObject(jsonText);
+    /**
+     * <p>
+     * This presence of this option determines if the Core Senzing SDK
+     * is initialized in verbose mode. The default value if not specified
+     * is <code>muted</code> (which is equivalent to zero). The parameter
+     * to this option may be specified as one of:
+     * <ul>
+     * <li><code>muted</code> - To indicate no logging.</li>
+     * <li><code>verbose</code> - To indicate verbose logging.</li>
+     * <li><code>0</code> - To indicate no logging.</li>
+     * <li><code>1</code> - To indicate verbose logging.</li>
+     * </ul>
+     * <p>
+     * This option can be specified in the following ways:
+     * <ul>
+     * <li>Command Line:
+     * <code>--core-log-level [muted|verbose|{integer}]</code></li>
+     * <li>Environment:
+     * <code>SENZING_TOOLS_CORE_LOG_LEVEL="[muted|verbose|{integer}]"</code></li>
+     * </ul>
+     */
+    CORE_LOG_LEVEL("--core-log-level",
+                   ENV_PREFIX + "CORE_LOG_LEVEL", null,
+                   0, "muted"),
 
-          } catch (Exception e) {
-            throw new IllegalArgumentException(
-                "The initialization file does not contain valid JSON: "
-                    + initFile);
-          }
+    /**
+     * <p>
+     * This option sets the number of threads available for executing
+     * Core Senzing SDK functions. The single parameter to this option
+     * should be a positive integer. If not specified, then this
+     * defaults to {@link SzGrpcServerConstants#DEFAULT_CORE_CONCURRENCY},
+     * <p>
+     * This option can be specified in the following ways:
+     * <ul>
+     * <li>Command Line: <code>--core-concurrency {thread-count}</code></li>
+     * <li>Environment:
+     * <code>SENZING_TOOLS_CORE_CONCURRENCY="{thread-count}"</code></li>
+     * </ul>
+     */
+    CORE_CONCURRENCY("--core-concurrency",
+                     ENV_PREFIX + "CORE_CONCURRENCY", null,
+                     1, DEFAULT_CORE_CONCURRENCY_PARAM),
 
-        case INIT_JSON:
-          String initJson = params.get(0);
-          if (initJson.trim().length() == 0) {
-            throw new IllegalArgumentException(
-                "Initialization JSON is missing or empty.");
-          }
-          try {
-            return JsonUtilities.parseJsonObject(initJson);
+     /**
+     * <p>
+     * If leveraging the default configuration stored in the database, this option
+     * is used to specify how often the gRPC server should background check that
+     * the current active config is the same as the current default config and
+     * update the active config if not. The parameter to this option is specified
+     * as an integer:
+     * <ul>
+     * <li>A positive integer is interpreted as a number of seconds.</li>
+     * <li>If zero is specified, the auto-refresh is disabled and it will
+     * only occur when a requested configuration element is not found
+     * in the current active config.</li>
+     * <li>Specifying a negative integer is allowed but is used to enable
+     * a check and conditional refresh only when manually requested
+     * (programmatically).</li>
+     * </ul>
+     * <b>NOTE:</b> This is option ignored if auto-refresh is disabled because
+     * the config was specified via the <code>G2CONFIGFILE</code> in the
+     * {@link #CORE_SETTINGS} or if {@link #CORE_CONFIG_ID} has been specified
+     * to lock in a specific configuration.
+     * <p>
+     * This option can be specified in the following ways:
+     * <ul>
+     * <li>Command Line:
+     * <code>--refresh-config-seconds {integer}</code></li>
+     * <li>Command Line:
+     * <li>Environment:
+     * <code>SENZING_TOOLS_REFRESH_CONFIG_SECONDS="{integer}"</code></li>
+     * </ul>
+     */
+    REFRESH_CONFIG_SECONDS("--refresh-config-seconds",
+                           ENV_PREFIX + "REFRESH_CONFIG_SECONDS", null,
+                           1, DEFAULT_REFRESH_CONFIG_SECONDS_PARAM),
+   
+    /**
+     * <p>
+     * This option is used to specify the URL to an Amazon SQS queue to be used for
+     * obtaining the info messages. The single parameter to this option is the URL.
+     * If this option is specified then the info queue parameters for RabbitMQ are
+     * not allowed.
+     * <p>
+     * This option can be specified in the following ways:
+     * <ul>
+     * <li>Command Line: <code>--sqs-info-uri {url}</code></li>
+     * <li>Environment: <code>SENZING_SQS_INFO_URI="{url}"</code></li>
+     * </ul>
+     */
+    SQS_INFO_URI("--sqs-info-uri", ENV_PREFIX + "SQS_INFO_QUEUE_URL", null, 1),
 
-          } catch (Exception e) {
-            throw new IllegalArgumentException(
-                multilineFormat(
-                    "Initialization JSON is not valid JSON: ",
-                    initJson));
-          }
+    /**
+     * <p>
+     * This option is used to specify the URL to the RabbitMQ server for finding the
+     * RabbitMQ info queue. The single parameter to this option is an AMQP URL.  If
+     * this option is specified then the SQS info queue parameter is not allowed.
+     * <p>
+     * This option can be specified in the following ways:
+     * <ul>
+     * <li>Command Line: <code>--rabbit-info-uri amqp://user:password@host:port/vhost</code></li>
+     * <li>Environment:
+     * <code>SENZING_TOOLS_RABBITMQ_URI="amqp://user:password@host:port/vhost"</code></li>
+     * <li>Environment:
+     * <code>SENZING_TOOLS_RABBITMQ_URI="amqp://user:password@host:port/vhost" (fallback)</code></li>
+     * </ul>
+     */
+    RABBITMQ_URI("--rabbit-info-uri", ENV_PREFIX + "RABBITMQ_URI", List.of(ENV_PREFIX + "RABBITMQ_URI"), 1),
 
-        case CONCURRENCY: {
-          int threadCount;
-          try {
-            threadCount = Integer.parseInt(params.get(0));
-          } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(
-                "Thread count must be an integer: " + params.get(0));
-          }
-          if (threadCount <= 0) {
-            throw new IllegalArgumentException(
-                "Negative thread counts are not allowed: " + threadCount);
-          }
-          return threadCount;
-        }
+    /**
+     * <p>
+     * This option is used to specify the routing key for connecting to RabbitMQ as
+     * part of specifying a RabbitMQ info queue. The single parameter to this option
+     * is a routing key. If this option is specified then the other options required
+     * for a RabbitMQ info queue are required and the info queue parameters
+     * pertaining to SQS and Kafka are not allowed.
+     * <p>
+     * This option can be specified in the following ways:
+     * <ul>
+     * <li>Command Line: <code>--rabbit-info-queue {queue-name}</code></li>
+     * <li>Environment: <code>SENZING_TOOLS_RABBITMQ_INFO_QUEUE="{queue-name}"</code></li>
+     * </ul>
+     */
+    RABBITMQ_INFO_QUEUE("--rabbit-info-queue", ENV_PREFIX + "RABBITMQ_INFO_QUEUE", null, 1),
 
-        case MODULE_NAME:
-        case SQS_INFO_URL:
-        case RABBIT_INFO_HOST:
-        case RABBIT_INFO_USER:
-        case RABBIT_INFO_PASSWORD:
-        case RABBIT_INFO_VIRTUAL_HOST:
-        case RABBIT_INFO_QUEUE:
-        case POSTGRESQL_HOST:
-        case POSTGRESQL_DATABASE:
-        case POSTGRESQL_USER:
-        case POSTGRESQL_PASSWORD:
-          return params.get(0);
+    /**
+     * <p>
+     * This presence of this option causes the data mart replicator to utilize a
+     * database table message queue instead of Rabbit MQ or Amazon SQS. The data
+     * mart replicator will use the same database that is configured for the data
+     * mart to find the <code>sz_message_queue</code> table from which to consume
+     * messages. The absence of this parameter will causes the data mart to require
+     * additional options for configuring the message queue for Rabbit MQ or Amazon
+     * SQS. A single parameter may optionally be specified as <code>true</code> or
+     * <code>false</code> with <code>false</code> simulating the absence of the
+     * option.
+     * <p>
+     * <b>NOTE:</b> If using SQLite then only a single database connection from a
+     * single process is allowed at any one time, and therefore either a process
+     * embedding the data mart must be populating the queue concurrently or
+     * population of the queue by another process must occur while the data mart
+     * replicator is <b>not</b> consuming the messages from the
+     * <code>sz_message_queue</code> table.
+     * <p>
+     * This option can be specified in the following ways:
+     * <ul>
+     * <li>Command Line: <code>--database-info-queue [true|false]</code></li>
+     * <li>Environment:
+     * <code>SENZING_DATA_MART_DATABASE_INFO_QUEUE="{true|false}"</code></li>
+     * </ul>
+     */
+    DATABASE_INFO_QUEUE("--database-info-queue", ENV_PREFIX + "DATABASE_INFO_QUEUE", null, 0, "false"),
 
-        case RABBIT_INFO_PORT:
-        case POSTGRESQL_PORT: {
-          int port = Integer.parseInt(params.get(0));
-          if (port < 0) {
-            throw new IllegalArgumentException(
-                "Negative port numbers are not allowed: " + port);
-          }
-          return port;
-        }
+    /**
+     * This option is used to specify the database connection for the data mart.
+     * The single parameter to this option is the SQLite or PostgreSQL database
+     * URL specifying the database connection.  Possible database URL formats are:
+     * <ul>
+     *   <li><code>postgresql://user:password@host[:port]/database</code></li>
+     *   <li><code>sqlite://[na:na@nowhere]/path[?mode=memory&cache=shared]</code></li>
+     * </ul>
+     * <p>
+     * This option can be specified in the following ways:
+     * <ul>
+     * <li>Command Line: <code>--database-url {url}</code></li>
+     * <li>Environment:
+     * <code>SENZING_TOOLS_DATA_MART_DATABASE_URI="{url}"</code></li>
+     * </ul>
+     */
+    DATABASE_URI("--database-url", ENV_PREFIX + "DATA_MART_DATABASE_URI", null, 1);
 
-        default:
-          throw new IllegalArgumentException(
-              "Unhandled command line option: "
-                  + option.getCommandLineFlag()
-                  + " / " + option);
-
-      }
+    /**
+     * Constructs with the specified parameters.
+     *
+     * @param cmdLineFlag    The command-line flag.
+     * @param envVariable    The primary environment variable.
+     * @param envFallbacks   The {@link List} of fallback environment variables.
+     * @param parameterCount The number of parameters for the option.
+     */
+    SzReplicatorOption(String cmdLineFlag, String envVariable, List<String> envFallbacks, int parameterCount) {
+        this(cmdLineFlag, envVariable, envFallbacks, false, parameterCount);
     }
-  }
 
-  /**
-   * The {@link ParameterProcessor} for {@link SzReplicatorOption}.
-   * This instance will only handle instances of {@link CommandLineOption}
-   * instances of type {@link SzReplicatorOption}.
-   */
-  public static final ParameterProcessor PARAMETER_PROCESSOR
-      = new ParamProcessor();
+    /**
+     * Constructs with the specified parameters.
+     *
+     * @param cmdLineFlag       The command-line flag.
+     * @param envVariable       The primary environment variable.
+     * @param envFallbacks      The {@link List} of fallback environment variables.
+     * @param parameterCount    The number of parameters for the option.
+     * @param defaultParameters The default parameter values for the option if not
+     *                          specified.
+     */
+    SzReplicatorOption(String cmdLineFlag, String envVariable, List<String> envFallbacks, int parameterCount, String... defaultParameters) {
+        this(cmdLineFlag, envVariable, envFallbacks, false, parameterCount, defaultParameters);
+    }
+
+    /**
+     * Constructs with the specified parameters.
+     *
+     * @param cmdLineFlag       The command-line flag.
+     * @param envVariable       The primary environment variable.
+     * @param envFallbacks      The {@link List} of fallback environment variables.
+     * @param parameterCount    The number of parameters for the option.
+     * @param defaultParameters The default parameter value for the option if not
+     *                          specified.
+     */
+    SzReplicatorOption(String cmdLineFlag, String envVariable, List<String> envFallbacks, boolean primary, int parameterCount, String... defaultParameters) {
+        this.primary = primary;
+        this.cmdLineFlag = cmdLineFlag;
+        this.envVariable = envVariable;
+        this.minParamCount = (parameterCount < 0) ? 0 : parameterCount;
+        this.maxParamCount = parameterCount;
+        this.envFallbacks = (envFallbacks == null) ? null : List.copyOf(envFallbacks);
+        this.defaultParameters = (defaultParameters == null) ? Collections.emptyList() : List.of(defaultParameters);
+    }
+
+    /**
+     * Whether or not the option is a primary option.
+     */
+    private boolean primary = false;
+
+    /**
+     * The command-line flag for the option.
+     */
+    private String cmdLineFlag = null;
+
+    /**
+     * The environment variable for the option.
+     */
+    private String envVariable = null;
+
+    /**
+     * The fallback environment variables for the option in descending priority
+     * order.
+     */
+    private List<String> envFallbacks = null;
+
+    /**
+     * The minimum number of expected parameters.
+     */
+    private int minParamCount = 0;
+
+    /**
+     * The maximum number of expected parameters.
+     */
+    private int maxParamCount = -1;
+
+    /**
+     * The default parameter values for the option.
+     */
+    private List<String> defaultParameters = null;
+
+    /**
+     * The {@link Map} of option keys to values that are sets of dependency sets.
+     */
+    private static final Map<SzReplicatorOption, Set<Set<CommandLineOption>>> DEPENDENCIES;
+
+    /**
+     * The {@link Map} of option keys to values that are sets of conflicting
+     * options.
+     */
+    private static final Map<SzReplicatorOption, Set<CommandLineOption>> CONFLICTING_OPTIONS;
+
+    /**
+     * The {@link Map} of {@link String} keys mapping command-line flags to
+     * {@link SzReplicatorOption} values.
+     */
+    private static final Map<String, SzReplicatorOption> OPTIONS_BY_FLAG;
+
+    @Override
+    public String getCommandLineFlag() {
+        return this.cmdLineFlag;
+    }
+
+    @Override
+    public int getMinimumParameterCount() {
+        return this.minParamCount;
+    }
+
+    @Override
+    public int getMaximumParameterCount() {
+        return this.maxParamCount;
+    }
+
+    @Override
+    public List<String> getDefaultParameters() {
+        return this.defaultParameters;
+    }
+
+    @Override
+    public boolean isPrimary() {
+        return this.primary;
+    }
+
+    @Override
+    public String getEnvironmentVariable() {
+        return this.envVariable;
+    }
+
+    @Override
+    public List<String> getEnvironmentFallbacks() {
+        return this.envFallbacks;
+    }
+
+    @Override
+    public Set<CommandLineOption> getConflicts() {
+        return CONFLICTING_OPTIONS.get(this);
+    }
+
+    @Override
+    public Set<Set<CommandLineOption>> getDependencies() {
+        return DEPENDENCIES.get(this);
+    }
+
+    @Override
+    public boolean isSensitive() {
+        switch (this) {
+        case RABBITMQ_URI:
+        case DATABASE_URI:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    static {
+        Map<SzReplicatorOption, Set<Set<CommandLineOption>>> dependencyMap = new LinkedHashMap<>();
+        Map<SzReplicatorOption, Set<CommandLineOption>> conflictMap = new LinkedHashMap<>();
+        Map<String, SzReplicatorOption> lookupMap = new LinkedHashMap<>();
+
+        try {
+            // iterate over the options
+            for (SzReplicatorOption option : SzReplicatorOption.values()) {
+                conflictMap.put(option, new LinkedHashSet<>());
+                dependencyMap.put(option, new LinkedHashSet<>());
+                lookupMap.put(option.getCommandLineFlag().toLowerCase(), option);
+            }
+
+            SzReplicatorOption[] exclusiveOptions = { HELP, VERSION };
+            for (SzReplicatorOption option : SzReplicatorOption.values()) {
+                for (SzReplicatorOption exclOption : exclusiveOptions) {
+                    if (option == exclOption)
+                        continue;
+                    Set<CommandLineOption> set = conflictMap.get(exclOption);
+                    set.add(option);
+                    set = conflictMap.get(option);
+                    set.add(exclOption);
+                }
+            }
+
+            // handle the messaging options
+            Set<SzReplicatorOption> rabbitInfoOptions = Set.of(RABBITMQ_URI, RABBITMQ_INFO_QUEUE);
+
+            Set<CommandLineOption> requiredRabbit = Set.of(RABBITMQ_URI, RABBITMQ_INFO_QUEUE);
+
+            Set<CommandLineOption> sqsInfoOptions = Set.of(SQS_INFO_URI);
+
+            Set<CommandLineOption> dbInfoOptions = Set.of(DATABASE_INFO_QUEUE);
+
+            // enforce that we only have one info queue
+            for (SzReplicatorOption option : rabbitInfoOptions) {
+                Set<CommandLineOption> conflictSet = conflictMap.get(option);
+                conflictSet.addAll(sqsInfoOptions);
+                conflictSet.addAll(dbInfoOptions);
+            }
+            for (CommandLineOption option : sqsInfoOptions) {
+                Set<CommandLineOption> conflictSet = conflictMap.get(option);
+                conflictSet.addAll(rabbitInfoOptions);
+                conflictSet.addAll(dbInfoOptions);
+            }
+            for (CommandLineOption option : dbInfoOptions) {
+                Set<CommandLineOption> conflictSet = conflictMap.get(option);
+                conflictSet.addAll(sqsInfoOptions);
+                conflictSet.addAll(rabbitInfoOptions);
+            }
+
+            // make the optional rabbit options dependent on the required ones
+            for (SzReplicatorOption option : rabbitInfoOptions) {
+                if (requiredRabbit.contains(option))
+                    continue;
+                Set<Set<CommandLineOption>> dependencySets = dependencyMap.get(option);
+                dependencySets.add(requiredRabbit);
+            }
+
+            List<Set<CommandLineOption>> baseDependSets = new LinkedList<>();
+            Set<CommandLineOption> dependSet = new LinkedHashSet<>();
+            dependSet.add(SQS_INFO_URI);
+            dependSet.add(DATABASE_URI);
+            baseDependSets.add(Collections.unmodifiableSet(dependSet));
+
+            dependSet = new LinkedHashSet<>();
+            dependSet.add(DATABASE_URI);
+            dependSet.addAll(requiredRabbit);
+            baseDependSets.add(Collections.unmodifiableSet(dependSet));
+
+
+            SzReplicatorOption[] initOptions = { CORE_SETTINGS };
+            // make the primary options dependent on one set of info queue options
+            for (SzReplicatorOption option : initOptions) {
+                Set<Set<CommandLineOption>> dependencySets = dependencyMap.get(option);
+
+                dependencySets.addAll(baseDependSets);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ExceptionInInitializerError(e);
+
+        } finally {
+            DEPENDENCIES = Collections.unmodifiableMap(dependencyMap);
+            CONFLICTING_OPTIONS = Collections.unmodifiableMap(conflictMap);
+            OPTIONS_BY_FLAG = Collections.unmodifiableMap(lookupMap);
+        }
+    }
+
+    /**
+     * The {@link ParameterProcessor} implementation for this class.
+     */
+    private static class ParamProcessor implements ParameterProcessor {
+        /**
+         * Processes the parameters for the specified option.
+         *
+         * @param option The {@link SzReplicatorOption} to process.
+         * @param params The {@link List} of parameters for the option.
+         * @return The processed value.
+         * @throws IllegalArgumentException If the specified {@link CommandLineOption}
+         *                                  is not an instance of
+         *                                  {@link SzReplicatorOption} or is otherwise
+         *                                  unrecognized.
+         */
+        public Object process(CommandLineOption option, List<String> params) {
+            if (!(option instanceof SzReplicatorOption)) {
+                throw new IllegalArgumentException(
+                        "Unhandled command line option: " + option.getCommandLineFlag() + " / " + option);
+            }
+
+            // down-cast
+            SzReplicatorOption replicatorOption = (SzReplicatorOption) option;
+            switch (replicatorOption) {
+            case HELP:
+            case VERSION:
+                return Boolean.TRUE;
+
+            case IGNORE_ENVIRONMENT:
+            case DATABASE_INFO_QUEUE:
+                if (params.size() == 0)
+                    return Boolean.TRUE;
+                String boolText = params.get(0);
+                if ("false".equalsIgnoreCase(boolText)) {
+                    return Boolean.FALSE;
+                }
+                if ("true".equalsIgnoreCase(boolText)) {
+                    return Boolean.TRUE;
+                }
+                throw new IllegalArgumentException("The specified parameter for " + option.getCommandLineFlag()
+                        + " must be true or false: " + params.get(0));
+
+            case CORE_INSTANCE_NAME:
+                return params.get(0).trim();
+
+            case CORE_SETTINGS: {
+                String paramVal = params.get(0).trim();
+                if (paramVal.length() == 0) {
+                    throw new IllegalArgumentException(
+                            "Missing parameter for core settings.");
+                }
+                if (paramVal.startsWith("{")) {
+                    try {
+                        return JsonUtilities.parseJsonObject(paramVal);
+
+                    } catch (Exception e) {
+                        throw new IllegalArgumentException(
+                                multilineFormat(
+                                    "Core settings is not valid JSON: ",
+                                    paramVal));
+                    }
+                } else {
+                    File initFile = new File(paramVal);
+                    if (!initFile.exists()) {
+                        throw new IllegalArgumentException(
+                                "Specified JSON init file does not exist: " + initFile);
+                    }
+                    String jsonText;
+                    try {
+                        jsonText = readTextFileAsString(initFile, "UTF-8");
+
+                    } catch (IOException e) {
+                        throw new RuntimeException(
+                                multilineFormat(
+                                        "Failed to read JSON initialization file: "
+                                            + initFile,
+                                        "",
+                                        "Cause: " + e.getMessage()));
+                    }
+                    try {
+                        return JsonUtilities.parseJsonObject(jsonText);
+
+                    } catch (Exception e) {
+                        throw new IllegalArgumentException(
+                                "The initialization file does not contain valid JSON: "
+                                        + initFile);
+                    }
+                }
+            }
+            case CORE_CONFIG_ID:
+                try {
+                    return Long.parseLong(params.get(0));
+                } catch (Exception e) {
+                    throw new IllegalArgumentException(
+                            "The configuration ID for " + option.getCommandLineFlag()
+                                    + " must be an integer: " + params.get(0));
+                }
+
+            case CORE_LOG_LEVEL: {
+                String paramVal = params.get(0).trim().toLowerCase();
+
+                switch (paramVal) {
+                    case "verbose":
+                    case "1":
+                        return true;
+                    case "muted":
+                    case "0":
+                        return false;
+                    default:
+                        throw new IllegalArgumentException(
+                            "The specified core log level is not recognized; " + paramVal);
+                }
+            }
+
+            case CORE_CONCURRENCY: {
+                int threadCount;
+                try {
+                    threadCount = Integer.parseInt(params.get(0));
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException(
+                            "Thread count must be an integer: " + params.get(0));
+                }
+                if (threadCount <= 0) {
+                    throw new IllegalArgumentException(
+                            "Negative thread counts are not allowed: " + threadCount);
+                }
+                return threadCount;
+            }
+                    
+            case REFRESH_CONFIG_SECONDS:
+                try {
+                    return Long.parseLong(params.get(0));
+                } catch (Exception e) {
+                    throw new IllegalArgumentException(
+                            "The specified refresh period for "
+                                    + option.getCommandLineFlag() + " must be an integer: "
+                                    + params.get(0));
+                }
+
+            case SQS_INFO_URI:
+                return SqsUri.parse(params.get(0));
+
+            case RABBITMQ_URI:
+                return RabbitMqUri.parse(params.get(0));
+
+            case RABBITMQ_INFO_QUEUE:
+                return params.get(0);
+
+            case DATABASE_URI:
+                return parseDatabaseUri(params.get(0));
+                        
+            default:
+                throw new IllegalArgumentException(
+                        "Unhandled command line option: " 
+                        + option.getCommandLineFlag() + " / " + option);
+
+            }
+        }
+    }
+
+    /**
+     * Parses the specified parameter value as a database
+     * {@link ConnectionUri}.
+     * 
+     * @param paramValue The parameter value to parse.
+     * 
+     * @return The {@link ConnectionUri} that was parsed.
+     */
+    private static ConnectionUri parseDatabaseUri(String paramValue) {
+        Set<Class<? extends ConnectionUri>> allowed
+            = Set.of(PostgreSqlUri.class, SqliteUri.class);
+        
+        ConnectionUri uri = ConnectionUri.parse(paramValue);
+        if (!allowed.contains(uri.getClass())) {
+            throw new IllegalArgumentException(
+                "Unrecognized database connection URI: " + paramValue);
+        }
+        return uri;
+    }
+
+    /**
+     * The {@link ParameterProcessor} for {@link SzReplicatorOption}. This instance
+     * will only handle instances of {@link CommandLineOption} instances of type
+     * {@link SzReplicatorOption}.
+     */
+    public static final ParameterProcessor PARAMETER_PROCESSOR = new ParamProcessor();
 
 }

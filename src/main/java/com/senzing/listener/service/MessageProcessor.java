@@ -1,7 +1,6 @@
 package com.senzing.listener.service;
 
 import com.senzing.listener.service.exception.ServiceExecutionException;
-import com.senzing.listener.service.exception.ServiceSetupException;
 
 import javax.json.JsonObject;
 

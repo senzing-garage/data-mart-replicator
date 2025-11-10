@@ -5,9 +5,9 @@
   <artifactId>data-mart-replicator</artifactId>
   <packaging>jar</packaging>
   <version>2.0.0</version>
-  <name>Senzing G2 Data Mart Replicator</name>
+  <name>Senzing Data Mart Replicator</name>
   <description>The Senzing listener implementation that replicates data to the data mart.</description>
-  <url>http://github.com/senzing-garage/g2-sdk-java</url>
+  <url>http://github.com/senzing-garage/data-mart-replicator</url>
   <licenses>
     <license>
       <name>The Apache License, Version 2.0</name>
@@ -29,9 +29,19 @@
   </scm>
   <dependencies>
     <dependency>
+        <groupId>com.senzing</groupId>
+        <artifactId>sz-sdk</artifactId>
+        <version>4.1.0</version>
+    </dependency>
+    <dependency>
+        <groupId>com.senzing</groupId>
+        <artifactId>sz-sdk-auto</artifactId>
+        <version>0.4.1</version>
+    </dependency>
+    <dependency>
       <groupId>com.senzing</groupId>
       <artifactId>senzing-commons</artifactId>
-      <version>[3.3.7,3.9999999.9999999]</version>
+      <version>4.0.0-beta.1.5</version>
     </dependency>
     <dependency>
       <groupId>org.xerial</groupId>
@@ -66,7 +76,7 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
-      <version>5.14.0</version>
+      <version>6.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -123,8 +133,9 @@
     </dependency>
   </dependencies>
   <properties>
-    <maven.compiler.source>11</maven.compiler.source>
-    <maven.compiler.target>11</maven.compiler.target>
+    <gpg.skip>true</gpg.skip> <!-- skip GPG unless release profile -->
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>

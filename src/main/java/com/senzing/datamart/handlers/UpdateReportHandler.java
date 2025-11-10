@@ -4,6 +4,7 @@ import com.senzing.datamart.SzReplicationProvider;
 import com.senzing.datamart.model.*;
 import com.senzing.listener.service.exception.ServiceExecutionException;
 import com.senzing.listener.service.scheduling.Scheduler;
+import com.senzing.sdk.SzException;
 import com.senzing.sql.DatabaseType;
 import com.senzing.util.LoggingUtilities;
 
@@ -286,13 +287,14 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
    *                          follow-up tasks.
    * @return The cumulative entity delta for the specified updates.
    * @throws SQLException If a JDBC failure occurs.
+   * @throws SzException If a Senzing failure occurs.
    */
   protected int overrideEntityDelta(Connection            conn,
                                     SzReportKey           reportKey,
                                     List<SzReportUpdate>  updates,
                                     int                   computedSum,
                                     Scheduler             followUpScheduler)
-      throws SQLException
+      throws SQLException, SzException
   {
     return computedSum;
   }
@@ -313,13 +315,14 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
    *                          follow-up tasks.
    * @return The cumulative record delta for the specified updates.
    * @throws SQLException If a JDBC failure occurs.
+   * @throws SzException If a Senzing failure occurs.
    */
   protected int overrideRecordDelta(Connection            conn,
                                     SzReportKey           reportKey,
                                     List<SzReportUpdate>  updates,
                                     int                   computedSum,
                                     Scheduler             followUpScheduler)
-      throws SQLException
+      throws SQLException, SzException
   {
     return computedSum;
   }
@@ -364,13 +367,14 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
    * @param followUpScheduler The {@link Scheduler} with which to schedule any
    *                          follow-up tasks.
    * @throws SQLException If a JDBC failure occurs.
+   * @throws SzException If a Senzing failure occurs.
    */
   protected void updateReportStatistic(Connection           conn,
                                        SzReportKey          reportKey,
                                        String               leaseId,
                                        List<SzReportUpdate> updates,
                                        Scheduler            followUpScheduler)
-    throws SQLException
+    throws SQLException, SzException
   {
     PreparedStatement ps = null;
     try {
