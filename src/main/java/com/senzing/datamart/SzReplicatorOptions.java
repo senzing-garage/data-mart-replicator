@@ -124,8 +124,8 @@ public class SzReplicatorOptions {
      * Constructs with the {@link Map} of {@link CommandLineOption}
      * keys to {@link Object} values.
      * 
-     * @param optionMap The {@link Map} of {@link CommandLineOption}
-     *                  keys to {@link Object} values.
+     * @param optionsMap The {@link Map} of {@link CommandLineOption}
+     *                   keys to {@link Object} values.
      */
     @SuppressWarnings("rawtypes")
     protected SzReplicatorOptions(Map<CommandLineOption, Object> optionsMap)
@@ -141,10 +141,10 @@ public class SzReplicatorOptions {
     }
 
     /**
-     * Constructs with the native Senzing JSON initialization parameters as a
-     * {@link JsonObject}.
+     * Constructs with the settings (as a {@link JsonObject}) with which to 
+     * initialize the Senzing Core SDK
      *
-     * @param jsonInit The JSON initialization parameters.
+     * @param settings The settings with which to initialize the Senzing Core SDK.
      */
     public SzReplicatorOptions(JsonObject settings) {
         Objects.requireNonNull(
@@ -153,18 +153,17 @@ public class SzReplicatorOptions {
     }
 
     /**
-     * Constructs with the native Senzing JSON initialization parameters as JSON
-     * text.
+     * Constructs with the settings (as a JSON {@link String}) with which to
+     * initialize the Senzing Core SDK.
      *
-     * @param jsonInitText The JSON initialization parameters as JSON text.
+     * @param settings The settings with which to initialize the Senzing Core SDK.
      */
     public SzReplicatorOptions(String settings) {
         this(JsonUtilities.parseJsonObject(settings));
     }
 
     /**
-     * Returns the {@link JsonObject} describing the Senzing SDK
-     * initialization settings.
+     * Returns the {@link JsonObject} describing the Senzing Core SDK settings.
      *
      * @return The {@link JsonObject} describing the Senzing SDK
      *         initialization settings.
@@ -175,11 +174,13 @@ public class SzReplicatorOptions {
     }
 
     /**
-     * Returns the {@link JsonObject} describing the Senzing SDK
-     * initialization settings.
+     * Sets the settings with which to initialize the Senzing Core SDK
+     * and returns a reference to this instance.
      *
-     * @return The {@link JsonObject} describing the Senzing SDK
-     *         initialization settings.
+     * @param settings The settings with which to initialize the 
+     *                 Senzing Core SDK.
+     * 
+     * @return A reference to this instance.
      */
     @Option(CORE_SETTINGS)
     public SzReplicatorOptions setCoreSettings(JsonObject settings) {
@@ -533,6 +534,8 @@ public class SzReplicatorOptions {
      * @param uri The {@link ConnectionUri} for connecting to
      *            the data mart database.
      *
+     * @return A reference to this instance.
+     * 
      * @see SzReplicatorOption#DATABASE_URI
      */
     @Option(DATABASE_URI)
@@ -675,10 +678,10 @@ public class SzReplicatorOptions {
 
     /**
      * Creates a {@link Map} of {@link CommandLineOption} keys to {@link Object}
-     * values for initializing an {@link SzGrpcServer} instance.
+     * values for initializing an {@link SzReplicator} instance.
      *
      * @return The {@link Map} of {@link CommandLineOption} keys to {@link Object}
-     *         values for initializing an {@link SzGrpcServer} instance
+     *         values for initializing an {@link SzReplicator} instance
      */
     @SuppressWarnings("rawtypes")
     protected Map<CommandLineOption, Object> buildOptionsMap() 

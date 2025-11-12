@@ -2,6 +2,9 @@ package com.senzing.datamart;
 
 import java.time.Duration;
 
+/**
+ * Contains the constants pertaining the data mart replicator.
+ */
 public final class SzReplicatorConstants {
     /**
      * The default module name ({@value}).
@@ -37,5 +40,12 @@ public final class SzReplicatorConstants {
      * REST API Server.
      */
     static final String ENV_PREFIX = "SENZING_TOOLS_";
+
+    /**
+     * Private default constructor.
+     */
+    private SzReplicatorConstants() {
+        // do nothing
+    }
 
 }

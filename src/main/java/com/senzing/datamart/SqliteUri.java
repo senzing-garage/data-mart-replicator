@@ -5,9 +5,11 @@ import static java.util.Objects.requireNonNull;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import static com.senzing.text.TextUtilities.urlDecodeUtf8;
 import static com.senzing.text.TextUtilities.urlEncodeUtf8;
@@ -40,6 +42,39 @@ public class SqliteUri extends ConnectionUri {
      */
     public static final String MEMORY_TOKEN = ":memory:";
 
+    /**
+     * Supported format for a SQLite URI using a file path.
+     * An optional user and password may be specified, but they are not used.
+     * The value of this constant is <code>{value}</code>.
+     */
+    public static final String SUPPORTED_FORMAT_1 
+        = "sqlite3://[unusedUser:unusedPassword@]/database_file_path";
+
+    /**
+     * Supported format for an in-memory SQLite URI using an unused file path.
+     * An optional user and password may be specified, but they are not used.
+     * The value of this constant is <code>{value}</code>.
+     */
+    public static final String SUPPORTED_FORMAT_2 
+        = "sqlite3://[unusedUser:unusedPassword@]/unusedPath?mode=memory&cache=shared";
+    
+    /**
+     * Supported format for an in-memory SQLite URI.
+     * The value of this constant is <code>{value}</code>.
+     */
+    public static final String SUPPORTED_FORMAT_3 = "sqlite3::memory:";
+
+    /**
+     * The <b>unmodifiable</b> {@link Set} of supported formats.
+     * <ul>
+     *  <li><code>{@value #SUPPORTED_FORMAT_1}</code> (file path)</li>
+     *  <li><code>{@value #SUPPORTED_FORMAT_2}</code> (in-memory with path)</li>
+     *  <li><code>{@value #SUPPORTED_FORMAT_3}</code> (in-memory no path)</li>
+     * </ul>
+     */
+    public static final Set<String> SUPPORTED_FORMATS 
+        = Collections.unmodifiableSet(
+            Set.of(SUPPORTED_FORMAT_1, SUPPORTED_FORMAT_2, SUPPORTED_FORMAT_3));
     /**
      * The {@link File} for the SQLite database.
      */
@@ -114,9 +149,28 @@ public class SqliteUri extends ConnectionUri {
      * @param queryOptions The optional {@link Map} of {@link String} query
      *                     parameter keys to {@link String} query parameter
      *                     values, or <code>null</code> if no parameters.
+     * 
+     * @throws IllegalArgumentException If the query options specify a 
+     *                                  {@linkplain #MODE_KEY mode} other than
+     *                                  {@linkplain #MEMORY_MODE memory mode}.
      */
     public SqliteUri(Map<String,String> queryOptions) {
-        super(SCHEME_PREFIX, queryOptions);
+        super(SCHEME_PREFIX, stripMemoryOption(queryOptions));
+        if (queryOptions != null 
+            && queryOptions.containsKey(MODE_KEY)
+            && !MEMORY_MODE.equalsIgnoreCase(queryOptions.get(MODE_KEY)))
+        {
+            throw new IllegalArgumentException(
+                "Can only specify " + MODE_KEY + "=" + MEMORY_MODE
+                + " query option if constructing without a path: "
+                + queryOptions);
+        }
+
+        // nullify the other fields
+        this.file = null;
+        this.unusedFile = null;
+        this.unusedUser = null;
+        this.unusedPassword = null;
     }
 
     /**
@@ -155,6 +209,12 @@ public class SqliteUri extends ConnectionUri {
     /**
      * Protected constructor to preserve unused fields.
      * 
+     * @param unusedUser A user to specify to include the URI even though
+     *                   the user name is not used.
+     * 
+     * @param unusedPassword A password to specify to include the URI even
+     *                       though the password is not used.
+     * 
      * @param file The {@link File} for the path to the SQLite database.
      * 
      * @param queryOptions The optional {@link Map} of {@link String} query
@@ -169,14 +229,24 @@ public class SqliteUri extends ConnectionUri {
                         File                file, 
                         Map<String,String>  queryOptions)
     {
-        super(SCHEME_PREFIX, stripMemoryOption(queryOptions));
+        super(SCHEME_PREFIX, queryOptions);
         
         requireNonNull(file, "The file cannot be null");
+        if ((unusedUser == null && unusedPassword != null)
+            || (unusedUser != null && unusedPassword == null))
+        {
+            throw new IllegalArgumentException(
+                "Inconsistent user credentials.  Either both or neither "
+                + "should be null.  unusedUser=[ " + unusedUser 
+                + " ], unusedPassword=[ " + unusedPassword + " ]");
+        }
 
         // check for memory mode
-        String mode = queryOptions.get(MODE_KEY);
+        String mode = (queryOptions != null) ? queryOptions.get(MODE_KEY) : null;
 
         // set the fields
+        this.unusedUser = unusedUser;
+        this.unusedPassword = unusedPassword;
         this.file = MEMORY_MODE.equals(mode) ? null : file;
         this.unusedFile = MEMORY_MODE.equals(mode) ? file : null;
     }
@@ -267,11 +337,7 @@ public class SqliteUri extends ConnectionUri {
             if (unusedFile != null) {
                 sb.append(unusedFile.getPath());
             }
-            sb.append("?").append(MODE_KEY).append("=").append(MEMORY_MODE);
-            String queryString = this.getQueryString();
-            if (queryString != null && queryString.trim().length() > 0) {
-                sb.append("&").append(queryString.trim().substring(1));
-            }
+            sb.append(this.getQueryString());
             return sb.toString();
 
         } else {
@@ -315,12 +381,6 @@ public class SqliteUri extends ConnectionUri {
      * parameter is a non-null reference to an object of the same class with
      * equivalent properties.
      * 
-     * <p>
-     * <b>NOTE:</b> An explicitly specified {@linkplain #DEFAULT_PORT default port}
-     * is <b>NOT</b> considered equal to excluded/unspecified (<code>null</code>) 
-     * port number.
-     * </p>
-     *  
      * @param obj The object to compare with.
      * 
      * @return <code>true</code> if and only if the objects are equal, otherwise
@@ -379,6 +439,10 @@ public class SqliteUri extends ConnectionUri {
                 suffix = "";
             }
             return new SqliteUri(parseQueryOptions(suffix));
+        } else if (suffix.startsWith("//") && suffix.length() > 2) {
+            suffix = suffix.substring(2);
+        } else {
+            throw new IllegalArgumentException("Unrecognized URI format: " + uri);
         }
 
         // find the unused user if any
@@ -387,7 +451,7 @@ public class SqliteUri extends ConnectionUri {
         String unusedUser = null;
         String unusedPassword = null;
         if (index >= 0) {
-            String authority = suffix.substring(index);
+            String authority = suffix.substring(0, index);
             suffix = (index < suffix.length() - 1) ? suffix.substring(index + 1) : "";
             index = authority.indexOf(':');
             if (index < 0) {

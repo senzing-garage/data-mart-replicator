@@ -3,8 +3,6 @@ package com.senzing.listener.communication.sql;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.ResultSet;
-import java.sql.Timestamp;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -17,6 +15,13 @@ import static com.senzing.util.LoggingUtilities.*;
  * Provides a SQLite implementation of {@link SQLClient}.
  */
 public class SQLiteClient implements SQLClient {
+    /**
+     * Default constructor.
+     */
+    public SQLiteClient() {
+        // do nothing
+    }
+
     /**
      * {@inheritDoc}
      * <p>

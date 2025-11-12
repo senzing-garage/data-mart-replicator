@@ -16,7 +16,7 @@ import static com.senzing.sql.SQLUtilities.*;
 /**
  * Interface for adapting the {@link SQLConsumer} to a specific database.
  */
-interface SQLClient {
+public interface SQLClient {
   /**
    * Gets the {@link DatabaseType} for this client implementation.
    * 

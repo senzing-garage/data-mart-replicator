@@ -60,7 +60,7 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      * <p>
      * Option for specifying the module name to initialize the Senzing API's
      * with. The default value is {@link
-     * SzGrpcServerConstants#DEFAULT_INSTANCE_NAME}.
+     * SzReplicatorConstants#DEFAULT_INSTANCE_NAME}.
      * <p>
      * This option can be specified in the following ways:
      * <ul>
@@ -138,7 +138,7 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      * This option sets the number of threads available for executing
      * Core Senzing SDK functions. The single parameter to this option
      * should be a positive integer. If not specified, then this
-     * defaults to {@link SzGrpcServerConstants#DEFAULT_CORE_CONCURRENCY},
+     * defaults to {@link SzReplicatorConstants#DEFAULT_CORE_CONCURRENCY},
      * <p>
      * This option can be specified in the following ways:
      * <ul>
@@ -266,8 +266,11 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      * The single parameter to this option is the SQLite or PostgreSQL database
      * URL specifying the database connection.  Possible database URL formats are:
      * <ul>
-     *   <li><code>postgresql://user:password@host[:port]/database</code></li>
-     *   <li><code>sqlite://[na:na@nowhere]/path[?mode=memory&cache=shared]</code></li>
+     *   <li><code>{@value PostgreSqlUri#SUPPORTED_FORMAT_1}</code></li>
+     *   <li><code>{@value PostgreSqlUri#SUPPORTED_FORMAT_2}</code></li>
+     *   <li><code>{@value SqliteUri#SUPPORTED_FORMAT_1}</code></li>
+     *   <li><code>{@value SqliteUri#SUPPORTED_FORMAT_2}</code></li>
+     *   <li><code>{@value SqliteUri#SUPPORTED_FORMAT_3}</code></li>
      * </ul>
      * <p>
      * This option can be specified in the following ways:

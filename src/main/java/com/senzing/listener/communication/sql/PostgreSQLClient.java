@@ -6,10 +6,6 @@ import java.util.ArrayList;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.ResultSet;
-import java.sql.Timestamp;
-import java.util.List;
-import java.util.LinkedList;
 
 import com.senzing.sql.DatabaseType;
 
@@ -20,6 +16,13 @@ import static com.senzing.util.LoggingUtilities.*;
  * Provides a PostgreSQL implementation of {@link SQLClient}.
  */
 public class PostgreSQLClient implements SQLClient {
+    /**
+     * Default constructor.
+     */
+    public PostgreSQLClient() {
+        // do nothing   
+        
+    }
     /**
      * {@inheritDoc}
      * <p>

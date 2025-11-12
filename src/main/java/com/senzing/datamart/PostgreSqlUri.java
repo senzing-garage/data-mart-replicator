@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import static com.senzing.text.TextUtilities.urlDecodeUtf8;
 import static com.senzing.text.TextUtilities.urlEncodeUtf8;
@@ -26,10 +27,26 @@ public class PostgreSqlUri extends ConnectionUri {
     public static final String DEFAULT_SCHEMA = "public";
 
     /**
-     * The expected format for this URI (<code>{@value}</code>).
+     * The primary supported format for this URI (<code>{@value}</code>).
      */
-    public static final String EXPECTED_FORMAT
+    public static final String SUPPORTED_FORMAT_1
+        = "postgresql://user:password@host:port/database?schema=schemaName";
+
+    /**
+     * The alternate supported format for this URI (<code>{@value}</code>).
+     */
+    public static final String SUPPORTED_FORMAT_2
         = "postgresql://user:password@host:port:database/?schema=schemaName";
+
+    /**
+     * The <b>unmodifiable</b> {@link Set} of supported formats.
+     * <ul>
+     *  <li><code>{@value #SUPPORTED_FORMAT_1}</code> (primary)</li>
+     *  <li><code>{@value #SUPPORTED_FORMAT_2}</code> (alternate)</li>
+     * </ul>
+     */
+    public static final Set<String> SUPPORTED_FORMATS 
+        = Set.of(SUPPORTED_FORMAT_1, SUPPORTED_FORMAT_2);
 
     /**
      * The query options key for the schema.
@@ -91,12 +108,14 @@ public class PostgreSqlUri extends ConnectionUri {
         result.put(SCHEMA_KEY, schema);
 
         // add every other query option except the schema
-        queryOptions.forEach((key, value) -> {
-            // we already handled the schema key, so skip schema
-            if (!SCHEMA_KEY.equalsIgnoreCase(key)) {
-                result.put(key, value);
-            }
-        });
+        if (queryOptions != null) {
+            queryOptions.forEach((key, value) -> {
+                // we already handled the schema key, so skip schema
+                if (!SCHEMA_KEY.equalsIgnoreCase(key)) {
+                    result.put(key, value);
+                }
+            });
+        }
 
         // return the result
         return result;
@@ -290,7 +309,7 @@ public class PostgreSqlUri extends ConnectionUri {
         requireNonNull(password, "The password cannot be null");
         requireNonNull(host, "The host cannot be null");
         requireNonNull(database, "The database cannot be null");
-        if (port <= 0) {
+        if (port != null && port <= 0) {
             throw new IllegalArgumentException(
                 "The specified port must be a positive integer: "
                 + port);
@@ -398,8 +417,8 @@ public class PostgreSqlUri extends ConnectionUri {
             + urlEncodeUtf8(this.getPassword())
             + "@" + urlEncodeUtf8(this.getHost())
             + (this.hasPort() ? (":" + this.getPort()) : "")
-            + ":" + urlEncodeUtf8(this.getDatabase())
-            + "/" + this.getQueryString();
+            + "/" + urlEncodeUtf8(this.getDatabase())
+            + this.getQueryString();
     }
 
     /**
@@ -451,14 +470,15 @@ public class PostgreSqlUri extends ConnectionUri {
     /**
      * Provides a static factory method for parsing a PostgreSQL database
      * connection URI formatted as a {@link String}.  This supports parsing 
-     * URI's defined in the format given by {@link #EXPECTED_FORMAT}.
+     * URI's defined in the format given by {@link #SUPPORTED_FORMATS}:
      * <ul>
-     *  <li><code>postgresql://user:password@host:port:database/?schema=schemaName</code></li>
+     *  <li><code>{@value #SUPPORTED_FORMAT_1}</code></li>
+     *  <li><code>{@value #SUPPORTED_FORMAT_2}</code></li>
      * </ul>
      * 
      * @param uri The URI to parse.
      * 
-     * @return The newly constructed {@link PostgreSQLUrl} instance.
+     * @return The newly constructed {@link PostgreSqlUri} instance.
      * 
      * @throws NullPointerException If the specified parameter is
      *                              <code>null</code>.
@@ -484,7 +504,7 @@ public class PostgreSqlUri extends ConnectionUri {
         if (index <= 0 || index == suffix.length() - 1) {
             throw new IllegalArgumentException(
                 "Formatting error while parsing user name from uri: uri=[ " 
-                + uri + " ], expectedFormat=[ " + EXPECTED_FORMAT + " ]");
+                + uri + " ], expectedFormat=[ " + SUPPORTED_FORMATS + " ]");
         }
         String user = urlDecodeUtf8(suffix.substring(0, index).trim()).trim();
         
@@ -496,73 +516,128 @@ public class PostgreSqlUri extends ConnectionUri {
         if (index < 0 || index == suffix.length() - 1) {
             throw new IllegalArgumentException(
                 "Formatting error while parsing password from uri: uri=[ " 
-                + uri + " ], expectedFormat=[ " + EXPECTED_FORMAT + " ]");
+                + uri + " ], expectedFormat=[ " + SUPPORTED_FORMATS + " ]");
         }
         String password = urlDecodeUtf8(suffix.substring(0, index));
 
         // get the suffix
         suffix = suffix.substring(index + 1);
 
+        boolean primaryFormat = false;
+        boolean portSkipped = false;
+
         // find the host and optional port
         index = suffix.indexOf(':');
+
+        // check if the colon character was not found
+        if (index < 0) {
+            // look for the forward slash
+            index = suffix.indexOf('/');
+
+            // if found then we know we have the primary format
+            if (index > 0) {
+                portSkipped = true;
+                primaryFormat = true;
+            }
+        }
+
+        // check if we found the end of the host name, if not then error
         if (index <= 0 || index == suffix.length() - 1) {
             throw new IllegalArgumentException(
                 "Formatting error while parsing host from uri: uri=[ " 
-                + uri + " ], expectedFormat=[ " + EXPECTED_FORMAT + " ]");
+                + uri + " ], expectedFormat=[ " + SUPPORTED_FORMATS + " ]");
         }
+
+        // get the host name
         String host = urlDecodeUtf8(suffix.substring(0, index).trim()).trim();
 
         // get the suffix
         suffix = suffix.substring(index + 1);
 
-        // check if we have a port
-        index = suffix.indexOf(':');
-        if (index <= 0 || index == suffix.length() - 1) {
-            throw new IllegalArgumentException(
-                "Formatting error while parsing port from uri: uri=[ " 
-                + uri + " ], expectedFormat=[ " + EXPECTED_FORMAT + " ]");
-        }
-
-        String portText = urlDecodeUtf8(suffix.substring(0, index).trim()).trim();
-        boolean hasPort = true;
-        for (char c : portText.toCharArray()) {
-            if (c < '0' || c > '9') {
-                hasPort = false;
-                break;
-            }
-        }
+        // check if we already skipped the port
         Integer port = null;
-        if (hasPort) {
-            // advance the suffix
-            suffix = suffix.substring(index + 1);
+        if (!portSkipped) {
+            // look for the colon character
+            index = suffix.indexOf(':');
 
-            // parse the port
-            try {
-                port = Integer.parseInt(portText);
-
-                if (port <= 0) {
-                    throw new IllegalArgumentException(
-                        "The port number must be a positive integer: " + port);
-                }
-
-            } catch (IllegalArgumentException e) {
+            // we should not get the colon character if using primary format
+            if (index > 0 && primaryFormat) {
                 throw new IllegalArgumentException(
                     "Formatting error while parsing port from uri: uri=[ " 
-                    + uri + " ], expectedFormat=[ " + EXPECTED_FORMAT + " ]", e);
+                    + uri + " ], expectedFormat=[ " + SUPPORTED_FORMATS + " ]");
+            }
+
+            boolean forwardSlash = false;
+            // check if no colon found and if not yet sure about primary format
+            if (index < 0 && !primaryFormat) {
+                // look for the forward slash
+                index = suffix.indexOf('/');
+
+                // if found then we know we have the primary format
+                if (index > 0) {
+                    forwardSlash = true;
+                }
+            }
+
+            // we may have a port or a database name if using the alternate format
+            String portText = urlDecodeUtf8(suffix.substring(0, index).trim()).trim();
+            boolean hasPort = true;
+
+            // if using the primary format then the text MUST be a port number
+            for (char c : portText.toCharArray()) {
+                if (c < '0' || c > '9') {
+                    hasPort = false;
+                    break;
+                }
+            }
+
+            if (hasPort) {
+                // make sure we are getting the next chunk as expected
+                if (index <= 0 || index == suffix.length() - 1) {
+                    throw new IllegalArgumentException(
+                        "Formatting error while parsing port from uri: uri=[ " 
+                        + uri + " ], expectedFormat=[ " + SUPPORTED_FORMATS + " ]");
+                }
+                
+                // check if we used a forward slash
+                if (forwardSlash) {
+                    primaryFormat = true;
+                }
+
+                // advance the suffix
+                suffix = suffix.substring(index + 1);
+
+                // parse the port
+                try {
+                    port = Integer.parseInt(portText);
+
+                    if (port <= 0) {
+                        throw new IllegalArgumentException(
+                            "The port number must be a positive integer: " + port);
+                    }
+
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException(
+                        "Formatting error while parsing port from uri: uri=[ " 
+                        + uri + " ], expectedFormat=[ " + SUPPORTED_FORMATS + " ]", e);
+                }
             }
         }
 
         // get the database
-        index = suffix.indexOf("/");
+        index = suffix.indexOf(primaryFormat ? '?' : '/');
+        if (index < 0 && primaryFormat) {
+            index = suffix.length();
+        }
         if (index <= 0) {
             throw new IllegalArgumentException(
                 "Formatting error while parsing database from uri: uri=[ " 
-                + uri + " ], expectedFormat=[ " + EXPECTED_FORMAT + " ]");
+                + uri + " ], expectedFormat=[ " + SUPPORTED_FORMATS + " ]");
         }
         String database = urlDecodeUtf8(suffix.substring(0, index).trim());
 
-        // check if we are ending on the forward slash
-        if (index == suffix.length() - 1) {
+        // check if we are ending on the delimiter
+        if (index >= suffix.length() - 1) {
             suffix = "";
         } else {
             suffix = suffix.substring(index+1);
@@ -572,7 +647,7 @@ public class PostgreSqlUri extends ConnectionUri {
         Map<String,String> queryOptions = ConnectionUri.parseQueryOptions(suffix);
 
         // get the schema name
-        String schema = queryOptions.get(SCHEMA_KEY);
+        String schema = (queryOptions != null) ? queryOptions.get(SCHEMA_KEY) : null;
 
         // construct the instance
         return new PostgreSqlUri(

@@ -267,6 +267,9 @@ public class SzReportUpdate {
    *
    * @param reportKey The {@link SzReportKey} for the report.
    * @param entityId The entity ID for the report update.
+   * 
+   * @return A new {@link Builder} instance using the specified
+   *         parameters.
    */
   public static Builder builder(SzReportKey reportKey, long entityId) {
     Objects.requireNonNull(reportKey, "The report key cannot be null");

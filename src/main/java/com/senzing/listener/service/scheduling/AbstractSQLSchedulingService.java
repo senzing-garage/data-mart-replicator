@@ -57,12 +57,17 @@ public abstract class AbstractSQLSchedulingService
    */
   private ConnectionProvider connectionProvider;
 
-  private Map<String, int[]> callCountMap = new HashMap<>();
-
   /**
    * The {@link DatabaseType} for this instance.
    */
   private DatabaseType databaseType = null;
+
+  /**
+   * Default constructor.
+   */
+  protected AbstractSQLSchedulingService() {
+    // do nothing
+  }
 
   /**
    * Gets a JDBC {@link Connection} to use.  Typically these are obtained from

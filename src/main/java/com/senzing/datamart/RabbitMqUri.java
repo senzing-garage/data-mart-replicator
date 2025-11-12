@@ -124,6 +124,8 @@ public class RabbitMqUri extends ConnectionUri {
      * may be specified as <code>null</code> indicating that the
      * {@linkplain #DEFAULT_PORT default port} should be used.
      * 
+     * @param secure <code>true</code> if secure communication should be
+     *               used for the connection, otherwise <code>false</code>.
      * @param user The non-null user with which to authenticate.
      * @param password The non-null password with which to authenticate.
      * @param host THe non-null host for the RabbitMQ server.
@@ -147,10 +149,39 @@ public class RabbitMqUri extends ConnectionUri {
     }
 
     /**
+     * Constructs with the specified parameters.
+     * 
+     * @param secure <code>true</code> if secure communication should be
+     *               used for the connection, otherwise <code>false</code>.
+     * @param user The non-null user with which to authenticate.
+     * @param password The non-null password with which to authenticate.
+     * @param host THe non-null host for the RabbitMQ server.
+     * @param queryOptions The optional {@link Map} of {@link String} query
+     *                     parameter keys to {@link String} query parameter
+     *                     values, or <code>null</code> if no parameters.
+     * 
+     * @throws NullPointerException If any of the required 
+     *                              parameters is <code>null</code>.
+     * 
+     * @throws IllegalArgumentException If the specified port is
+     *                                  not a positive integer.
+     */
+    public RabbitMqUri(boolean              secure,
+                       String               user,
+                       String               password,
+                       String               host,
+                       Map<String, String>  queryOptions)
+    {
+        this(secure, user, password, host, null, (String) null, queryOptions);
+    }
+
+    /**
      * Constructs with the specified parameters.  The port number
      * may be specified as <code>null</code> indicating that the
      * {@linkplain #DEFAULT_PORT default port} should be used.
      * 
+     * @param secure <code>true</code> if secure communication should be
+     *               used for the connection, otherwise <code>false</code>.
      * @param user The non-null user with which to authenticate.
      * @param password The non-null password with which to authenticate.
      * @param host THe non-null host for the RabbitMQ server.
@@ -181,6 +212,8 @@ public class RabbitMqUri extends ConnectionUri {
      * may be specified as <code>null</code> indicating that the
      * {@linkplain #DEFAULT_PORT default port} should be used.
      * 
+     * @param secure <code>true</code> if secure communication should be
+     *               used for the connection, otherwise <code>false</code>.
      * @param user The non-null user with which to authenticate.
      * @param password The non-null password with which to authenticate.
      * @param host THe non-null host for the RabbitMQ server.
@@ -206,11 +239,46 @@ public class RabbitMqUri extends ConnectionUri {
     {
         this(secure, user, password, host, port, null, queryOptions);
     }
+
+
+    /**
+     * Constructs with the specified parameters.
+     * 
+     * @param secure <code>true</code> if secure communication should be
+     *               used for the connection, otherwise <code>false</code>.
+     * @param user The non-null user with which to authenticate.
+     * @param password The non-null password with which to authenticate.
+     * @param host THe non-null host for the RabbitMQ server.
+     * @param virtualHost The optional virtual host name, or
+     *                    <code>null</code> if no virtual host.
+     * @param queryOptions The optional {@link Map} of {@link String} query
+     *                     parameter keys to {@link String} query parameter
+     *                     values, or <code>null</code> if no parameters.
+     * 
+     * @throws NullPointerException If any of the required 
+     *                              parameters is <code>null</code>.
+     * 
+     * @throws IllegalArgumentException If the specified port is
+     *                                  not a positive integer.
+     */
+    public RabbitMqUri(boolean              secure,
+                       String               user,
+                       String               password,
+                       String               host,
+                       String               virtualHost,
+                       Map<String,String>   queryOptions)
+    {
+        this(secure, user, password, host, null, virtualHost, queryOptions);
+    }
+    
+
     /**
      * Constructs with the specified parameters.  The port number
      * may be specified as <code>null</code> indicating that the
      * {@linkplain #DEFAULT_PORT default port} should be used.
      * 
+     * @param secure <code>true</code> if secure communication should be
+     *               used for the connection, otherwise <code>false</code>.
      * @param user The non-null user with which to authenticate.
      * @param password The non-null password with which to authenticate.
      * @param host THe non-null host for the RabbitMQ server.
@@ -242,7 +310,6 @@ public class RabbitMqUri extends ConnectionUri {
         requireNonNull(user, "The user cannot be null");
         requireNonNull(password, "The password cannot be null");
         requireNonNull(host, "The host cannot be null");
-        requireNonNull(virtualHost, "The virtual host cannot be null");
         if (port != null && port <= 0) {
             throw new IllegalArgumentException(
                 "The specified port must be a positive integer: "

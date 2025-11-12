@@ -671,9 +671,6 @@ public class SzReplicator extends Thread {
      * @param options The {@link SzReplicatorOptions} instance with which to
      *                construct the API server instance.
      * 
-     * @param start <code>true</code> if processing should be started upon
-     *              construction, otherwise <code>false</code>.
-     * 
      * @throws IllegalStateException If another instance of Senzing Core SDK
      *                               is already actively initialized.
      * 
@@ -711,10 +708,17 @@ public class SzReplicator extends Thread {
      * Constructs an instance of {@link SzReplicator} with the specified
      * {@link SzReplicatorOptions} instance.
      *
-     * @param accessToken The {@link AccessToken} for later accessing privileged
-     *                    functions.
+     * @param environment The {@link SzEnvironment} to use.
+     * 
+     * @param manageEnv <code>true</code> if this instance should destroy the
+     *                  environment when done, otherwise <code>false</code>.
+     * 
      * @param options     The {@link SzReplicatorOptions} instance with which to
      *                    construct the API server instance.
+     * 
+     * @param startProcessing <code>true</code> if processing should be started
+     *                        upon construction, otherwise <code>false</code>.
+     * 
      * @throws Exception If a failure occurs.
      */
     protected SzReplicator(SzEnvironment        environment,
@@ -730,7 +734,6 @@ public class SzReplicator extends Thread {
         final int scheduleConcurrency = this.concurrency * 2;
         final int poolSize = this.concurrency;
         final int maxPoolSize = poolSize * 3;
-        final int coreConcurrency = this.concurrency;
 
         // set the environment
         this.environment = environment;

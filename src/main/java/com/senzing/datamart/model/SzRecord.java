@@ -53,7 +53,11 @@ public class SzRecord {
   }
 
   /**
+   * Constructs with the specified parameters.
    * 
+   * @param recordKey The {@link SzRecordKey} for the record.
+   * @param matchKey The match key that binds the record to the entity.
+   * @param principle The principle that bound the record to the entity.
    */
   public SzRecord(SzRecordKey recordKey,
                   String      matchKey,

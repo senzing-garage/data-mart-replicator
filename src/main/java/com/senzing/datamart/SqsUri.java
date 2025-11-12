@@ -58,6 +58,23 @@ public class SqsUri extends ConnectionUri {
     private URI uri;
 
     /**
+     * Gets the ASCII query from the URI rather than the decoded one.
+     * 
+     * @param uri The {@link URI} from which to obtain the query.
+     */
+    private static String getASCIIQuery(URI uri) {
+        if (uri == null) {
+            return null;
+        }
+        String asciiString = uri.toASCIIString();
+        int index = asciiString.indexOf("?");
+        if (index < 0 || index == asciiString.length() - 1) {
+            return null;
+        }
+        return asciiString.substring(index+1);
+    }
+
+    /**
      * Constructs with the specified {@link URI}.
      * 
      * @param uri The non-null {@link URI} with which to connect.
@@ -72,7 +89,7 @@ public class SqsUri extends ConnectionUri {
     {
         super(uri.getScheme().equalsIgnoreCase("https") 
               ? SECURE_SCHEME_PREFIX : SCHEME_PREFIX,
-              parseQueryOptions(uri.getQuery()));
+              parseQueryOptions(getASCIIQuery(uri)));
 
         requireNonNull(uri, "The URI cannot be null");
 
@@ -90,6 +107,7 @@ public class SqsUri extends ConnectionUri {
         this.host   = uri.getHost();
         this.port   = (uri.getPort() > 0) ? uri.getPort() : null;
         this.path   = uri.getPath();
+        this.uri    = uri;
     }
 
     /**
@@ -167,7 +185,7 @@ public class SqsUri extends ConnectionUri {
      * @return The formatted URI for this instance.
      */
     public String toString() {
-        return this.getUri().toString();
+        return this.getUri().toASCIIString();
     }
 
     /**

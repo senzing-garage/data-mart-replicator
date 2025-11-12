@@ -62,6 +62,13 @@ public class SzReplicatorService extends AbstractListenerService {
      * {@link SzReplicatorService}.
      */
     protected class Provider implements SzReplicationProvider {
+        /**
+         * Default constructor.
+         */
+        public Provider() {
+            // do nothing
+        }
+
         @Override
         public Boolean waitUntilReady(long timeoutMillis) throws InterruptedException {
             return SzReplicatorService.this.waitUntilReady(timeoutMillis);

@@ -439,6 +439,13 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
   private static final ThreadLocal<Boolean> SUPPRESS_PROCESSING_CHECK = new ThreadLocal<>();
 
   /**
+   * Default constructor.
+   */
+  protected AbstractMessageConsumer() {
+    // do nothing
+  }
+
+  /**
    * Implemented to return the {@link State} of this instance.
    *
    * @return The {@link State} of this instance.

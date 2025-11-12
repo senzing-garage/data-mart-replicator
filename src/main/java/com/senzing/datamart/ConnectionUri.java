@@ -196,10 +196,10 @@ public abstract class ConnectionUri {
      * 
      * <p>
      * <b>NOTE:</b> While URI's allow for multi-valued parameters in a query
-     * string (e.g.: <code>?foo=bar&foo=bax</code>), this function only tracks
+     * string (e.g.: <code>?foo=bar&amp;foo=bax</code>), this function only tracks
      * the <b>last</b> value encountered sine multi-valued query parameters
      * are uncommon or non-existent in connection URI's.
-     * <p>
+     * </p>
      * 
      * @param queryString The query string to parse.
      * 
