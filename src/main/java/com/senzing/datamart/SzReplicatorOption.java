@@ -272,15 +272,28 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      *   <li><code>{@value SqliteUri#SUPPORTED_FORMAT_2}</code></li>
      *   <li><code>{@value SqliteUri#SUPPORTED_FORMAT_3}</code></li>
      * </ul>
+     * <b>NOTE:</b> The PostgreSQL or SQLite URI can also be obtained from the 
+     * {@link #CORE_SETTINGS} by using a special URI in the following format:
+     * <ul>
+     *   <li><code>{@value SzCoreSettingsUri#SUPPORTED_FORMAT}</code></li>
+     * </ul>
      * <p>
      * This option can be specified in the following ways:
      * <ul>
-     * <li>Command Line: <code>--database-url {url}</code></li>
+     * <li>Command Line: <code>--database-uri {url}</code></li>
      * <li>Environment:
      * <code>SENZING_TOOLS_DATA_MART_DATABASE_URI="{url}"</code></li>
      * </ul>
+     * <p>
+     * The default value for this option if not specified is {@link 
+     * SzReplicatorConstants#DEFAULT_CORE_SETTINGS_DATABASE_URI}.  This
+     * is so it attempts to obtain the database URI from the {@linkplain
+     * #CORE_SETTINGS Senzing Core SDK settings}.
      */
-    DATABASE_URI("--database-url", ENV_PREFIX + "DATA_MART_DATABASE_URI", null, 1);
+    DATABASE_URI("--database-uri",
+                 ENV_PREFIX + "DATA_MART_DATABASE_URI",
+                 null, 1,
+                 DEFAULT_CORE_SETTINGS_DATABASE_URI);
 
     /**
      * Constructs with the specified parameters.
@@ -431,6 +444,7 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
         switch (this) {
         case RABBITMQ_URI:
         case DATABASE_URI:
+        case CORE_SETTINGS:
             return true;
         default:
             return false;

@@ -1,11 +1,14 @@
 package com.senzing.datamart;
 
+import java.util.Map;
+
 import com.senzing.datamart.model.SzReportKey;
 import com.senzing.sql.ConnectionProvider;
 
 import com.senzing.listener.service.scheduling.TaskHandler;
 import com.senzing.sdk.SzEnvironment;
 import com.senzing.sql.DatabaseType;
+import com.senzing.util.Quantified.Statistic;
 
 /**
  * Provides an interface for data mart replication {@link TaskHandler}
@@ -101,4 +104,13 @@ public interface SzReplicationProvider {
      *                     updated.
      */
     void scheduleReportFollowUp(String reportAction, SzReportKey reportKey);
+
+    /**
+     * Gets the {@link Map} of {@link Statistic} keys to {@link Number}
+     * values describing the statistics for this instance.
+     * 
+     * @return The {@link Map} of {@link Statistic} keys to {@link Number}
+     *         values describing the statistics for this instance.
+     */
+    Map<Statistic, Number> getStatistics();
 }

@@ -1,6 +1,5 @@
 package com.senzing.listener.service.scheduling;
 
-import com.ibm.icu.impl.UCaseProps;
 import com.senzing.listener.communication.AbstractMessageConsumer;
 import com.senzing.listener.service.MessageProcessor;
 import com.senzing.listener.service.exception.ServiceExecutionException;
@@ -12,7 +11,6 @@ import com.senzing.listener.service.locking.ResourceKey;
 import com.senzing.util.AsyncWorkerPool;
 import com.senzing.util.AsyncWorkerPool.AsyncResult;
 import com.senzing.util.JsonUtilities;
-import com.senzing.util.LoggingUtilities;
 import com.senzing.util.Timers;
 
 import javax.json.Json;
@@ -891,11 +889,6 @@ public abstract class AbstractSchedulingService implements SchedulingService {
    * The greatest number of info messages that are postponed at any one time.
    */
   private int greatestPostponedCount = 0;
-
-  /**
-   * The greatest number of info messages that are postponed at any one time.
-   */
-  private int greatestFollowUpCount = 0;
 
   /**
    * The object used for synchronization when working with statistics.

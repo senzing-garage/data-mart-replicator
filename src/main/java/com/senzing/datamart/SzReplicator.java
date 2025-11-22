@@ -15,6 +15,7 @@ import com.senzing.sdk.SzEnvironment;
 import com.senzing.sdk.SzException;
 import com.senzing.sdk.core.SzCoreEnvironment;
 import com.senzing.sdk.core.auto.SzAutoCoreEnvironment;
+import com.senzing.sdk.core.auto.SzAutoEnvironment;
 import com.senzing.text.TextUtilities;
 import com.senzing.util.AccessToken;
 import com.senzing.util.JsonUtilities;
@@ -307,13 +308,25 @@ public class SzReplicator extends Thread {
     }
 
     /**
-     *
+     * Gets the {@link Map} of {@link Statistic} keys to {@link Number}
+     * values for this instance.
+     * 
+     * @return The {@link Map} of {@link Statistic} keys to {@link Number}
+     *         values for this instance.
      */
-    private void printStatistics() {
+    public Map<Statistic, Number> getStatistics() {
         Map<Statistic, Number> stats = new LinkedHashMap<>();
         stats.putAll(this.messageConsumer.getStatistics());
         stats.putAll(this.replicatorService.getStatistics());
         stats.putAll(this.connPool.getStatistics());
+        return stats;
+    }
+
+    /**
+     *
+     */
+    private void printStatistics() {
+        Map<Statistic, Number> stats = this.getStatistics();
 
         long now = System.nanoTime();
         double elapsed = ((double) (now - this.startTimeNanos)) / 1000000000.0;
@@ -706,6 +719,36 @@ public class SzReplicator extends Thread {
 
     /**
      * Constructs an instance of {@link SzReplicator} with the specified
+     * {@link SzEnvironment} and {@link SzReplicatorOptions} instance.
+     * The constructed instance will <b>not</b> manage the specified
+     * {@link SzEnvironment} in that it will <b>not</b> attempt {@linkplain
+     * SzEnvironment#destroy() destroy} it upon destruction of this instance.
+     *
+     * <p>
+     * <b>NOTE:</b> Any of the {@linkplain SzReplicatorOptions options}
+     * specified pertaining to the creation of an {@link SzAutoCoreEnvironment}
+     * will be ignored.
+     * 
+     * @param environment The {@link SzEnvironment} to use.
+     * 
+     * @param options     The {@link SzReplicatorOptions} instance with which to
+     *                    construct the API server instance.
+     * 
+     * @param startProcessing <code>true</code> if processing should be started
+     *                        upon construction, otherwise <code>false</code>.
+     * 
+     * @throws Exception If a failure occurs.
+     */
+    public SzReplicator(SzEnvironment       environment,
+                        SzReplicatorOptions options,
+                        boolean             startProcessing)
+        throws Exception 
+    {
+        this(environment, false, options, startProcessing);
+    }
+
+    /**
+     * Constructs an instance of {@link SzReplicator} with the specified
      * {@link SzReplicatorOptions} instance.
      *
      * @param environment The {@link SzEnvironment} to use.
@@ -728,8 +771,13 @@ public class SzReplicator extends Thread {
         throws Exception 
     {
         // get the concurrency
-        this.concurrency = options.getCoreConcurrency();
-        
+        if (environment instanceof SzAutoEnvironment) {
+            SzAutoEnvironment autoEnv = (SzAutoEnvironment) environment;
+            this.concurrency = autoEnv.getConcurrency();
+        } else {
+            this.concurrency = options.getCoreConcurrency();
+        }
+
         final int consumerConcurrency = this.concurrency * 2;
         final int scheduleConcurrency = this.concurrency * 2;
         final int poolSize = this.concurrency;

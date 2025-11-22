@@ -400,7 +400,7 @@ public class SqliteUri extends ConnectionUri {
     }
 
     /**
-     * Provides a static factory method for parsing a PostgreSQL database
+     * Provides a static factory method for parsing a SQLite database
      * connection URI formatted as a {@link String}.
      * 
      * @param uri The URI to parse.

@@ -28,19 +28,37 @@ public final class SzReplicatorConstants {
      * The default number of seconds to wait in between checking for changes in the
      * configuration and automatically refreshing the configuration.
      */
-    public static final long DEFAULT_REFRESH_CONFIG_SECONDS = (Duration.ofHours(12).toMillis()) / 1000;
+    public static final long DEFAULT_REFRESH_CONFIG_SECONDS 
+        = (Duration.ofHours(12).toMillis()) / 1000;
 
     /**
      * The config auto refresh period as a string.
      */
-    static final String DEFAULT_REFRESH_CONFIG_SECONDS_PARAM = String.valueOf(DEFAULT_REFRESH_CONFIG_SECONDS);
+    public static final String DEFAULT_REFRESH_CONFIG_SECONDS_PARAM 
+        = String.valueOf(DEFAULT_REFRESH_CONFIG_SECONDS);
 
     /**
      * The prefix for environment variables used that are specific to the Senzing
      * REST API Server.
      */
-    static final String ENV_PREFIX = "SENZING_TOOLS_";
+    public static final String ENV_PREFIX = "SENZING_TOOLS_";
 
+    /**
+     * The default value for the {@link SzReplicatorOption#DATABASE_URI}
+     * for obtaining the database connection URI from the 
+     * {@link SzReplicatorOption#CORE_SETTINGS}.
+     */
+    public static final String DEFAULT_CORE_SETTINGS_DATABASE_PATH
+        = "SQL/CONNECTION";
+
+    /**
+     * The default value for the {@link SzReplicatorOption#DATABASE_URI}
+     * for obtaining the database connection URI from the 
+     * {@link SzReplicatorOption#CORE_SETTINGS}.
+     */
+    public static final String DEFAULT_CORE_SETTINGS_DATABASE_URI
+        = SzCoreSettingsUri.SCHEME_PREFIX + DEFAULT_CORE_SETTINGS_DATABASE_PATH;
+        
     /**
      * Private default constructor.
      */

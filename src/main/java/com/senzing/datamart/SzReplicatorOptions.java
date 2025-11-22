@@ -119,7 +119,7 @@ public class SzReplicatorOptions {
      * the auto core SDK.
      */
     private long refreshConfigSeconds = DEFAULT_REFRESH_CONFIG_SECONDS;
-    
+
     /**
      * Constructs with the {@link Map} of {@link CommandLineOption}
      * keys to {@link Object} values.
@@ -383,9 +383,11 @@ public class SzReplicatorOptions {
      * @param useDatabaseQueue <code>true</code> if the configured database should
      *                         be used for the info message queue, otherwise
      *                         <code>false</code>.
+     * 
+     * @return A reference to this instance.
      */
     @Option(DATABASE_INFO_QUEUE)
-    public void setUsingDatabaseQueue(boolean useDatabaseQueue) {
+    public SzReplicatorOptions setUsingDatabaseQueue(boolean useDatabaseQueue) {
         if (useDatabaseQueue) {
             if (this.getSqsInfoUri() != null) {
                 throw new IllegalStateException(
@@ -402,6 +404,7 @@ public class SzReplicatorOptions {
         }
 
         this.useDatabaseQueue = useDatabaseQueue;
+        return this;
     }
 
     /**
@@ -778,6 +781,9 @@ public class SzReplicatorOptions {
                 && (method.getParameterTypes().length == 0))
             {
                 getterMap.put(option.value(), method);
+            } else {
+                throw new IllegalStateException(
+                    "Failed to classify option-annotated method: " + method);
             }
         }
 

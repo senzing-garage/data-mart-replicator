@@ -276,5 +276,25 @@ public abstract class ConnectionUri {
         });
         return sb.toString();
     }
+
+    static {
+        Class<ConnectionUri> c = ConnectionUri.class;
+        String packageName = c.getPackageName();
+        String[] classNames = {
+            packageName + ".SqliteUri",
+            packageName + ".PostgreSqlUri",
+            packageName + ".RabbitMqUri",
+            packageName + ".SqsUri",
+            packageName + ".SzCoreSettingsUri"
+        };
+        for (String name : classNames) {
+            try {
+                // attempt to preload the class
+                Class.forName(name);
+            } catch (ClassNotFoundException ignore) {
+                // ignore any exception
+            }
+        }
+    }
 }
 

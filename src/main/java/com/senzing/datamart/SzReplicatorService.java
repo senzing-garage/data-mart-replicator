@@ -93,6 +93,11 @@ public class SzReplicatorService extends AbstractListenerService {
         public void scheduleReportFollowUp(String reportAction, SzReportKey reportKey) {
             SzReplicatorService.this.reportUpdater.addReportTask(reportKey, reportAction);
         }
+
+        @Override
+        public Map<Statistic, Number> getStatistics() {
+            return SzReplicatorService.this.getStatistics();
+        }
     }
 
     /**
@@ -423,7 +428,7 @@ public class SzReplicatorService extends AbstractListenerService {
      *
      * @return The {@link ConnectionProvider} for this instance.
      */
-    protected ConnectionProvider getConnectionProvider() {
+    public ConnectionProvider getConnectionProvider() {
         return this.connectionProvider;
     }
 
