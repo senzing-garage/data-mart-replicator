@@ -5,6 +5,8 @@
   "language": "en",
   // words - list of words to be always considered correct
   "words": [
+      "aarch",
+      "aayushatharva",
       "alnum",
       "alse",
       "amqp",
@@ -13,6 +15,7 @@
       "awssdk",
       "backgrounding",
       "BIGSERIAL",
+      "boringssl",
       "Caceres",
       "CCLA",
       "cmdline",
@@ -54,6 +57,7 @@
       "Senzing",
       "stackoverflow",
       "STRFTIME",
+      "thirdparty",
       "toplevel",
       "unleased",
       "UNTRACKING",

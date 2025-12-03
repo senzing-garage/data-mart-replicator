@@ -61,9 +61,37 @@
       <artifactId>senzing-commons</artifactId>
       <version>4.0.0-beta.1.5</version>
     </dependency>
-    <dependency>
+      <dependency>
+        <groupId>com.google.code.findbugs</groupId>
+        <artifactId>jsr305</artifactId>
+        <version>3.0.2</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
         <groupId>com.linecorp.armeria</groupId>
         <artifactId>armeria</artifactId>
+        <exclusions>
+            <exclusion>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-transport-native-epoll</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-transport-native-kqueue</artifactId>
+            </exclusion>
+            <!-- exclusion>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-transport-native-unix-common</artifactId>
+            </exclusion -->
+            <exclusion>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-resolver-dns-native-macos</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>io.netty.incubator</groupId>
+                <artifactId>netty-incubator-transport-native-io_uring</artifactId>
+            </exclusion>
+        </exclusions>        
     </dependency>
     <dependency>
       <groupId>org.xerial</groupId>
@@ -105,7 +133,7 @@
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>sqs</artifactId>
-      <version>2.36.1</version>
+      <version>2.40.0</version>
       <exclusions>
         <exclusion>
           <groupId>com.fasterxml.jackson.core</groupId>
@@ -143,6 +171,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
   <build>
+    <finalName>${project.artifactId}</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -172,12 +201,18 @@
               junit.jupiter.execution.parallel.config.dynamic.factor = 1
             </configurationParameters>
           </properties>
+          <classpathDependencyExcludes>
+              <classpathDependencyExclude>io.netty:netty-transport-native-unix-common:jar:linux-aarch_64</classpathDependencyExclude>
+              <classpathDependencyExclude>io.netty:netty-transport-native-unix-common:jar:linux-x86_64</classpathDependencyExclude>
+              <classpathDependencyExclude>io.netty:netty-transport-native-unix-common:jar:osx-aarch_64</classpathDependencyExclude>
+              <classpathDependencyExclude>io.netty:netty-transport-native-unix-common:jar:osx-x86_64</classpathDependencyExclude>
+          </classpathDependencyExcludes>
         </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
-        <version>3.3.1</version>
+        <version>3.4.0</version>
         <executions>
           <execution>
             <id>attach-sources</id>
@@ -227,42 +262,107 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <version>3.6.1</version>
-        <configuration>
-          <shadedArtifactAttached>true</shadedArtifactAttached>
-          <shadedClassifierName>execute</shadedClassifierName>
-          <createDependencyReducedPom>false</createDependencyReducedPom>
-          <filters>
-            <filter>
-              <artifact>*:*</artifact>
-              <excludes>
-                <exclude>module-info.class</exclude>
-                <exclude>META-INF/**/module-info.class</exclude>
-                <exclude>META-INF/maven/**</exclude>
-                <exclude>META-INF/MANIFEST.MF</exclude>
-                <exclude>META-INF/*.SF</exclude>
-                <exclude>META-INF/*.DSA</exclude>
-                <exclude>META-INF/*.RSA</exclude>
-              </excludes>
-            </filter>
-            <filter>
-              <artifact>software.amazon.awssdk:third-party-jackson-core</artifact>
-              <excludes>
-                <exclude>META-INF/FastDoubleParser-LICENSE</exclude>
-                <exclude>META-INF/FastDoubleParser-NOTICE</exclude>
-              </excludes>
-            </filter>            
-          </filters>
-        </configuration>
         <executions>
           <execution>
+            <id>create-server-jar</id>
             <phase>package</phase>
             <goals>
               <goal>shade</goal>
             </goals>
             <configuration>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
+              <outputFile>${project.build.directory}/${project.artifactId}-server.jar</outputFile>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>module-info.class</exclude>
+                    <exclude>META-INF/**/module-info.class</exclude>
+                    <exclude>META-INF/maven/**</exclude>
+                    <exclude>META-INF/MANIFEST.MF</exclude>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                     <!-- the following is only needed if using ProGuard for shrinking/obfuscating -->
+                    <exclude>META-INF/proguard/**</exclude>
+                  </excludes>
+                </filter>
+                <!-- add this filter since we get these files from another jar-->
+                <filter>
+                  <artifact>io.netty:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/license/LICENSE.aix-netbsd.txt</exclude>
+                    <exclude>META-INF/license/LICENSE.boringssl.txt</exclude>
+                    <exclude>META-INF/license/LICENSE.mvn-wrapper.txt</exclude>
+                    <exclude>META-INF/license/LICENSE.tomcat-native.txt</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>software.amazon.awssdk:third-party-jackson-core</artifact>
+                  <excludes>
+                    <exclude>META-INF/FastDoubleParser-LICENSE</exclude>
+                    <exclude>META-INF/FastDoubleParser-NOTICE</exclude>
+                    <exclude>META-INF/thirdparty-LICENSE</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <artifactSet>
+                <includes>
+                  <include>*</include>
+                </includes>
+                <excludes>
+                  <exclude>com.senzing:sz-sdk</exclude>
+                  <exclude>io.netty:netty-transport-native-unix-common:jar:linux-aarch_64</exclude>
+                  <exclude>io.netty:netty-transport-native-unix-common:jar:linux-x86_64</exclude>
+                  <exclude>io.netty:netty-transport-native-unix-common:jar:osx-aarch_64</exclude>
+                  <exclude>io.netty:netty-transport-native-unix-common:jar:osx-x86_64</exclude>
+                </excludes>
+              </artifactSet>
+              <relocations>
+                <relocation>
+                  <pattern>org</pattern>
+                  <shadedPattern>com.senzing.datamart.shaded.org</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>io</pattern>
+                  <shadedPattern>com.senzing.datamart.shaded.io</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>net</pattern>
+                  <shadedPattern>com.senzing.datamart.shaded.net</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.google</pattern>
+                  <shadedPattern>com.senzing.datamart.shaded.com.google</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>google</pattern>
+                  <shadedPattern>com.senzing.datamart.shaded.google</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>android</pattern>
+                  <shadedPattern>com.senzing.datamart.shaded.android</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.linecorp</pattern>
+                  <shadedPattern>com.senzing.sdk.grpc.shaded.com.linecorp</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.fasterxml</pattern>
+                  <shadedPattern>com.senzing.datamart.shaded.com.fasterxml</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.aayushatharva</pattern>
+                  <shadedPattern>com.senzing.datamart.shaded.com.aayushatharva</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>javax</pattern>
+                  <shadedPattern>com.senzing.datamart.shaded.javax</shadedPattern>
+                </relocation>
+              </relocations>
               <transformers>
-                <transformer
-                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer"/>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                   <resource>META-INF/NOTICE</resource>
@@ -271,16 +371,15 @@
                   <resource>META-INF/NOTICE.txt</resource>
                 </transformer>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                  <resource>META-INF/NOTICE.md</resource>
+                  <resource>META-INF/DEPENDENCIES</resource>
                 </transformer>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                  <resource>META-INF/DEPENDENCIES</resource>
+                  <resource>META-INF/com.linecorp.armeria.versions.properties</resource>
                 </transformer>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                   <resource>META-INF/io.netty.versions.properties</resource>
                 </transformer>
-                <transformer
-                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <manifestEntries>
                     <!-- Main-Class>com.foo.Test</Main-Class -->
                     <Main-Class>com.senzing.datamart.SzReplicator</Main-Class>
