@@ -26,6 +26,9 @@ import com.senzing.util.Quantified.Statistic;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
+
+import static java.util.Collections.synchronizedCollection;
+
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -43,10 +46,7 @@ import static com.senzing.cmdline.CommandLineUtilities.getJarName;
 import static com.senzing.datamart.SzReplicatorOption.*;
 import static com.senzing.datamart.SzReplicatorConstants.*;
 import static com.senzing.util.LoggingUtilities.*;
-import static com.senzing.util.Quantified.*;
 import static com.senzing.listener.service.scheduling.AbstractSchedulingService.Stat.*;
-import static com.senzing.listener.communication.AbstractMessageConsumer.Stat.*;
-import static com.senzing.sql.ConnectionPool.Stat.*;
 
 /**
  * The data mart replicator command-line class.
@@ -109,6 +109,11 @@ public class SzReplicator extends Thread {
         }
         DESTROY_METHOD = method;
     }
+
+    /**
+     * The {@link Object} to synchronize on.
+     */
+    private final Object monitor = new Object();
 
     /**
      * The main function for command-line starting.
@@ -264,10 +269,9 @@ public class SzReplicator extends Thread {
             this.messageConsumer.consume(this.replicatorService);
             logInfo("MESSAGE CONSUMPTION STARTED.");
 
-            final Object monitor = new Object();
             synchronized (monitor) {
                 while (true) {
-                    monitor.wait(60000L);
+                    this.monitor.wait(60000L);
                     ListenerService.State listenerState = this.replicatorService.getState();
 
                     MessageConsumer.State consumerState = this.messageConsumer.getState();
@@ -297,7 +301,11 @@ public class SzReplicator extends Thread {
         this.messageConsumer.destroy();
         this.replicatorService.destroy();
         try {
+            synchronized (this.monitor) {
+                this.monitor.notifyAll();
+            }
             this.join();
+
         } catch (InterruptedException e) {
             logWarning(e, "Interrupted while joining against replicator during destroy()");
         } finally {
@@ -830,13 +838,16 @@ public class SzReplicator extends Thread {
 
         this.connProviderToken = ConnectionProvider.REGISTRY.bind(this.connProviderName, this.connProvider);
 
+        // get the processing rate
+        ProcessingRate processingRate = options.getProcessingRate();
+
         // handle the scheduling service config
-        JsonObjectBuilder schedulingJOB = Json.createObjectBuilder();
+        JsonObjectBuilder schedulingJOB = processingRate.addSchedulingServiceOptions(null);
         schedulingJOB.add(AbstractSchedulingService.CONCURRENCY_KEY, scheduleConcurrency);
         schedulingJOB.add(AbstractSQLSchedulingService.CONNECTION_PROVIDER_KEY, this.connProviderName);
 
         // handle the replicator config
-        JsonObjectBuilder replicatorJOB = Json.createObjectBuilder();
+        JsonObjectBuilder replicatorJOB = processingRate.addReplicatorServiceOptions(null);
         replicatorJOB.add(SzReplicatorService.SCHEDULING_SERVICE_CLASS_KEY, schedulingServiceClassName);
 
         replicatorJOB.add(SzReplicatorService.SCHEDULING_SERVICE_CONFIG_KEY, schedulingJOB);

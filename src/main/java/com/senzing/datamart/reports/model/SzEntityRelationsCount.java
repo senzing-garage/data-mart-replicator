@@ -1,6 +1,7 @@
 package com.senzing.datamart.reports.model;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Describes a the number of entities having a specific number of entity
@@ -77,5 +78,22 @@ public class SzEntityRelationsCount implements Serializable {
     public String toString() {
         return "relationsCount=[ " + this.getRelationsCount() 
                 + " ], entityCount=[ " + this.getEntityCount() + " ]";
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(relationsCount, entityCount);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof SzEntityRelationsCount)) {
+            return false;
+        }
+        SzEntityRelationsCount other = (SzEntityRelationsCount) obj;
+        return relationsCount == other.relationsCount && entityCount == other.entityCount;
     }
 }

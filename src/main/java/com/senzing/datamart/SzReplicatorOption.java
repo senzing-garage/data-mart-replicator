@@ -64,7 +64,6 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      * <p>
      * This option can be specified in the following ways:
      * <ul>
-     * <li>Command Line: <code>-n {module-name}</code></li>
      * <li>Command Line: <code>--instance-name {module-name}</code></li>
      * <li>Environment:
      * <code>SENZING_TOOLS_CORE_INSTANCE_NAME="{module-name}"</code></li>
@@ -176,7 +175,6 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      * <ul>
      * <li>Command Line:
      * <code>--refresh-config-seconds {integer}</code></li>
-     * <li>Command Line:
      * <li>Environment:
      * <code>SENZING_TOOLS_REFRESH_CONFIG_SECONDS="{integer}"</code></li>
      * </ul>
@@ -184,6 +182,37 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
     REFRESH_CONFIG_SECONDS("--refresh-config-seconds",
                            ENV_PREFIX + "REFRESH_CONFIG_SECONDS", null,
                            1, DEFAULT_REFRESH_CONFIG_SECONDS_PARAM),
+
+    /**
+     * <p>
+     * Use this option to balance the message consumption and processing between
+     * aggressively keeping the data mart closely in sync with the entity repository
+     * and less frequent batch processing to conserve system resources.  The value
+     * to this option is one of the following:
+     * <ul>
+     * <li><code>leisurely</code> -- This setting allows for longer gaps between 
+     * updating the data mart, favoring less frequent batch processing in order to
+     * conserve system resources.</li>
+     * 
+     * <li><code>standard</code> -- This is the default and is balance between 
+     * conserving system resources and keeping the data mart updated in a reasonably
+     * timely manner.</li>
+     * 
+     * <li><code>aggressive</code> -- This setting uses more system resources to 
+     * aggressively consume and process incoming messages to keep the data mart closely
+     * in sync with the least time delay.</li>
+     * 
+     * </ul>
+     * This option can be specified in the following ways:
+     * <ul>
+     * <li>Command Line:
+     * <code>--processing-rate {leisurely|standard|aggressive}</code></li>
+     * <li>Environment:
+     * <code>SENZING_TOOLS_REFRESH_CONFIG_SECONDS="{integer}"</code></li>
+     * </ul>
+     */
+    PROCESSING_RATE("--processing-rate", ENV_PREFIX + "PROCESSING_RATE", null,
+                    1, ProcessingRate.STANDARD.toString().toLowerCase()),
    
     /**
      * <p>
@@ -452,6 +481,24 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
     }
 
     static {
+        // force load the URI classes
+        Class<?>[] classes = {
+            ConnectionUri.class,
+            SqliteUri.class,
+            PostgreSqlUri.class,
+            RabbitMqUri.class,
+            SqsUri.class,
+            SzCoreSettingsUri.class
+        };
+        for (Class c : classes) {
+            try {
+                // attempt to preload the class
+                Class.forName(c.getName());
+            } catch (ClassNotFoundException ignore) {
+                // ignore any exception
+            }
+        }
+
         Map<SzReplicatorOption, Set<Set<CommandLineOption>>> dependencyMap = new LinkedHashMap<>();
         Map<SzReplicatorOption, Set<CommandLineOption>> conflictMap = new LinkedHashMap<>();
         Map<String, SzReplicatorOption> lookupMap = new LinkedHashMap<>();
@@ -680,6 +727,9 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
                                     + params.get(0));
                 }
 
+            case PROCESSING_RATE:
+                return parseProcessingRate(params.get(0));
+
             case SQS_INFO_URI:
                 return SqsUri.parse(params.get(0));
 
@@ -709,7 +759,34 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      * 
      * @return The {@link ConnectionUri} that was parsed.
      */
-    private static ConnectionUri parseDatabaseUri(String paramValue) {
+    public static ProcessingRate parseProcessingRate(String paramValue) {
+        Objects.requireNonNull(paramValue, "Parameter value cannot be null");
+        try {
+            return ProcessingRate.valueOf(paramValue.trim().toUpperCase());
+
+        } catch (Exception e) {
+            StringBuilder sb = new StringBuilder();
+            String prefix = "";
+            for (ProcessingRate value : ProcessingRate.values()) {
+                sb.append(prefix).append(value.toString().toLowerCase());
+                prefix = ", ";
+            }
+            throw new IllegalArgumentException(
+                "Unrecognized processing rate value (" + paramValue 
+                + ").  Should be one of: " + sb.toString());
+        }
+    }
+
+    /**
+     * Parses the specified parameter value as a database
+     * {@link ConnectionUri}.
+     * 
+     * @param paramValue The parameter value to parse.
+     * 
+     * @return The {@link ConnectionUri} that was parsed.
+     */
+    public static ConnectionUri parseDatabaseUri(String paramValue) {
+        Objects.requireNonNull(paramValue, "Parameter value cannot be null");
         Set<Class<? extends ConnectionUri>> allowed
             = Set.of(PostgreSqlUri.class, SqliteUri.class);
         

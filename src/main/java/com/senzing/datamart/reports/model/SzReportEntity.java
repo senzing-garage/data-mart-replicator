@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -227,5 +228,24 @@ public class SzReportEntity implements Serializable {
                 + " ], recordCount=[ " + this.getRecordCount()
                 + " ], relationCount=[ " + this.getRelationCount()
                 + " ], records=[ " + this.getRecords() + " ]";
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(entityId, entityName, recordCount, relationCount, records);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof SzReportEntity)) {
+            return false;
+        }
+        SzReportEntity other = (SzReportEntity) obj;
+        return entityId == other.entityId && Objects.equals(entityName, other.entityName)
+                && Objects.equals(recordCount, other.recordCount) && Objects.equals(relationCount, other.relationCount)
+                && Objects.equals(records, other.records);
     }
 }

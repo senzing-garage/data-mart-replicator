@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -175,5 +176,23 @@ public class SzCrossSourceMatchCounts implements Serializable {
         return "dataSource=[ " + this.getDataSource() 
                 + " ], versusDataSource=[ " + this.getVersusDataSource()
                 + " ], counts=[ " + this.getCounts() + " ]";
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(dataSource, versusDataSource, counts);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof SzCrossSourceMatchCounts)) {
+            return false;
+        }
+        SzCrossSourceMatchCounts other = (SzCrossSourceMatchCounts) obj;
+        return Objects.equals(dataSource, other.dataSource) && Objects.equals(versusDataSource, other.versusDataSource)
+                && Objects.equals(counts, other.counts);
     }
 }

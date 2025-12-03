@@ -7,50 +7,59 @@ import com.linecorp.armeria.common.annotation.Nullable;
 import com.linecorp.armeria.server.annotation.Default;
 import com.senzing.datamart.reports.model.SzBoundType;
 import com.senzing.datamart.reports.model.SzEntitiesPage;
-import com.senzing.datamart.reports.model.SzEntitySizeBreakdown;
 import com.senzing.datamart.reports.model.SzEntitySizeCount;
+import com.senzing.datamart.reports.model.SzLoadedStats;
+import com.senzing.datamart.reports.model.SzSourceLoadedStats;
 import com.senzing.util.Timers;
 
 import static com.senzing.sql.SQLUtilities.close;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Set;
 
 /**
- * Provides services for the Entity Size reports.
+ * Provides services for the Loaded Statistics reports.
  */
-public interface EntitySizeReportsService extends ReportsService {
+public interface LoadedStatsReportsService extends ReportsService {
     /**
      * The prefix path for entity size reports services.
      */
-    String ENTITY_SIZE_PREFIX = REPORTS_PREFIX + "/sizes";
+    String LOADED_STATS_PREFIX = REPORTS_PREFIX + "/loaded";
 
     /**
-     * The endpoint for the entity size breakdown report.
+     * The endpoint for the loaded statistics report.
      */
-    String ENTITY_SIZE_BREAKDOWN_ENDPOINT = ENTITY_SIZE_PREFIX + "/";
+    String LOADED_STATS_ENDPOINT = LOADED_STATS_PREFIX + "/";
 
     /**
-     * The endpoint for the entity size count report.
+     * The endpoint for the source-specific loaded statistics report.
      */
-    String ENTITY_SIZE_COUNT_ENDPOINT = ENTITY_SIZE_PREFIX + "/{entitySize}";
+    String SOURCE_LOADED_STATS_ENDPOINT 
+        = LOADED_STATS_PREFIX + "/data-sources/{dataSourceCode}";
 
     /**
-     * The endpoint for the entities report based on entity size.
+     * The endpoint for the entities loaded for a data source.''
      */
-    String ENTITY_SIZE_ENTITIES_ENDPOINT = ENTITY_SIZE_COUNT_ENDPOINT + "/entities";
+    String SOURCE_LOADED_ENTITIES_ENDPOINT 
+        = SOURCE_LOADED_STATS_ENDPOINT + "/entities";
     
     /**
-     * Exposes {@link EntitySizeReports#getEntitySizeBreakdown(Connection, Timers)}
-     * as a REST/JSON service at {@link #ENTITY_SIZE_BREAKDOWN_ENDPOINT}.
+     * Exposes {@link LoadedStatsReports#getLoadedStatistics(Connection, Set, Timers)}
+     * as a REST/JSON service at {@link #LOADED_STATS_ENDPOINT}.
      * 
-     * @return The {@link SzEntitySizeBreakdown} describing the report.
+     * @param onlyLoaded Set to <code>true</code> to only consider data sources
+     *                   that have loaded record, otherwise set this to
+     *                   <code>false</code> to consider all data sources.
+     * 
+     * @return The {@link SzLoadedStats} describing the report.
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(ENTITY_SIZE_BREAKDOWN_ENDPOINT)
+    @Get(LOADED_STATS_ENDPOINT)
     @ProducesJson
-    default SzEntitySizeBreakdown getEntitySizeBreakdown() 
+    default SzLoadedStats getLoadedStatistics(
+            @Param("onlyLoadedSources") @Default("true") boolean onlyLoaded)
         throws ReportsServiceException
     {
         Connection conn = null;
@@ -59,8 +68,11 @@ public interface EntitySizeReportsService extends ReportsService {
 
             Timers timers = this.getTimers();
 
-            return EntitySizeReports.getEntitySizeBreakdown(conn, timers);
-            
+            Set<String> dataSources = (onlyLoaded) ? null 
+                : this.getConfiguredDataSources(true);
+
+            return LoadedStatsReports.getLoadedStatistics(conn, dataSources, timers);
+
         } catch (SQLException e) {
             e.printStackTrace();
             throw new ReportsServiceException(e);
@@ -79,19 +91,20 @@ public interface EntitySizeReportsService extends ReportsService {
     }
 
     /**
-     * Exposes {@link EntitySizeReports#getEntitySizeCount(Connection, int, Timers)}
-     * as a REST/JSON service at {@link #ENTITY_SIZE_COUNT_ENDPOINT}.
+     * Exposes {@link LoadedStatsReports#getSourceLoadedStatistics(Connection, String, Timers)}
+     * as a REST/JSON service at {@link #SOURCE_LOADED_STATS_ENDPOINT}.
      * 
-     * @param entitySize The entity size (record count) for which the entity count
-     *                   is being requested.
+     * @param dataSource The data source code for which the report is
+     *                   being requested.
      * 
-     * @return The {@link SzEntitySizeCount} describing the report.
+     * @return The {@link SzSourceLoadedStats} describing the report.
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(ENTITY_SIZE_COUNT_ENDPOINT)
+    @Get(SOURCE_LOADED_STATS_ENDPOINT)
     @ProducesJson
-    default SzEntitySizeCount getEntitySizeCount(@Param("entitySize") int entitySize) 
+    default SzSourceLoadedStats getSourceLoadedStatistics(
+            @Param("dataSourceCode") String dataSource) 
         throws ReportsServiceException
     {
         Connection conn = null;
@@ -100,7 +113,7 @@ public interface EntitySizeReportsService extends ReportsService {
 
             Timers timers = this.getTimers();
 
-            return EntitySizeReports.getEntitySizeCount(conn, entitySize, timers);
+            return LoadedStatsReports.getSourceLoadedStatistics(conn, dataSource, timers);
             
         } catch (SQLException e) {
             e.printStackTrace();
@@ -121,11 +134,11 @@ public interface EntitySizeReportsService extends ReportsService {
     }
 
     /**
-     * Exposes {@link EntitySizeReports#getEntityIdsForEntitySize(Connection, int, String, SzBoundType, Integer, Integer, Timers)}
-     * as a REST/JSON service at {@link #ENTITY_SIZE_ENTITIES_ENDPOINT}.
+     * Exposes {@link LoadedStatsReports#getEntityIdsForDataSource(Connection,
+     * String, String, SzBoundType, Integer, Integer, Timers)} as a REST/JSON
+     * service at {@link #SOURCE_LOADED_ENTITIES_ENDPOINT}.
      * 
-     * @param entitySize The entity size (record count) for which the entity count
-     *                   is being requested.
+     * @param dataSource The data source code for for the entities being requested.
      * @param entityIdBound The bound value for the entity ID's that will be
      *                      returned.
      * @param boundType The {@link SzBoundType} that describes how to apply the
@@ -136,14 +149,14 @@ public interface EntitySizeReportsService extends ReportsService {
      *                      the page, which, if specified, must be strictly
      *                      less-than the page size.
      * 
-     * @return The {@link SzEntitySizeCount} describing the report.
+     * @return The {@link SzEntitiesPage} describing the report.
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(ENTITY_SIZE_ENTITIES_ENDPOINT)
+    @Get(SOURCE_LOADED_ENTITIES_ENDPOINT)
     @ProducesJson
-    default SzEntitiesPage getEntitySizeEntities(
-            @Param("entitySize")                            int         entitySize,
+    default SzEntitiesPage getEntityIdsForDataSource(
+            @Param("dataSourceCode")                        String      dataSource,
             @Param("bound") @Nullable                       String      entityIdBound,
             @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType,
             @Param("pageSize") @Nullable                    Integer     pageSize,
@@ -156,13 +169,13 @@ public interface EntitySizeReportsService extends ReportsService {
 
             Timers timers = this.getTimers();
 
-            return EntitySizeReports.getEntityIdsForEntitySize(conn, 
-                                                               entitySize,
-                                                               entityIdBound,
-                                                               boundType,
-                                                               pageSize,
-                                                               sampleSize,
-                                                               timers);
+            return LoadedStatsReports.getEntityIdsForDataSource(conn,
+                                                                dataSource,
+                                                                entityIdBound,
+                                                                boundType,
+                                                                pageSize,
+                                                                sampleSize,
+                                                                timers);
         } catch (SQLException e) {
             e.printStackTrace();
             throw new ReportsServiceException(e);
@@ -178,5 +191,7 @@ public interface EntitySizeReportsService extends ReportsService {
         } finally {
             conn = close(conn);
         }
+
     }
+
 }

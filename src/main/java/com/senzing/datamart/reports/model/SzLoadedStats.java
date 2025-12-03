@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -181,6 +182,25 @@ public class SzLoadedStats implements Serializable {
                 + " ], totalUnmatchedRecordCount=[ " 
                 + this.getTotalUnmatchedRecordCount()
                 + " ], dataSourceCounts=[ " + this.getDataSourceCounts() + " ]";
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(totalRecordCount, totalEntityCount, totalUnmatchedRecordCount, dataSourceCounts);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof SzLoadedStats)) {
+            return false;
+        }
+        SzLoadedStats other = (SzLoadedStats) obj;
+        return totalRecordCount == other.totalRecordCount && totalEntityCount == other.totalEntityCount
+                && totalUnmatchedRecordCount == other.totalUnmatchedRecordCount
+                && Objects.equals(dataSourceCounts, other.dataSourceCounts);
     }
 
 }

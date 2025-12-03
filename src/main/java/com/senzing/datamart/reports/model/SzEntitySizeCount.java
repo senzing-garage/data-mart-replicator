@@ -1,6 +1,7 @@
 package com.senzing.datamart.reports.model;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Describes a the number of entities having a specific entity size given by the
@@ -79,5 +80,22 @@ public class SzEntitySizeCount implements Serializable {
     public String toString() {
         return "entitySize=[ " + this.getEntitySize() 
                + " ], entityCount=[ " + this.getEntityCount() +  " ]";
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(entitySize, entityCount);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof SzEntitySizeCount)) {
+            return false;
+        }
+        SzEntitySizeCount other = (SzEntitySizeCount) obj;
+        return entitySize == other.entitySize && entityCount == other.entityCount;
     }
 }

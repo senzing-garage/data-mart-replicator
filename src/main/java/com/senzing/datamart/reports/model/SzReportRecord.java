@@ -1,6 +1,7 @@
 package com.senzing.datamart.reports.model;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Describes a relationship between two entities.
@@ -177,5 +178,23 @@ public class SzReportRecord implements Serializable {
                 + " ], recordId=[ " + this.getRecordId() 
                 + " ], matchKey=[ " + this.getMatchKey() 
                 + " ], principle=[ " + this.getPrinciple() + " ]";
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(dataSource, recordId, matchKey, principle);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof SzReportRecord)) {
+            return false;
+        }
+        SzReportRecord other = (SzReportRecord) obj;
+        return Objects.equals(dataSource, other.dataSource) && Objects.equals(recordId, other.recordId)
+                && Objects.equals(matchKey, other.matchKey) && Objects.equals(principle, other.principle);
     }
 }

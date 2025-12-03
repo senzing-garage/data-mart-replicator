@@ -1,6 +1,7 @@
 package com.senzing.datamart.reports.model;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -188,5 +189,24 @@ public class SzRelationCounts implements Serializable {
         return "matchKey=[ " + this.getMatchKey() + " ], principle=[ " + this.getPrinciple() + " ], entityCount=[ "
                 + this.getEntityCount() + " ], recordCount=[ " + this.getRecordCount() + " ], relationCount=[ "
                 + this.getRelationCount() + " ]";
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(matchKey, principle, entityCount, recordCount, relationCount);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof SzRelationCounts)) {
+            return false;
+        }
+        SzRelationCounts other = (SzRelationCounts) obj;
+        return Objects.equals(matchKey, other.matchKey) && Objects.equals(principle, other.principle)
+                && entityCount == other.entityCount && recordCount == other.recordCount
+                && relationCount == other.relationCount;
     }
 }

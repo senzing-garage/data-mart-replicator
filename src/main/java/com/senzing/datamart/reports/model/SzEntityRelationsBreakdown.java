@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Describes the number of entities in the entity repository at each count
@@ -100,5 +101,22 @@ public class SzEntityRelationsBreakdown implements Serializable {
     @Override
     public String toString() {
         return "relationCounts=[ " + this.getEntityRelationsCounts() + " ]";
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(relationsCounts);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof SzEntityRelationsBreakdown)) {
+            return false;
+        }
+        SzEntityRelationsBreakdown other = (SzEntityRelationsBreakdown) obj;
+        return Objects.equals(relationsCounts, other.relationsCounts);
     }
 }

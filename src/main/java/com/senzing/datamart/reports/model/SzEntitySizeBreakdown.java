@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Describes the number of entities in the entity repository at each 
@@ -100,5 +101,22 @@ public class SzEntitySizeBreakdown implements Serializable {
     @Override
     public String toString() {
         return "entitySizeCounts=[ " + this.getEntitySizeCounts() + " ]";
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(entitySizeCounts);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof SzEntitySizeBreakdown)) {
+            return false;
+        }
+        SzEntitySizeBreakdown other = (SzEntitySizeBreakdown) obj;
+        return Objects.equals(entitySizeCounts, other.entitySizeCounts);
     }
 }

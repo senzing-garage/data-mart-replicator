@@ -703,7 +703,7 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
       throws MessageConsumerException {
     this.consumptionThread = new Thread(() -> {
       int failureCount = 0;
-      long sleepTime = 1000L;
+      long sleepTime = ONE_SECOND;
       while (this.getState() == CONSUMING) {
         // get the SQLClient
         SQLClient sqlClient = this.getSQLClient();
@@ -755,7 +755,7 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
               // do nothing
             }
             sleepTime = sleepTime * 2L;
-            long maxSleepTime = 1000L * ((long) this.getMaximumSleepTime());
+            long maxSleepTime = ONE_SECOND * ((long) this.getMaximumSleepTime());
 
             if (sleepTime > maxSleepTime) {
               sleepTime = maxSleepTime;

@@ -121,6 +121,11 @@ public class SzReplicatorOptions {
     private long refreshConfigSeconds = DEFAULT_REFRESH_CONFIG_SECONDS;
 
     /**
+     * The {@link ProcessingRate} to use for processing messages.
+     */
+    private ProcessingRate processingRate = ProcessingRate.STANDARD;
+
+    /**
      * Constructs with the {@link Map} of {@link CommandLineOption}
      * keys to {@link Object} values.
      * 
@@ -360,6 +365,44 @@ public class SzReplicatorOptions {
     public SzReplicatorOptions setRefreshConfigSeconds(Long seconds) {
         this.refreshConfigSeconds = (seconds == null)
             ? DEFAULT_REFRESH_CONFIG_SECONDS : seconds;
+        return this;
+    }
+
+
+    /**
+     * Gets the {@link ProcessingRate} that the {@link 
+     * SzReplicator} would use to balance between quickly
+     * processing messages in order to stay closely in sync
+     * with the entity repository and delaying in order to
+     * batch a larger number of messages and conserve system
+     * resources.
+     *
+     * @return The {@link ProcessingRate} for this instance.
+     */
+    @Option(PROCESSING_RATE)
+    public ProcessingRate getProcessingRate() {
+        return this.processingRate;
+    }
+
+    /**
+     * Sets the {@link ProcessingRate} to determine how the 
+     * {@link SzReplicator} should balance between quickly
+     * processing messages in order to stay closely in sync
+     * with the entity repository and delaying in order to
+     * batch a larger number of messages and conserve system
+     * resources.
+     *
+     * @param rate The {@link ProcessingRate} for the 
+     *             {@link SzReplicator}, or <code>null</code> if
+     *             {@link ProcessingRate#STANDARD} should be used.
+     *
+     * @return A reference to this instance.
+     */
+    @Option(PROCESSING_RATE)
+    public SzReplicatorOptions setProcessingRate(ProcessingRate rate) 
+    {
+        this.processingRate = (rate == null) 
+            ? ProcessingRate.STANDARD : rate;
         return this;
     }
 

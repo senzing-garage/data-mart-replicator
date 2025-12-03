@@ -26,11 +26,11 @@ import static com.senzing.util.LoggingUtilities.*;
 /**
  * Provides Loaded Statistics Report functionality.
  */
-public final class LoadedStatsReport {
+public final class LoadedStatsReports {
     /**
      * Private default constructor.
      */
-    private LoadedStatsReport() {
+    private LoadedStatsReports() {
         // do nothing
     }
 

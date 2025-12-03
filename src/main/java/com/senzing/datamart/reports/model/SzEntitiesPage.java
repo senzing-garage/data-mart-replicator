@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -420,5 +421,28 @@ public class SzEntitiesPage implements Serializable {
                 + " ], beforePageCount=[ " + this.getBeforePageCount()
                 + " ], afterPageCount=[ " + this.getAfterPageCount()
                 + " ], entities=[ " + this.getEntities() + " ]";
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(bound, boundType, pageSize, sampleSize, pageMinimumValue, pageMaximumValue,
+                totalEntityCount, beforePageCount, afterPageCount, entities);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof SzEntitiesPage)) {
+            return false;
+        }
+        SzEntitiesPage other = (SzEntitiesPage) obj;
+        return Objects.equals(bound, other.bound) && boundType == other.boundType && pageSize == other.pageSize
+                && Objects.equals(sampleSize, other.sampleSize)
+                && Objects.equals(pageMinimumValue, other.pageMinimumValue)
+                && Objects.equals(pageMaximumValue, other.pageMaximumValue)
+                && totalEntityCount == other.totalEntityCount && beforePageCount == other.beforePageCount
+                && afterPageCount == other.afterPageCount && Objects.equals(entities, other.entities);
     }
 }

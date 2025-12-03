@@ -155,4 +155,22 @@ public class SzSourceLoadedStats implements Serializable {
                 + this.getUnmatchedRecordCount() + " ]";
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(dataSource, recordCount, entityCount, unmatchedRecordCount);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof SzSourceLoadedStats)) {
+            return false;
+        }
+        SzSourceLoadedStats other = (SzSourceLoadedStats) obj;
+        return Objects.equals(dataSource, other.dataSource) && recordCount == other.recordCount
+                && entityCount == other.entityCount && unmatchedRecordCount == other.unmatchedRecordCount;
+    }
+
 }

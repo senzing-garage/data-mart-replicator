@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -446,5 +447,28 @@ public class SzRelationsPage implements Serializable {
                 + " ], totalRelationCount=[ " + this.getTotalRelationCount() + " ], beforePageCount=[ "
                 + this.getBeforePageCount() + " ], afterPageCount=[ " + this.getAfterPageCount() + " ], relations=[ "
                 + this.getRelations() + " ]";
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(bound, boundType, pageSize, sampleSize, pageMinimumValue, pageMaximumValue,
+                totalRelationCount, beforePageCount, afterPageCount, relations);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof SzRelationsPage)) {
+            return false;
+        }
+        SzRelationsPage other = (SzRelationsPage) obj;
+        return Objects.equals(bound, other.bound) && boundType == other.boundType && pageSize == other.pageSize
+                && Objects.equals(sampleSize, other.sampleSize)
+                && Objects.equals(pageMinimumValue, other.pageMinimumValue)
+                && Objects.equals(pageMaximumValue, other.pageMaximumValue)
+                && totalRelationCount == other.totalRelationCount && beforePageCount == other.beforePageCount
+                && afterPageCount == other.afterPageCount && Objects.equals(relations, other.relations);
     }
 }

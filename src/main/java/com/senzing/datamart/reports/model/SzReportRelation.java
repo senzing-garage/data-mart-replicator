@@ -1,6 +1,7 @@
 package com.senzing.datamart.reports.model;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -158,5 +159,24 @@ public class SzReportRelation implements Serializable {
                 + " ], relationType=[ " + this.getRelationType()
                 + " ], matchKey=[ " + this.getMatchKey()
                 + " ], principle=[ " + this.getPrinciple() + " ]";
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(entity, relatedEntity, relationType, matchKey, principle);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof SzReportRelation)) {
+            return false;
+        }
+        SzReportRelation other = (SzReportRelation) obj;
+        return Objects.equals(entity, other.entity) && Objects.equals(relatedEntity, other.relatedEntity)
+                && relationType == other.relationType && Objects.equals(matchKey, other.matchKey)
+                && Objects.equals(principle, other.principle);
     }
 }

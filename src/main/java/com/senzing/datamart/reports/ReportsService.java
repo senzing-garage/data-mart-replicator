@@ -2,13 +2,20 @@ package com.senzing.datamart.reports;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Set;
 
+import com.senzing.sdk.SzException;
 import com.senzing.util.Timers;
 
 /**
  * Base interface implemented by all datamart reports services.
  */
 public interface ReportsService {
+    /**
+     * The prefix for all data mart reports.
+     */
+    String REPORTS_PREFIX = "/statistics";
+
     /**
      * Provides the JDBC {@link Connection} to use for the report.
      * 
@@ -17,6 +24,24 @@ public interface ReportsService {
      * @throws SQLException If a failure occurs.
      */
     Connection getConnection() throws SQLException;
+
+    /**
+     * Gets the {@link Set} of {@link String} data source codes
+     * for all configured data sources in the associated entity
+     * repository (optionally excluding the default data sources).
+     * 
+     * @param excludeDefault <code>true</code> if the default 
+     *                       data sources should be excluded, otherwise
+     *                       <code>false</code>.
+     * 
+     * @return The {@link Set} of {@link String} data source codes
+     *         for all configured data sources in the associated
+     *         entity repository. 
+     * 
+     * @throws SzException If a failure occurs.
+     */
+    Set<String> getConfiguredDataSources(boolean excludeDefault) 
+        throws SzException;
 
     /**
      * Gets the {@link Timers} instance for timing the current operation.

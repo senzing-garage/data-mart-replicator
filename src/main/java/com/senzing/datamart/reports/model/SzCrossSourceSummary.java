@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -528,5 +529,27 @@ public class SzCrossSourceSummary implements Serializable {
                 + " ], possibleMatches=[ " + this.getPossibleMatches()
                 + " ], possibleRelations=[ " + this.getPossibleRelations()
                 + " ], disclosedRelations=[ " + this.getDisclosedRelations() + " ]";
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(dataSource, versusDataSource, matches, ambiguousMatches, possibleMatches, possibleRelations,
+                disclosedRelations);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof SzCrossSourceSummary)) {
+            return false;
+        }
+        SzCrossSourceSummary other = (SzCrossSourceSummary) obj;
+        return Objects.equals(dataSource, other.dataSource) && Objects.equals(versusDataSource, other.versusDataSource)
+                && Objects.equals(matches, other.matches) && Objects.equals(ambiguousMatches, other.ambiguousMatches)
+                && Objects.equals(possibleMatches, other.possibleMatches)
+                && Objects.equals(possibleRelations, other.possibleRelations)
+                && Objects.equals(disclosedRelations, other.disclosedRelations);
     }
 }
