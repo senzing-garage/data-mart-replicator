@@ -1,6 +1,5 @@
 package com.senzing.listener.service.locking;
 
-import com.senzing.listener.communication.MessageConsumer;
 import com.senzing.listener.service.exception.ServiceExecutionException;
 import com.senzing.listener.service.exception.ServiceSetupException;
 
@@ -9,38 +8,38 @@ import java.util.Set;
 
 /**
  * Defines an interface for a locking service that will obtain locks on
- * resources identified by {@link ResourceKey} instances and
+ * resources identified by {@link ResourceKey} instances.
  */
 public interface LockingService {
   /**
-   * Enumerates the state of the {@link MessageConsumer}.
+   * Enumerates the state of the {@link com.senzing.listener.communication.MessageConsumer}.
    */
   enum State {
     /**
-     * The {@link MessageConsumer} has not yet been initialized.
+     * The {@link com.senzing.listener.communication.MessageConsumer} has not yet been initialized.
      */
     UNINITIALIZED,
 
     /**
-     * The {@link MessageConsumer} is initializing, but has not finished
+     * The {@link com.senzing.listener.communication.MessageConsumer} is initializing, but has not finished
      * initializing.
      */
     INITIALIZING,
 
     /**
-     * The {@link MessageConsumer} has completed initialization and is ready
+     * The {@link com.senzing.listener.communication.MessageConsumer} has completed initialization and is ready
      * to handle providing resource locks.
      */
     INITIALIZED,
 
     /**
-     * The {@link MessageConsumer} has begun destruction, but may still be
+     * The {@link com.senzing.listener.communication.MessageConsumer} has begun destruction, but may still be
      * processing whatever messages were in progress.
      */
     DESTROYING,
 
     /**
-     * The {@link MessageConsumer} is no longer processing messages and has
+     * The {@link com.senzing.listener.communication.MessageConsumer} is no longer processing messages and has
      * been destroyed.
      */
     DESTROYED;

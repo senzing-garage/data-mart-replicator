@@ -323,8 +323,9 @@ public interface SQLClient {
       int rowCount = ps.executeUpdate();
 
       // check if the message is already expired or leased by another or missing
-      if (rowCount == 0)
+      if (rowCount == 0) {
         return -1L;
+      }
 
       // check if somehow we updated more than row (should not be possible)
       if (rowCount > 1) {

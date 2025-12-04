@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -66,14 +65,14 @@ public class SzRelationsPage implements Serializable {
     private long afterPageCount = 0L;
 
     /**
-     * The {@link Map} of {@link String} encoded relationship entity ID's keys
+     * The {@link SortedMap} of {@link String} encoded relationship entity ID's keys
      * identifying the related entities to {@link SzReportRelation} values for those
      * entities.
      */
     private SortedMap<SzRelationKey, SzReportRelation> relations = null;
 
     /**
-     * Default constructor
+     * Default constructor.
      */
     public SzRelationsPage() {
         this.bound = "0:0";
@@ -196,8 +195,9 @@ public class SzRelationsPage implements Serializable {
      */
     @JsonInclude(NON_NULL)
     public String getMinimumValue() {
-        if (this.relations.size() == 0)
+        if (this.relations.size() == 0) {
             return null;
+        }
         SzRelationKey key = this.relations.firstKey();
         return key.toString();
     }
@@ -210,14 +210,15 @@ public class SzRelationsPage implements Serializable {
      * and the second entity ID value identifies the greatest value of those entity
      * ID's related to the first entity. This returns <code>null</code> if there are
      * no results.
-     * 
+     *
      * @return The maximum relation value of the returned results, or
      *         <code>null</code> if there are no results.
      */
     @JsonInclude(NON_NULL)
     public String getMaximumValue() {
-        if (this.relations.size() == 0)
+        if (this.relations.size() == 0) {
             return null;
+        }
         SzRelationKey key = this.relations.lastKey();
         return key.toString();
     }
@@ -449,12 +450,26 @@ public class SzRelationsPage implements Serializable {
                 + this.getRelations() + " ]";
     }
 
+    /**
+     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
+     * implementation.
+     * 
+     * @return The hash code for this instance.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(bound, boundType, pageSize, sampleSize, pageMinimumValue, pageMaximumValue,
                 totalRelationCount, beforePageCount, afterPageCount, relations);
     }
 
+    /**
+     * Overridden to return <code>true</code> if and only if the specified parameter
+     * is an instance of the same class with equivalent properties.
+     * 
+     * @param obj The object to compare with.
+     * @return <code>true</code> if the specified parameter is an instance of the 
+     *         same class with equivalent properties, otherwise <code>false</code>.
+     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {

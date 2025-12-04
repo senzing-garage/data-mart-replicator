@@ -63,7 +63,7 @@ public class TaskBuilder {
   /**
    * Provides a builder for a list parameter of the parent {@link TaskBuilder}.
    */
-  public class ListParamBuilder {
+  public final class ListParamBuilder {
     /**
      * The associated parameter name.
      */
@@ -332,7 +332,7 @@ public class TaskBuilder {
   /**
    * Provides a builder for a map parameter of the parent {@link TaskBuilder}.
    */
-  public class MapParamBuilder {
+  public final class MapParamBuilder {
     /**
      * The parameter name.
      */

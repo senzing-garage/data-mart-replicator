@@ -123,12 +123,15 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey> 
    */
   @Override
   public boolean equals(Object obj) {
-    if (obj == null)
+    if (obj == null) {
       return false;
-    if (this == obj)
+    }
+    if (this == obj) {
       return true;
-    if (this.getClass() != obj.getClass())
+    }
+    if (this.getClass() != obj.getClass()) {
       return false;
+    }
     ResourceKey key = (ResourceKey) obj;
     return Objects.equals(this.getResourceType(), key.getResourceType())
         && Objects.equals(this.getComponents(), key.getComponents());
@@ -147,26 +150,32 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey> 
   @Override
   public int compareTo(ResourceKey key) {
     int diff = this.getResourceType().compareTo(key.getResourceType());
-    if (diff != 0)
+    if (diff != 0) {
       return diff;
+    }
     List<String> comp1 = this.getComponents();
     List<String> comp2 = key.getComponents();
     diff = comp1.size() - comp2.size();
-    if (diff != 0)
+    if (diff != 0) {
       return diff;
+    }
     int count = comp1.size();
     for (int index = 0; index < count; index++) {
       String s1 = comp1.get(index);
       String s2 = comp2.get(index);
-      if (Objects.equals(s1, s2))
+      if (Objects.equals(s1, s2)) {
         continue;
-      if (s1 == null && s2 != null)
+      }
+      if (s1 == null && s2 != null) {
         return -1;
-      if (s1 != null && s2 == null)
+      }
+      if (s1 != null && s2 == null) {
         return 1;
+      }
       diff = s1.compareTo(s2);
-      if (diff != 0)
+      if (diff != 0) {
         return diff;
+      }
     }
     return 0;
   }
@@ -206,8 +215,9 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey> 
   public static ResourceKey parse(String text)
       throws IllegalArgumentException {
     // return null if parameter is null
-    if (text == null)
+    if (text == null) {
       return null;
+    }
 
     // trim leading and trailing whitespace
     text = text.trim();

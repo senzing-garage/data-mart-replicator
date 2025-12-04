@@ -41,7 +41,7 @@ public class SzSourceSummary implements Serializable {
     private Map<String, SzCrossSourceSummary> crossSummaries = null;
 
     /**
-     * Default constructor
+     * Default constructor.
      */
     public SzSourceSummary() {
         this(null);
@@ -188,8 +188,9 @@ public class SzSourceSummary implements Serializable {
      *                     another specific data source.
      */
     public void addCrossSourceSummary(SzCrossSourceSummary crossSummary) {
-        if (crossSummary == null)
+        if (crossSummary == null) {
             return;
+        }
         this.crossSummaries.put(crossSummary.getVersusDataSource(), crossSummary);
     }
 

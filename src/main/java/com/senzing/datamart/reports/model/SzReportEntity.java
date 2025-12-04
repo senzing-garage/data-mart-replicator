@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -40,13 +39,13 @@ public class SzReportEntity implements Serializable {
     private Integer relationCount = null;
 
     /**
-     * The {@link Map} of {@link Long} entity ID's identifying the entities on this
+     * The {@link SortedMap} of {@link Long} entity ID's identifying the entities on this
      * page.
      */
     private SortedMap<SzRecordKey, SzReportRecord> records = null;
 
     /**
-     * Default constructor
+     * Default constructor.
      */
     public SzReportEntity() {
         this(0L);
@@ -230,11 +229,25 @@ public class SzReportEntity implements Serializable {
                 + " ], records=[ " + this.getRecords() + " ]";
     }
 
+    /**
+     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
+     * implementation.
+     * 
+     * @return The hash code for this instance.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(entityId, entityName, recordCount, relationCount, records);
     }
 
+    /**
+     * Overridden to return <code>true</code> if and only if the specified parameter
+     * is an instance of the same class with equivalent properties.
+     * 
+     * @param obj The object to compare with.
+     * @return <code>true</code> if the specified parameter is an instance of the 
+     *         same class with equivalent properties, otherwise <code>false</code>.
+     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {

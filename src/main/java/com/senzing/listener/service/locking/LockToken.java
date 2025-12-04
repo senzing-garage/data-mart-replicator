@@ -75,6 +75,8 @@ public final class LockToken implements Serializable {
 
   /**
    * Returns the next token ID.
+   * 
+   * @return The next unique token ID.
    */
   private synchronized long getNextTokenId() {
     return nextTokenId++;
@@ -142,20 +144,30 @@ public final class LockToken implements Serializable {
    */
   private static String formatHostKey() {
     try {
-      LinkedHashMap<String,Integer> macAddrMap = new LinkedHashMap<>();
+      LinkedHashMap<String, Integer> macAddrMap = new LinkedHashMap<>();
       LinkedList<NetworkInterface>  interfaces = new LinkedList<>();
       Enumeration<NetworkInterface> allInterfaces
           = NetworkInterface.getNetworkInterfaces();
 
       while (allInterfaces.hasMoreElements()) {
         NetworkInterface netInterface = allInterfaces.nextElement();
-        if (netInterface.getHardwareAddress() == null) continue;
-        if (!netInterface.isUp()) continue;
-        if (netInterface.isVirtual()) continue;
-        if (netInterface.isPointToPoint()) continue;
+        if (netInterface.getHardwareAddress() == null) {
+          continue;
+        }
+        if (!netInterface.isUp()) {
+          continue;
+        }
+        if (netInterface.isVirtual()) {
+          continue;
+        }
+        if (netInterface.isPointToPoint()) {
+          continue;
+        }
 
         Enumeration<InetAddress> addrEnum = netInterface.getInetAddresses();
-        if (!addrEnum.hasMoreElements()) continue;
+        if (!addrEnum.hasMoreElements()) {
+          continue;
+        }
 
         String macAddr = getMacAddress(netInterface);
         Integer count = macAddrMap.get(macAddr);
@@ -172,7 +184,9 @@ public final class LockToken implements Serializable {
       for (NetworkInterface netInterface : interfaces) {
         String macAddr = getMacAddress(netInterface);
         Integer count = macAddrMap.get(macAddr);
-        if (count > 1) continue;
+        if (count > 1) {
+          continue;
+        }
 
         Enumeration<InetAddress> addresses = netInterface.getInetAddresses();
         while (addresses.hasMoreElements()) {
@@ -265,17 +279,34 @@ public final class LockToken implements Serializable {
    */
   @Override
   public boolean equals(Object obj) {
-    if (obj == null) return false;
-    if (this == obj) return true;
-    if (obj.getClass() != this.getClass()) return false;
-    LockToken that = (LockToken) obj;
-    if (!Objects.equals(this.getScope(), that.getScope())) return false;
-    if (!Objects.equals(this.getTokenId(), that.getTokenId())) return false;
-    if (!Objects.equals(this.getTimestamp(), that.getTimestamp())) return false;
-    if (!Objects.equals(this.getProcessKey(), that.getProcessKey()))
+    if (obj == null) {
       return false;
-    if (!Objects.equals(this.getHostKey(), that.getHostKey())) return false;
-    if (!Objects.equals(this.getTokenKey(), that.getTokenKey())) return false;
+    }
+    if (this == obj) {
+      return true;
+    }
+    if (obj.getClass() != this.getClass()) {
+      return false;
+    }
+    LockToken that = (LockToken) obj;
+    if (!Objects.equals(this.getScope(), that.getScope())) {
+      return false;
+    }
+    if (!Objects.equals(this.getTokenId(), that.getTokenId())) {
+      return false;
+    }
+    if (!Objects.equals(this.getTimestamp(), that.getTimestamp())) {
+      return false;
+    }
+    if (!Objects.equals(this.getProcessKey(), that.getProcessKey())) {
+      return false;
+    }
+    if (!Objects.equals(this.getHostKey(), that.getHostKey())) {
+      return false;
+    }
+    if (!Objects.equals(this.getTokenKey(), that.getTokenKey())) {
+      return false;
+    }
     return true;
   }
 
@@ -312,7 +343,7 @@ public final class LockToken implements Serializable {
     try {
       LockScope[] scopes = LockScope.values();
       for (int index = 0; index < 10; index++) {
-        LockToken lockToken = new LockToken(scopes[index%3]);
+        LockToken lockToken = new LockToken(scopes[index % 3]);
         System.out.println();
         System.out.println("---------------------------------------------");
         System.out.println(lockToken);

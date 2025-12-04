@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -66,13 +65,13 @@ public class SzEntitiesPage implements Serializable {
     private long afterPageCount = 0L;
 
     /**
-     * The {@link Set} of {@link Long} entity ID's identifying the entities on this
-     * page.
+     * The {@link SortedMap} of {@link Long} entity ID keys to {@link SzReportEntity}
+     * values describing the entities on tf page.
      */
     private SortedMap<Long, SzReportEntity> entities = null;
 
     /**
-     * Default constructor
+     * Default constructor.
      */
     public SzEntitiesPage() {
         this.bound = null;
@@ -185,22 +184,24 @@ public class SzEntitiesPage implements Serializable {
      */
     @JsonInclude(NON_NULL)
     public Long getMinimumValue() {
-        if (this.entities.size() == 0)
+        if (this.entities.size() == 0) {
             return null;
+        }
         return this.entities.firstKey();
     }
 
     /**
      * Gets the maximum entity ID of the returned results. This returns
      * <code>null</code> if there are no results.
-     * 
+     *
      * @return The maximum entity ID of the returned results, or <code>null</code>
      *         if there are no results.
      */
     @JsonInclude(NON_NULL)
     public Long getMaximumValue() {
-        if (this.entities.size() == 0)
+        if (this.entities.size() == 0) {
             return null;
+        }
         return this.entities.lastKey();
     }
 
@@ -423,12 +424,26 @@ public class SzEntitiesPage implements Serializable {
                 + " ], entities=[ " + this.getEntities() + " ]";
     }
 
+    /**
+     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
+     * implementation.
+     * 
+     * @return The hash code for this instance.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(bound, boundType, pageSize, sampleSize, pageMinimumValue, pageMaximumValue,
                 totalEntityCount, beforePageCount, afterPageCount, entities);
     }
 
+    /**
+     * Overridden to return <code>true</code> if and only if the specified parameter
+     * is an instance of the same class with equivalent properties.
+     * 
+     * @param obj The object to compare with.
+     * @return <code>true</code> if the specified parameter is an instance of the 
+     *         same class with equivalent properties, otherwise <code>false</code>.
+     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {

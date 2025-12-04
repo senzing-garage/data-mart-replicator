@@ -21,7 +21,7 @@ public class SzEntitySizeBreakdown implements Serializable {
     private Map<Integer, SzEntitySizeCount> entitySizeCounts = null;
 
     /**
-     * Default constructor
+     * Default constructor.
      */
     public SzEntitySizeBreakdown() {
         this.entitySizeCounts = new LinkedHashMap<>();
@@ -84,8 +84,9 @@ public class SzEntitySizeBreakdown implements Serializable {
      *                  size.
      */
     public void addEntitySizeCount(SzEntitySizeCount sizeCount) {
-        if (sizeCount == null)
+        if (sizeCount == null) {
             return;
+        }
         if (sizeCount.getEntityCount() > 0) {
             this.entitySizeCounts.put(sizeCount.getEntitySize(), sizeCount);
         } else {
@@ -103,11 +104,25 @@ public class SzEntitySizeBreakdown implements Serializable {
         return "entitySizeCounts=[ " + this.getEntitySizeCounts() + " ]";
     }
 
+    /**
+     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
+     * implementation.
+     * 
+     * @return The hash code for this instance.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(entitySizeCounts);
     }
 
+    /**
+     * Overridden to return <code>true</code> if and only if the specified parameter
+     * is an instance of the same class with equivalent properties.
+     * 
+     * @param obj The object to compare with.
+     * @return <code>true</code> if the specified parameter is an instance of the 
+     *         same class with equivalent properties, otherwise <code>false</code>.
+     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {

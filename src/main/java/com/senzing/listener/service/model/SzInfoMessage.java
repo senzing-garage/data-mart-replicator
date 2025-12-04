@@ -328,12 +328,22 @@ public class SzInfoMessage implements Serializable {
     this.notices.add(notice);
   }
 
+  /**
+   * Overridden to return <code>true</code> if and only if the specified parameter
+   * is an instance of the same class with equivalent properties.
+   * 
+   * @param o The object to compare with.
+   * @return <code>true</code> if the specified parameter is an instance of the 
+   *         same class with equivalent properties, otherwise <code>false</code>.
+   */
   @Override
   public boolean equals(Object o) {
-    if (this == o)
+    if (this == o) {
       return true;
-    if (o == null || this.getClass() != o.getClass())
+    }
+    if (o == null || this.getClass() != o.getClass()) {
       return false;
+    }
     SzInfoMessage that = (SzInfoMessage) o;
     return Objects.equals(this.getDataSource(), that.getDataSource())
         && Objects.equals(this.getRecordId(), that.getRecordId())
@@ -344,6 +354,12 @@ public class SzInfoMessage implements Serializable {
         && Objects.equals(this.getNotices(), that.getNotices());
   }
 
+  /**
+   * Overridden to return a hash code consistent with the {@link #equals(Object)} 
+   * implementation.
+   * 
+   * @return The hash code for this instance.
+   */
   @Override
   public int hashCode() {
     return Objects.hash(this.getDataSource(),
@@ -368,8 +384,9 @@ public class SzInfoMessage implements Serializable {
    * @see #toJsonObject()
    */
   public JsonObjectBuilder toJsonObjectBuilder(JsonObjectBuilder builder) {
-    if (builder == null)
+    if (builder == null) {
       builder = Json.createObjectBuilder();
+    }
     JsonUtilities.add(builder, DATA_SOURCE_KEY, this.getDataSource());
     JsonUtilities.add(builder, RECORD_ID_KEY, this.getRecordId());
 
@@ -469,8 +486,9 @@ public class SzInfoMessage implements Serializable {
    */
   public static SzInfoMessage fromJson(String jsonText)
       throws IllegalArgumentException {
-    if (jsonText == null)
+    if (jsonText == null) {
       return null;
+    }
     return fromJson(JsonUtilities.parseJsonObject(jsonText));
   }
 
@@ -519,8 +537,9 @@ public class SzInfoMessage implements Serializable {
    */
   public static SzInfoMessage fromRawJson(String jsonText)
       throws IllegalArgumentException {
-    if (jsonText == null)
+    if (jsonText == null) {
       return null;
+    }
     return fromRawJson(JsonUtilities.parseJsonObject(jsonText));
   }
 
@@ -589,8 +608,9 @@ public class SzInfoMessage implements Serializable {
       String entitiesKey,
       String noticesKey)
       throws IllegalArgumentException {
-    if (jsonObject == null)
+    if (jsonObject == null) {
       return null;
+    }
     if (!jsonObject.containsKey(dataSourceKey)
         || !jsonObject.containsKey(recordIdKey)
         || !jsonObject.containsKey(affectedEntitiesKey)) {

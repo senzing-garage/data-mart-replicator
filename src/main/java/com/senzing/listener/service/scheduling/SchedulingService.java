@@ -34,7 +34,7 @@ public interface SchedulingService extends Quantified {
     READY,
 
     /**
-     * The {@link SchedulingService} is actively scheduling and handling tasks,
+     * The {@link SchedulingService} is actively scheduling and handling tasks.
      */
     ACTIVE,
 

@@ -8,7 +8,7 @@ import javax.json.JsonObject;
 /**
  * Provides utility methods for services.
  */
-public class ServiceUtilities {
+public final class ServiceUtilities {
   /**
    * Private default constructor.
    */
@@ -142,7 +142,9 @@ public class ServiceUtilities {
       String result = JsonUtilities.getString(config, key, defaultValue);
 
       // trim the whitespace (regardless of normalization)
-      if (result != null) result = result.trim();
+      if (result != null) {
+        result = result.trim();
+      }
 
       // optionally normalize empty string to null
       if (normalize && result != null && result.length() == 0) {

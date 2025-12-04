@@ -150,11 +150,25 @@ public class SzMatchCounts implements Serializable {
                 + " ], recordCount=[ " + this.getRecordCount() + " ]";
     }
 
+    /**
+     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
+     * implementation.
+     * 
+     * @return The hash code for this instance.
+     */
    @Override
    public int hashCode() {
     return Objects.hash(matchKey, principle, entityCount, recordCount);
    }
 
+    /**
+     * Overridden to return <code>true</code> if and only if the specified parameter
+     * is an instance of the same class with equivalent properties.
+     * 
+     * @param obj The object to compare with.
+     * @return <code>true</code> if the specified parameter is an instance of the 
+     *         same class with equivalent properties, otherwise <code>false</code>.
+     */
    @Override
    public boolean equals(Object obj) {
     if (this == obj) {

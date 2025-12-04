@@ -10,7 +10,7 @@ import javax.json.JsonObject;
 /**
  * A factory class for creating instances of {@link MessageConsumer}.
  */
-public class MessageConsumerFactory {
+public final class MessageConsumerFactory {
     /**
      * Generates a message consumer based on consumer type.
      * 
@@ -39,6 +39,8 @@ public class MessageConsumerFactory {
         case SQS:
             consumer = new SQSConsumer();
             break;
+        default:
+            // fall through
         }
         if (consumer == null) {
             StringBuilder errorMessage = new StringBuilder(

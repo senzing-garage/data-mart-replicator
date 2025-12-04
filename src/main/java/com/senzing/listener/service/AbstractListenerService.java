@@ -1,6 +1,5 @@
 package com.senzing.listener.service;
 
-import com.senzing.listener.communication.MessageConsumer;
 import com.senzing.listener.service.exception.ServiceExecutionException;
 import com.senzing.listener.service.exception.ServiceSetupException;
 import com.senzing.listener.service.model.SzInfoMessage;
@@ -8,7 +7,6 @@ import com.senzing.listener.service.model.SzInterestingEntity;
 import com.senzing.listener.service.model.SzNotice;
 import com.senzing.listener.service.model.SzSampleRecord;
 import com.senzing.listener.service.scheduling.*;
-import com.senzing.util.JsonUtilities;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -141,7 +139,7 @@ public abstract class AbstractListenerService implements ListenerService {
 
   /**
    * A {@link TaskHandler} implementation that simply delegates to
-   * {@link AbstractListenerService#handleTask(String, Map, int, Scheduler)}
+   * {@link AbstractListenerService#handleTask(String, Map, int, Scheduler)}.
    */
   protected class ListenerTaskHandler implements TaskHandler {
     /**
@@ -182,7 +180,7 @@ public abstract class AbstractListenerService implements ListenerService {
   }
 
   /**
-   * The {@link Map} of {@link MessagePart} keys to {@link String} values
+   * The {@link Map} of {@link MessagePart} keys to {@link String} values.
    */
   private Map<MessagePart, String> messagePartMap = null;
 
@@ -336,8 +334,11 @@ public abstract class AbstractListenerService implements ListenerService {
       throws ServiceExecutionException;
 
   /**
-   * Default implementation of {@link ListenerService#init(JsonObject)} that
+   * Default implementation of {@link ListenerService#init(JsonObject)} 
+   * that initializes with the defined parameter.
    *
+   * @param config THe {@link JsonObject} describing the configuration.
+   * 
    * @throws ServiceSetupException If a failure occurs.
    */
   @Override
@@ -383,7 +384,7 @@ public abstract class AbstractListenerService implements ListenerService {
    * Utility method to convert the task being handled to JSON for logging
    * purposes or for serialization. The specified {@link Map} of parameters
    * should have values that can be converted to JSON via {@link
-   * JsonUtilities#toJsonObjectBuilder(Map)}
+   * com.senzing.util.JsonUtilities#toJsonObjectBuilder(Map)}
    *
    * @param action       The action for the task.
    * @param parameters   The {@link Map} of parameters for the task.
@@ -550,8 +551,9 @@ public abstract class AbstractListenerService implements ListenerService {
       // determine the state of the group
       TaskGroup.State groupState = taskGroup.getState();
       logDebug("COMPLETED TASK GROUP STATE: " + groupState);
-      if (groupState == TaskGroup.State.SUCCESSFUL)
+      if (groupState == TaskGroup.State.SUCCESSFUL) {
         return;
+      }
 
       // if we get here then we had a failure
       List<Task> failedTasks = taskGroup.getFailedTasks();
@@ -677,8 +679,9 @@ public abstract class AbstractListenerService implements ListenerService {
       JsonObject rawMessage,
       Scheduler scheduler) {
     String action = this.messagePartMap.get(MessagePart.RECORD);
-    if (action == null || action.trim().length() == 0)
+    if (action == null || action.trim().length() == 0) {
       return;
+    }
     scheduler.createTaskBuilder(action)
         .parameter(DATA_SOURCE_PARAMETER_KEY, dataSource)
         .parameter(RECORD_ID_PARAMETER_KEY, recordId)
@@ -714,8 +717,9 @@ public abstract class AbstractListenerService implements ListenerService {
       JsonObject rawMessage,
       Scheduler scheduler) {
     String action = this.messagePartMap.get(MessagePart.AFFECTED_ENTITY);
-    if (action == null || action.trim().length() == 0)
+    if (action == null || action.trim().length() == 0) {
       return;
+    }
     scheduler.createTaskBuilder(action)
         .parameter(ENTITY_ID_PARAMETER_KEY, entityId)
         .resource(ENTITY_RESOURCE_KEY, entityId)
@@ -757,8 +761,9 @@ public abstract class AbstractListenerService implements ListenerService {
       JsonObject rawMessage,
       Scheduler scheduler) {
     String action = this.messagePartMap.get(MessagePart.INTERESTING_ENTITY);
-    if (action == null || action.trim().length() == 0)
+    if (action == null || action.trim().length() == 0) {
       return;
+    }
 
     // begin building the task with the basic parameters
     TaskBuilder.ListParamBuilder builder = scheduler.createTaskBuilder(action)
@@ -812,8 +817,9 @@ public abstract class AbstractListenerService implements ListenerService {
       JsonObject rawMessage,
       Scheduler scheduler) {
     String action = this.getActionForMessagePart(MessagePart.NOTICE);
-    if (action == null || action.trim().length() == 0)
+    if (action == null || action.trim().length() == 0) {
       return;
+    }
     scheduler.createTaskBuilder(action)
         .parameter(CODE_PARAMETER_KEY, notice.getCode())
         .parameter(DESCRIPTION_PARAMETER_KEY, notice.getDescription())
@@ -822,16 +828,17 @@ public abstract class AbstractListenerService implements ListenerService {
 
   /**
    * Implemented as a synchronized method to {@linkplain #setState(State)
-   * set the state} to {@link MessageConsumer.State#DESTROYING}, call
+   * set the state} to {@link com.senzing.listener.communication.MessageConsumer.State#DESTROYING}, call
    * {@link #doDestroy()} and
    * then perform {@link #notifyAll()} and set the state to {@link
-   * MessageConsumer.State#DESTROYED}.
+   * com.senzing.listener.communication.MessageConsumer.State#DESTROYED}.
    */
   public void destroy() {
     synchronized (this) {
       State state = this.getState();
-      if (state == DESTROYED)
+      if (state == DESTROYED) {
         return;
+      }
 
       if (state == DESTROYING) {
         while (this.getState() != DESTROYED) {

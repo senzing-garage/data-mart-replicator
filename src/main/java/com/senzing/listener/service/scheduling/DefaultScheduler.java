@@ -113,9 +113,13 @@ public class DefaultScheduler extends Scheduler {
    * {@inheritDoc}
    */
   public int commit() throws ServiceExecutionException {
-    if (this.service == null) return 0;
+    if (this.service == null) {
+      return 0;
+    }
     TaskGroup group = this.getTaskGroup();
-    if (group != null) group.close();
+    if (group != null) {
+      group.close();
+    }
     this.service.scheduleTasks(this.pendingTasks);
     int count = this.pendingTasks.size();
     this.pendingTasks.clear();

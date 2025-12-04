@@ -174,7 +174,7 @@ public class TaskGroup implements Quantified {
   }
 
   /**
-   * The default number of milliseconds to wait between checks
+   * The default number of milliseconds to wait between checks.
    */
   public static final long DEFAULT_MAXIMUM_INTERVAL = 1000L;
 
@@ -185,6 +185,8 @@ public class TaskGroup implements Quantified {
 
   /**
    * Gets the next group ID in a thread-safe manner.
+   * 
+   * @return The next unique group ID.
    */
   private static synchronized long getNextGroupId() {
     return nextGroupId++;
@@ -427,8 +429,9 @@ public class TaskGroup implements Quantified {
    * effect if this {@link TaskGroup} instance has already been closed.
    */
   synchronized void close() {
-    if (this.getState() != OPEN)
+    if (this.getState() != OPEN) {
       return;
+    }
     this.setState(CLOSED);
     this.closedTimeNanos = System.nanoTime();
     if (this.getTaskCount() == 0) {
@@ -640,10 +643,10 @@ public class TaskGroup implements Quantified {
       // first check the last recorded state
       if (!taskState.getPredecessors().contains(lastState)) {
         throw new IllegalStateException(
-            "Task is being marked as successful (" + taskState
-                + ") when previously recorded state (" + lastState
-                + ") was not a valid predecessor.  Valid predecessors are: " +
-                taskState.getPredecessors());
+            "Task is being marked as successful (" 
+            + taskState + ") when previously recorded state (" 
+            + lastState + ") was not a valid predecessor.  "
+            + "Valid predecessors are: " + taskState.getPredecessors());
       }
 
       // keep track of the last completed task
@@ -656,8 +659,9 @@ public class TaskGroup implements Quantified {
       this.successCount++;
 
       // increment the handling duration
-      if (handlingTime > 0)
+      if (handlingTime > 0) {
         this.handlingDuration += handlingTime;
+      }
       if (handlingTime > this.longestHandlingTime) {
         this.longestHandlingTime = handlingTime;
       }
@@ -715,8 +719,8 @@ public class TaskGroup implements Quantified {
         throw new IllegalStateException(
             "Task is being marked as failed (" + taskState
                 + ") when previously recorded state (" + lastState
-                + ") was not a valid predecessor.  Valid predecessors are: " +
-                taskState.getPredecessors());
+                + ") was not a valid predecessor.  Valid predecessors are: "
+                + taskState.getPredecessors());
       }
 
       // keep track of the last completed task
@@ -732,8 +736,9 @@ public class TaskGroup implements Quantified {
       this.failureCount++;
 
       // increment the handling duration
-      if (handlingTime > 0)
+      if (handlingTime > 0) {
         this.handlingDuration += handlingTime;
+      }
       if (handlingTime > this.longestHandlingTime) {
         this.longestHandlingTime = handlingTime;
       }
@@ -789,8 +794,8 @@ public class TaskGroup implements Quantified {
         throw new IllegalStateException(
             "Task is being marked as aborted (" + taskState
                 + ") when previously recorded state (" + lastState
-                + ") was not a valid predecessor.  Valid predecessors are: " +
-                taskState.getPredecessors());
+                + ") was not a valid predecessor.  Valid predecessors are: " 
+                + taskState.getPredecessors());
       }
 
       // keep track of the last completed task
@@ -942,16 +947,19 @@ public class TaskGroup implements Quantified {
     boolean fastFail = this.isFastFail();
 
     // if still in the OPEN state then it cannot be completed
-    if (state == OPEN)
+    if (state == OPEN) {
       return false;
+    }
 
     // if not in the OPEN state and nothing is pending, then we are completed
-    if (pendingCount == 0)
+    if (pendingCount == 0) {
       return true;
+    }
 
     // if at least one failure and we are failing fast, then we are completed
-    if (failureCount > 0 && fastFail)
+    if (failureCount > 0 && fastFail) {
       return true;
+    }
 
     // otherwise we are not completed
     return false;
@@ -1134,8 +1142,9 @@ public class TaskGroup implements Quantified {
    *         first associated task has not yet been scheduled.
    */
   public synchronized long getSchedulingTime() {
-    if (this.firstScheduledTimeNanos < 0L)
+    if (this.firstScheduledTimeNanos < 0L) {
       return -1L;
+    }
     if (this.lastScheduledTimeNanos < 0L) {
       return (System.nanoTime() - this.firstScheduledTimeNanos) / ONE_MILLION;
     } else {
@@ -1159,8 +1168,9 @@ public class TaskGroup implements Quantified {
    *         scheduled.
    */
   public synchronized long getPendingTime() {
-    if (this.firstScheduledTimeNanos < 0L)
+    if (this.firstScheduledTimeNanos < 0L) {
       return -1L;
+    }
     if (this.firstHandledTimeNanos < 0L) {
       return (System.nanoTime() - this.firstScheduledTimeNanos) / ONE_MILLION;
     } else {
@@ -1294,7 +1304,7 @@ public class TaskGroup implements Quantified {
      *
      * @param state The {@link Task.State} to set for this instance.
      */
-    public TaskInfo(Task.State state) {
+    TaskInfo(Task.State state) {
       this.taskState = state;
       this.stateChangedTimeNanos = System.nanoTime();
     }

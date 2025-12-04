@@ -1,6 +1,5 @@
 package com.senzing.datamart.reports.model;
 
-import java.lang.Comparable;
 import java.util.Comparator;
 import java.util.Objects;
 
@@ -121,10 +120,12 @@ public enum SzBoundType {
         Objects.requireNonNull(value, "The specified value cannot be null");
         Objects.requireNonNull(boundValue, "The specified bound value cannot be null");
         int compare = value.compareTo(boundValue);
-        if (compare == 0)
+        if (compare == 0) {
             return this.isInclusive();
-        if (compare > 0)
+        }
+        if (compare > 0) {
             return this.isLower();
+        }
         return this.isUpper();
     }
 
@@ -152,10 +153,12 @@ public enum SzBoundType {
         Objects.requireNonNull(boundValue, "The specified bound value cannot be null");
         Objects.requireNonNull(comparator, "The specified comparator cannot be null");
         int compare = comparator.compare(value, boundValue);
-        if (compare == 0)
+        if (compare == 0) {
             return this.isInclusive();
-        if (compare > 0)
+        }
+        if (compare > 0) {
             return this.isLower();
+        }
         return this.isUpper();
     }
 }

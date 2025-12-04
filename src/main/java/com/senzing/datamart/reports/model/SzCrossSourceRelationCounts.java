@@ -169,8 +169,9 @@ public class SzCrossSourceRelationCounts implements Serializable {
      * @param relationCounts The {@link SzRelationCounts} instance to add.
      */
     public void addCounts(SzRelationCounts relationCounts) {
-        if (relationCounts == null)
+        if (relationCounts == null) {
             return;
+        }
         SzCountsKey key = new SzCountsKey(relationCounts.getMatchKey(), relationCounts.getPrinciple());
         this.counts.put(key, relationCounts);
     }
@@ -211,11 +212,25 @@ public class SzCrossSourceRelationCounts implements Serializable {
                 + " ], counts=[ " + this.getCounts() + " ]";
     }
 
+    /**
+     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
+     * implementation.
+     * 
+     * @return The hash code for this instance.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(dataSource, versusDataSource, relationType, counts);
     }
 
+    /**
+     * Overridden to return <code>true</code> if and only if the specified parameter
+     * is an instance of the same class with equivalent properties.
+     * 
+     * @param obj The object to compare with.
+     * @return <code>true</code> if the specified parameter is an instance of the 
+     *         same class with equivalent properties, otherwise <code>false</code>.
+     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {

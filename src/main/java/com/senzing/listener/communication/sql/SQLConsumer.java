@@ -19,7 +19,6 @@ import com.senzing.sql.Connector;
 import com.senzing.sql.SQLiteConnector;
 import com.senzing.sql.PostgreSqlConnector;
 import com.senzing.sql.ConnectionPool;
-import com.senzing.sql.ConnectionProvider;
 import com.senzing.sql.PoolConnectionProvider;
 
 import com.senzing.text.TextUtilities;
@@ -45,7 +44,7 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
    * Provides an interface for interacting with the message queue used
    * by the associated {@link SQLConsumer}.
    */
-  public static interface MessageQueue {
+  public interface MessageQueue {
     /**
      * Checks if the message queue is empty.
      * 
@@ -178,7 +177,7 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
    * {@link MessageQueue} the {@link #QUEUE_REGISTRY_NAME_KEY} initialization
    * parameter must be provided for the {@link SQLConsumer}.
    */
-  public static Registry<MessageQueue> MESSAGE_QUEUE_REGISTRY = new Registry<>(false);
+  public static final Registry<MessageQueue> MESSAGE_QUEUE_REGISTRY = new Registry<>(false);
 
   /**
    * The initialization parameter key used to obtain the name for binding
@@ -894,6 +893,9 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   protected void doDestroy() {
     // join to the consumption thread

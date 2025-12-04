@@ -53,7 +53,7 @@ public interface ListenerService extends MessageProcessor, Quantified {
   State getState();
 
   /**
-   * For initializing any needed resources before processing
+   * For initializing any needed resources before processing.
    * 
    * @param config Configuration needed for the processing
    * 

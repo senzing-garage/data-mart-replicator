@@ -64,12 +64,15 @@ class SzCountsKey implements Comparable<SzCountsKey>, Serializable {
      */
     @Override
     public boolean equals(Object obj) {
-        if (obj == null)
+        if (obj == null) {
             return false;
-        if (this == obj)
+        }
+        if (this == obj) {
             return true;
-        if (this.getClass() != obj.getClass())
+        }
+        if (this.getClass() != obj.getClass()) {
             return false;
+        }
 
         SzCountsKey smk = (SzCountsKey) obj;
         return Objects.equals(this.getMatchKey(), smk.getMatchKey())
@@ -101,25 +104,31 @@ class SzCountsKey implements Comparable<SzCountsKey>, Serializable {
      */
     @Override
     public int compareTo(SzCountsKey key) {
-        if (key == null)
+        if (key == null) {
             return 1;
+        }
         String mk1 = this.getMatchKey();
         String mk2 = key.getMatchKey();
         if (!Objects.equals(mk1, mk2)) {
-            if (mk1 == null)
+            if (mk1 == null) {
                 return -1;
-            if (mk2 == null)
+            }
+            if (mk2 == null) {
                 return 1;
+            }
             return mk1.compareTo(mk2);
         }
         String p1 = this.getPrinciple();
         String p2 = key.getPrinciple();
-        if (Objects.equals(p1, p2))
+        if (Objects.equals(p1, p2)) {
             return 0;
-        if (p1 == null)
+        }
+        if (p1 == null) {
             return -1;
-        if (p2 == null)
+        }
+        if (p2 == null) {
             return 1;
+        }
         return p1.compareTo(p2);
     }
 

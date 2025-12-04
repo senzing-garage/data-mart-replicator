@@ -260,8 +260,9 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
             // get the entity hash
             String entityHash = rs.getString(1);
-            if (rs.wasNull()) 
+            if (rs.wasNull()) {
                 entityHash = null;
+            }
 
             // release JDBC resources
             rs = close(rs);
@@ -357,8 +358,9 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
             ps = close(ps);
 
             // check if nothing was updated or inserted (only happens if no patches)
-            if (rowCount == 0)
+            if (rowCount == 0) {
                 return "";
+            }
 
             if (rowCount > 1) {
                 throw new IllegalStateException(
@@ -381,8 +383,9 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
             // get the previous entity hash
             String prevEntityHash = rs.getString(1);
-            if (rs.wasNull())
+            if (rs.wasNull()) {
                 prevEntityHash = null;
+            }
 
             // release JDBC resources
             rs = close(rs);
@@ -413,8 +416,9 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
      */
     protected int ensureAddedRecords(Connection conn, EntityDelta entityDelta, Scheduler followUpScheduler) throws SQLException {
         Map<SzRecordKey, SzRecord> addedRecords = entityDelta.getAddedRecords();
-        if (addedRecords.size() == 0)
+        if (addedRecords.size() == 0) {
             return 0;
+        }
 
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -442,15 +446,17 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                 ps2.setString(2, record.getRecordId());
                 ps2.setLong(3, entityDelta.getEntityId());
 
-                if (matchKey == null)
+                if (matchKey == null) {
                     ps2.setNull(4, VARCHAR);
-                else
+                } else {
                     ps2.setString(4, matchKey);
+                }
 
-                if (principle == null)
+                if (principle == null) {
                     ps2.setNull(5, VARCHAR);
-                else
+                } else {
                     ps2.setString(5, principle);
+                }
 
                 ps2.setString(6, operationId);
                 ps2.setString(7, operationId);
@@ -509,8 +515,9 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
      */
     protected int orphanRemovedRecords(Connection conn, EntityDelta entityDelta, Scheduler followUpScheduler) throws SQLException {
         Map<SzRecordKey, SzRecord> removedRecords = entityDelta.getRemovedRecords();
-        if (removedRecords.size() == 0)
+        if (removedRecords.size() == 0) {
             return 0;
+        }
 
         PreparedStatement ps = null;
         String operationId = this.generateOperationId();
@@ -672,8 +679,9 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
         Map<Long, SzRelatedEntity> relations = new LinkedHashMap<>();
         relations.putAll(entityDelta.getAddedRelations());
         relations.putAll(entityDelta.getChangedRelations());
-        if (relations.size() == 0)
+        if (relations.size() == 0) {
             return 0;
+        }
 
         List<SzRelationship> relationships = new ArrayList<>(relations.size());
 
@@ -861,11 +869,12 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                                          EntityDelta    entityDelta,
                                          Scheduler      followUpScheduler,
                                          Set<Long>      followUpSet)
-        throws SQLException 
+        throws SQLException
     {
         Map<Long, SzRelatedEntity> relations = entityDelta.getRemovedRelations();
-        if (relations.size() == 0)
+        if (relations.size() == 0) {
             return 0;
+        }
 
         List<SzRelationship> relationships = new ArrayList<>(relations.size());
 
@@ -962,7 +971,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
             ps = close(ps);
 
             // iterate over the row counts
-            int index = 0, deletedCount = 0;
+            int index = 0;
+            int deletedCount = 0;
             for (SzRelationship relationship : pendingDelete) {
                 int rowCount = rowCounts.get(index++);
                 if (rowCount == 0) {
@@ -1091,8 +1101,9 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
     {
         // get the updates
         List<SzReportUpdate> updates = delta.getReportUpdates();
-        if (updates.size() == 0)
+        if (updates.size() == 0) {
             return 0;
+        }
 
         PreparedStatement ps = null;
 

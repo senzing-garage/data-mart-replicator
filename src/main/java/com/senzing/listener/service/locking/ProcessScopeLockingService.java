@@ -145,8 +145,9 @@ public class ProcessScopeLockingService extends AbstractLockingService {
             } while (!available && (wait < 0L || duration < wait));
 
             // check if not available
-            if (!available)
+            if (!available) {
                 return null;
+            }
 
             // if available, then create the locks
             LockToken lockToken = new LockToken(this.getScope());

@@ -295,7 +295,8 @@ public abstract class AbstractTaskHandler implements TaskHandler {
         }
 
         // now check the results for number of rows updated
-        int index = 0, errorCount = 0;
+        int index = 0;
+        int errorCount = 0;
         StringBuilder sb = new StringBuilder();
         String prefix = "";
         for (T value : data) {
@@ -303,15 +304,17 @@ public abstract class AbstractTaskHandler implements TaskHandler {
             Integer expectedRowCount = expectedCounts.get(index);
 
             // check if no expectation
-            if (expectedRowCount == null)
+            if (expectedRowCount == null) {
                 continue;
+            }
 
             // check if the expectation is an exact count
             boolean exact = (expectedRowCount >= 0);
 
             // if not exact then convert to an upper bound
-            if (!exact)
+            if (!exact) {
                 expectedRowCount = -1 * expectedRowCount;
+            }
 
             // get the actual row count
             int actualRowCount = rowCounts.get(index);

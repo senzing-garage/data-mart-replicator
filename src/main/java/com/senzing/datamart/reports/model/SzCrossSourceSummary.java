@@ -181,8 +181,9 @@ public class SzCrossSourceSummary implements Serializable {
      * @param matchCounts The {@link SzMatchCounts} instance to add.
      */
     public void addMatches(SzMatchCounts matchCounts) {
-        if (matchCounts == null)
+        if (matchCounts == null) {
             return;
+        }
         SzCountsKey key = new SzCountsKey(matchCounts.getMatchKey(), matchCounts.getPrinciple());
         this.matches.put(key, matchCounts);
     }
@@ -257,8 +258,9 @@ public class SzCrossSourceSummary implements Serializable {
      * @param relationCounts The {@link SzRelationCounts} instance to add.
      */
     public void addAmbiguousMatches(SzRelationCounts relationCounts) {
-        if (relationCounts == null)
+        if (relationCounts == null) {
             return;
+        }
         SzCountsKey key = new SzCountsKey(relationCounts.getMatchKey(), relationCounts.getPrinciple());
         this.ambiguousMatches.put(key, relationCounts);
     }
@@ -333,8 +335,9 @@ public class SzCrossSourceSummary implements Serializable {
      * @param relationCounts The {@link SzRelationCounts} instance to add.
      */
     public void addPossibleMatches(SzRelationCounts relationCounts) {
-        if (relationCounts == null)
+        if (relationCounts == null) {
             return;
+        }
         SzCountsKey key = new SzCountsKey(relationCounts.getMatchKey(), relationCounts.getPrinciple());
         this.possibleMatches.put(key, relationCounts);
     }
@@ -409,8 +412,9 @@ public class SzCrossSourceSummary implements Serializable {
      * @param relationCounts The {@link SzRelationCounts} instance to add.
      */
     public void addPossibleRelations(SzRelationCounts relationCounts) {
-        if (relationCounts == null)
+        if (relationCounts == null) {
             return;
+        }
         SzCountsKey key = new SzCountsKey(relationCounts.getMatchKey(), relationCounts.getPrinciple());
         this.possibleRelations.put(key, relationCounts);
     }
@@ -485,8 +489,9 @@ public class SzCrossSourceSummary implements Serializable {
      * @param relationCounts The {@link SzRelationCounts} instance to add.
      */
     public void addDisclosedRelations(SzRelationCounts relationCounts) {
-        if (relationCounts == null)
+        if (relationCounts == null) {
             return;
+        }
         SzCountsKey key = new SzCountsKey(relationCounts.getMatchKey(), relationCounts.getPrinciple());
         this.disclosedRelations.put(key, relationCounts);
     }
@@ -531,12 +536,26 @@ public class SzCrossSourceSummary implements Serializable {
                 + " ], disclosedRelations=[ " + this.getDisclosedRelations() + " ]";
     }
 
+    /**
+     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
+     * implementation.
+     * 
+     * @return The hash code for this instance.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(dataSource, versusDataSource, matches, ambiguousMatches, possibleMatches, possibleRelations,
                 disclosedRelations);
     }
 
+    /**
+     * Overridden to return <code>true</code> if and only if the specified parameter
+     * is an instance of the same class with equivalent properties.
+     * 
+     * @param obj The object to compare with.
+     * @return <code>true</code> if the specified parameter is an instance of the 
+     *         same class with equivalent properties, otherwise <code>false</code>.
+     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {

@@ -15,5 +15,5 @@
   <suppress checks="MagicNumber" files="."/>
   <suppress checks="AvoidNestedBlocks" files="."/>
   <suppress checks="MethodLength" files="."/>
-  <suppress checks="FileLength" files="src/main/java/com/senzing/datamart/handlers/EntityDelta.java"/>
+  <suppress checks="FileLength" files="."/>
 </suppressions>

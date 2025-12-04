@@ -294,8 +294,9 @@ public final class ReportUtilities {
                 }
 
                 // add the record to the entity
-                if (record != null)
+                if (record != null) {
                     entity.addRecord(record);
+                }
             }
 
             // release resources

@@ -149,7 +149,9 @@ public class SzSampleRecord implements Serializable {
    */
   public void setFlags(Collection<String> flags) {
     this.flags.clear();
-    if (flags != null) this.flags.addAll(flags);
+    if (flags != null) {
+      this.flags.addAll(flags);
+    }
   }
 
   /**
@@ -164,16 +166,34 @@ public class SzSampleRecord implements Serializable {
     this.flags.add(flag);
   }
 
+  /**
+   * Overridden to return <code>true</code> if and only if the specified parameter
+   * is an instance of the same class with equivalent properties.
+   * 
+   * @param obj The object to compare with.
+   * @return <code>true</code> if the specified parameter is an instance of the 
+   *         same class with equivalent properties, otherwise <code>false</code>.
+   */
   @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || this.getClass() != o.getClass()) return false;
-    SzSampleRecord that = (SzSampleRecord) o;
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null || this.getClass() != obj.getClass()) {
+      return false;
+    }
+    SzSampleRecord that = (SzSampleRecord) obj;
     return Objects.equals(this.getDataSource(), that.getDataSource())
         && Objects.equals(this.getRecordId(), that.getRecordId())
         && Objects.equals(this.getFlags(), that.getFlags());
   }
 
+    /**
+     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
+     * implementation.
+     * 
+     * @return The hash code for this instance.
+     */
   @Override
   public int hashCode() {
     return Objects.hash(this.getDataSource(),
@@ -196,7 +216,9 @@ public class SzSampleRecord implements Serializable {
    * @see #toJsonObject()
    */
   public JsonObjectBuilder toJsonObjectBuilder(JsonObjectBuilder builder) {
-    if (builder == null) builder = Json.createObjectBuilder();
+    if (builder == null) {
+      builder = Json.createObjectBuilder();
+    }
     JsonUtilities.add(builder, DATA_SOURCE_KEY, this.getDataSource());
     JsonUtilities.add(builder, RECORD_ID_KEY, this.getRecordId());
 
@@ -276,7 +298,9 @@ public class SzSampleRecord implements Serializable {
   public static SzSampleRecord fromJson(String jsonText)
     throws IllegalArgumentException
   {
-    if (jsonText == null) return null;
+    if (jsonText == null) {
+      return null;
+    }
     return fromJson(JsonUtilities.parseJsonObject(jsonText));
   }
 
@@ -321,7 +345,9 @@ public class SzSampleRecord implements Serializable {
   public static SzSampleRecord fromRawJson(String jsonText)
       throws IllegalArgumentException
   {
-    if (jsonText == null) return null;
+    if (jsonText == null) {
+      return null;
+    }
     return fromRawJson(JsonUtilities.parseJsonObject(jsonText));
   }
 
@@ -376,7 +402,9 @@ public class SzSampleRecord implements Serializable {
                                          String     flagsKey)
       throws IllegalArgumentException
   {
-    if (jsonObject == null) return null;
+    if (jsonObject == null) {
+      return null;
+    }
     if (!jsonObject.containsKey(dataSourceKey)
         || !jsonObject.containsKey(flagsKey)
         || !jsonObject.containsKey(recordIdKey))

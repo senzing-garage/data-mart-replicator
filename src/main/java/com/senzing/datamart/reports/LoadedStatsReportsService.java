@@ -7,7 +7,6 @@ import com.linecorp.armeria.common.annotation.Nullable;
 import com.linecorp.armeria.server.annotation.Default;
 import com.senzing.datamart.reports.model.SzBoundType;
 import com.senzing.datamart.reports.model.SzEntitiesPage;
-import com.senzing.datamart.reports.model.SzEntitySizeCount;
 import com.senzing.datamart.reports.model.SzLoadedStats;
 import com.senzing.datamart.reports.model.SzSourceLoadedStats;
 import com.senzing.util.Timers;
@@ -39,7 +38,7 @@ public interface LoadedStatsReportsService extends ReportsService {
         = LOADED_STATS_PREFIX + "/data-sources/{dataSourceCode}";
 
     /**
-     * The endpoint for the entities loaded for a data source.''
+     * The endpoint for the entities loaded for a data source.
      */
     String SOURCE_LOADED_ENTITIES_ENDPOINT 
         = SOURCE_LOADED_STATS_ENDPOINT + "/entities";

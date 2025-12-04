@@ -198,7 +198,9 @@ public abstract class AbstractSQLSchedulingService
       throw new ServiceExecutionException("JDBC failure occurred", e);
 
     } finally {
-      if (!success) rollback(conn);
+      if (!success) {
+        rollback(conn);
+      }
       conn = close(conn);
     }
   }
@@ -238,7 +240,7 @@ public abstract class AbstractSQLSchedulingService
 
       if (rowCount == 0) {
         return false;
-      } if (rowCount == 1) {
+      } else if (rowCount == 1) {
         return true;
       } else {
         logError("MULTIPLE ROWS UPDATED FOR FOLLOW-UP TASK: ", task);
@@ -394,7 +396,9 @@ public abstract class AbstractSQLSchedulingService
           "Failed to dequeue follow-up task", e);
 
     } finally {
-      if (!success) rollback(conn);
+      if (!success) {
+        rollback(conn);
+      }
       conn = close(conn);
     }
   }
@@ -488,9 +492,9 @@ public abstract class AbstractSQLSchedulingService
       Timestamp expireTime  = new Timestamp(leaseExpire);
 
       ps.setString(1, leaseId);
-      dbType.setTimestamp(ps,2, expireTime);
-      dbType.setTimestamp(ps,3, delayTime);
-      dbType.setTimestamp(ps,4, timeoutTime);
+      dbType.setTimestamp(ps, 2, expireTime);
+      dbType.setTimestamp(ps, 3, delayTime);
+      dbType.setTimestamp(ps, 4, timeoutTime);
       ps.setInt(5, limit);
 
       // execute the update and return the number of affected rows
@@ -622,7 +626,9 @@ public abstract class AbstractSQLSchedulingService
           "Failed to enqueue follow-up task", e);
 
     } finally {
-      if (!success) rollback(conn);
+      if (!success) {
+        rollback(conn);
+      }
       conn = close(conn);
     }
   }
@@ -710,7 +716,9 @@ public abstract class AbstractSQLSchedulingService
           "Failed to delete completed follow-up task", e);
 
     } finally {
-      if (!success) rollback(conn);
+      if (!success) {
+        rollback(conn);
+      }
       conn = close(conn);
     }
   }

@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -32,14 +31,14 @@ public class SzLoadedStats implements Serializable {
     private long totalUnmatchedRecordCount = 0L;
 
     /**
-     * The {@link Map} of {@link String} data source code keys to
+     * The {@link SortedMap} of {@link String} data source code keys to
      * {@link SzSourceLoadedStats} values describing the count statistics for that
      * data source.
      */
     private SortedMap<String, SzSourceLoadedStats> dataSourceCounts = null;
 
     /**
-     * Default constructor
+     * Default constructor.
      */
     public SzLoadedStats() {
         this.totalRecordCount = 0L;
@@ -165,8 +164,9 @@ public class SzLoadedStats implements Serializable {
      *              a specific data source.
      */
     public void addDataSourceCount(SzSourceLoadedStats stats) {
-        if (stats == null)
+        if (stats == null) {
             return;
+        }
         this.dataSourceCounts.put(stats.getDataSource(), stats);
     }
 
@@ -184,11 +184,25 @@ public class SzLoadedStats implements Serializable {
                 + " ], dataSourceCounts=[ " + this.getDataSourceCounts() + " ]";
     }
 
+    /**
+     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
+     * implementation.
+     * 
+     * @return The hash code for this instance.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(totalRecordCount, totalEntityCount, totalUnmatchedRecordCount, dataSourceCounts);
     }
 
+    /**
+     * Overridden to return <code>true</code> if and only if the specified parameter
+     * is an instance of the same class with equivalent properties.
+     * 
+     * @param obj The object to compare with.
+     * @return <code>true</code> if the specified parameter is an instance of the 
+     *         same class with equivalent properties, otherwise <code>false</code>.
+     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {

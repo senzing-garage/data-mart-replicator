@@ -18,7 +18,6 @@ import com.senzing.datamart.reports.model.SzCrossSourceRelationCounts;
 import com.senzing.datamart.reports.model.SzCrossSourceSummary;
 import com.senzing.datamart.reports.model.SzEntitiesPage;
 import com.senzing.datamart.reports.model.SzMatchCounts;
-import com.senzing.datamart.reports.model.SzReportRelation;
 import com.senzing.datamart.reports.model.SzRelationCounts;
 import com.senzing.datamart.reports.model.SzRelationsPage;
 import com.senzing.datamart.reports.model.SzSourceSummary;
@@ -38,12 +37,13 @@ public final class SummaryStatsReports {
     /**
      * Thread-local flag used to optimize handling of data sources set.
      */
-    private static ThreadLocal<Boolean> AUGMENT_DATA_SOURCES = new ThreadLocal<>() {
-        @Override
-        protected Boolean initialValue() {
-            return Boolean.TRUE;
-        }
-    };
+    private static final ThreadLocal<Boolean> AUGMENT_DATA_SOURCES 
+        = new ThreadLocal<>() {
+            @Override
+            protected Boolean initialValue() {
+                return Boolean.TRUE;
+            }
+        };
 
     /**
      * Private default constructor.
@@ -410,13 +410,15 @@ public final class SummaryStatsReports {
         // normalize the match key and principle
         if (requestedMatchKey != null) {
             requestedMatchKey = requestedMatchKey.trim();
-            if (requestedMatchKey.length() == 0)
+            if (requestedMatchKey.length() == 0) {
                 requestedMatchKey = null;
+            }
         }
         if (requestedPrinciple != null) {
             requestedPrinciple = requestedPrinciple.trim();
-            if (requestedPrinciple.length() == 0)
+            if (requestedPrinciple.length() == 0) {
                 requestedPrinciple = null;
+            }
         }
 
         // keep counts
@@ -1632,10 +1634,10 @@ public final class SummaryStatsReports {
     }
 
     /**
-     * Retrieves a page of {@link SzReportRelation} instances describing the ambiguous
-     * match relations between entities having at least one record from the first
-     * data source ambiguously matched against another entity that has at least one
-     * record from the "versus" data source.
+     * Retrieves a page of {@link com.senzing.datamart.reports.model.SzReportRelation}
+     * instances describing the ambiguous match relations between entities having at
+     * least one record from the first data source ambiguously matched against another
+     * entity that has at least one record from the "versus" data source.
      *
      * @param conn          The non-null JDBC {@link Connection} to use.
      * @param dataSource    The non-null data source code identifying the data
@@ -1701,10 +1703,10 @@ public final class SummaryStatsReports {
     }
 
     /**
-     * Retrieves a page of {@link SzReportRelation} instances describing the possible
-     * match relations between entities having at least one record from the first
-     * data source possibly matched against another entity that has at least one
-     * record from the "versus" data source.
+     * Retrieves a page of {@link com.senzing.datamart.reports.model.SzReportRelation}
+     * instances describing the possible match relations between entities having at
+     * least one record from the first data source possibly matched against another
+     * entity that has at least one record from the "versus" data source.
      *
      * @param conn          The non-null JDBC {@link Connection} to use.
      * @param dataSource    The non-null data source code identifying the data
@@ -1770,10 +1772,10 @@ public final class SummaryStatsReports {
     }
 
     /**
-     * Retrieves a page of {@link SzReportRelation} instances describing the possible
-     * relations between entities having at least one record from the first data
-     * source possibly related against another entity that has at least one record
-     * from the "versus" data source.
+     * Retrieves a page of {@link com.senzing.datamart.reports.model.SzReportRelation}
+     * instances describing the possible relations between entities having at least
+     * one record from the first data source possibly related against another entity
+     * that has at least one record from the "versus" data source.
      *
      * @param conn          The non-null JDBC {@link Connection} to use.
      * @param dataSource    The non-null data source code identifying the data
@@ -1839,10 +1841,10 @@ public final class SummaryStatsReports {
     }
 
     /**
-     * Retrieves a page of {@link SzReportRelation} instances describing the disclosed
-     * relations between entities having at least one record from the first data
-     * source having a disclosed relation to another entity that has at least one
-     * record from the "versus" data source.
+     * Retrieves a page of {@link com.senzing.datamart.reports.model.SzReportRelation}
+     * instances describing the disclosed relations between entities having at least
+     * one record from the first data source having a disclosed relation to another
+     * entity that has at least one record from the "versus" data source.
      *
      * @param conn          The non-null JDBC {@link Connection} to use.
      * @param dataSource    The non-null data source code identifying the data

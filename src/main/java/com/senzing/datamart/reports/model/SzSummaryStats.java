@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -14,14 +13,14 @@ import java.util.TreeMap;
  */
 public class SzSummaryStats implements Serializable {
   /**
-   * The {@link Map} of {@link String} "versus" data source code keys to
+   * The {@link SortedMap} of {@link String} "versus" data source code keys to
    * {@link SzSourceSummary} values describing the count statistics for that
    * data source.
    */
   private SortedMap<String, SzSourceSummary> sourceSummaries = null;
 
   /**
-   * Default constructor
+   * Default constructor.
    */
   public SzSummaryStats() {
     this.sourceSummaries = new TreeMap<>();
@@ -66,7 +65,9 @@ public class SzSummaryStats implements Serializable {
    *                for a specific data source.
    */
   public void addSourceSummary(SzSourceSummary summary) {
-    if (summary == null) return;
+    if (summary == null) {
+      return;
+    }
     this.sourceSummaries.put(summary.getDataSource(), summary);
   }
 

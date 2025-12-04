@@ -7,7 +7,6 @@ import com.senzing.listener.service.locking.LockingService;
 import com.senzing.listener.service.locking.ProcessScopeLockingService;
 import com.senzing.util.AsyncWorkerPool;
 import com.senzing.util.JsonUtilities;
-import com.senzing.util.LoggingUtilities;
 import com.senzing.util.Timers;
 
 import javax.json.JsonArray;
@@ -809,8 +808,9 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
      */
     public Long getAverageRoundTripMillis() {
         synchronized (this.getStatisticsMonitor()) {
-            if (this.processedBatchCount == 0L)
+            if (this.processedBatchCount == 0L) {
                 return null;
+            }
             return this.totalRoundTripMillis / this.processedBatchCount;
         }
     }
@@ -831,8 +831,9 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
      */
     public Long getLongestRoundTripMillis() {
         synchronized (this.getStatisticsMonitor()) {
-            if (this.processedBatchCount == 0L)
+            if (this.processedBatchCount == 0L) {
                 return null;
+            }
             return this.longestRoundTripMillis;
         }
     }
@@ -900,8 +901,9 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
      */
     public Long getAverageProcessMillis() {
         synchronized (this.getStatisticsMonitor()) {
-            if (this.processedMessageCount == 0L)
+            if (this.processedMessageCount == 0L) {
                 return null;
+            }
             return this.totalProcessMillis / this.processedMessageCount;
         }
     }
@@ -919,8 +921,9 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
         synchronized (this.getStatisticsMonitor()) {
             String timerKey = activelyProcessing.toString();
             Long activeTime = this.timers.getElapsedTime(timerKey);
-            if (activeTime == 0L)
+            if (activeTime == 0L) {
                 return null;
+            }
             return (((double) this.totalProcessMillis) / ((double) activeTime));
         }
     }
@@ -991,11 +994,13 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
 
             logDebug("RECEIVED MESSAGE: ", messageText);
 
-            if (messageText == null)
+            if (messageText == null) {
                 return;
+            }
             messageText = messageText.trim();
-            if (messageText.length() == 0)
+            if (messageText.length() == 0) {
                 return;
+            }
 
             List<InfoMessage<M>> infoMessages = null;
             try {
@@ -1325,8 +1330,9 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
      *               result was returned.
      */
     protected void handleAsyncResult(AsyncResult<ProcessResult<M>> result) {
-        if (result == null)
+        if (result == null) {
             return;
+        }
         ProcessResult<M> processResult = null;
         try {
             processResult = result.getValue();
@@ -1529,8 +1535,9 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
          */
         private synchronized Integer decrementPendingCount(boolean failed) {
             boolean failed0 = this.failed;
-            if (failed)
+            if (failed) {
                 this.failed = true;
+            }
             this.pendingCount--;
             if (this.pendingCount == 0) {
                 this.completedTimeNanos = System.nanoTime();
@@ -1791,8 +1798,9 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
             String result = JsonUtilities.getString(config, key, defaultValue);
 
             // trim the whitespace (regardless of normalization)
-            if (result != null)
+            if (result != null) {
                 result = result.trim();
+            }
 
             // optionally normalize empty string to null
             if (normalize && result != null && result.length() == 0) {

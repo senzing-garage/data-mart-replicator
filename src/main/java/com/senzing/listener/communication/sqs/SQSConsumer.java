@@ -322,11 +322,23 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
     this.consumptionThread.start();
   }
 
+  /**
+   * Extracts the message body from the specified {@link Message}.
+   * 
+   * @param message The {@link Message} from which to extract the
+   *                message body.
+   */
   @Override
   protected String extractMessageBody(Message message) {
     return message.body();
   }
 
+  /**
+   * Disposes the specified {@link Message}.
+   * 
+   * @param message The {@link Message} from which to extract the
+   *                message body.
+   */
   @Override
   protected void disposeMessage(Message message) {
     String receiptHandle = message.receiptHandle();
@@ -339,6 +351,9 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
     sqsClient.deleteMessage(deleteMessageRequest);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   protected void doDestroy() {
     // join to the consumption thread
