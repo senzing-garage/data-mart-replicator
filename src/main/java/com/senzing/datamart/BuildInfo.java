@@ -8,7 +8,7 @@ import static com.senzing.util.LoggingUtilities.*;
 /**
  * Provides build information for the replicator.
  */
-public class BuildInfo {
+public final class BuildInfo {
   /**
    * The Maven build version of the replicator.
    */

@@ -105,7 +105,7 @@ public class SqliteUri extends ConnectionUri {
      * @return The modified query options {@link Map} of {@link String} keys to 
      *         {@link String} values with the {@link #MODE_KEY} possibly removed.
      */
-    private static Map<String,String> stripMemoryOption(Map<String,String> queryOptions)
+    private static Map<String, String> stripMemoryOption(Map<String, String> queryOptions)
     {
         if (queryOptions == null) {
             return null;
@@ -120,7 +120,7 @@ public class SqliteUri extends ConnectionUri {
         }
 
         // create the result map
-        Map<String,String> result = new LinkedHashMap<>();
+        Map<String, String> result = new LinkedHashMap<>();
 
         // add every other query option except the mode
         queryOptions.forEach((key, value) -> {
@@ -139,7 +139,7 @@ public class SqliteUri extends ConnectionUri {
      * in-memory database.
      */
     public SqliteUri() {
-        this((Map<String,String>) null);
+        this((Map<String, String>) null);
     }
 
     /**
@@ -154,7 +154,7 @@ public class SqliteUri extends ConnectionUri {
      *                                  {@linkplain #MODE_KEY mode} other than
      *                                  {@linkplain #MEMORY_MODE memory mode}.
      */
-    public SqliteUri(Map<String,String> queryOptions) {
+    public SqliteUri(Map<String, String> queryOptions) {
         super(SCHEME_PREFIX, stripMemoryOption(queryOptions));
         if (queryOptions != null 
             && queryOptions.containsKey(MODE_KEY)
@@ -201,7 +201,7 @@ public class SqliteUri extends ConnectionUri {
      * @throws NullPointerException If the specified {@link File}
      *                              is <code>null</code>.
      */
-    public SqliteUri(File file, Map<String,String> queryOptions)
+    public SqliteUri(File file, Map<String, String> queryOptions)
     {
         this(null, null, file, queryOptions);
     }
@@ -227,7 +227,7 @@ public class SqliteUri extends ConnectionUri {
     protected SqliteUri(String              unusedUser,
                         String              unusedPassword, 
                         File                file, 
-                        Map<String,String>  queryOptions)
+                        Map<String, String>  queryOptions)
     {
         super(SCHEME_PREFIX, queryOptions);
         
@@ -387,9 +387,15 @@ public class SqliteUri extends ConnectionUri {
      *         <code>false</code>.
      */
     public boolean equals(Object obj) {
-        if (obj == null) return false;
-        if (this == obj) return true;
-        if (this.getClass() != obj.getClass()) return false;
+        if (obj == null) {
+            return false;
+        }
+        if (this == obj) {
+            return true;
+        }
+        if (this.getClass() != obj.getClass()) {
+            return false;
+        }
         SqliteUri url = (SqliteUri) obj;
         return Objects.equals(this.isMemory(), url.isMemory())
             && Objects.equals(this.getFile(), url.getFile())
@@ -479,7 +485,7 @@ public class SqliteUri extends ConnectionUri {
         }
 
         // parse the query options
-        Map<String,String> map = parseQueryOptions(suffix);
+        Map<String, String> map = parseQueryOptions(suffix);
         boolean memory = (map != null) && MEMORY_MODE.equals(map.get(MODE_KEY));
         
         if (!memory && path.length() == 0) {

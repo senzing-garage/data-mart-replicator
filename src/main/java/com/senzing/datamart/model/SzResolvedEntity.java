@@ -17,7 +17,7 @@ public class SzResolvedEntity extends SzEntity {
      * The {@link Map} of {@link Long} entity ID keys to {@link SzRelatedEntity}
      * values describing the related entities.
      */
-    public Map<Long, SzRelatedEntity> relatedEntities;
+    private Map<Long, SzRelatedEntity> relatedEntities;
 
     /**
      * Default constructor.
@@ -110,8 +110,9 @@ public class SzResolvedEntity extends SzEntity {
      *
      */
     public static SzResolvedEntity parseHash(String hashText) {
-        if (hashText == null)
+        if (hashText == null) {
             return null;
+        }
         String jsonText = ZipUtilities.unzipText64(hashText);
         try {
             return parse(jsonText);
@@ -130,8 +131,9 @@ public class SzResolvedEntity extends SzEntity {
      *
      */
     public static SzResolvedEntity parse(String jsonText) {
-        if (jsonText == null)
+        if (jsonText == null) {
             return null;
+        }
         JsonObject jsonObject = parseJsonObject(jsonText);
         return parse(jsonObject);
     }
@@ -144,8 +146,9 @@ public class SzResolvedEntity extends SzEntity {
      * @return The {@link SzResolvedEntity} that was populated.
      */
     public static SzResolvedEntity parse(JsonObject jsonObject) {
-        if (jsonObject == null)
+        if (jsonObject == null) {
             return null;
+        }
         SzResolvedEntity entity = new SzResolvedEntity();
 
         // handle the base data
@@ -186,18 +189,35 @@ public class SzResolvedEntity extends SzEntity {
         return ZipUtilities.zipText64(jsonText);
     }
 
+    /**
+     * Overridden to return <code>true</code> if and only if the specified parameter
+     * is an instance of the same class with equivalent properties.
+     * 
+     * @param o The object to compare with.
+     * @return <code>true</code> if the specified parameter is an instance of the 
+     *         same class with equivalent properties, otherwise <code>false</code>.
+     */
     @Override
     public boolean equals(Object o) {
-        if (this == o)
+        if (this == o) {
             return true;
-        if (o == null || getClass() != o.getClass())
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
-        if (!super.equals(o))
+        }
+        if (!super.equals(o)) {
             return false;
+        }
         SzResolvedEntity that = (SzResolvedEntity) o;
         return this.getRelatedEntities().equals(that.getRelatedEntities());
     }
 
+    /**
+     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
+     * implementation.
+     * 
+     * @return The hash code for this instance.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), this.getRelatedEntities());

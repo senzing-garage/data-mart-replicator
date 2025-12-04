@@ -147,7 +147,7 @@ public class SzReplicatorOptions {
 
     /**
      * Constructs with the settings (as a {@link JsonObject}) with which to 
-     * initialize the Senzing Core SDK
+     * initialize the Senzing Core SDK.
      *
      * @param settings The settings with which to initialize the Senzing Core SDK.
      */

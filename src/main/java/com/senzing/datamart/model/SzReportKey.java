@@ -153,23 +153,46 @@ public class SzReportKey implements Serializable {
         return this.dataSource2;
     }
 
+    /**
+     * Overridden to return <code>true</code> if and only if the specified parameter
+     * is an instance of the same class with equivalent properties.
+     * 
+     * @param o The object to compare with.
+     * @return <code>true</code> if the specified parameter is an instance of the 
+     *         same class with equivalent properties, otherwise <code>false</code>.
+     */
     @Override
     public boolean equals(Object o) {
-        if (this == o)
+        if (this == o) {
             return true;
-        if (o == null || getClass() != o.getClass())
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
+        }
         SzReportKey that = (SzReportKey) o;
         return this.getReportCode().equals(that.getReportCode()) && this.getStatistic().equals(that.getStatistic())
                 && Objects.equals(this.getDataSource1(), that.getDataSource1())
                 && Objects.equals(this.getDataSource2(), that.getDataSource2());
     }
 
+    /**
+     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
+     * implementation.
+     * 
+     * @return The hash code for this instance.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(this.getReportCode(), this.getStatistic(), this.getDataSource1(), this.getDataSource2());
     }
 
+    /**
+     * Implemented to format this instance as a {@link String} in the format 
+     * for persistent database storage and that can be parsed via {@link 
+     * #parse(String)}.
+     * 
+     * @return The formatted report key.
+     */
     @Override
     public String toString() {
         try {
@@ -213,13 +236,15 @@ public class SzReportKey implements Serializable {
             SzReportCode code = SzReportCode.lookup(tokens[0]);
             String stat = URLDecoder.decode(tokens[1], UTF_8);
 
-            if (tokens.length == 2)
+            if (tokens.length == 2) {
                 return new SzReportKey(code, stat);
+            }
 
             String src1 = URLDecoder.decode(tokens[2], UTF_8);
 
-            if (tokens.length == 3)
+            if (tokens.length == 3) {
                 return new SzReportKey(code, stat, src1);
+            }
 
             String src2 = URLDecoder.decode(tokens[3], UTF_8);
 

@@ -252,12 +252,22 @@ public class SzRelationship {
         return Collections.unmodifiableMap(this.relatedSourceSummary);
     }
 
+    /**
+     * Overridden to return <code>true</code> if and only if the specified parameter
+     * is an instance of the same class with equivalent properties.
+     * 
+     * @param object The object to compare with.
+     * @return <code>true</code> if the specified parameter is an instance of the 
+     *         same class with equivalent properties, otherwise <code>false</code>.
+     */
     @Override
     public boolean equals(Object object) {
-        if (this == object)
+        if (this == object) {
             return true;
-        if (object == null || this.getClass() != object.getClass())
+        }
+        if (object == null || this.getClass() != object.getClass()) {
             return false;
+        }
         SzRelationship rel = (SzRelationship) object;
         return getEntityId() == rel.getEntityId() && this.getRelatedEntityId() == rel.getRelatedEntityId()
                 && this.getMatchLevel() == rel.getMatchLevel() && this.getMatchType() == rel.getMatchType()
@@ -267,6 +277,12 @@ public class SzRelationship {
                 && this.getRelatedSourceSummary().equals(rel.getRelatedSourceSummary());
     }
 
+    /**
+     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
+     * implementation.
+     * 
+     * @return The hash code for this instance.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(this.getEntityId(), this.getRelatedEntityId(), this.getMatchLevel(), this.getMatchType(),
@@ -339,8 +355,9 @@ public class SzRelationship {
      * @return The newly created {@link SzRelationship}.
      */
     public static SzRelationship parse(JsonObject jsonObject) {
-        if (jsonObject == null)
+        if (jsonObject == null) {
             return null;
+        }
 
         Long entityId1 = getLong(jsonObject, "entityId");
         Long entityId2 = getLong(jsonObject, "relatedId");
@@ -377,8 +394,9 @@ public class SzRelationship {
      * @return The newly constructed {@link SzRelationship}.
      */
     public static SzRelationship parse(String jsonText) {
-        if (jsonText == null)
+        if (jsonText == null) {
             return null;
+        }
         return parse(parseJsonObject(jsonText));
     }
 
@@ -391,8 +409,9 @@ public class SzRelationship {
      *
      */
     public static SzRelationship parseHash(String hashText) {
-        if (hashText == null)
+        if (hashText == null) {
             return null;
+        }
         String jsonText = ZipUtilities.unzipText64(hashText);
         return parse(jsonText);
     }

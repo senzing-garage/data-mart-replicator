@@ -235,7 +235,7 @@ public class RabbitMqUri extends ConnectionUri {
                        String               password,
                        String               host,
                        Integer              port,
-                       Map<String,String>   queryOptions)
+                       Map<String, String>   queryOptions)
     {
         this(secure, user, password, host, port, null, queryOptions);
     }
@@ -266,7 +266,7 @@ public class RabbitMqUri extends ConnectionUri {
                        String               password,
                        String               host,
                        String               virtualHost,
-                       Map<String,String>   queryOptions)
+                       Map<String, String>   queryOptions)
     {
         this(secure, user, password, host, null, virtualHost, queryOptions);
     }
@@ -303,7 +303,7 @@ public class RabbitMqUri extends ConnectionUri {
                        String               host,
                        Integer              port,
                        String               virtualHost,
-                       Map<String,String>   queryOptions)
+                       Map<String, String>   queryOptions)
     {
         super((secure ? SECURE_SCHEME_PREFIX : SCHEME_PREFIX), queryOptions);
 
@@ -456,9 +456,15 @@ public class RabbitMqUri extends ConnectionUri {
      *         otherwise <code>false</code>.
      */
     public boolean equals(Object obj) {
-        if (obj == null) return false;
-        if (this == obj) return true;
-        if (this.getClass() != obj.getClass()) return false;
+        if (obj == null) {
+            return false;
+        }
+        if (this == obj) {
+            return true;
+        }
+        if (this.getClass() != obj.getClass()) {
+            return false;
+        }
         RabbitMqUri uri = (RabbitMqUri) obj;
         return Objects.equals(this.isSecure(), uri.isSecure())
             && Objects.equals(this.getUser(), uri.getUser())
@@ -517,7 +523,7 @@ public class RabbitMqUri extends ConnectionUri {
         user = urlDecodeUtf8(suffix.substring(0, index).trim());
         
         // get the suffix
-        suffix = suffix.substring(index+1);
+        suffix = suffix.substring(index + 1);
 
         // find the password
         String password = null;
@@ -591,11 +597,11 @@ public class RabbitMqUri extends ConnectionUri {
             if (index > 0) {
                 virtualHost = urlDecodeUtf8(suffix.substring(0, index).trim());
             }
-            suffix = (index == suffix.length() - 1) ? "" : suffix.substring(index+1);
+            suffix = (index == suffix.length() - 1) ? "" : suffix.substring(index + 1);
         }
 
         // parse the query parameters if found
-        Map<String,String> queryOptions = ConnectionUri.parseQueryOptions(suffix);
+        Map<String, String> queryOptions = ConnectionUri.parseQueryOptions(suffix);
 
         // construct the instance
         return new RabbitMqUri(

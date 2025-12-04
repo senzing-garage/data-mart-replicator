@@ -61,6 +61,8 @@ public class SqsUri extends ConnectionUri {
      * Gets the ASCII query from the URI rather than the decoded one.
      * 
      * @param uri The {@link URI} from which to obtain the query.
+     * 
+     * @return The ASCII query from the URI rather than the decoded one.
      */
     private static String getASCIIQuery(URI uri) {
         if (uri == null) {
@@ -71,7 +73,7 @@ public class SqsUri extends ConnectionUri {
         if (index < 0 || index == asciiString.length() - 1) {
             return null;
         }
-        return asciiString.substring(index+1);
+        return asciiString.substring(index + 1);
     }
 
     /**
@@ -219,9 +221,15 @@ public class SqsUri extends ConnectionUri {
      *         otherwise <code>false</code>.
      */
     public boolean equals(Object obj) {
-        if (obj == null) return false;
-        if (this == obj) return true;
-        if (this.getClass() != obj.getClass()) return false;
+        if (obj == null) {
+            return false;
+        }
+        if (this == obj) {
+            return true;
+        }
+        if (this.getClass() != obj.getClass()) {
+            return false;
+        }
         SqsUri url = (SqsUri) obj;
         return Objects.equals(this.getUri(), url.getUri())
             && Objects.equals(this.isSecure(), url.isSecure())

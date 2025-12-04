@@ -14,7 +14,6 @@ import java.util.*;
 
 import com.senzing.sdk.SzFlag;
 
-import static com.senzing.datamart.SzReplicationProvider.TaskAction;
 import static com.senzing.datamart.SzReplicationProvider.TaskAction.*;
 import static com.senzing.datamart.model.SzReportStatistic.*;
 import static com.senzing.sql.SQLUtilities.close;
@@ -36,7 +35,7 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
     /**
      * Constructs with the specified {@link SzReplicationProvider}. This
      * constructs the super class with {@link
-     * TaskAction#UPDATE_CROSS_SOURCE_SUMMARY} as the supported action.
+     * com.senzing.datamart.SzReplicationProvider.TaskAction#UPDATE_CROSS_SOURCE_SUMMARY} as the supported action.
      *
      * @param provider The {@link SzReplicationProvider} to use.
      */
@@ -212,7 +211,8 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
                         return -1;
                     });
 
-                int index = 0, reconnectedCount = 0;
+                int index = 0;
+                int reconnectedCount = 0;
                 for (Map.Entry<SzRecordKey, Long> entry : reconnectMap.entrySet()) {
                     int rowCount = rowCounts.get(index++);
                     if (rowCount == 0) {
@@ -245,7 +245,8 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
                     return -1;
                 });
 
-                int index = 0, deletedCount = 0;
+                int index = 0;
+                int deletedCount = 0;
                 for (SzRecordKey recordKey : deleteSet) {
                     int rowCount = rowCounts.get(index++);
                     if (rowCount == 0) {

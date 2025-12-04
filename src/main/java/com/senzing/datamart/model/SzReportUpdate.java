@@ -229,6 +229,9 @@ public class SzReportUpdate {
         this.relationDelta = delta;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String toString() {
         return "SzReportUpdate{ " + "reportKey=[ " + this.getReportKey() + " ], entityDelta=[ " + this.getEntityDelta()
@@ -335,7 +338,7 @@ public class SzReportUpdate {
     /**
      * Provides a {@link Builder} for {@link SzReportUpdate} instances.
      */
-    public static class Builder {
+    public static final class Builder {
         /**
          * The associated {@link SzReportKey} for this instance.
          */

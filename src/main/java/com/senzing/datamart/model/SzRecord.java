@@ -136,6 +136,14 @@ public class SzRecord {
         return this.principle;
     }
 
+    /**
+     * Overridden to return <code>true</code> if and only if the specified parameter
+     * is an instance of the same class with equivalent properties.
+     * 
+     * @param o The object to compare with.
+     * @return <code>true</code> if the specified parameter is an instance of the 
+     *         same class with equivalent properties, otherwise <code>false</code>.
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -150,6 +158,12 @@ public class SzRecord {
                 && Objects.equals(this.getPrinciple(), that.getPrinciple());
     }
 
+    /**
+     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
+     * implementation.
+     * 
+     * @return The hash code for this instance.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(this.getRecordKey(), this.getMatchKey(), this.getPrinciple());
@@ -239,6 +253,12 @@ public class SzRecord {
         return new SzRecord(key, mkey, rule);
     }
 
+    /**
+     * Overridden to return this instance formatted as JSON as per
+     * {@link #toJsonText()}.
+     * 
+     * @return The result from {@link #toJsonText()}.
+     */
     @Override
     public String toString() {
         return this.toJsonText();

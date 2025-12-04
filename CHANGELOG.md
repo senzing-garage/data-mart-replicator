@@ -6,13 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - 2025-XX-XX
+## [2.0.0-beta.1.0] - 2025-12-03
 
-### Changed in 2.0.0
+### Changed in 2.0.0-beta.1.0
 
 - Changed source code level to Java 17
 - Changed dependency on `g2-sdk-java` to `sz-sdk-java`
 - Converted for new Java SDK's from 4.x
+- Modified to produce both a standard JAR and an executable server JAR
+- Incorporated reporting code that was previously in `senzing-poc-server`
+- Known Issues:
+  - Missing unit tests on all data mart code (only some unit tests on listener code).  This issue is
+    inherited from version 1.x which was manually tested, but will be rectified before release of 2.0.0.
 
 ## [1.2.4] - 2025-10-23
 

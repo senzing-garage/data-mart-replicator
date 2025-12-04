@@ -51,17 +51,33 @@ public class SzRecordKey implements Comparable<SzRecordKey> {
         return this.recordId;
     }
 
+    /**
+     * Overridden to return <code>true</code> if and only if the specified parameter
+     * is an instance of the same class with equivalent properties.
+     * 
+     * @param o The object to compare with.
+     * @return <code>true</code> if the specified parameter is an instance of the 
+     *         same class with equivalent properties, otherwise <code>false</code>.
+     */
     @Override
     public boolean equals(Object o) {
-        if (this == o)
+        if (this == o) {
             return true;
-        if (o == null || getClass() != o.getClass())
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
+        }
         SzRecordKey that = (SzRecordKey) o;
         return Objects.equals(this.getDataSource(), that.getDataSource())
                 && Objects.equals(this.getRecordId(), that.getRecordId());
     }
 
+    /**
+     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
+     * implementation.
+     * 
+     * @return The hash code for this instance.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(this.getDataSource(), this.getRecordId());
@@ -78,13 +94,15 @@ public class SzRecordKey implements Comparable<SzRecordKey> {
      *         greater-than the specified instance, or zero (0) if they are equal.
      */
     public int compareTo(SzRecordKey record) {
-        if (record == null)
+        if (record == null) {
             return -1;
+        }
         String src1 = this.getDataSource();
         String src2 = record.getDataSource();
         int diff = src1.compareTo(src2);
-        if (diff != 0)
+        if (diff != 0) {
             return diff;
+        }
         String id1 = this.getRecordId();
         String id2 = record.getRecordId();
         diff = id1.compareTo(id2);
@@ -165,6 +183,11 @@ public class SzRecordKey implements Comparable<SzRecordKey> {
         return new SzRecordKey(src, id);
     }
 
+    /**
+     * Implemented to return the result from {@link #toJsonText()}.
+     * 
+     * @return The result from {@link #toJsonText()}.
+     */
     @Override
     public String toString() {
         return this.toJsonText();

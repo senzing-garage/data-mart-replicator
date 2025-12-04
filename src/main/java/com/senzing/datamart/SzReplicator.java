@@ -27,8 +27,6 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 
-import static java.util.Collections.synchronizedCollection;
-
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -352,7 +350,11 @@ public class SzReplicator extends Thread {
     }
 
     /**
-     *
+     * Formats and prints the specified {@link Map} of {@link Statistic} keys
+     * to {@link Number} values.
+     * 
+     * @param stats The {@link Map} of {@link Statistic} keys to {@link Number}
+     *              values to print.
      */
     private static void printStatisticsMap(Map<Statistic, Number> stats) {
         stats.forEach((key, value) -> {
@@ -634,12 +636,12 @@ public class SzReplicator extends Thread {
     private AccessToken connProviderToken;
 
     /**
-     * The {@link MessageConsumer} to use.
+     * The {@link MessageConsumer} to use for consuming messages.
      */
     private MessageConsumer messageConsumer = null;
 
     /**
-     * The {@link SzReplicatorService} to use for
+     * The {@link SzReplicatorService} to use for replication.
      */
     private SzReplicatorService replicatorService;
 

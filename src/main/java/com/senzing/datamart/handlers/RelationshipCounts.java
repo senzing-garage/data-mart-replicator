@@ -88,6 +88,11 @@ public class RelationshipCounts {
     this.recordCount += delta;
   }
 
+  /**
+   * Implemented to return a diagnostic {@link String} describing this instance.
+   * 
+   * @return A diagnostic {@link String} describing this instance.
+   */
   @Override
   public String toString() {
     return "source1=[ " + this.getSource1() + " ], source2=[ " + this.getSource2() + " ], recordCount=[ "

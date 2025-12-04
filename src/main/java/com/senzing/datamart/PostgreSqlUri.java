@@ -94,15 +94,15 @@ public class PostgreSqlUri extends ConnectionUri {
      * @return The merged query options {@link Map} of {@link String} keys to 
      *         {@link String} values with the {@link #SCHEMA_KEY} first.
      */
-    private static Map<String,String> makeQueryOptions(String               schema, 
-                                                       Map<String,String>   queryOptions)
+    private static Map<String, String> makeQueryOptions(String               schema, 
+                                                       Map<String, String>   queryOptions)
     {
         // if no explicit schema, then return the query options as specified
         if (schema == null) {
             return queryOptions;
         }
         // create the result map
-        Map<String,String> result = new LinkedHashMap<>();
+        Map<String, String> result = new LinkedHashMap<>();
 
         // add the schema
         result.put(SCHEMA_KEY, schema);
@@ -264,7 +264,7 @@ public class PostgreSqlUri extends ConnectionUri {
                          String             host,
                          String             database,
                          String             schema,
-                         Map<String,String> queryOptions)
+                         Map<String, String> queryOptions)
     {
         this(user, password, host, null, database, schema, queryOptions);
     }
@@ -302,7 +302,7 @@ public class PostgreSqlUri extends ConnectionUri {
                          Integer            port,
                          String             database,
                          String             schema,
-                         Map<String,String> queryOptions)
+                         Map<String, String> queryOptions)
     {
         super(SCHEME_PREFIX, makeQueryOptions(schema, queryOptions));
         requireNonNull(user, "The user cannot be null");
@@ -454,9 +454,15 @@ public class PostgreSqlUri extends ConnectionUri {
      *         <code>false</code>.
      */
     public boolean equals(Object obj) {
-        if (obj == null) return false;
-        if (this == obj) return true;
-        if (this.getClass() != obj.getClass()) return false;
+        if (obj == null) {
+            return false;
+        }
+        if (this == obj) {
+            return true;
+        }
+        if (this.getClass() != obj.getClass()) {
+            return false;
+        }
         PostgreSqlUri url = (PostgreSqlUri) obj;
         return Objects.equals(this.getUser(), url.getUser())
             && Objects.equals(this.getPassword(), url.getPassword())
@@ -509,7 +515,7 @@ public class PostgreSqlUri extends ConnectionUri {
         String user = urlDecodeUtf8(suffix.substring(0, index).trim()).trim();
         
         // get the suffix
-        suffix = suffix.substring(index+1);
+        suffix = suffix.substring(index + 1);
 
         // find the password
         index = suffix.indexOf('@');
@@ -640,11 +646,11 @@ public class PostgreSqlUri extends ConnectionUri {
         if (index >= suffix.length() - 1) {
             suffix = "";
         } else {
-            suffix = suffix.substring(index+1);
+            suffix = suffix.substring(index + 1);
         }
 
         // parse the query parameters if found
-        Map<String,String> queryOptions = ConnectionUri.parseQueryOptions(suffix);
+        Map<String, String> queryOptions = ConnectionUri.parseQueryOptions(suffix);
 
         // get the schema name
         String schema = (queryOptions != null) ? queryOptions.get(SCHEMA_KEY) : null;

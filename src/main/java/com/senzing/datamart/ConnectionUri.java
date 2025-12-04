@@ -112,7 +112,7 @@ public abstract class ConnectionUri {
      *                     parameter keys to {@link String} query parameter
      *                     values, or <code>null</code> if no parameters.
      */
-    protected ConnectionUri(String schemePrefix, Map<String,String> queryOptions) {
+    protected ConnectionUri(String schemePrefix, Map<String, String> queryOptions) {
         this.schemePrefix = schemePrefix;
         this.queryOptions   = (queryOptions == null) ? Collections.emptyMap()
             : Collections.unmodifiableMap(new LinkedHashMap<>(queryOptions));
@@ -154,7 +154,7 @@ public abstract class ConnectionUri {
         Objects.requireNonNull(uri, "URI cannot be null");
 
         // find a method in the registry which is sorted by longest prefixes first
-        Method[] methods = { null };
+        Method[] methods = {null};
         synchronized (REGISTRY) {
             REGISTRY.forEach((prefix, m) -> {
                 if (uri.toLowerCase().startsWith(prefix)) {
@@ -208,7 +208,7 @@ public abstract class ConnectionUri {
      *         the specified parameter is <code>null</code> or contains
      *         no parameters.
      */
-    protected static Map<String,String> parseQueryOptions(String queryString) {
+    protected static Map<String, String> parseQueryOptions(String queryString) {
         // check for a null or empty parameter
         if (queryString == null || queryString.trim().length() == 0) {
             return null;
@@ -229,13 +229,13 @@ public abstract class ConnectionUri {
         }
 
         // create the result
-        Map<String,String> result = new LinkedHashMap<>();
+        Map<String, String> result = new LinkedHashMap<>();
         
         // check for an ampersand
         do {
             int index = suffix.indexOf('&');
             String pair = (index < 0) ? suffix : suffix.substring(0, index);
-            suffix = (index >= 0 && index < suffix.length() -1) 
+            suffix = (index >= 0 && index < suffix.length() - 1) 
                 ? suffix.substring(index + 1) : null;
 
             index = pair.indexOf('=');
@@ -259,7 +259,7 @@ public abstract class ConnectionUri {
      * @return The encoded query string, or empty-string if no query options.
      */
     protected String getQueryString() {
-        Map<String,String> map = this.getQueryOptions();
+        Map<String, String> map = this.getQueryOptions();
         if (map == null || map.size() == 0) {
             return "";
         }

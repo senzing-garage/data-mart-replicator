@@ -71,9 +71,7 @@ public enum SzMatchType {
      */
     private static final Map<String, SzMatchType> CODE_MAP;
 
-    /**
-     * Initializes the code lookup map.
-     */
+    // Initializes the code lookup map.
     static {
         SzMatchType[] matchTypes = SzMatchType.values();
         Map<String, SzMatchType> map = new LinkedHashMap<>();
@@ -105,8 +103,9 @@ public enum SzMatchType {
         int matchLevel = JsonUtilities.getInteger(jsonObject, "MATCH_LEVEL");
 
         // check the match level
-        if (matchLevel == 2)
+        if (matchLevel == 2) {
             return POSSIBLE_MATCH;
+        }
 
         // assume its a possible relation
         return POSSIBLE_RELATION;

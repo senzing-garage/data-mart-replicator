@@ -70,9 +70,7 @@ public enum SzReportCode {
      */
     private static final Map<String, SzReportCode> CODE_LOOKUP_MAP;
 
-    /**
-     * Initializes the code lookup map.
-     */
+    // Initializes the code lookup map.
     static {
         SzReportCode[] reportCodes = SzReportCode.values();
         Map<String, SzReportCode> map = new LinkedHashMap<>();

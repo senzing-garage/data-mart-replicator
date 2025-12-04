@@ -5,14 +5,14 @@ import java.util.Map;
 import com.senzing.datamart.model.SzReportKey;
 import com.senzing.sql.ConnectionProvider;
 
-import com.senzing.listener.service.scheduling.TaskHandler;
 import com.senzing.sdk.SzEnvironment;
 import com.senzing.sql.DatabaseType;
 import com.senzing.util.Quantified.Statistic;
 
 /**
- * Provides an interface for data mart replication {@link TaskHandler}
- * implementations to access the context in which they are executing.
+ * Provides an interface for data mart replication {@link 
+ * com.senzing.listener.service.scheduling.TaskHandler} implementations
+ * to access the context in which they are executing.
  */
 public interface SzReplicationProvider {
     /**

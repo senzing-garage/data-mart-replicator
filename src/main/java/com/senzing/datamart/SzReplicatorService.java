@@ -54,7 +54,7 @@ public class SzReplicatorService extends AbstractListenerService {
     /**
      * The {@link Map} of {@link DatabaseType} keys to {@link SchemaBuilder} values.
      */
-    private static Map<DatabaseType, SchemaBuilder> SCHEMA_BUILDER_MAP = Map.of(SQLITE, new SQLiteSchemaBuilder(),
+    private static final Map<DatabaseType, SchemaBuilder> SCHEMA_BUILDER_MAP = Map.of(SQLITE, new SQLiteSchemaBuilder(),
             POSTGRESQL, new PostgreSQLSchemaBuilder());
 
     /**
@@ -69,31 +69,49 @@ public class SzReplicatorService extends AbstractListenerService {
             // do nothing
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public Boolean waitUntilReady(long timeoutMillis) throws InterruptedException {
             return SzReplicatorService.this.waitUntilReady(timeoutMillis);
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public SzEnvironment getSzEnvironment() {
             return SzReplicatorService.this.getSzEnvironment();
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public ConnectionProvider getConnectionProvider() {
             return SzReplicatorService.this.getConnectionProvider();
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public DatabaseType getDatabaseType() {
             return SzReplicatorService.this.getDatabaseType();
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public void scheduleReportFollowUp(String reportAction, SzReportKey reportKey) {
             SzReplicatorService.this.reportUpdater.addReportTask(reportKey, reportAction);
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public Map<Statistic, Number> getStatistics() {
             return SzReplicatorService.this.getStatistics();
@@ -335,6 +353,9 @@ public class SzReplicatorService extends AbstractListenerService {
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void doInit(JsonObject config) throws ServiceSetupException {
         try {
@@ -362,6 +383,9 @@ public class SzReplicatorService extends AbstractListenerService {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void doDestroy() {
         this.reportUpdater.shutdown();

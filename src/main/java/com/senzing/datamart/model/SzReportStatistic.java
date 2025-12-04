@@ -48,9 +48,11 @@ public enum SzReportStatistic {
      * Provides a formatter to format {@link SzReportStatistic} instances with
      * optional principles and match keys.
      */
-    public static class Formatter {
+    public static final class Formatter {
         /**
-         * Constructs a new formatter with the specified {@link SzReportStats}
+         * Constructs a new formatter with the specified {@link SzReportStats}.
+         * 
+         * @param statistic The {@link SzReportStatistic} to be formatted.
          */
         private Formatter(SzReportStatistic statistic) {
             this.statistic = statistic;
@@ -81,8 +83,9 @@ public enum SzReportStatistic {
         public Formatter principle(String principle) {
             if (principle != null) {
                 principle = principle.trim();
-                if (principle.length() == 0)
+                if (principle.length() == 0) {
                     principle = null;
+                }
             }
             this.principle = principle;
             return this;
@@ -98,8 +101,9 @@ public enum SzReportStatistic {
         public Formatter matchKey(String matchKey) {
             if (matchKey != null) {
                 matchKey = matchKey.trim();
-                if (matchKey.length() == 0)
+                if (matchKey.length() == 0) {
                     matchKey = null;
+                }
             }
             this.matchKey = matchKey;
             return this;
@@ -148,11 +152,13 @@ public enum SzReportStatistic {
          *                                  properly formatted statistic.
          */
         public static Formatter parse(String encodedStatistic) {
-            if (encodedStatistic == null)
+            if (encodedStatistic == null) {
                 return null;
+            }
             String text = encodedStatistic.trim();
-            if (encodedStatistic.length() == 0)
+            if (encodedStatistic.length() == 0) {
                 return null;
+            }
 
             // get the statistic
             SzReportStatistic statistic = null;
@@ -190,10 +196,12 @@ public enum SzReportStatistic {
 
             // create the formatter
             Formatter formatter = new Formatter(statistic);
-            if (principle != null)
+            if (principle != null) {
                 formatter.principle(principle);
-            if (matchKey != null)
+            }
+            if (matchKey != null) {
                 formatter.matchKey(matchKey);
+            }
 
             // return the formatter
             return formatter;
@@ -218,6 +226,8 @@ public enum SzReportStatistic {
 
         /**
          * Overridden to return the result from {@link #format()}.
+         * 
+         * @return The result from {@link #format()}.
          */
         public String toString() {
             return this.format();

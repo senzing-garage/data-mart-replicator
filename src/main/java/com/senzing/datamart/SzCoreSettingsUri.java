@@ -91,7 +91,7 @@ public class SzCoreSettingsUri extends ConnectionUri {
      * @throws IllegalArgumentException If there are any empty path elements
      *                                  in the specified path.
      */
-    public SzCoreSettingsUri(String jsonPath, Map<String,String> queryOptions)
+    public SzCoreSettingsUri(String jsonPath, Map<String, String> queryOptions)
     {
         super(SCHEME_PREFIX, queryOptions);
         
@@ -182,9 +182,15 @@ public class SzCoreSettingsUri extends ConnectionUri {
      *         <code>false</code>.
      */
     public boolean equals(Object obj) {
-        if (obj == null) return false;
-        if (this == obj) return true;
-        if (this.getClass() != obj.getClass()) return false;
+        if (obj == null) {
+            return false;
+        }
+        if (this == obj) {
+            return true;
+        }
+        if (this.getClass() != obj.getClass()) {
+            return false;
+        }
         SzCoreSettingsUri url = (SzCoreSettingsUri) obj;
         return Objects.equals(this.getPath(), url.getPath())
             && Objects.equals(this.getQueryOptions(), url.getQueryOptions());
@@ -235,7 +241,7 @@ public class SzCoreSettingsUri extends ConnectionUri {
         }
         
         // parse the query options
-        Map<String,String> queryOptions = parseQueryOptions(suffix);
+        Map<String, String> queryOptions = parseQueryOptions(suffix);
         
         // construct the instance
         return new SzCoreSettingsUri(path, queryOptions);

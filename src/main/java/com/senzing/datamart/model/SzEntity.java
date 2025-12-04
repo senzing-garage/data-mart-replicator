@@ -120,8 +120,9 @@ public class SzEntity {
      * @param record The {@link SzRecord} describing the record to add.
      */
     public void addRecord(SzRecord record) {
-        if (this.records.containsKey(record.getRecordKey()))
+        if (this.records.containsKey(record.getRecordKey())) {
             return;
+        }
 
         String dataSource = record.getDataSource();
         Integer count = this.sourceSummary.get(dataSource);
@@ -248,23 +249,45 @@ public class SzEntity {
         return entity;
     }
 
+    /**
+     * Overridden to return <code>true</code> if and only if the specified parameter
+     * is an instance of the same class with equivalent properties.
+     * 
+     * @param o The object to compare with.
+     * @return <code>true</code> if the specified parameter is an instance of the 
+     *         same class with equivalent properties, otherwise <code>false</code>.
+     */
     @Override
     public boolean equals(Object o) {
-        if (this == o)
+        if (this == o) {
             return true;
-        if (o == null || getClass() != o.getClass())
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
+        }
         SzEntity that = (SzEntity) o;
         return this.getEntityId() == that.getEntityId() && Objects.equals(this.getEntityName(), that.getEntityName())
                 && this.getSourceSummary().equals(that.getSourceSummary())
                 && this.getRecords().equals(that.getRecords());
     }
 
+    /**
+     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
+     * implementation.
+     * 
+     * @return The hash code for this instance.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(this.getEntityId(), this.getEntityName(), this.getSourceSummary(), this.getRecords());
     }
 
+    /**
+     * Overridden to return this instance formatted as JSON as per
+     * {@link #toJsonText()}.
+     * 
+     * @return The result from {@link #toJsonText()}.
+     */
     @Override
     public String toString() {
         return this.toJsonText();

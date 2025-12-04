@@ -353,6 +353,8 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
     /**
      * Constructs with the specified parameters.
      *
+     * @param primary           <code>true</code> if this is a primary option, 
+     *                          otherwise <code>false</code>.
      * @param cmdLineFlag       The command-line flag.
      * @param envVariable       The primary environment variable.
      * @param envFallbacks      The {@link List} of fallback environment variables.
@@ -511,11 +513,12 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
                 lookupMap.put(option.getCommandLineFlag().toLowerCase(), option);
             }
 
-            SzReplicatorOption[] exclusiveOptions = { HELP, VERSION };
+            SzReplicatorOption[] exclusiveOptions = {HELP, VERSION};
             for (SzReplicatorOption option : SzReplicatorOption.values()) {
                 for (SzReplicatorOption exclOption : exclusiveOptions) {
-                    if (option == exclOption)
+                    if (option == exclOption) {
                         continue;
+                    }
                     Set<CommandLineOption> set = conflictMap.get(exclOption);
                     set.add(option);
                     set = conflictMap.get(option);
@@ -551,8 +554,9 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
 
             // make the optional rabbit options dependent on the required ones
             for (SzReplicatorOption option : rabbitInfoOptions) {
-                if (requiredRabbit.contains(option))
+                if (requiredRabbit.contains(option)) {
                     continue;
+                }
                 Set<Set<CommandLineOption>> dependencySets = dependencyMap.get(option);
                 dependencySets.add(requiredRabbit);
             }
@@ -569,7 +573,7 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
             baseDependSets.add(Collections.unmodifiableSet(dependSet));
 
 
-            SzReplicatorOption[] initOptions = { CORE_SETTINGS };
+            SzReplicatorOption[] initOptions = {CORE_SETTINGS};
             // make the primary options dependent on one set of info queue options
             for (SzReplicatorOption option : initOptions) {
                 Set<Set<CommandLineOption>> dependencySets = dependencyMap.get(option);
@@ -618,8 +622,9 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
 
             case IGNORE_ENVIRONMENT:
             case DATABASE_INFO_QUEUE:
-                if (params.size() == 0)
+                if (params.size() == 0) {
                     return Boolean.TRUE;
+                }
                 String boolText = params.get(0);
                 if ("false".equalsIgnoreCase(boolText)) {
                     return Boolean.FALSE;

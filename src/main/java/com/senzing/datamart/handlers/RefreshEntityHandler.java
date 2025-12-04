@@ -260,7 +260,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
             // get the entity hash
             String entityHash = rs.getString(1);
-            if (rs.wasNull())
+            if (rs.wasNull()) 
                 entityHash = null;
 
             // release JDBC resources

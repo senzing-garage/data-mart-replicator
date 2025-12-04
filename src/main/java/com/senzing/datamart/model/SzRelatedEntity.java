@@ -1,7 +1,5 @@
 package com.senzing.datamart.model;
 
-import com.senzing.util.JsonUtilities;
-
 import javax.json.*;
 
 import java.util.Objects;
@@ -190,20 +188,37 @@ public class SzRelatedEntity extends SzEntity {
         return entity;
     }
 
+    /**
+     * Overridden to return <code>true</code> if and only if the specified parameter
+     * is an instance of the same class with equivalent properties.
+     * 
+     * @param o The object to compare with.
+     * @return <code>true</code> if the specified parameter is an instance of the 
+     *         same class with equivalent properties, otherwise <code>false</code>.
+     */
     @Override
     public boolean equals(Object o) {
-        if (this == o)
+        if (this == o) {
             return true;
-        if (o == null || getClass() != o.getClass())
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
-        if (!super.equals(o))
+        }
+        if (!super.equals(o)) {
             return false;
+        }
         SzRelatedEntity that = (SzRelatedEntity) o;
         return this.getMatchLevel() == that.getMatchLevel() && this.getMatchType() == that.getMatchType()
                 && Objects.equals(this.getMatchKey(), that.getMatchKey())
                 && Objects.equals(this.getPrinciple(), that.getPrinciple());
     }
 
+    /**
+     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
+     * implementation.
+     * 
+     * @return The hash code for this instance.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), this.getMatchLevel(), this.getMatchType(), this.getMatchKey(),
