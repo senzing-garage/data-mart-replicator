@@ -19,6 +19,13 @@ public abstract class AbstractLockingService implements LockingService {
   private State state = UNINITIALIZED;
 
   /**
+   * Default constructor. 
+   */
+  protected AbstractLockingService() {
+    // do nothing
+  }
+  
+  /**
    * Gets the {@link State} for this instance.
    *
    * @return The {@link State} for this instance.

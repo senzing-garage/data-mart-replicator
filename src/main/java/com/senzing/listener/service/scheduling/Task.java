@@ -2,7 +2,6 @@ package com.senzing.listener.service.scheduling;
 
 import com.senzing.listener.service.locking.ResourceKey;
 import com.senzing.util.JsonUtilities;
-import com.sun.jdi.request.InvalidRequestStateException;
 
 import javax.json.*;
 import java.io.UnsupportedEncodingException;
@@ -73,9 +72,7 @@ public class Task {
      */
     private Set<State> successors;
 
-    /**
-     * Initializes the predecessors and successor states for each instance.
-     */
+    // Initializes the predecessors and successor states for each instance.
     static {
       UNSCHEDULED.predecessors = Collections.emptySet();
       UNSCHEDULED.successors = Set.of(SCHEDULED, ABORTED);
@@ -230,7 +227,7 @@ public class Task {
   private Exception failure = null;
 
   /**
-   * The number of elapsed milliseconds since the task was originally serialized
+   * The number of elapsed milliseconds since the task was originally serialized.
    *
    */
   private long elapsedMillisSinceSerialization = 0L;
@@ -788,8 +785,9 @@ public class Task {
    * @return The duration of the pending time of this task in milliseconds.
    */
   public synchronized long getPendingTime() {
-    if (this.scheduledTimeNanos < 0L)
+    if (this.scheduledTimeNanos < 0L) {
       return -1L;
+    }
     long result = this.elapsedMillisSinceSerialization;
     if (this.startedTimeNanos < 0L) {
       result += (System.nanoTime() - this.scheduledTimeNanos) / ONE_MILLION;
@@ -809,8 +807,9 @@ public class Task {
    * @return The duration of the handling time of this task in milliseconds.
    */
   public synchronized long getHandlingTime() {
-    if (this.startedTimeNanos < 0L)
+    if (this.startedTimeNanos < 0L) {
       return -1L;
+    }
     if (this.completedTimeNanos < 0L) {
       return (System.nanoTime() - this.startedTimeNanos) / ONE_MILLION;
     } else {

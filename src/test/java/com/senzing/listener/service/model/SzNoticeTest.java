@@ -199,8 +199,12 @@ public class SzNoticeTest {
   public void notEqualsTest(String code, String description) {
     SzNotice notice1 = new SzNotice(code, description);
 
-    if (code != null) code = code + "A";
-    if (description != null) description = description + "A";
+    if (code != null) {
+      code = code + "A";
+    }
+    if (description != null) {
+      description = description + "A";
+    }
     if ((code == null) && (description == null)) {
       description = "A";
     }

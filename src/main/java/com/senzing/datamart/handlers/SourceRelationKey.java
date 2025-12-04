@@ -114,48 +114,59 @@ public class SourceRelationKey implements Comparable<SourceRelationKey> {
    *         instance, respectively.
    */
   public int compareTo(SourceRelationKey key) {
-    if (key == null)
+    if (key == null) {
       return 1;
-    if (key == this)
+    }
+    if (key == this) {
       return 0;
+    }
 
     // compare the match types
     SzMatchType mt1 = this.getMatchType();
     SzMatchType mt2 = key.getMatchType();
     if (!Objects.equals(mt1, mt2)) {
-      if (mt1 == null)
+      if (mt1 == null) {
         return -1;
-      if (mt2 == null)
+      }
+      if (mt2 == null) {
         return 1;
+      }
       int diff = mt1.compareTo(mt2);
-      if (diff != 0)
+      if (diff != 0) {
         return diff;
+      }
     }
 
     // compare the match keys
     String mk1 = this.getMatchKey();
     String mk2 = key.getMatchKey();
     if (!Objects.equals(mk1, mk2)) {
-      if (mk1 == null)
+      if (mk1 == null) {
         return -1;
-      if (mk2 == null)
+      }
+      if (mk2 == null) {
         return 1;
+      }
       int diff = mk1.compareTo(mk2);
-      if (diff != 0)
+      if (diff != 0) {
         return diff;
+      }
     }
 
     // compare the principles
     String p1 = this.getPrinciple();
     String p2 = key.getPrinciple();
     if (!Objects.equals(p1, p2)) {
-      if (p1 == null)
+      if (p1 == null) {
         return -1;
-      if (p2 == null)
+      }
+      if (p2 == null) {
         return 1;
+      }
       int diff = p1.compareTo(p2);
-      if (diff != 0)
+      if (diff != 0) {
         return diff;
+      }
     }
 
     // if we get here then return zero (0)
@@ -171,12 +182,15 @@ public class SourceRelationKey implements Comparable<SourceRelationKey> {
    */
   @Override
   public boolean equals(Object obj) {
-    if (obj == null)
+    if (obj == null) {
       return false;
-    if (this == obj)
+    }
+    if (this == obj) {
       return true;
-    if (this.getClass() != obj.getClass())
+    }
+    if (this.getClass() != obj.getClass()) {
       return false;
+    }
     SourceRelationKey key = (SourceRelationKey) obj;
     return (this.getMatchType() == key.getMatchType()) && Objects.equals(this.getMatchKey(), key.getMatchKey())
         && Objects.equals(this.getPrinciple(), key.getPrinciple());

@@ -1,9 +1,8 @@
 package com.senzing.listener.service.exception;
 
-import com.senzing.listener.service.ListenerService;
-
 /**
- * Exception that can be thrown if a {@link ListenerService} fails
+ * Exception that can be thrown if a {@link 
+ * com.senzing.listener.service.ListenerService} fails
  * initialization.
  */
 public class ServiceSetupException extends Exception {

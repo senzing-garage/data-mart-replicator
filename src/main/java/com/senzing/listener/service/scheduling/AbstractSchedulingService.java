@@ -1,8 +1,5 @@
 package com.senzing.listener.service.scheduling;
 
-import com.ibm.icu.impl.UCaseProps;
-import com.senzing.listener.communication.AbstractMessageConsumer;
-import com.senzing.listener.service.MessageProcessor;
 import com.senzing.listener.service.exception.ServiceExecutionException;
 import com.senzing.listener.service.exception.ServiceSetupException;
 import com.senzing.listener.service.locking.LockToken;
@@ -12,7 +9,6 @@ import com.senzing.listener.service.locking.ResourceKey;
 import com.senzing.util.AsyncWorkerPool;
 import com.senzing.util.AsyncWorkerPool.AsyncResult;
 import com.senzing.util.JsonUtilities;
-import com.senzing.util.LoggingUtilities;
 import com.senzing.util.Timers;
 
 import javax.json.Json;
@@ -780,19 +776,19 @@ public abstract class AbstractSchedulingService implements SchedulingService {
   private long taskCompleteCount = 0L;
 
   /**
-   * The number of times the {@link MessageProcessor#process(JsonObject)}
+   * The number of times the {@link com.senzing.listener.service.MessageProcessor#process(JsonObject)}
    * method has been successfully called.
    */
   private long taskSuccessCount = 0L;
 
   /**
-   * The number of times the {@link MessageProcessor#process(JsonObject)}
+   * The number of times the {@link com.senzing.listener.service.MessageProcessor#process(JsonObject)}
    * method has been called and thrown an exception.
    */
   private long taskFailureCount = 0L;
 
   /**
-   * The number of times the {@link MessageProcessor#process(JsonObject)}
+   * The number of times the {@link com.senzing.listener.service.MessageProcessor#process(JsonObject)}
    * method has been successfully called.
    */
   private long taskAbortCount = 0L;
@@ -804,13 +800,13 @@ public abstract class AbstractSchedulingService implements SchedulingService {
   private long followUpCompleteCount = 0L;
 
   /**
-   * The number of times the {@link MessageProcessor#process(JsonObject)}
+   * The number of times the {@link com.senzing.listener.service.MessageProcessor#process(JsonObject)}
    * method has been successfully called.
    */
   private long followUpSuccessCount = 0L;
 
   /**
-   * The number of times the {@link MessageProcessor#process(JsonObject)}
+   * The number of times the {@link com.senzing.listener.service.MessageProcessor#process(JsonObject)}
    * method has been called and thrown an exception.
    */
   private long followUpFailureCount = 0L;
@@ -891,11 +887,6 @@ public abstract class AbstractSchedulingService implements SchedulingService {
    * The greatest number of info messages that are postponed at any one time.
    */
   private int greatestPostponedCount = 0;
-
-  /**
-   * The greatest number of info messages that are postponed at any one time.
-   */
-  private int greatestFollowUpCount = 0;
 
   /**
    * The object used for synchronization when working with statistics.
@@ -1528,8 +1519,9 @@ public abstract class AbstractSchedulingService implements SchedulingService {
         this.timerPause(obtainLocks);
 
         // if the lock was obtained, return the task
-        if (locked)
+        if (locked) {
           return task;
+        }
 
         // if not locked then postpone the task
         this.postponedTasks.add(task);
@@ -1670,8 +1662,9 @@ public abstract class AbstractSchedulingService implements SchedulingService {
    */
   protected synchronized boolean isPostponedReadyCheckTime() {
     // no need to do a ready check if no postponed messages
-    if (this.postponedTasks.size() == 0)
+    if (this.postponedTasks.size() == 0) {
       return false;
+    }
 
     // get the elapsed time and update the timestamp
     long now = System.nanoTime();
@@ -2074,8 +2067,9 @@ public abstract class AbstractSchedulingService implements SchedulingService {
    *               no result was returned.
    */
   protected void handleAsyncResult(AsyncResult<TaskResult> result) {
-    if (result == null)
+    if (result == null) {
       return;
+    }
     TaskResult taskResult = null;
 
     try {
@@ -2199,6 +2193,9 @@ public abstract class AbstractSchedulingService implements SchedulingService {
             case FAILED:
               this.followUpFailureCount += multiplicity;
               break;
+            default:
+              logWarning("UNEXPECTED POST-COMPLETION TASK STATE: "
+                  + task.getState(), task);              
           }
         } else {
           this.taskCompleteCount++;
@@ -2436,8 +2433,9 @@ public abstract class AbstractSchedulingService implements SchedulingService {
   public void destroy() {
     synchronized (this) {
       State state = this.getState();
-      if (state == DESTROYED)
+      if (state == DESTROYED) {
         return;
+      }
 
       if (state == DESTROYING) {
         while (this.getState() != DESTROYED) {
@@ -2583,7 +2581,7 @@ public abstract class AbstractSchedulingService implements SchedulingService {
   /**
    * Starts the associated {@link Timers} in a thread-safe manner.
    * 
-   * @param statistic  The {@link AbstractMessageConsumer.Stat} to start.
+   * @param statistic  The {@link com.senzing.listener.communication.AbstractMessageConsumer.Stat} to start.
    * @param addlTimers The additional {@link Stat} instances to
    *                   start.
    */
@@ -2619,10 +2617,10 @@ public abstract class AbstractSchedulingService implements SchedulingService {
   }
 
   /**
-   * Gets the {@link Map} of {@link AbstractMessageConsumer.Stat} keys to
+   * Gets the {@link Map} of {@link com.senzing.listener.communication.AbstractMessageConsumer.Stat} keys to
    * their {@link Number} values in an atomic thread-safe manner.
    *
-   * @return The {@link Map} of {@link AbstractMessageConsumer.Stat} keys
+   * @return The {@link Map} of {@link com.senzing.listener.communication.AbstractMessageConsumer.Stat} keys
    *         to their {@link Number} values.
    */
   @Override
@@ -2640,20 +2638,24 @@ public abstract class AbstractSchedulingService implements SchedulingService {
       statsMap.put(AbstractSchedulingService.Stat.followUpTimeout, this.getFollowUpTimeout());
 
       value = this.getAverageTaskTime();
-      if (value != null)
+      if (value != null) {
         statsMap.put(averageTaskTime, value);
+      }
 
       value = this.getAverageTaskGroupTime();
-      if (value != null)
+      if (value != null) {
         statsMap.put(averageTaskGroupTime, value);
+      }
 
       value = this.getLongestTaskTime();
-      if (value != null)
+      if (value != null) {
         statsMap.put(AbstractSchedulingService.Stat.longestTaskTime, value);
+      }
 
       value = this.getLongestTaskGroupTime();
-      if (value != null)
+      if (value != null) {
         statsMap.put(AbstractSchedulingService.Stat.longestTaskGroupTime, value);
+      }
 
       statsMap.put(AbstractSchedulingService.Stat.taskCompleteCount, this.getCompletedTaskCount());
       statsMap.put(AbstractSchedulingService.Stat.taskSuccessCount, this.getSuccessfulTaskCount());
@@ -2667,52 +2669,62 @@ public abstract class AbstractSchedulingService implements SchedulingService {
           this.getFailedFollowUpCount());
 
       value = this.getAverageHandleTaskTime();
-      if (value != null)
+      if (value != null) {
         statsMap.put(averageHandleTask, value);
+      }
 
       statsMap.put(handleTaskCount, this.getHandleTaskCount());
       statsMap.put(handleTaskSuccessCount, this.getSuccessfulHandleTaskCount());
       statsMap.put(handleTaskFailureCount, this.getFailedHandleTaskCount());
 
       value = this.getFollowUpHandleTaskRatio();
-      if (value != null)
+      if (value != null) {
         statsMap.put(followUpHandleTaskRatio, value);
+      }
 
       statsMap.put(taskGroupCompleteCount, this.getCompletedTaskGroupCount());
       statsMap.put(taskGroupSuccessCount, this.getSuccessfulTaskGroupCount());
       statsMap.put(taskGroupFailureCount, this.getFailedTaskGroupCount());
 
       value = this.getAverageCompressionRatio();
-      if (value != null)
+      if (value != null) {
         statsMap.put(averageCompression, value);
+      }
 
       value = this.getGreatestCompressionRatio();
-      if (value != null)
+      if (value != null) {
         statsMap.put(greatestCompression, value);
+      }
 
       value = this.getAverageFollowUpCompressionRatio();
-      if (value != null)
+      if (value != null) {
         statsMap.put(averageFollowUpCompression, value);
+      }
 
       value = this.getGreatestFollowUpCompressionRatio();
-      if (value != null)
+      if (value != null) {
         statsMap.put(greatestFollowUpCompression, value);
+      }
 
       value = this.getAverageTaskGroupSize();
-      if (value != null)
+      if (value != null) {
         statsMap.put(averageTaskGroupSize, value);
+      }
 
       value = this.getGreatestTaskGroupSize();
-      if (value != null)
+      if (value != null) {
         statsMap.put(greatestTaskGroupSize, value);
+      }
 
       value = this.getParallelism();
-      if (value != null)
+      if (value != null) {
         statsMap.put(parallelism, value);
+      }
 
       value = this.getDequeueHitRatio();
-      if (value != null)
+      if (value != null) {
         statsMap.put(dequeueHitRatio, value);
+      }
 
       statsMap.put(AbstractSchedulingService.Stat.greatestPostponedCount,
           this.getGreatestPostponedCount());
@@ -2740,8 +2752,9 @@ public abstract class AbstractSchedulingService implements SchedulingService {
    */
   public Double getAverageCompressionRatio() {
     synchronized (this.getStatisticsMonitor()) {
-      if (this.standardHandleCount == 0)
+      if (this.standardHandleCount == 0) {
         return null;
+      }
       double completeCount = (double) this.taskCompleteCount;
       double handleCount = (double) this.standardHandleCount;
       return completeCount / handleCount;
@@ -2759,8 +2772,9 @@ public abstract class AbstractSchedulingService implements SchedulingService {
    */
   public Integer getGreatestCompressionRatio() {
     synchronized (this.getStatisticsMonitor()) {
-      if (this.greatestMultiplicity <= 0)
+      if (this.greatestMultiplicity <= 0) {
         return null;
+      }
       return this.greatestMultiplicity;
     }
   }
@@ -2776,8 +2790,9 @@ public abstract class AbstractSchedulingService implements SchedulingService {
    */
   public Double getAverageFollowUpCompressionRatio() {
     synchronized (this.getStatisticsMonitor()) {
-      if (this.followUpHandleCount == 0)
+      if (this.followUpHandleCount == 0) {
         return null;
+      }
       double completeCount = (double) this.followUpCompleteCount;
       double handleCount = (double) this.followUpHandleCount;
       return completeCount / handleCount;
@@ -2795,8 +2810,9 @@ public abstract class AbstractSchedulingService implements SchedulingService {
    */
   public Integer getGreatestFollowUpCompressionRatio() {
     synchronized (this.getStatisticsMonitor()) {
-      if (this.greatestFollowUpMultiplicity <= 0)
+      if (this.greatestFollowUpMultiplicity <= 0) {
         return null;
+      }
       return this.greatestFollowUpMultiplicity;
     }
   }
@@ -2810,8 +2826,9 @@ public abstract class AbstractSchedulingService implements SchedulingService {
    */
   public Double getAverageTaskGroupSize() {
     synchronized (this.getStatisticsMonitor()) {
-      if (this.taskGroupCount == 0)
+      if (this.taskGroupCount == 0) {
         return null;
+      }
       double completeCount = (double) this.taskCompleteCount;
       double groupCount = (double) this.taskGroupCount;
       return (completeCount / groupCount);
@@ -2866,8 +2883,9 @@ public abstract class AbstractSchedulingService implements SchedulingService {
    */
   public Double getAverageTaskTime() {
     synchronized (this.getStatisticsMonitor()) {
-      if (this.taskCompleteCount == 0)
+      if (this.taskCompleteCount == 0) {
         return null;
+      }
       double totalTime = (double) this.totalTaskTime;
       double completeCount = (double) this.taskCompleteCount;
       return totalTime / completeCount;
@@ -2885,8 +2903,9 @@ public abstract class AbstractSchedulingService implements SchedulingService {
    */
   public Long getLongestTaskTime() {
     synchronized (this.getStatisticsMonitor()) {
-      if (this.longestTaskTime < 0)
+      if (this.longestTaskTime < 0) {
         return null;
+      }
       return this.longestTaskTime;
     }
   }
@@ -2904,8 +2923,9 @@ public abstract class AbstractSchedulingService implements SchedulingService {
    */
   public Double getAverageTaskGroupTime() {
     synchronized (this.getStatisticsMonitor()) {
-      if (this.taskGroupCount == 0)
+      if (this.taskGroupCount == 0) {
         return null;
+      }
       double totalTime = (double) this.totalTaskGroupTime;
       double groupCount = (double) this.taskGroupCount;
       return totalTime / groupCount;
@@ -2925,8 +2945,9 @@ public abstract class AbstractSchedulingService implements SchedulingService {
    */
   public Long getLongestTaskGroupTime() {
     synchronized (this.getStatisticsMonitor()) {
-      if (this.longestTaskGroupTime < 0L)
+      if (this.longestTaskGroupTime < 0L) {
         return null;
+      }
       return this.longestTaskGroupTime;
     }
   }
@@ -3028,8 +3049,9 @@ public abstract class AbstractSchedulingService implements SchedulingService {
    */
   public Double getAverageHandleTaskTime() {
     synchronized (this.getStatisticsMonitor()) {
-      if (this.handleCount == 0)
+      if (this.handleCount == 0) {
         return null;
+      }
       double totalTime = ((double) this.totalHandlingTime);
       double callCount = ((double) this.handleCount);
       return totalTime / callCount;
@@ -3097,8 +3119,9 @@ public abstract class AbstractSchedulingService implements SchedulingService {
    */
   public Double getFollowUpHandleTaskRatio() {
     synchronized (this.getStatisticsMonitor()) {
-      if (this.handleCount == 0)
+      if (this.handleCount == 0) {
         return null;
+      }
       double followUp = ((double) this.followUpHandleCount);
       double all = ((double) this.handleCount);
       return followUp / all;
@@ -3149,8 +3172,9 @@ public abstract class AbstractSchedulingService implements SchedulingService {
    */
   public Integer getGreatestTaskGroupSize() {
     synchronized (this.getStatisticsMonitor()) {
-      if (this.greatestGroupSize <= 0)
+      if (this.greatestGroupSize <= 0) {
         return null;
+      }
       return this.greatestGroupSize;
     }
   }
@@ -3169,8 +3193,9 @@ public abstract class AbstractSchedulingService implements SchedulingService {
     synchronized (this.getStatisticsMonitor()) {
       String timerKey = activelyHandling.toString();
       Long activeTime = this.timers.getElapsedTime(timerKey);
-      if (activeTime == 0L)
+      if (activeTime == 0L) {
         return null;
+      }
       Double totalTime = (double) this.totalHandlingTime;
       return (totalTime / ((double) activeTime));
     }
@@ -3389,8 +3414,9 @@ public abstract class AbstractSchedulingService implements SchedulingService {
      *         <code>false</code>.
      */
     public boolean isFollowUpExpired() {
-      if (this.expirationNanos == null)
+      if (this.expirationNanos == null) {
         return false;
+      }
       return System.nanoTime() > this.expirationNanos;
     }
 
@@ -3431,8 +3457,9 @@ public abstract class AbstractSchedulingService implements SchedulingService {
      *         aborted.
      */
     public synchronized int removeAborted() {
-      if (this.isFollowUp())
+      if (this.isFollowUp()) {
         return 0;
+      }
 
       int removedCount = 0;
       Iterator<Task> iter = this.backingTasks.iterator();
@@ -3444,8 +3471,9 @@ public abstract class AbstractSchedulingService implements SchedulingService {
         TaskGroup group = task.getTaskGroup();
 
         // check if the group is fast-fail, if not then no abort
-        if (!group.isFastFail())
+        if (!group.isFastFail()) {
           continue;
+        }
 
         // check if the group has failed
         if (group.getState() == TaskGroup.State.FAILED) {
@@ -3626,12 +3654,14 @@ public abstract class AbstractSchedulingService implements SchedulingService {
      *         <code>false</code>.
      */
     public synchronized boolean acquireLocks(LockingService lockingService) {
-      if (this.lockToken != null)
+      if (this.lockToken != null) {
         return true;
+      }
 
       Set<ResourceKey> resourceKeys = this.getResourceKeys();
-      if (resourceKeys == null || resourceKeys.size() == 0)
+      if (resourceKeys == null || resourceKeys.size() == 0) {
         return true;
+      }
 
       try {
         this.lockToken = lockingService.acquireLocks(resourceKeys, 0L);
@@ -3651,12 +3681,14 @@ public abstract class AbstractSchedulingService implements SchedulingService {
      *                       the locks.
      */
     public synchronized void releaseLocks(LockingService lockingService) {
-      if (this.lockToken == null)
+      if (this.lockToken == null) {
         return;
+      }
 
       Set<ResourceKey> resourceKeys = this.getResourceKeys();
-      if (resourceKeys == null || resourceKeys.size() == 0)
+      if (resourceKeys == null || resourceKeys.size() == 0) {
         return;
+      }
 
       try {
         int count = lockingService.releaseLocks(this.lockToken);

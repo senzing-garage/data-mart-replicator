@@ -4,10 +4,10 @@
   <groupId>com.senzing</groupId>
   <artifactId>data-mart-replicator</artifactId>
   <packaging>jar</packaging>
-  <version>1.2.4</version>
-  <name>Senzing G2 Data Mart Replicator</name>
+  <version>2.0.0-beta.1.0</version>
+  <name>Senzing Data Mart Replicator</name>
   <description>The Senzing listener implementation that replicates data to the data mart.</description>
-  <url>http://github.com/senzing-garage/g2-sdk-java</url>
+  <url>http://github.com/senzing-garage/data-mart-replicator</url>
   <licenses>
     <license>
       <name>The Apache License, Version 2.0</name>
@@ -27,11 +27,71 @@
     <developerConnection>scm:git:ssh://github.com:senzing-garage/data-mart-replicator.git</developerConnection>
     <url>http://github.com/senzing-garage/data-mart-replicator/tree/main</url>
   </scm>
+  <dependencyManagement>
+    <dependencies>
+        <dependency>
+          <groupId>com.linecorp.armeria</groupId>
+          <artifactId>armeria-bom</artifactId>
+          <version>1.34.0</version>
+          <type>pom</type>
+          <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>2.20.1</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>         
+    </dependencies>
+  </dependencyManagement>
   <dependencies>
+    <dependency>
+        <groupId>com.senzing</groupId>
+        <artifactId>sz-sdk</artifactId>
+        <version>4.1.0</version>
+    </dependency>
+    <dependency>
+        <groupId>com.senzing</groupId>
+        <artifactId>sz-sdk-auto</artifactId>
+        <version>0.5.0</version>
+    </dependency>
     <dependency>
       <groupId>com.senzing</groupId>
       <artifactId>senzing-commons</artifactId>
-      <version>[3.3.7,3.9999999.9999999]</version>
+      <version>4.0.0-beta.1.5</version>
+    </dependency>
+      <dependency>
+        <groupId>com.google.code.findbugs</groupId>
+        <artifactId>jsr305</artifactId>
+        <version>3.0.2</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.linecorp.armeria</groupId>
+        <artifactId>armeria</artifactId>
+        <exclusions>
+            <exclusion>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-transport-native-epoll</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-transport-native-kqueue</artifactId>
+            </exclusion>
+            <!-- exclusion>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-transport-native-unix-common</artifactId>
+            </exclusion -->
+            <exclusion>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-resolver-dns-native-macos</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>io.netty.incubator</groupId>
+                <artifactId>netty-incubator-transport-native-io_uring</artifactId>
+            </exclusion>
+        </exclusions>        
     </dependency>
     <dependency>
       <groupId>org.xerial</groupId>
@@ -46,27 +106,23 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
-      <version>2.20</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.20.1</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
-      <version>2.20.1</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.module</groupId>
       <artifactId>jackson-module-jaxb-annotations</artifactId>
-      <version>2.20.1</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
-      <version>5.14.1</version>
+      <version>6.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -78,6 +134,12 @@
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>sqs</artifactId>
       <version>2.40.1</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+        </exclusion>
+      </exclusions> 
     </dependency>
     <dependency>
       <groupId>com.rabbitmq</groupId>
@@ -93,42 +155,23 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>2.0.17</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
       <version>2.0.17</version>
-    </dependency>
-
-    <!-- add dependencies that were present in JDK 8, but optional in JDK 11 -->
-    <dependency>
-      <groupId>com.sun.xml.bind</groupId>
-      <artifactId>jaxb-core</artifactId>
-      <version>3.0.2</version>
-    </dependency>
-    <dependency>
-      <groupId>javax.xml.bind</groupId>
-      <artifactId>jaxb-api</artifactId>
-      <version>2.3.1</version>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.xml.bind</groupId>
-      <artifactId>jaxb-impl</artifactId>
-      <version>2.3.9</version>
-    </dependency>
-    <dependency>
-      <groupId>org.javassist</groupId>
-      <artifactId>javassist</artifactId>
-      <version>3.30.2-GA</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   <properties>
-    <maven.compiler.source>11</maven.compiler.source>
-    <maven.compiler.target>11</maven.compiler.target>
+    <gpg.skip>true</gpg.skip> <!-- skip GPG unless release profile -->
+    <maven.compiler.release>17</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
   <build>
+    <finalName>${project.artifactId}</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -158,7 +201,27 @@
               junit.jupiter.execution.parallel.config.dynamic.factor = 1
             </configurationParameters>
           </properties>
+          <classpathDependencyExcludes>
+              <classpathDependencyExclude>io.netty:netty-transport-native-unix-common:jar:linux-aarch_64</classpathDependencyExclude>
+              <classpathDependencyExclude>io.netty:netty-transport-native-unix-common:jar:linux-x86_64</classpathDependencyExclude>
+              <classpathDependencyExclude>io.netty:netty-transport-native-unix-common:jar:osx-aarch_64</classpathDependencyExclude>
+              <classpathDependencyExclude>io.netty:netty-transport-native-unix-common:jar:osx-x86_64</classpathDependencyExclude>
+          </classpathDependencyExcludes>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>3.2.8</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -187,34 +250,161 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>1.7.0</version>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>true</autoReleaseAfterClose>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.3.1</version>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/classes</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${basedir}/src/main/resources</directory>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>
+              <propertiesEncoding>ISO-8859-1</propertiesEncoding>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <version>3.6.1</version>
-        <configuration>
-          <createDependencyReducedPom>false</createDependencyReducedPom>
-          <filters>
-            <filter>
-              <artifact>*:*</artifact>
-              <excludes>
-                <exclude>META-INF/*.SF</exclude>
-                <exclude>META-INF/*.DSA</exclude>
-                <exclude>META-INF/*.RSA</exclude>
-              </excludes>
-            </filter>
-          </filters>
-        </configuration>
         <executions>
           <execution>
+            <id>create-server-jar</id>
             <phase>package</phase>
             <goals>
               <goal>shade</goal>
             </goals>
             <configuration>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
+              <outputFile>${project.build.directory}/${project.artifactId}-server.jar</outputFile>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>module-info.class</exclude>
+                    <exclude>META-INF/**/module-info.class</exclude>
+                    <exclude>META-INF/maven/**</exclude>
+                    <exclude>META-INF/MANIFEST.MF</exclude>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                     <!-- the following is only needed if using ProGuard for shrinking/obfuscating -->
+                    <exclude>META-INF/proguard/**</exclude>
+                  </excludes>
+                </filter>
+                <!-- add this filter since we get these files from another jar-->
+                <filter>
+                  <artifact>io.netty:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/license/LICENSE.aix-netbsd.txt</exclude>
+                    <exclude>META-INF/license/LICENSE.boringssl.txt</exclude>
+                    <exclude>META-INF/license/LICENSE.mvn-wrapper.txt</exclude>
+                    <exclude>META-INF/license/LICENSE.tomcat-native.txt</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>software.amazon.awssdk:third-party-jackson-core</artifact>
+                  <excludes>
+                    <exclude>META-INF/FastDoubleParser-LICENSE</exclude>
+                    <exclude>META-INF/FastDoubleParser-NOTICE</exclude>
+                    <exclude>META-INF/thirdparty-LICENSE</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <artifactSet>
+                <includes>
+                  <include>*</include>
+                </includes>
+                <excludes>
+                  <exclude>com.senzing:sz-sdk</exclude>
+                  <exclude>io.netty:netty-transport-native-unix-common:jar:linux-aarch_64</exclude>
+                  <exclude>io.netty:netty-transport-native-unix-common:jar:linux-x86_64</exclude>
+                  <exclude>io.netty:netty-transport-native-unix-common:jar:osx-aarch_64</exclude>
+                  <exclude>io.netty:netty-transport-native-unix-common:jar:osx-x86_64</exclude>
+                </excludes>
+              </artifactSet>
+              <relocations>
+                <relocation>
+                  <pattern>org</pattern>
+                  <shadedPattern>com.senzing.datamart.shaded.org</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>io</pattern>
+                  <shadedPattern>com.senzing.datamart.shaded.io</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>net</pattern>
+                  <shadedPattern>com.senzing.datamart.shaded.net</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.google</pattern>
+                  <shadedPattern>com.senzing.datamart.shaded.com.google</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>google</pattern>
+                  <shadedPattern>com.senzing.datamart.shaded.google</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>android</pattern>
+                  <shadedPattern>com.senzing.datamart.shaded.android</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.linecorp</pattern>
+                  <shadedPattern>com.senzing.sdk.grpc.shaded.com.linecorp</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.fasterxml</pattern>
+                  <shadedPattern>com.senzing.datamart.shaded.com.fasterxml</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.aayushatharva</pattern>
+                  <shadedPattern>com.senzing.datamart.shaded.com.aayushatharva</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>javax</pattern>
+                  <shadedPattern>com.senzing.datamart.shaded.javax</shadedPattern>
+                </relocation>
+              </relocations>
               <transformers>
-                <transformer
-                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-                <transformer
-                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer"/>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/NOTICE</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/NOTICE.txt</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/DEPENDENCIES</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/com.linecorp.armeria.versions.properties</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                  <resource>META-INF/io.netty.versions.properties</resource>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <manifestEntries>
                     <!-- Main-Class>com.foo.Test</Main-Class -->
                     <Main-Class>com.senzing.datamart.SzReplicator</Main-Class>
@@ -228,4 +418,135 @@
       </plugin>
     </plugins>
   </build>
+  <profiles>
+    <profile>
+      <id>release</id>
+      <properties>
+        <gpg.skip>false</gpg.skip>
+      </properties>
+    </profile>
+    <profile>
+      <id>jacoco</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.8.14</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>prepare-agent</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>report</id>
+                <phase>test</phase>
+                <goals>
+                  <goal>report</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>checkstyle</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <version>3.6.0</version>
+            <configuration>
+              <consoleOutput>true</consoleOutput>
+              <failsOnError>true</failsOnError>
+              <linkXRef>false</linkXRef>
+              <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
+            </configuration>
+            <executions>
+              <execution>
+                <id>validate</id>
+                <phase>validate</phase>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>spotbugs</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-maven-plugin</artifactId>
+            <version>4.9.8.1</version>
+            <configuration>
+              <plugins>
+                <plugin>
+                  <groupId>com.h3xstream.findsecbugs</groupId>
+                  <artifactId>findsecbugs-plugin</artifactId>
+                  <version>1.14.0</version>
+                </plugin>
+              </plugins>
+              <excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
+              <onlyAnalyze>com.senzing.sdk.grpc.*,-com.senzing.sdk.grpc.proto.*</onlyAnalyze>
+            </configuration>
+            <executions>
+              <execution>
+                <id>validate</id>
+                <phase>validate</phase>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>java-17</id>
+      <activation>
+        <jdk>17</jdk>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <!-- on JDK 17, remove the "@snippet" tag -->
+              <tags>
+                <tag>
+                  <name>snippet</name>
+                  <placement>x</placement>
+                </tag>
+              </tags>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>java-18+</id>
+      <activation>
+        <jdk>[18,)</jdk>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <additionalOptions>--snippet-path ${project.basedir}/src/demo/java</additionalOptions>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>  
 </project>

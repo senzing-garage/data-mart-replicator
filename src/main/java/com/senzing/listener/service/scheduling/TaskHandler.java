@@ -1,9 +1,7 @@
 package com.senzing.listener.service.scheduling;
 
 import com.senzing.listener.service.exception.ServiceExecutionException;
-import com.senzing.listener.service.exception.ServiceSetupException;
 
-import javax.json.JsonObject;
 import java.util.Map;
 
 /**

@@ -410,7 +410,9 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
     sqlList.add(createPendingReportIndex2);
     sqlList.add(createPendingReportIndex3);
 
-    if (!conn.getAutoCommit()) sqlList.add("COMMIT;");
+    if (!conn.getAutoCommit()) {
+        sqlList.add("COMMIT;");
+    }
 
     this.executeStatements(conn, sqlList);
   }

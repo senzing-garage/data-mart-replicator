@@ -10,44 +10,52 @@ import javax.json.JsonObject;
 /**
  * A factory class for creating instances of {@link MessageConsumer}.
  */
-public class MessageConsumerFactory {
-  /**
-   * Generates a message consumer based on consumer type.
-   * 
-   * @param consumerType The consumer type.
-   *
-   * @param config       The {@link JsonObject} describing the configuration for
-   *                     the
-   *                     {@link MessageConsumer}.
-   *
-   * @return The {@link MessageConsumer} that was created.
-   * 
-   * @throws MessageConsumerSetupException If a failure occurs.
-   */
-  public static MessageConsumer generateMessageConsumer(
-      ConsumerType consumerType,
-      JsonObject config)
-      throws MessageConsumerSetupException {
-    MessageConsumer consumer = null;
+public final class MessageConsumerFactory {
+    /**
+     * Generates a message consumer based on consumer type.
+     * 
+     * @param consumerType The consumer type.
+     *
+     * @param config       The {@link JsonObject} describing the configuration for
+     *                     the {@link MessageConsumer}.
+     *
+     * @return The {@link MessageConsumer} that was created.
+     * 
+     * @throws MessageConsumerSetupException If a failure occurs.
+     */
+    public static MessageConsumer generateMessageConsumer(ConsumerType  consumerType, 
+                                                          JsonObject    config)
+        throws MessageConsumerSetupException 
+    {
+        MessageConsumer consumer = null;
 
-    switch (consumerType) {
-      case DATABASE:
-        consumer = new SQLConsumer();
-        break;
-      case RABBIT_MQ:
-        consumer = new RabbitMQConsumer();
-        break;
-      case SQS:
-        consumer = new SQSConsumer();
-        break;
+        switch (consumerType) {
+        case DATABASE:
+            consumer = new SQLConsumer();
+            break;
+        case RABBIT_MQ:
+            consumer = new RabbitMQConsumer();
+            break;
+        case SQS:
+            consumer = new SQSConsumer();
+            break;
+        default:
+            // fall through
+        }
+        if (consumer == null) {
+            StringBuilder errorMessage = new StringBuilder(
+                "Invalid message consumer specified: ").append(consumerType);
+            throw new MessageConsumerSetupException(errorMessage.toString());
+        } else {
+            consumer.init(config);
+            return consumer;
+        }
     }
-    if (consumer == null) {
-      StringBuilder errorMessage = new StringBuilder("Invalid message consumer specified: ")
-          .append(consumerType);
-      throw new MessageConsumerSetupException(errorMessage.toString());
-    } else {
-      consumer.init(config);
-      return consumer;
+
+    /**
+     * Private constructor.
+     */
+    private MessageConsumerFactory() {
+        // do nothing
     }
-  }
 }

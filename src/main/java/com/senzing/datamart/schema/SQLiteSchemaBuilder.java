@@ -1,13 +1,9 @@
 package com.senzing.datamart.schema;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
-
-import static com.senzing.sql.SQLUtilities.*;
 
 /**
  * Provides a data mart schema builder for SQLite.

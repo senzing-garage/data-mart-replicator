@@ -102,15 +102,33 @@ public class SzNotice implements Serializable {
     this.description = description;
   }
 
+  /**
+   * Overridden to return <code>true</code> if and only if the specified parameter
+   * is an instance of the same class with equivalent properties.
+   * 
+   * @param o The object to compare with.
+   * @return <code>true</code> if the specified parameter is an instance of the 
+   *         same class with equivalent properties, otherwise <code>false</code>.
+   */
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || this.getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || this.getClass() != o.getClass()) {
+      return false;
+    }
     SzNotice szNotice = (SzNotice) o;
     return Objects.equals(this.getCode(), szNotice.getCode())
         && Objects.equals(this.getDescription(), szNotice.getDescription());
   }
 
+  /**
+   * Overridden to return a hash code consistent with the {@link #equals(Object)} 
+   * implementation.
+   * 
+   * @return The hash code for this instance.
+   */
   @Override
   public int hashCode() {
     return Objects.hash(this.getCode(), this.getDescription());
@@ -131,7 +149,9 @@ public class SzNotice implements Serializable {
    * @see #toJsonObject()
    */
   public JsonObjectBuilder toJsonObjectBuilder(JsonObjectBuilder builder) {
-    if (builder == null) builder = Json.createObjectBuilder();
+    if (builder == null) {
+      builder = Json.createObjectBuilder();
+    }
     JsonUtilities.add(builder, CODE_KEY, this.getCode());
     JsonUtilities.add(builder, DESCRIPTION_KEY, this.getDescription());
     return builder;
@@ -204,7 +224,9 @@ public class SzNotice implements Serializable {
   public static SzNotice fromJson(String jsonText)
     throws IllegalArgumentException
   {
-    if (jsonText == null) return null;
+    if (jsonText == null) {
+      return null;
+    }
     return fromJson(JsonUtilities.parseJsonObject(jsonText));
   }
 
@@ -249,7 +271,9 @@ public class SzNotice implements Serializable {
   public static SzNotice fromRawJson(String jsonText)
       throws IllegalArgumentException
   {
-    if (jsonText == null) return null;
+    if (jsonText == null) {
+      return null;
+    }
     return fromRawJson(JsonUtilities.parseJsonObject(jsonText));
   }
 
@@ -298,7 +322,9 @@ public class SzNotice implements Serializable {
                                    String     descriptionKey)
       throws IllegalArgumentException
   {
-    if (jsonObject == null) return null;
+    if (jsonObject == null) {
+      return null;
+    }
     if (!jsonObject.containsKey(codeKey)) {
       throw new IllegalArgumentException(
           "The specified JSON must at least contain the \"" + codeKey

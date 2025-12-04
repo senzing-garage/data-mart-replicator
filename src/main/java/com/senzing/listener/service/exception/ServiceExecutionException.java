@@ -1,9 +1,9 @@
 package com.senzing.listener.service.exception;
 
-import com.senzing.listener.service.ListenerService;
-
 /**
- * Exception that can be thrown if a {@link ListenerService} operation fails.
+ * Exception that can be thrown if a {@link 
+ * com.senzing.listener.service.ListenerService}
+ * operation fails.
  */
 public class ServiceExecutionException extends Exception {
   /**
