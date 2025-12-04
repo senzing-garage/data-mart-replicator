@@ -8,6 +8,7 @@
       "alse",
       "amqp",
       "amqps",
+      "apidocs",
       "armeria",
       "awssdk",
       "backgrounding",
@@ -23,6 +24,7 @@
       "Dgit",
       "Dproject",
       "Dskip",
+      "Dtest",
       "dsrc",
       "Entityid",
       "errule",
@@ -61,6 +63,7 @@
       "thirdparty",
       "toplevel",
       "unleased",
+      "upsert",
       "UNTRACKING",
       "vhost",
       "xerial",
@@ -69,6 +72,7 @@
   "ignorePaths": [
     ".git/**",
     ".gitignore",
-    "target/**"
+    "target/**",
+    ".claude/**"
   ]
 }
