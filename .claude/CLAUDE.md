@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **DO NOT modify files directly. Always make suggestions instead and wait for user approval.**
 
-- The ONLY file you are permitted to edit directly is CLAUDE.md
+- The ONLY file you are permitted to edit directly is .claude/CLAUDE.md
 - For ALL other files, provide suggestions and recommendations
 - Wait for user review and approval before any changes are made
 - Default to suggesting changes rather than implementing them

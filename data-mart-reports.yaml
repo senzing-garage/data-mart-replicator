@@ -1,0 +1,2129 @@
+openapi: 3.0.1
+info:
+  title: Senzing Data Mart Reports REST API
+  version: "2.0.0-beta.1.0"
+  description: >-
+    This is the Senzing Data Mart Reports API.  This provides endpoints and
+    types for obtaining reports from the data mart.
+
+servers:
+  - url: http://localhost:8250
+  - url: "{protocol}://{host}:{port}{path}"
+    variables:
+      protocol:
+        enum:
+          - http
+          - https
+        default: http
+      host:
+        default: localhost
+      port:
+        default: "8250"
+      path:
+        default: "/"
+
+paths:
+  /statistics/loaded:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the entity and record counts in total and by data source from the
+        data mart.
+      description: >-
+        Gets the entity and record counts in total and by data source from the
+        data mart.  *NOTE*: Data mart statistics may be slightly delayed from 
+        the entity repository.
+      operationId: getLoadedStatistics
+      parameters:
+        - $ref: "#/components/parameters/onlyLoadedQueryParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzLoadedStats"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzLoadedStats"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzLoadedStats"
+        "500":
+          description: A server-side error occurred.
+  /statistics/loaded/data-sources/{dataSourceCode}:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the entity and record counts for a specific data source from the
+        data mart.
+      description: >-
+        Gets the entity and record counts for a specific data source from the
+        data mart.  If no records have been loaded for the data source then 
+        this returns a 200 OK response with counts of zero.  However, if the
+        data source is not recognized then a 404 Not Found response is returned.
+        *NOTE*: Data mart statistics may be slightly delayed from the entity
+        repository.
+      operationId: getSourceLoadedStatistics
+      parameters:
+        - $ref: "#/components/parameters/dataSourceCodePathParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzSourceLoadedStats"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzSourceLoadedStats"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzSourceLoadedStats"
+        "404":
+          description: >-
+            If the specified data-source in the path is not configured.
+        "500":
+          description: If a server-side error occurred.
+  /statistics/loaded/data-sources/{dataSourceCode}/entities:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the entity ID's of the entities having at least one record from the
+        respective data source.
+      description: >-
+        Gets the entity ID's of the entities having at least one record from the
+        respective data source.  If no records have been loaded for that data source
+        then this will return a 200 OK response that will have an empty array of
+        entity ID's rather than giving a 404 Not Found response.  However, the data 
+        source code in the path is not configured then this will return a 404 Not Found
+        response.  *NOTE*: Data mart statistics may be slightly delayed from the entity
+        repository.
+      operationId: getEntityIdsForDataSource
+      parameters:
+        - $ref: "#/components/parameters/dataSourceCodePathParam"
+        - $ref: "#/components/parameters/entityIdBoundQueryParam"
+        - $ref: "#/components/parameters/boundTypeQueryParam"
+        - $ref: "#/components/parameters/pageSizeQueryParam"
+        - $ref: "#/components/parameters/sampleSizeQueryParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+        "400":
+          description: >-
+            If the `sampleSize` and `pageSize` parameter are both specified 
+            and the `pageSize` is **not strictly greater-than** the `sampleSize`.
+        "404":
+          description: >-
+            If the specified data-source in the path is not configured.
+        "500":
+          description: If a server-side error occurred.
+  /statistics/sizes:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the entity counts by entity size (Entity Size Breakdown).
+      description: >-
+        Gets the number of entities in the repository for each entity size 
+        that exists.  *NOTE*: Data mart statistics may be slightly delayed
+        from the entity repository.
+      operationId: getEntitySizeBreakdown
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzEntitySizeBreakdown"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzEntitySizeBreakdown"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzEntitySizeBreakdown"
+        "500":
+          description: A server-side error occurred.
+  /statistics/sizes/{entitySize}:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the count of entities having the specific number of records.
+      description: >-
+        Gets the count of entities having the specific number of records.
+        If there are NO entities having the specified number of records then
+        this will return a 200 OK response with the result indicating a count
+        of zero entities rather than giving a 404 Not Found response.
+        *NOTE*: Data mart statistics may be slightly delayed from the entity
+        repository.
+      operationId: getEntitySizeCount
+      parameters:
+        - $ref: "#/components/parameters/entitySizePathParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzEntitySizeCount"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzEntitySizeCount"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzEntitySizeCount"
+        "500":
+          description: A server-side error occurred.
+  /statistics/sizes/{entitySize}/entities:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the entity ID's of the entities having the specific number of records.
+      description: >-
+        Gets the entity ID's of the entities having the number of records for the
+        specified entity size.  If no entities have the specified number of records
+        then this will return a 200 OK response that will have an empty array of
+        entity ID's rather than giving a 404 Not Found response.  Further, if there
+        are no entity ID's for entities satisfying the bound conditions of the
+        request then similarly a 200 OK response is returned but the array of ID's
+        contained in the response will be empty.  *NOTE*: Data mart statistics may
+        be slightly delayed from the entity repository.
+      operationId: getEntityIdsForEntitySize
+      parameters:
+        - $ref: "#/components/parameters/entitySizePathParam"
+        - $ref: "#/components/parameters/entityIdBoundQueryParam"
+        - $ref: "#/components/parameters/boundTypeQueryParam"
+        - $ref: "#/components/parameters/pageSizeQueryParam"
+        - $ref: "#/components/parameters/sampleSizeQueryParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+        "400":
+          description: >-
+            If the `sampleSize` and `pageSize` parameter are both specified 
+            and the `pageSize` is **not** strictly greater-than the `sampleSize`.
+        "500":
+          description: If a server-side error occurred.
+  /statistics/relations:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the entity counts by the number of entity relations (Entity 
+        Relation Breakdown).
+      description: >-
+        Gets the number of entities in the repository for each number of entity
+        relations that exists for those entities.  *NOTE*: Data mart statistics
+        may be slightly delayed from the entity repository.
+      operationId: getEntityRelationsBreakdown
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzEntityRelationsBreakdown"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzEntityRelationsBreakdown"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzEntityRelationsBreakdown"
+        "500":
+          description: A server-side error occurred.
+  /statistics/relations/{relationsCount}:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the count of entities having the specific number of entity relations.
+      description: >-
+        Gets the count of entities having the specific number of entity relations.
+        If there are NO entities having the specified number of entity relations
+        then this will return a 200 OK response with the result indicating a count
+        of zero entities rather than giving a 404 Not Found response.  *NOTE*: Data
+        mart statistics may be slightly delayed from the entity repository.
+      operationId: getEntityRelationsCount
+      parameters:
+        - $ref: "#/components/parameters/relationsCountPathParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzEntityRelationsCount"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzEntityRelationsCount"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzEntityRelationsCount"
+        "500":
+          description: A server-side error occurred.
+  /statistics/relations/{relationsCount}/entities:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the entity ID's of the entities having the specific number of entity
+        relationships.
+      description: >-
+        Gets the entity ID's of the entities having the respective number of entity
+        relations.  If no entities have the respective number of entity relations
+        then this will return a 200 OK response that will have an empty array of
+        entity ID's rather than giving a 404 Not Found response.  Further, if there
+        are no entity ID's for entities satisfying the bound conditions of the request
+        then similarly a 200 OK response is returned but the array of ID's contained
+        in the response will be empty.  *NOTE*: Data mart statistics may be slightly
+        delayed from the entity repository.
+      operationId: getEntityIdsForEntityRelations
+      parameters:
+        - $ref: "#/components/parameters/relationsCountPathParam"
+        - $ref: "#/components/parameters/entityIdBoundQueryParam"
+        - $ref: "#/components/parameters/boundTypeQueryParam"
+        - $ref: "#/components/parameters/pageSizeQueryParam"
+        - $ref: "#/components/parameters/sampleSizeQueryParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+        "400":
+          description: >-
+            If the `sampleSize` and `pageSize` parameter are both specified 
+            and the `pageSize` is **not** strictly greater-than the `sampleSize`.
+        "500":
+          description: If a server-side error occurred.
+  /statistics/summary:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the summary statistics for each data source versus every other 
+        data source including itself.
+      description: >-
+        Gets the summary statistics for each data source versus every other
+        data source including itself.  *NOTE*: Data mart statistics may be
+        slightly delayed from the entity repository.
+      operationId: getSummaryStatistics
+      parameters:
+        - $ref: "#/components/parameters/matchKeyWildcardQueryParam"
+        - $ref: "#/components/parameters/principleWildcardQueryParam"
+        - $ref: "#/components/parameters/onlyLoadedQueryParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzSummaryStats"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzSummaryStats"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzSummaryStats"
+        "500":
+          description: A server-side error occurred.
+  /statistics/summary/data-sources/{dataSourceCode}:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the summary statistics for a specific data source versus every
+        other data source including itself.
+      description: >-
+        Gets the summary statistics for a specific data source versus every
+        other data source including itself.  If the specified data source code
+        is not configured then a 404 Not Found response is returned.  *NOTE*:
+        Data mart statistics may be slightly delayed from the entity repository.
+      operationId: getSourceSummaryStatistics
+      parameters:
+        - $ref: "#/components/parameters/dataSourceCodePathParam"
+        - $ref: "#/components/parameters/matchKeyWildcardQueryParam"
+        - $ref: "#/components/parameters/principleWildcardQueryParam"
+        - $ref: "#/components/parameters/onlyLoadedQueryParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzSourceSummary"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzSourceSummary"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzSourceSummary"
+        "500":
+          description: A server-side error occurred.
+  /statistics/summary/data-sources/{dataSourceCode}/vs/{vsDataSourceCode}:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the cross-summary statistics for one data source versus
+        another data source (which may be the same).
+      description: >-
+        Gets the cross-summary statistics for a primary data source versus another
+        data source (which may be the same).  If either of the specified data
+        source codes is not configured then a 404 Not Found response is returned.
+        *NOTE*:  Data mart statistics may be slightly delayed from the entity
+        repository.
+      operationId: getCrossSourceSummaryStatistics
+      parameters:
+        - $ref: "#/components/parameters/dataSourceCodePathParam"
+        - $ref: "#/components/parameters/vsDataSourceCodePathParam"
+        - $ref: "#/components/parameters/matchKeyWildcardQueryParam"
+        - $ref: "#/components/parameters/principleWildcardQueryParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzCrossSourceSummary"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzCrossSourceSummary"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzCrossSourceSummary"
+        "500":
+          description: A server-side error occurred.
+  /statistics/summary/data-sources/{dataSourceCode}/vs/{vsDataSourceCode}/matches:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the cross-summary statistics for matches for entities having at
+        least one record from a primary data source and at least one **other**
+        record from another data source (which may be the same data source), 
+        optionally for one or more combination of match key and principle.
+      description: >-
+        Gets the cross-summary statistics for matches between a primary data
+        source and another data source (which may be the same), optionally for
+        one or more combination of match key and principle.  If either of
+        the specified data source codes is not configured then a 404 Not Found
+        response is returned.  *NOTE*:  Data mart statistics may be slightly
+        delayed from the entity repository.
+      operationId: getCrossSourceMatchStatistics
+      parameters:
+        - $ref: "#/components/parameters/dataSourceCodePathParam"
+        - $ref: "#/components/parameters/vsDataSourceCodePathParam"
+        - $ref: "#/components/parameters/matchKeyWildcardQueryParam"
+        - $ref: "#/components/parameters/principleWildcardQueryParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzCrossSourceMatchCounts"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzCrossSourceMatchCounts"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzCrossSourceMatchCounts"
+        "500":
+          description: A server-side error occurred.
+  /statistics/summary/data-sources/{dataSourceCode}/vs/{vsDataSourceCode}/ambiguous-matches:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the cross-summary statistics for ambiguous-match relations between entities
+        having at least one record from one data source and entities having at least
+        one record from another data source (which may be the same), optionally for
+        one or more combination of match key and principle.
+      description: >-
+        Gets the cross-summary statistics for ambiguous-match relations between entities
+        having at least one record from a primary data source and entities having
+        at least one record another data source (which may be the same), optionally
+        for one or more combination of match key and principle.  If either of the
+        specified data source codes is not configured then a 404 Not Found response
+        is returned.  *NOTE*:  Data mart statistics may be slightly delayed from
+        the entity repository.
+      operationId: getCrossSourceAmbiguousMatchStatistics
+      parameters:
+        - $ref: "#/components/parameters/dataSourceCodePathParam"
+        - $ref: "#/components/parameters/vsDataSourceCodePathParam"
+        - $ref: "#/components/parameters/matchKeyWildcardQueryParam"
+        - $ref: "#/components/parameters/principleWildcardQueryParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzCrossSourceRelationCounts"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzCrossSourceRelationCounts"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzCrossSourceRelationCounts"
+        "500":
+          description: A server-side error occurred.
+  /statistics/summary/data-sources/{dataSourceCode}/vs/{vsDataSourceCode}/possible-matches:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the cross-summary statistics for possible-match relations between entities
+        having at least one record from one data source and entities having at least
+        one record from another data source (which may be the same), optionally for
+        one or more combination of match key and principle.
+      description: >-
+        Gets the cross-summary statistics for possible-match relations between entities
+        having at least one record from a primary data source and entities having
+        at least one record another data source (which may be the same), optionally
+        for one or more combination of match key and principle.  If either of the
+        specified data source codes is not configured then a 404 Not Found response
+        is returned.  *NOTE*:  Data mart statistics may be slightly delayed from
+        the entity repository.
+      operationId: getCrossSourcePossibleMatchStatistics
+      parameters:
+        - $ref: "#/components/parameters/dataSourceCodePathParam"
+        - $ref: "#/components/parameters/vsDataSourceCodePathParam"
+        - $ref: "#/components/parameters/matchKeyWildcardQueryParam"
+        - $ref: "#/components/parameters/principleWildcardQueryParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzRelationCounts"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzRelationCounts"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzRelationCounts"
+        "500":
+          description: A server-side error occurred.
+  /statistics/summary/data-sources/{dataSourceCode}/vs/{vsDataSourceCode}/possible-relations:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the cross-summary statistics for possible relations between entities
+        having at least one record from one data source and entities having at least
+        one record from another data source (which may be the same), optionally for
+        one or more combination of match key and principle.
+      description: >-
+        Gets the cross-summary statistics for possible relations between entities
+        having at least one record from a primary data source and entities having
+        at least one record another data source (which may be the same), optionally
+        for one or more combination of match key and principle.  If either of the
+        specified data source codes is not configured then a 404 Not Found response
+        is returned.  *NOTE*:  Data mart statistics may be slightly delayed from
+        the entity repository.
+      operationId: getCrossSourcePossibleRelationStatistics
+      parameters:
+        - $ref: "#/components/parameters/dataSourceCodePathParam"
+        - $ref: "#/components/parameters/vsDataSourceCodePathParam"
+        - $ref: "#/components/parameters/matchKeyWildcardQueryParam"
+        - $ref: "#/components/parameters/principleWildcardQueryParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzRelationCounts"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzRelationCounts"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzRelationCounts"
+        "500":
+          description: A server-side error occurred.
+  /statistics/summary/data-sources/{dataSourceCode}/vs/{vsDataSourceCode}/disclosed-relations:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the cross-summary statistics for disclosed relations between entities
+        having at least one record from one data source and entities having at least
+        one record from another data source (which may be the same), optionally for
+        one or more combination of match key and principle.
+      description: >-
+        Gets the cross-summary statistics for disclosed relations between entities
+        having at least one record from a primary data source and entities having
+        at least one record another data source (which may be the same), optionally
+        for one or more combination of match key and principle.  If either of the
+        specified data source codes is not configured then a 404 Not Found response
+        is returned.  *NOTE*:  Data mart statistics may be slightly delayed from
+        the entity repository.
+      operationId: getCrossSourceDisclosedRelationStatistics
+      parameters:
+        - $ref: "#/components/parameters/dataSourceCodePathParam"
+        - $ref: "#/components/parameters/vsDataSourceCodePathParam"
+        - $ref: "#/components/parameters/matchKeyWildcardQueryParam"
+        - $ref: "#/components/parameters/principleWildcardQueryParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzRelationCounts"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzRelationCounts"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzRelationCounts"
+        "500":
+          description: A server-side error occurred.
+  /statistics/summary/data-sources/{dataSourceCode}/vs/{vsDataSourceCode}/matches/entities:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the entity ID's of the entities having at least one record from the
+        first data source and at least one other record from the versus data
+        source.
+      description: >-
+        Gets the entity ID's of the entities having at least one record from the 
+        first data source and at least one record from the versus data source.  If
+        no entities have at least one record from the first data source and at least
+        one other record from the versus data source then this will return a 200 OK 
+        response that will have an empty array of entity ID's rather than giving a
+        404 Not Found response.  Further, if there are no entity ID's for entities
+        satisfying the bound conditions of the request then similarly a 200 OK
+        response is returned but the array of ID's contained in the response will be
+        empty.  However, if either data source code is not found in the configuration 
+        then a 404 Not Found response is returned.  *NOTE*: Data mart statistics may
+        be slightly delayed from the entity repository.
+      operationId: getEntityIdsForCrossMatches
+      parameters:
+        - $ref: "#/components/parameters/dataSourceCodePathParam"
+        - $ref: "#/components/parameters/vsDataSourceCodePathParam"
+        - $ref: "#/components/parameters/matchKeyQueryParam"
+        - $ref: "#/components/parameters/principleQueryParam"
+        - $ref: "#/components/parameters/entityIdBoundQueryParam"
+        - $ref: "#/components/parameters/boundTypeQueryParam"
+        - $ref: "#/components/parameters/pageSizeQueryParam"
+        - $ref: "#/components/parameters/sampleSizeQueryParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+        "400":
+          description: >-
+            If the `sampleSize` and `pageSize` parameter are both specified 
+            and the `pageSize` is **not** strictly greater-than the `sampleSize`.
+        "404":
+          description: >-
+            If the specified data-source in the path is not configured.
+        "500":
+          description: If a server-side error occurred.
+  /statistics/summary/data-sources/{dataSourceCode}/vs/{vsDataSourceCode}/ambiguous-matches/entities:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the entity ID's of the entities having at least one record from the
+        first data source and an ambiguous-match relationship to an entity having
+        at least one record from the versus data source.
+      description: >-
+        Gets the entity ID's of the entities having at least one record from the
+        first data source and an ambiguous-match relationship to an entity having
+        at least one record from the versus data source.  If there are no such
+        entities then this will return a 200 OK response that will have an empty
+        array of entity ID values rather than giving a 404 Not Found response.
+        Further, if there are no entities satisfying the bound conditions of the
+        request then similarly a 200 OK response is returned but the entity ID
+        array contained in the response will be empty.  However, if either data
+        source code is not found in the configuration then a 404 Not Found response
+        is returned.  *NOTE*: Data mart statistics may be slightly delayed from
+        the entity repository.
+      operationId: getAmbiguouslyCrossMatchedEntityIds
+      parameters:
+        - $ref: "#/components/parameters/dataSourceCodePathParam"
+        - $ref: "#/components/parameters/vsDataSourceCodePathParam"
+        - $ref: "#/components/parameters/matchKeyQueryParam"
+        - $ref: "#/components/parameters/principleQueryParam"
+        - $ref: "#/components/parameters/entityIdBoundQueryParam"
+        - $ref: "#/components/parameters/boundTypeQueryParam"
+        - $ref: "#/components/parameters/pageSizeQueryParam"
+        - $ref: "#/components/parameters/sampleSizeQueryParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+        "400":
+          description: >-
+            If the `sampleSize` and `pageSize` parameter are both specified 
+            and the `pageSize` is **not** strictly greater-than the `sampleSize`.
+        "404":
+          description: >-
+            If the specified data-source in the path is not configured.
+        "500":
+          description: If a server-side error occurred.
+  /statistics/summary/data-sources/{dataSourceCode}/vs/{vsDataSourceCode}/ambiguous-matches/relations:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the `SzRelation` values describing the ambiguous-match relationships
+        between entities having at least one record from the first data source and
+        entities having at least one record from the versus data source.
+      description: >-
+        Gets the `SzRelation` values describing the ambiguous-match relationships
+        between entities containing at least one record from the first data source
+        and another entity having at least one record from the versus data source.
+        If there are no such relationships then this will return a 200 OK response
+        that will have an empty array of `SzRelation` values rather than giving a
+        404 Not Found response.  Further, if there are no relationships for entities
+        satisfying the bound conditions of the request then similarly a 200 OK
+        response is returned but the `SzRelation` array contained in the response
+        will be empty.  However, if either data source code is not found in the
+        configuration then a 404 Not Found response is returned.  *NOTE*: Data mart
+        statistics may be slightly delayed from the entity repository.
+      operationId: getAmbiguouslyCrossMatchedRelations
+      parameters:
+        - $ref: "#/components/parameters/dataSourceCodePathParam"
+        - $ref: "#/components/parameters/vsDataSourceCodePathParam"
+        - $ref: "#/components/parameters/matchKeyQueryParam"
+        - $ref: "#/components/parameters/principleQueryParam"
+        - $ref: "#/components/parameters/relationBoundQueryParam"
+        - $ref: "#/components/parameters/boundTypeQueryParam"
+        - $ref: "#/components/parameters/pageSizeQueryParam"
+        - $ref: "#/components/parameters/sampleSizeQueryParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzRelationsPage"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzRelationsPage"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzRelationsPage"
+        "400":
+          description: >-
+            If the `sampleSize` and `pageSize` parameter are both specified 
+            and the `pageSize` is **not** strictly greater-than the `sampleSize`.
+        "404":
+          description: >-
+            If the specified data-source in the path is not configured.
+        "500":
+          description: If a server-side error occurred.
+  /statistics/summary/data-sources/{dataSourceCode}/vs/{vsDataSourceCode}/possible-matches/entities:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the entity ID's of the entities having at least one record from the
+        first data source and a possible-match relationship to an entity having
+        at least one record from the versus data source.
+      description: >-
+        Gets the entity ID's of the entities having at least one record from the
+        first data source and a possible-match relationship to an entity having
+        at least one record from the versus data source.  If there are no such
+        entities then this will return a 200 OK response that will have an empty
+        array of entity ID values rather than giving a 404 Not Found response.
+        Further, if there are no entities satisfying the bound conditions of the
+        request then similarly a 200 OK response is returned but the entity ID
+        array contained in the response will be empty.  However, if either data
+        source code is not found in the configuration then a 404 Not Found response
+        is returned.  *NOTE*: Data mart statistics may be slightly delayed from
+        the entity repository.
+      operationId: getPossiblyCrossMatchedEntityIds
+      parameters:
+        - $ref: "#/components/parameters/dataSourceCodePathParam"
+        - $ref: "#/components/parameters/vsDataSourceCodePathParam"
+        - $ref: "#/components/parameters/matchKeyQueryParam"
+        - $ref: "#/components/parameters/principleQueryParam"
+        - $ref: "#/components/parameters/entityIdBoundQueryParam"
+        - $ref: "#/components/parameters/boundTypeQueryParam"
+        - $ref: "#/components/parameters/pageSizeQueryParam"
+        - $ref: "#/components/parameters/sampleSizeQueryParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+        "400":
+          description: >-
+            If the `sampleSize` and `pageSize` parameter are both specified 
+            and the `pageSize` is **not** strictly greater-than the `sampleSize`.
+        "404":
+          description: >-
+            If the specified data-source in the path is not configured.
+        "500":
+          description: If a server-side error occurred.
+  /statistics/summary/data-sources/{dataSourceCode}/vs/{vsDataSourceCode}/possible-matches/relations:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the `SzRelation` values describing the possible-match relationships
+        between entities having at least one record from the first data source and
+        entities having at least one record from the versus data source.
+      description: >-
+        Gets the `SzRelation` values describing the possible-match relationships
+        between entities containing at least one record from the first data source
+        and another entity having at least one record from the versus data source.
+        If there are no such relationships then this will return a 200 OK response
+        that will have an empty array of `SzRelation` values rather than giving a
+        404 Not Found response.  Further, if there are no relationships for entities
+        satisfying the bound conditions of the request then similarly a 200 OK
+        response is returned but the `SzRelation` array contained in the response
+        will be empty.  However, if either data source code is not found in the
+        configuration then a 404 Not Found response is returned.  *NOTE*: Data mart
+        statistics may be slightly delayed from the entity repository.
+      operationId: getPossiblyCrossMatchedRelations
+      parameters:
+        - $ref: "#/components/parameters/dataSourceCodePathParam"
+        - $ref: "#/components/parameters/vsDataSourceCodePathParam"
+        - $ref: "#/components/parameters/matchKeyQueryParam"
+        - $ref: "#/components/parameters/principleQueryParam"
+        - $ref: "#/components/parameters/relationBoundQueryParam"
+        - $ref: "#/components/parameters/boundTypeQueryParam"
+        - $ref: "#/components/parameters/pageSizeQueryParam"
+        - $ref: "#/components/parameters/sampleSizeQueryParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzRelationsPage"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzRelationsPage"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzRelationsPage"
+        "400":
+          description: >-
+            If the `sampleSize` and `pageSize` parameter are both specified 
+            and the `pageSize` is **not** strictly greater-than the `sampleSize`.
+        "404":
+          description: >-
+            If the specified data-source in the path is not configured.
+        "500":
+          description: If a server-side error occurred.
+  /statistics/summary/data-sources/{dataSourceCode}/vs/{vsDataSourceCode}/possible-relations/entities:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the entity ID's of the entities having at least one record from the
+        first data source and a possible relationship to an entity having at least
+        one record from the versus data source.
+      description: >-
+        Gets the entity ID's of the entities having at least one record from the
+        first data source and a possible relationship to an entity having at least
+        one record from the versus data source.  If there are no such entities then
+        this will return a 200 OK response that will have an empty array of 
+        entity ID values rather than giving a 404 Not Found response.  Further, if
+        there are no entities satisfying the bound conditions of the request then
+        similarly a 200 OK response is returned but the entity ID array contained
+        in the response will be empty.  However, if either data source code is not
+        found in the configuration then a 404 Not Found response is returned.  *NOTE*:
+        Data mart statistics may be slightly delayed from the entity repository.
+      operationId: getPossiblyCrossRelatedEntityIds
+      parameters:
+        - $ref: "#/components/parameters/dataSourceCodePathParam"
+        - $ref: "#/components/parameters/vsDataSourceCodePathParam"
+        - $ref: "#/components/parameters/matchKeyQueryParam"
+        - $ref: "#/components/parameters/principleQueryParam"
+        - $ref: "#/components/parameters/entityIdBoundQueryParam"
+        - $ref: "#/components/parameters/boundTypeQueryParam"
+        - $ref: "#/components/parameters/pageSizeQueryParam"
+        - $ref: "#/components/parameters/sampleSizeQueryParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+        "400":
+          description: >-
+            If the `sampleSize` and `pageSize` parameter are both specified 
+            and the `pageSize` is **not** strictly greater-than the `sampleSize`.
+        "404":
+          description: >-
+            If the specified data-source in the path is not configured.
+        "500":
+          description: If a server-side error occurred.
+  /statistics/summary/data-sources/{dataSourceCode}/vs/{vsDataSourceCode}/possible-relations/relations:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the `SzRelation` values describing the possible relationships between
+        entities having at least one record from the first data source and entities
+        having at least one record from the versus data source.
+      description: >-
+        Gets the `SzRelation` values describing the possible relationships between
+        entities containing at least one record from the first data source and another
+        entity having at least one record from the versus data source.  If there are
+        no such relationships then this will return a 200 OK response that will have
+        an empty array of `SzRelation` values rather than giving a 404 Not Found
+        response.  Further, if there are no relationships for entities satisfying the
+        bound conditions of the request then similarly a 200 OK response is returned
+        but the `SzRelation` array contained in the response will be empty.  However,
+        if either data source code is not found in the configuration then a 404 Not
+        Found response is returned.  *NOTE*: Data mart statistics may be slightly 
+        delayed from the entity repository.
+      operationId: getPossiblyCrossRelatedRelations
+      parameters:
+        - $ref: "#/components/parameters/dataSourceCodePathParam"
+        - $ref: "#/components/parameters/vsDataSourceCodePathParam"
+        - $ref: "#/components/parameters/matchKeyQueryParam"
+        - $ref: "#/components/parameters/principleQueryParam"
+        - $ref: "#/components/parameters/relationBoundQueryParam"
+        - $ref: "#/components/parameters/boundTypeQueryParam"
+        - $ref: "#/components/parameters/pageSizeQueryParam"
+        - $ref: "#/components/parameters/sampleSizeQueryParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzRelationsPage"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzRelationsPage"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzRelationsPage"
+        "400":
+          description: >-
+            If the `sampleSize` and `pageSize` parameter are both specified 
+            and the `pageSize` is **not** strictly greater-than the `sampleSize`.
+        "404":
+          description: >-
+            If the specified data-source in the path is not configured.
+        "500":
+          description: If a server-side error occurred.
+  /statistics/summary/data-sources/{dataSourceCode}/vs/{vsDataSourceCode}/disclosed-relations/entities:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the entity ID's of the entities having at least one record from the
+        first data source and a disclosed relationship to an entity having at least
+        one record from the versus data source.
+      description: >-
+        Gets the entity ID's of the entities having at least one record from the
+        first data source and a disclosed relationship to an entity having at least
+        one record from the versus data source.  If there are no such entities then
+        this will return a 200 OK response that will have an empty array of 
+        entity ID values rather than giving a 404 Not Found response.  Further, if
+        there are no entities satisfying the bound conditions of the request then
+        similarly a 200 OK response is returned but the entity ID array contained
+        in the response will be empty.  However, if either data source code is not
+        found in the configuration then a 404 Not Found response is returned.  *NOTE*:
+        Data mart statistics may be slightly delayed from the entity repository.
+      operationId: getDisclosedCrossRelatedEntityIds
+      parameters:
+        - $ref: "#/components/parameters/dataSourceCodePathParam"
+        - $ref: "#/components/parameters/vsDataSourceCodePathParam"
+        - $ref: "#/components/parameters/matchKeyQueryParam"
+        - $ref: "#/components/parameters/principleQueryParam"
+        - $ref: "#/components/parameters/entityIdBoundQueryParam"
+        - $ref: "#/components/parameters/boundTypeQueryParam"
+        - $ref: "#/components/parameters/pageSizeQueryParam"
+        - $ref: "#/components/parameters/sampleSizeQueryParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzEntitiesPage"
+        "400":
+          description: >-
+            If the `sampleSize` and `pageSize` parameter are both specified 
+            and the `pageSize` is **not** strictly greater-than the `sampleSize`.
+        "404":
+          description: >-
+            If the specified data-source in the path is not configured.
+        "500":
+          description: If a server-side error occurred.
+  /statistics/summary/data-sources/{dataSourceCode}/vs/{vsDataSourceCode}/disclosed-relations/relations:
+    get:
+      tags:
+        - Statistics
+      summary: >-
+        Gets the `SzRelation` values describing the disclosed relationships between
+        entities having at least one record from the first data source and entities
+        having at least one record from the versus data source.
+      description: >-
+        Gets the `SzRelation` values describing the disclosed relationships between
+        entities containing at least one record from the first data source and another
+        entity having at least one record from the versus data source.  If there are
+        no such relationships then this will return a 200 OK response that will have
+        an empty array of `SzRelation` values rather than giving a 404 Not Found
+        response.  Further, if there are no relationships for entities satisfying the
+        bound conditions of the request then similarly a 200 OK response is returned
+        but the `SzRelation` array contained in the response will be empty.  However,
+        if either data source code is not found in the configuration then a 404 Not
+        Found response is returned.  *NOTE*: Data mart statistics may be slightly 
+        delayed from the entity repository.
+      operationId: getDisclosedCrossRelatedRelations
+      parameters:
+        - $ref: "#/components/parameters/dataSourceCodePathParam"
+        - $ref: "#/components/parameters/vsDataSourceCodePathParam"
+        - $ref: "#/components/parameters/matchKeyQueryParam"
+        - $ref: "#/components/parameters/principleQueryParam"
+        - $ref: "#/components/parameters/relationBoundQueryParam"
+        - $ref: "#/components/parameters/boundTypeQueryParam"
+        - $ref: "#/components/parameters/pageSizeQueryParam"
+        - $ref: "#/components/parameters/sampleSizeQueryParam"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/SzRelationsPage"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SzRelationsPage"
+            default:
+              schema:
+                $ref: "#/components/schemas/SzRelationsPage"
+        "400":
+          description: >-
+            If the `sampleSize` and `pageSize` parameter are both specified 
+            and the `pageSize` is **not** strictly greater-than the `sampleSize`.
+        "404":
+          description: >-
+            If the specified data-source in the path is not configured.
+        "500":
+          description: If a server-side error occurred.
+components:
+  parameters:
+    principleQueryParam:
+      in: query
+      name: principle
+      required: false
+      description: >-
+        The optional parameter to specify a principle for which the results
+        are being requested.
+      schema:
+        type: string
+    matchKeyQueryParam:
+      in: query
+      name: matchKey
+      required: false
+      description: >-
+        The optional parameter to specify the match key for which the results
+        are being requested.
+      schema:
+        type: string
+    principleWildcardQueryParam:
+      in: query
+      name: principle
+      required: false
+      description: >-
+        The optional parameter to specify a principle for which the statistics
+        are being requested.  Specify an asterisk (`*`) if the statistics for 
+        all principles should be returned.
+      schema:
+        type: string
+    onlyLoadedQueryParam:
+      in: query
+      name: onlyLoadedSources
+      required: false
+      description: >-
+        The optional parameter to specify if only loaded data sources should
+        be considered when iterating over data sources to retrieve statistics.
+        If not specified, this defaults to `true`.  Set this explicitly to
+        `false` to iterate over all data sources regardless of loaded records
+        in generating the statistics (i.e.: to include the "zeroes").
+      schema:
+        type: boolean
+        default: true
+    matchKeyWildcardQueryParam:
+      in: query
+      name: matchKey
+      required: false
+      description: >-
+        The optional parameter to specify a match key for which the statistics
+        are being requested.  Specify an asterisk (`*`) if the statistics for 
+        all match keys should be returned.
+      schema:
+        type: string
+    entityIdBoundQueryParam:
+      in: query
+      name: bound
+      required: false
+      description: >-
+        The optional parameter to provide for "paging" through entity ID's
+        associated with a statistic.  The value is specified as a bound on the
+        entity ID values returned and is given as a positive integer number
+        or `max` to indicate the maximum legal value of an entity ID.  The
+        type of bound is given by the `boundType` parameter.  For example, by
+        default the `boundType` is `EXCLUSIVE_LOWER` so the returned entity ID
+        values must satisfy the condition that they are strictly greater than
+        the entity ID bound value.  To move to the "next page" of entity ID's
+        specify the greatest entity ID value from the current page and use
+        `boundType` of `EXCLUSIVE_LOWER`.  To move to the "previous page" of
+        entity ID's specify the least entity ID value on the current page and
+        use `boundType` of `EXCLUSIVE_UPPER`.  To change the number of results
+        shown on the current page specify the least entity ID value on the
+        current page and specify a `boundType` of `INCLUSIVE_LOWER` with a new
+        `pageSize` value.
+
+        If not specified, then the default value is taken as `0` if a
+        `boundType` of `INCLUSIVE_LOWER` or `EXCLUSIVE_LOWER` is being used,
+        otherwise for a `boundType` of `INCLUSIVE_UPPER` or `EXCLUSIVE_UPPER`
+        it defaults to `max` (indicating the maximum legal value of an 
+        entity ID).
+      schema:
+        type: string
+    relationBoundQueryParam:
+      in: query
+      name: bound
+      required: false
+      description: >-
+        The optional parameter to provide for "paging" through relationships
+        associated with a statistic.  The value is specified as a bound on the
+        entity ID's in the `SzRelation` values returned and contains two 
+        entity ID values separated by a colon (e.g.: `1000:5500`).  Either of
+        the entity ID's can be specified as `max` to indicate the maximum legal
+        value of an entity ID (e.g.: `max:max` or `1000:max`).  If `max` is
+        specified by itself it is interpreted as `max:max`. The type of bound
+        is given by the `boundType` parameter.  For example, by default the
+        `boundType` is `EXCLUSIVE_LOWER` so the returned `SzRelation` values
+        must be canonically greater than the relationship described by the 
+        entity ID values encoded in the bound.  `SzRelation` values are ordered 
+        on the first entity ID value and then on the second related entity ID
+        value.  To move to the "next page" of relationships specify the encoded
+        value of the entity ID and related ID of the greatest (last) `SzRelation`
+        on the current page and use `boundType` of `EXCLUSIVE_LOWER`.  To move to
+        the "previous page" of relationships specify the encoded value of the
+        entity ID and related ID of the least (first) `SzRelation` on the current
+        page and use `boundType` of `EXCLUSIVE_UPPER`.  To change the number of
+        results shown on the current page specify the encoded value of the entity
+        ID and related ID of the least (first) `SzRelation` on the current page
+        and specify a `boundType` of `INCLUSIVE_LOWER` with a new `pageSize` value.
+
+        If not specified, then the default value is taken as `0:0` if a `boundType`
+        of `INCLUSIVE_LOWER` or `EXCLUSIVE_LOWER` is being used, otherwise for a
+        `boundType` of `INCLUSIVE_UPPER` or `EXCLUSIVE_UPPER` it defaults to
+        `max:max` (indicating the maximum legal value for each of the entity ID's).
+      schema:
+        type: string
+    boundTypeQueryParam:
+      in: query
+      name: boundType
+      required: false
+      description: >-
+        The optional parameter to provide for "paging" through results associated
+        with a statistic.  The value is specified as an `SzBoundType` and the 
+        bound value is given by the `bound` parameter.  For example, by default
+        the `boundType` is `EXCLUSIVE_LOWER` so the returned values must satisfy
+        the condition that they are strictly greater than the bound value.  To move
+        to the "next page" of results specify the greatest result value from the
+        current page and use `boundType` of `EXCLUSIVE_LOWER`.  To move to the 
+        "previous page" of results specify the least result value on the current
+        page and use a `boundType` of `EXCLUSIVE_UPPER`.  To change the number of
+        results shown on the current page specify the least result value on the
+        current page and specify a `boundType` of `INCLUSIVE_LOWER` with a new
+        `pageSize` value.  Possible values are:
+          * `INCLUSIVE_LOWER` - The bound represents an inclusive lower bound whereby
+                                values satisfying the bound will be greater-than or equal
+                                to the value associated with the bound.
+          * `EXCLUSIVE_LOWER` - The bound represents an exclusive lower bound whereby 
+                                values satisfying the bound will be strictly greater-than 
+                                the value associated with the bound.
+          * `INCLUSIVE_UPPER` - The bound represents an inclusive upper bound whereby
+                                values satisfying the bound will be less-than or equal
+                                to the value associated with the bound.
+          * `EXCLUSIVE_UPPER` - The bound represents an exclusive upper bound whereby 
+                                values satisfying the bound will be strictly less-than 
+                                the value associated with the bound.
+      schema:
+        default: EXCLUSIVE_LOWER
+        $ref: "#/components/schemas/SzBoundType"
+    pageSizeQueryParam:
+      in: query
+      name: pageSize
+      required: false
+      description: >-
+        The optional parameter to limit the number of returned results per page.
+        If not specified then a default value is determined.  If the `sampleSize`
+        parameter is provided, then this defaults to 20 times the value of the 
+        `sampleSize` parameter.  If the `sampleSize` parameter is **not** provided
+        then this simply defaults to `100`.  If using the `sampleSize` query 
+        parameter and specifying a value for the `pageSize` then the `pageSize` 
+        should be greater than the `sampleSize` by at least an order of magnitude
+        in order tp provide an adequate set of results from which to choose a random
+        sample.  For example, a `pageSize` of `1000` would be appropriate for a 
+        `sampleSize` of `50` or `100`.
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+    sampleSizeQueryParam:
+      in: query
+      name: sampleSize
+      required: false
+      description: >-
+        The optional parameter to extract a sample of this size from the page of 
+        results being returned.  When using this parameter the caller should
+        typically use a much larger page size (e.g.: 1000 or 5000) and pull a 
+        random sample (e.g.: 50 to 100).  To obtain another sample with no overlap
+        with the previous sample(s), simply change the `bound` and `boundType`
+        parameter so the eligible results for the page are outside the range
+        of the previous sample(s).  The value of this parameter should be less-than
+        the specified `pageSize` query parameter (typically by at least an order
+        of magnitude).
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+    dataSourceCodePathParam:
+      in: path
+      name: dataSourceCode
+      required: true
+      description: >-
+        The data source code identifying the data source.
+      schema:
+        type: string
+      examples:
+        TEST:
+          value: TEST
+        CUSTOMERS:
+          value: CUSTOMERS
+        EMPLOYEES:
+          value: EMPLOYEES
+    vsDataSourceCodePathParam:
+      in: path
+      name: vsDataSourceCode
+      required: true
+      description: >-
+        The data source code identifying the data source to which the
+        first data source is compared for the statistics.
+      schema:
+        type: string
+      examples:
+        TEST:
+          value: TEST
+        CUSTOMERS:
+          value: CUSTOMERS
+        EMPLOYEES:
+          value: EMPLOYEES
+    entitySizePathParam:
+      in: path
+      name: entitySize
+      required: true
+      description: >-
+        The number of records for the entities of interest.
+      schema:
+        type: integer
+        format: int32
+    relationsCountPathParam:
+      in: path
+      name: relationsCount
+      required: true
+      description: >-
+        The number of relationships for the entities of interest.
+      schema:
+        type: integer
+        format: int32
+  schemas:
+    SzEntitiesPage:
+      description: >-
+        Encapsulates a paged list of entity ID's identifying the entities
+        pertaining to a specific statistic.
+      type: object
+      required:
+        - bound
+        - boundType
+        - pageSize
+        - totalEntityCount
+        - beforePageCount
+        - afterPageCount
+        - entities
+      properties:
+        bound:
+          description: >-
+            The entity ID bound value that bounds the returned entity ID's.
+          type: integer
+          format: int64
+          nullable: false
+        boundType:
+          description: >-
+            The `SzBoundType` associated with the `bound` value to describe
+            how the bound was applied.
+          $ref: "#/components/schemas/SzBoundType"
+          nullable: false
+        pageSize:
+          description: >-
+            The requested page size representing the maximum number of 
+            entities that were included in the page.
+          type: integer
+          format: int32
+          nullable: false
+        sampleSize:
+          description: >-
+            The requested sample size representing the number of entities
+            to be randomly selected from the page of results.
+          type: integer
+          format: int32
+          nullable: true
+        minimumValue:
+          description: >-
+            The minimum entity ID of the returned results.  **NOTE:** This field
+            is absent or `null` if there are no results.
+          type: integer
+          format: int64
+          nullable: true
+        maximumValue:
+          description: >-
+            The maximum entity ID of the returned results.  **NOTE:** This field
+            is absent or `null` if there are no results.
+          type: integer
+          format: int64
+          nullable: true
+        pageMinimumValue:
+          description: >-
+            The minimum entity ID of the entire entity page.  This will 
+            be the same as `minimumValue` if `sampleSize` was not 
+            specified, however, if `sampleSize` was specified then this 
+            will be the minimum entity ID value of all the candidate
+            entities on the page that were used for random sample selection
+            even if that entity was not randomly selected.  **NOTE:** This
+            field is absent or `null` if there are no results.
+          type: integer
+          format: int64
+          nullable: true
+        pageMaximumValue:
+          description: >-
+            The maximum entity ID of the entire entity page.  This will 
+            be the same as `maximumValue` if `sampleSize` was not 
+            specified, however, if `sampleSize` was specified then this 
+            will be the maximum entity ID value of all the candidate
+            entities on the page that were used for random sample selection
+            even if that entity was not randomly selected.  **NOTE:** This
+            field is absent or `null` if there are no results.
+          type: integer
+          format: int64
+          nullable: true
+        totalEntityCount:
+          description: >-
+            The total number of entities representing the set of all 
+            possible results across all pages.
+          type: integer
+          format: int64
+          nullable: false
+        beforePageCount:
+          description: >-
+            The number of entities in the set that exist on pages before 
+            this page.
+          type: integer
+          format: int64
+          nullable: false
+        afterPageCount:
+          description: >-
+            The number of entities in the set that exist on pages after
+            this page.
+          type: integer
+          format: int64
+          nullable: false
+        entities:
+          description: >-
+            An array of `SzEntity` instances describing the entities for the page.
+            The array will be in ascending order of entity ID.
+          type: array
+          items:
+            $ref: "#/components/schemas/SzEntity"
+    SzRelationsPage:
+      description: >-
+        Encapsulates a paged list of `SzRelation` values describing entity
+        relationships pertaining to a specific statistic.
+      type: object
+      required:
+        - bound
+        - boundType
+        - pageSize
+        - totalRelationCount
+        - beforePageCount
+        - afterPageCount
+        - relations
+      properties:
+        bound:
+          description: >-
+            The relationship bound value that contains two (2) entity ID values
+            separated by a colon (e.g.: `1000:5005`).  The first entity ID value
+            identifies the first entity in the relationship and the second entity 
+            ID value identifies the related entity in the relationship.
+          type: string
+          nullable: false
+        boundType:
+          description: >-
+            The `SzBoundType` associated with the `entityBound` and 
+            `relatedBound` values to describe how the bound was applied.
+          $ref: "#/components/schemas/SzBoundType"
+          nullable: false
+        pageSize:
+          description: >-
+            The requested page size representing the maximum number of 
+            `SzRelation`'s' that were included in the page.
+          type: integer
+          format: int32
+          nullable: false
+        sampleSize:
+          description: >-
+            The requested sample size representing the number of `SzRelation`'s
+            to be randomly selected from the page of results.
+          type: integer
+          format: int32
+          nullable: true
+        minimumValue:
+          description: >-
+            The minimum relation value of the returned results.  This is
+            encoded the same as the `bound` value with two (2) entity ID
+            values separated by a colon (e.g.: `1000:5005`).  The first
+            entity ID value identifies the least value of first entity in
+            the relationship and the second entity ID value identifies the
+            least value of those entity ID's related to the first entity.
+            **NOTE:** This field is absent or `null` if there are no results.
+          type: string
+          nullable: true
+        maximumValue:
+          description: >-
+            The maximum relation value of the returned results.  This is
+            encoded the same as the `bound` value with two (2) entity ID
+            values separated by a colon (e.g.: `1000:5005`).  The first
+            entity ID value identifies the greatest value of first entity
+            in the relationship and the second entity ID value identifies
+            the greatest value of those entity ID's related to the first 
+            entity.  **NOTE:** This field is absent or `null` if there are
+            no results.
+          type: string
+          nullable: true
+        pageMinimumValue:
+          description: >-
+            The minimum relation value of the entire relations page.  This
+            will be the same as `minimumValue` if `sampleSize` was not 
+            specified, however, if `sampleSize` was specified then this 
+            will be the minimum relation value of all the candidate
+            relations on the page that were used for random sample selection
+            even if that relation was not randomly selected.  This is
+            encoded the same as the `bound` value with two (2) entity ID
+            values separated by a colon (e.g.: `1000:5005`).  The first
+            entity ID value identifies the least value of first entity in
+            the relationship and the second entity ID value identifies the
+            least value of those entity ID's related to the first entity.
+            **NOTE:** This field is absent or `null` if there are no results.
+          type: string
+          nullable: true
+        pageMaximumValue:
+          description: >-
+            The maximum relation value of the entire relations page.  This
+            will be the same as `maximumValue` if `sampleSize` was not 
+            specified, however, if `sampleSize` was specified then this 
+            will be the maximum relation value of all the candidate
+            relations on the page that were used for random sample selection
+            even if that relation was not randomly selected.  This is
+            encoded the same as the `bound` value with two (2) entity ID
+            values separated by a colon (e.g.: `1000:5005`).  The first
+            entity ID value identifies the greatest value of first entity in
+            the relationship and the second entity ID value identifies the
+            greatest value of those entity ID's related to the first entity.
+            **NOTE:** This field is absent or `null` if there are no results.
+          type: string
+          nullable: true
+        totalRelationCount:
+          description: >-
+            The total number of relationships representing the set of all 
+            possible results across all pages.
+          type: integer
+          format: int64
+          nullable: false
+        beforePageCount:
+          description: >-
+            The number of relationships in the set that exist on pages before
+            this page.
+          type: integer
+          format: int64
+          nullable: false
+        afterPageCount:
+          description: >-
+            The number of relationships in the set that exist on pages after
+            this page.
+          type: integer
+          format: int64
+          nullable: false
+        relations:
+          description: >-
+            An array of `SzRelation`'s describing the relationships for the page.
+            The `SzRelation` array will be in ascending order of the first 
+            entity ID and then the second related entity ID.
+          type: array
+          items:
+            $ref: "#/components/schemas/SzRelation"
+    SzLoadedStats:
+      description: >-
+        Encapsulates the statistics pertaining to counts of entities and records
+        both in total and by data source.
+      type: object
+      required:
+        - totalRecordCount
+        - totalEntityCount
+        - totalUnmatchedRecordCount
+        - dataSourceCounts
+      properties:
+        totalRecordCount:
+          description: >-
+            The total number of records that have been loaded.
+          type: integer
+          format: int64
+          nullable: false
+        totalEntityCount:
+          description: >-
+            The total number of entities that have been resolved from 
+            the loaded records.
+          type: integer
+          format: int64
+          nullable: false
+        totalUnmatchedRecordCount:
+          description: >-
+            The total number of records that did not match against any 
+            other records and belong to singleton entities.  This doubles
+            as the count of all entities that only contain a single record.
+          type: integer
+          format: int64
+          nullable: false
+        dataSourceCounts:
+          description: >-
+            An array of `SzSourceLoadedStats` describing the entity and record
+            counts by data source.
+          type: array
+          items:
+            $ref: "#/components/schemas/SzSourceLoadedStats"
+    SzSourceLoadedStats:
+      description: >-
+        Encapsulates the statistics pertaining to counts of entities and records
+        for a specific data source.
+      type: object
+      required:
+        - dataSource
+        - recordCount
+        - entityCount
+      properties:
+        dataSource:
+          description: >-
+            The data source code identifying the data source to which the statistics
+            are associated.
+          type: string
+          nullable: false
+        recordCount:
+          description: >-
+            The total number of records that have been loaded for the associated
+            data source.
+          type: integer
+          format: int64
+          nullable: false
+        entityCount:
+          description: >-
+            The number of entities that have at least one record from the 
+            associated data source.
+          type: integer
+          format: int64
+          nullable: false
+        unmatchedRecordCount:
+          description: >-
+            The total number of records that have been loaded for the associated
+            data source that did *NOT* match against any other records.  This 
+            represents the number of entities having a record from this data source
+            where that is the *ONLY* (single) record in the entity.
+          type: integer
+          format: int64
+          nullable: false
+    SzEntitySizeCount:
+      description: >-
+        Describes the number of entities that have a specific number of
+        records.
+      type: object
+      required:
+        - entitySize
+        - entityCount
+      properties:
+        entitySize:
+          description: The number of records that the entities have.
+          type: integer
+          format: int32
+          nullable: false
+        entityCount:
+          description: >-
+            The number of entities having the associated number of records.
+          type: integer
+          format: int64
+          nullable: false
+    SzEntityRelationsCount:
+      description: >-
+        Describes the number of entities that have a specific number of
+        entity relations.
+      type: object
+      required:
+        - relationsCount
+        - entityCount
+      properties:
+        relationsCount:
+          description: The number of entity relations that the entities have.
+          type: integer
+          format: int32
+          nullable: false
+        entityCount:
+          description: >-
+            The number of entities having the associated number of entity
+            relations.
+          type: integer
+          format: int64
+          nullable: false
+    SzEntitySizeBreakdown:
+      description: >-
+        Describes the Entity Size Breakdown which gives the number of
+        entities having each entity size (i.e.: number of composite
+        records).
+      type: object
+      required:
+        - entitySizeCounts
+      properties:
+        entitySizeCounts:
+          description: >-
+            The array of `EntitySizeCount` instances describing the number
+            of entities having each number of composite records.  If there
+            are no entities having a specific composite record count then 
+            no entry is included in the array for that entity size.  The
+            array will be in descending order of entity size.
+          type: array
+          items:
+            $ref: "#/components/schemas/SzEntitySizeCount"
+    SzEntityRelationsBreakdown:
+      description: >-
+        Describes the Entity Relations Breakdown which gives the number of
+        entities having each distinct number of entity relations.
+      type: object
+      required:
+        - entityRelationsCounts
+      properties:
+        entityRelationsCounts:
+          description: >-
+            The array of `EntityRelationsCount` instances describing the number
+            of entities having each distinct number of entity relations.  If
+            there are no entities having a specific entity relations count then 
+            no entry is included in the array for that number of entity relations.
+            The array will be in descending order of number of entity relations.
+          type: array
+          items:
+            $ref: "#/components/schemas/SzEntityRelationsCount"
+    SzMatchCounts:
+      description: >-
+        Describes the entity and record counts for matches between records from
+        the primary data source to at least one record from the "versus" data source.
+      type: object
+      properties:
+        matchKey:
+          description: >-
+            The optional match key associated with the statistics.  This may be
+            `null` or absent if the statistics are not associated with a match key.
+          type: string
+          nullable: true
+        principle:
+          description: >-
+            The optional principle associated with the statistics.  This may be
+            `null` or absent if the statistics are not associated with a principle.
+          type: string
+          nullable: true
+        entityCount:
+          description: >-
+            The number of entities having at least one record from the primary data
+            source matching to at least one record from the "versus" data source.
+          type: integer
+          format: int64
+        recordCount:
+          description: >-
+            The number of records from the primary data source in the entities described
+            by the `entityCount`.  NOTE: this is not the total number of records in those
+            entities, but only the count of those records from the primary data source.
+          type: integer
+          format: int64
+    SzRelationCounts:
+      description: >-
+        Describes the entity, record and relationship counts for the respective relation
+        type for entities having at least one record from the primary data source to 
+        entities having at least one record from the "versus" data source.
+      type: object
+      properties:
+        matchKey:
+          description: >-
+            The optional match key associated with the statistics.  This may be
+            `null` or absent if the statistics are not associated with a match key.
+          type: string
+          nullable: true
+        principle:
+          description: >-
+            The optional principle associated with the statistics.  This may be
+            `null` or absent if the statistics are not associated with a principle.
+          type: string
+          nullable: true
+        entityCount:
+          description: >-
+            The number of entities having at least one record from the primary data
+            source related by a relationship of the respective relationship type to 
+            an entity with at least one record from the "versus" data source.
+          type: integer
+          format: int64
+        recordCount:
+          description: >-
+            The number of records from the primary data source in the entities described
+            by the `entityCount`.  NOTE: this is not the total number of records in those
+            entities, but only the count of those records from the primary data source.
+          type: integer
+          format: int64
+        relationCount:
+          description: >-
+            The number of relationships of the respective relationship type between
+            entities having at least one record from the primary data source and entities
+            having at least one record from the "versus" data source.
+          type: integer
+          format: int64
+    SzCrossSourceSummary:
+      description: >-
+        Describes the cross-source statistics between two data sources.
+      type: object
+      required:
+        - dataSource
+        - versusDataSource
+        - matches
+        - ambiguousMatches
+        - possibleMatches
+        - possibleRelations
+        - disclosedRelations
+      properties:
+        dataSource:
+          description: >-
+            The primary data source in the cross comparison.
+          type: string
+        versusDataSource:
+          description: >-
+            The versus data source in the cross comparison.
+          type: string
+        matches:
+          description: >-
+            The array of `SzMatchCounts` describing the entity and record counts 
+            associated with matches from records of the primary data source to at 
+            least one record of the "versus" data source for each combination of 
+            match key and principle that were requested.  If all were requested,
+            this includes the cases where either or both of the match key and
+            principle are absent or `null` indicating tracking across all match
+            keys and/or principles.
+          type: array
+          items:
+            $ref: "#/components/schemas/SzMatchCounts"
+        ambiguousMatches:
+          description: >-
+            The array of `SzRelationCounts` describing the entity, record and
+            relationship counts associated with ambiguous matches from entities
+            having at least one record from the primary data source to entities
+            having at least at least one record from the "versus" data source
+            for each combination of match key and principle that were requested.
+            If all were requested, this includes the cases where either or both
+            of the match key and principle are absent or `null` indicating
+            tracking across all match keys and/or principles.
+          type: array
+          items:
+            $ref: "#/components/schemas/SzRelationCounts"
+        possibleMatches:
+          description: >-
+            The array of `SzRelationCounts` describing the entity, record and
+            relationship counts associated with possible matches from entities
+            having at least one record from the primary data source to entities
+            having at least one record from the "versus" data source for each
+            combination of match key and principle that were requested.  If all
+            were requested, this includes the cases where either or both of the
+            match key and principle are absent or `null` indicating tracking
+            across all match keys and/or principles.
+          type: array
+          items:
+            $ref: "#/components/schemas/SzRelationCounts"
+        possibleRelations:
+          description: >-
+            The array of `SzRelationCounts` describing the entity, record and
+            relationship counts associated with possible relations from entities
+            having at least one record from the primary data source to entities
+            having at least one record from the "versus" data source for each
+            combination of match key and principle that were requested.  If all
+            were requested, this includes the cases where either or both of the
+            match key and principle are absent or `null` indicating tracking
+            across all match keys and/or principles.
+          type: array
+          items:
+            $ref: "#/components/schemas/SzRelationCounts"
+        disclosedRelations:
+          description: >-
+            The array of `SzRelationCounts` describing the entity, record and
+            relationship counts associated with disclosed relations from entities
+            having at least one record from the primary data source to entities
+            having at least one record from the "versus" data source for each
+            combination of match key and principle that were requested.  If all
+            were requested, this includes the cases where either or both of the
+            match key and principle are absent or `null` indicating tracking
+            across all match keys and/or principles.
+          type: array
+          items:
+            $ref: "#/components/schemas/SzRelationCounts"
+    SzCrossSourceMatchCounts:
+      description: >-
+        Describes the cross-summary statistics for matches between two data sources
+        for each requested match key and principle combination.
+      type: object
+      required:
+        - dataSource
+        - versusDataSource
+        - counts
+      properties:
+        dataSource:
+          description: >-
+            The primary data source in the cross comparison.
+          type: string
+        versusDataSource:
+          description: >-
+            The versus data source in the cross comparison.
+          type: string
+        counts:
+          description: >-
+            The array of `SzMatchCounts` describing the entity and record counts 
+            associated with matches from records of the primary data source to at 
+            least one record of the "versus" data source for each combination of 
+            match key and principle that were requested.  If all were requested,
+            this includes the cases where either or both of the match key and
+            principle are absent or `null` indicating tracking across all match
+            keys and/or principles.
+          type: array
+          items:
+            $ref: "#/components/schemas/SzMatchCounts"
+    SzCrossSourceRelationCounts:
+      description: >-
+        Describes the cross-source statistics between two data sources.
+      type: object
+      required:
+        - dataSource
+        - versusDataSource
+        - relationType
+        - counts
+      properties:
+        dataSource:
+          description: >-
+            The primary data source in the cross comparison.
+          type: string
+        versusDataSource:
+          description: >-
+            The versus data source in the cross comparison.
+          type: string
+        relationType:
+          description: >-
+            The `SzRelationType` describing the type of relationship match for
+            the returned statistics.
+          $ref: "#/components/schemas/SzRelationType"
+        counts:
+          description: >-
+            The array of `SzRelationCounts` describing the entity, record and
+            relationship counts associated with the relationships of the 
+            associated `relationType` from entities having at least one record
+            from the primary data source to entities having at least at least
+            one record from the "versus" data source for each combination of
+            match key and principle that were requested.  If all were requested,
+            this includes the cases where either or both of the match key and
+            principle are absent or `null` indicating tracking across all match
+            keys and/or principles.
+          type: array
+          items:
+            $ref: "#/components/schemas/SzRelationCounts"
+    SzSourceSummary:
+      description: >-
+        Describes the source summary and all cross-summaries with that data source.
+      type: object
+      properties:
+        dataSource:
+          description: >-
+            The data source to which the summary statistics apply.
+          type: string
+        entityCount:
+          description: >-
+            The number of entities having at least one record from the data source.
+          type: integer
+          format: int64
+        recordCount:
+          description: >-
+            The number of records loaded from the data source.
+          type: integer
+          format: int64
+        unmatchedRecordCount:
+          description: >-
+            The number of records from this data source that did not match a record
+            from the same data source.  This represents the number of records from
+            the data source that are effectively unique (not duplicated).
+          type: integer
+          format: int64
+        crossSourceSummaries:
+          description: >-
+            The array of `SzCrossSourceSummary` instances describing the summary
+            statistics between the associated data source versus every data source
+            (including itself).
+          type: array
+          items:
+            $ref: "#/components/schemas/SzCrossSourceSummary"
+    SzSummaryStats:
+      description: >-
+        Encapsulates the statistics for the source summaries for every data source.
+      type: object
+      properties:
+        sourceSummaries:
+          description: >-
+            The array of `SzSourceSummary` instances describing the summary statistics
+            for every configured data source.
+          type: array
+          items:
+            $ref: "#/components/schemas/SzSourceSummary"
+    SzRecord:
+      description: >-
+        Describes a record that has been synced to the datamart.
+      type: object
+      required:
+        - dataSource
+        - recordId
+        - matchKey
+        - principle
+      properties:
+        dataSource:
+          description: >-
+            The data source code identifying the data source from 
+            which the record was loaded.
+          type: string
+        recordId:
+          description: >-
+            The record ID that uniquely identifies the record within
+            the data source from which it was loaded.
+          type: string
+        matchKey:
+          description: >-
+            The optional match key describing why the record merged
+            into the entity to which it belongs.  This may be absent
+            or `null` if this record belongs to a single-record entity
+            or if it was the initial record of the first multi-record
+            entity to which it belonged (even if it later re-resolved
+            into a larger entity).
+          type: string
+        principle:
+          description: >-
+            The optional principle identifying the resolution rule
+            that was used to merge the record into the entity to which
+            it belongs.  This may be absent or `null` if this record
+            belongs to a single-record entity or if it was the initial
+            record of the first multi-record entity to which it
+            belonged (even if it later re-resolved into a larger entity).
+          type: string
+    SzEntity:
+      description: >-
+        Describes an entity that has been synced to the datamart.
+      type: object
+      required:
+        - entityId
+      properties:
+        entityId:
+          description: >-
+            The entity ID that uniquely identifies the entity.
+          type: integer
+          format: int64
+        entityName:
+          description: >-
+            The best name associated with the entity.
+          type: string
+        recordCount:
+          description: >-
+            The number of records resolved together in the entity.
+          type: integer
+          format: int32
+        relationCount:
+          description: >-
+            The number of entities that are related to this entity.
+          type: integer
+          format: int32
+        records:
+          description: >-
+            The array of `SzRecord` describing the records for this entity.
+          type: array
+          items:
+            $ref: "#/components/schemas/SzRecord"
+    SzRelation:
+      description: >-
+        Describes a relationship between two entities.
+      type: object
+      required:
+        - entity
+        - relatedEntity
+      properties:
+        entity:
+          description: >-
+            The entity describing the first entity in the relationship.
+          $ref: "#/components/schemas/SzEntity"
+        relatedEntity:
+          description: >-
+            The entity describing the second entity in the relationship.
+          $ref: "#/components/schemas/SzEntity"
+        matchType:
+          description: >-
+            The `SzRelationType` describing the type of the relationship.
+          $ref: "#/components/schemas/SzRelationType"
+        matchKey:
+          description: >-
+            The match key describing what features matched between
+            the first record in the resolved entity and this record.
+          type: string
+        principle:
+          description: >-
+            The code identifying the resolution rule that related the
+            entities to one another.
+          type: string
+    SzBoundType:
+      description: >-
+        Describes the type of bound for a range.
+        Possible values are:
+          * `INCLUSIVE_LOWER` - The bound represents an inclusive lower bound whereby
+                                values satisfying the bound will be greater-than or equal
+                                to the value associated with the bound.
+          * `EXCLUSIVE_LOWER` - The bound represents an exclusive lower bound whereby 
+                                values satisfying the bound will be strictly greater-than 
+                                the value associated with the bound.
+          * `INCLUSIVE_UPPER` - The bound represents an inclusive upper bound whereby
+                                values satisfying the bound will be less-than or equal
+                                to the value associated with the bound.
+          * `EXCLUSIVE_UPPER` - The bound represents an exclusive upper bound whereby 
+                                values satisfying the bound will be strictly less-than 
+                                the value associated with the bound.
+      type: string
+      enum:
+        - INCLUSIVE_LOWER
+        - EXCLUSIVE_LOWER
+        - INCLUSIVE_UPPER
+        - EXCLUSIVE_UPPER
+    SzRelationType:
+      description: >-
+        Describes how an entity is related to another (either a possible match,
+        a discovered possible relationship or a disclosed relationship)
+      type: string
+      enum:
+        - AMBIGUOUS_MATCH
+        - POSSIBLE_MATCH
+        - POSSIBLE_RELATION
+        - DISCLOSED_RELATION
+    SzMatchLevel:
+      description: >-
+        Describes the various match levels describing how two records resolve
+        against each other.  The possible values are:
+          * `NO_MATCH` - No match was found between the records.
+          * `RESOLVED` - The records resolved to the same entity.
+          * `POSSIBLY_SAME` - The records were not close enough to resolve
+            but may represent the same entity if more data was provided.
+          * `POSSIBLY_RELATED` - The records share some attributes that
+            suggest a relationship.
+          * `NAME_ONLY` - The records match in name only.
+          * `DISCLOSED` - An explicit relationship has been disclosed between
+            the records.
+      type: string
+      enum:
+        - NO_MATCH
+        - RESOLVED
+        - POSSIBLY_SAME
+        - POSSIBLY_RELATED
+        - NAME_ONLY
+        - DISCLOSED
+tags:
+  - name: Entity Data
+    description: Entity and record data operations.
