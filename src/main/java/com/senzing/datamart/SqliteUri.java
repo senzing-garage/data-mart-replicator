@@ -350,12 +350,31 @@ public class SqliteUri extends ConnectionUri {
                 }
                 sb.append("@");
             }
-            String[] pathTokens = this.file.getPath().split("/");
-            String prefix = "";
-            for (String token : pathTokens) {
-                sb.append(prefix).append(urlEncodeUtf8(token));
-                prefix = "/";
+
+
+            String path = this.file.getPath();
+            if (path.substring(1).startsWith(":\\")) {
+                // handle windows drive letter paths since Senzing supports 
+                // backslashes in the paths even though URI's do not
+                String drivePrefix = path.substring(0, 3);
+                sb.append(drivePrefix);
+                String[] pathTokens = path.substring(3).split("\\\\");
+                String prefix = "";
+                for (String token : pathTokens) {
+                    sb.append(prefix).append(urlEncodeUtf8(token));
+                    prefix = "\\";
+                }
+                
+            } else {
+                // handle standard non-Windows paths
+                String[] pathTokens = this.file.getPath().split("/");
+                String prefix = "";
+                for (String token : pathTokens) {
+                    sb.append(prefix).append(urlEncodeUtf8(token));
+                    prefix = "/";
+                }
             }
+
             sb.append(this.getQueryString());
             return sb.toString();
         }
@@ -494,12 +513,7 @@ public class SqliteUri extends ConnectionUri {
         }        
 
         // build a file object
-        try {
-            file = new File(new URI("file://" + path));
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException(
-                "Error parsing path (" + path + ") from URI: " + uri, e);
-        }
+        file = new File(urlDecodeUtf8(path));
         
         // construct the instance
         return new SqliteUri(unusedUser, unusedPassword, file, map);

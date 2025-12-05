@@ -100,6 +100,9 @@ public class SqliteUriTest {
                 null, "hidden",
                 File.createTempFile("test-", ".db"), null));
 
+            result.add(Arguments.of(
+                null, null, new File("C:\\temp\\test.db"), null));
+
             return result;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -389,7 +392,6 @@ public class SqliteUriTest {
                          "Query options are not as expected: " + uriText);
             assertEquals(expectedQuery, uri.getQueryString(),
                          "Query string is not as expected: " + uriText);
-            
             assertEquals(expectedUri, uri.toString(),
                 "Result from toString() not as expected.");
 
