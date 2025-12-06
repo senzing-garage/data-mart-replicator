@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import com.senzing.text.TextUtilities;
@@ -99,6 +100,21 @@ public class SqliteUriTest {
             result.add(Arguments.of(
                 null, "hidden",
                 File.createTempFile("test-", ".db"), null));
+
+            result.add(Arguments.of(
+                null, null, new File("C:\\temp\\test.db"), null));
+            
+            result.add(Arguments.of(
+                null, null, new File("C:\\"), null));
+
+            result.add(Arguments.of(
+                null, null, new File("C:"), null));
+
+            result.add(Arguments.of(
+                null, null, new File("D:\\path with spaces\\file.db"), null));
+
+            result.add(Arguments.of(
+                null, null, new File("\\\\server\\share\\test.db"), null));
 
             return result;
         } catch (IOException e) {
@@ -389,9 +405,10 @@ public class SqliteUriTest {
                          "Query options are not as expected: " + uriText);
             assertEquals(expectedQuery, uri.getQueryString(),
                          "Query string is not as expected: " + uriText);
-            
-            assertEquals(expectedUri, uri.toString(),
-                "Result from toString() not as expected.");
+            assertTrue(expectedUri.equals(uri.toString())
+                || expectedUri.equals(uri.toString().replaceAll("%20", " "))
+                || expectedUri.equals(uri.toString().replaceAll("\\+", " ")),
+                "Result from toString() (" + uri.toString() + ") not as expected: " + expectedUri);
 
             assertEquals(SCHEME_PREFIX, uri.getSchemePrefix(),
                         "Scheme prefix is not as expected");
@@ -615,4 +632,24 @@ public class SqliteUriTest {
             fail("Failed construction with exception.", e);
         }        
     }
+
+    @ParameterizedTest
+    @CsvSource({
+        "sqlite3://*:",
+        "sqlite2:///tmp/test.db",
+        "sqlite3://foo\\bar\\phoo",
+        "sqlite3://foo/bar  /ph%o"
+    })
+    public void testBadUriParse(String text) {
+        try {
+            SqliteUri.parse(text);
+
+            fail("Succeeded in parsing illegal SQLite URI: " + text);
+        } catch (IllegalArgumentException expected) {
+            // all is well
+        } catch (Exception e) {
+            fail("Got unexpected exception parsing illegal SQLite URI: " + text, e);
+        }
+    }
+
 }

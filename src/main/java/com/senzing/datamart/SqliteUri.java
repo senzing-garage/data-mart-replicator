@@ -16,6 +16,16 @@ import static com.senzing.text.TextUtilities.urlEncodeUtf8;
 
 /**
  * Represents a SQLite database connection URI.
+ * 
+ * <p>
+ * <b>NOTE:</b> The Senzing environment initialization settings support
+ * Windows file paths in the SQLite URI that contain back-slashes as 
+ * file separators as well as spaces that are not URL-encoded.  While such 
+ * URI's are not technically legal, they may be encountered when working with
+ * Senzing environment initialization settings on Windows, and therefore, this
+ * class treats them as legal for parsing and attempts to reproduce the
+ * equivalent URI when formatted via {@link #toString()} (save preserving the
+ * spaces without URL encoding).
  */
 public class SqliteUri extends ConnectionUri {
     /**
@@ -227,7 +237,7 @@ public class SqliteUri extends ConnectionUri {
     protected SqliteUri(String              unusedUser,
                         String              unusedPassword, 
                         File                file, 
-                        Map<String, String>  queryOptions)
+                        Map<String, String> queryOptions)
     {
         super(SCHEME_PREFIX, queryOptions);
         
@@ -350,12 +360,37 @@ public class SqliteUri extends ConnectionUri {
                 }
                 sb.append("@");
             }
-            String[] pathTokens = this.file.getPath().split("/");
-            String prefix = "";
-            for (String token : pathTokens) {
-                sb.append(prefix).append(urlEncodeUtf8(token));
-                prefix = "/";
+
+
+            String path = this.file.getPath();
+            if (isNonstandardWindowsPath(path)) {
+                // handle windows drive letter and UNC paths since Senzing supports 
+                // backslashes in the paths even though URI's do not support this
+                String drivePrefix = path.substring(0, 2);
+                sb.append(drivePrefix);
+                if (path.length() > 2) {
+                    String pathSuffix = path.substring(2);
+                    if (pathSuffix.equals("\\")) {
+                        sb.append("\\");
+                    } else {
+                        String[] pathTokens = pathSuffix.split("\\\\");
+                        String prefix = "";
+                        for (String token : pathTokens) {
+                            sb.append(prefix).append(urlEncodeUtf8(token));
+                            prefix = "\\";
+                        }
+                    }
+                }
+            } else {
+                // handle standard non-Windows paths
+                String[] pathTokens = this.file.getPath().split("/");
+                String prefix = "";
+                for (String token : pathTokens) {
+                    sb.append(prefix).append(urlEncodeUtf8(token));
+                    prefix = "/";
+                }
             }
+
             sb.append(this.getQueryString());
             return sb.toString();
         }
@@ -408,6 +443,14 @@ public class SqliteUri extends ConnectionUri {
     /**
      * Provides a static factory method for parsing a SQLite database
      * connection URI formatted as a {@link String}.
+     * 
+     * <p>
+     * <b>NOTE:</b> The Senzing environment initialization settings support
+     * Windows file paths in the SQLite URI that contain back-slashes as 
+     * file separators as well as spaces that are not URL-encoded.  While such 
+     * URI's are not technically legal, they may be encountered when working with
+     * Senzing environment initialization settings on Windows, and therefore, this
+     * function treats them as legal for parsing.
      * 
      * @param uri The URI to parse.
      * 
@@ -494,15 +537,70 @@ public class SqliteUri extends ConnectionUri {
         }        
 
         // build a file object
-        try {
-            file = new File(new URI("file://" + path));
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException(
-                "Error parsing path (" + path + ") from URI: " + uri, e);
+        if (isNonstandardWindowsPath(path)) {
+            // do a simple conversion for the path for non-standard paths
+            file = new File(urlDecodeUtf8(path));
+        } else {
+            // actually parse the path as a URI and check it is valid
+            try {
+                file = new File(new URI("file://" + path));
+            } catch (URISyntaxException e) {
+                throw new IllegalArgumentException(
+                    "Error parsing path (" + path + ") from URI: " + uri, e);
+            }
         }
         
         // construct the instance
         return new SqliteUri(unusedUser, unusedPassword, file, map);
+    }
+
+    /**
+     * Checks if the specified path appears to be a Windows path that is 
+     * not legally formatted for a standard URI.
+     * 
+     * @param path The path to check.
+     * 
+     * @return <code>true</code> if a non-standard Windows path is encountered,
+     *         otherwise <code>false</code>.
+     */
+    private static boolean isNonstandardWindowsPath(String path) {
+        // ensure the path is trimmed of all whitespace
+        path = path.trim();
+
+        // path length is less than 2, so it cannot begin with 
+        // a drive letter prefix, nor can it start with double-backslash (UNC)
+        if (path.length() < 2) {
+            return false;
+        }
+
+        // path length is exactly 2, this could be a bare drive letter prefix
+        // with no slash, but CANNOT be a UNC paths
+        if (path.length() == 2 && path.charAt(1) == ':') {
+            return startsWithLegalWindowsDriveLetter(path);
+        }
+
+        // check for the drive letter prefix
+        if (path.substring(1).startsWith(":\\")) {
+            return startsWithLegalWindowsDriveLetter(path);
+        }
+
+        // finally check for a UNC path which should begin with two backslash
+        // characters followed by a non-backslash character
+        return (path.startsWith("\\\\") && path.charAt(2) != '\\');
+    }
+
+    /**
+     * Checks if the first character of a string is a potential Windows drive letter.
+     * 
+     * @param path The path to check.
+     * 
+     * @return <code>true</code> if the specified {@link String} starts with a
+     *         potential Windows drive letter, otherwise <code>false</code>
+     */
+    private static boolean startsWithLegalWindowsDriveLetter(String path) {
+        String upperPrefix = path.substring(0, 1).toUpperCase();
+        char driveLetter = upperPrefix.charAt(0);
+        return (driveLetter >= 'A' && driveLetter <= 'Z');
     }
 
     static {
