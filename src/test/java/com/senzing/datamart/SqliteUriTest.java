@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import com.senzing.text.TextUtilities;
@@ -631,4 +632,24 @@ public class SqliteUriTest {
             fail("Failed construction with exception.", e);
         }        
     }
+
+    @ParameterizedTest
+    @CsvSource({
+        "sqlite3://*:",
+        "sqlite2:///tmp/test.db",
+        "sqlite3://foo\\bar\\phoo",
+        "sqlite3://foo/bar  /ph%o"
+    })
+    public void testBadUriParse(String text) {
+        try {
+            SqliteUri.parse(text);
+
+            fail("Succeeded in parsing illegal SQLite URI: " + text);
+        } catch (IllegalArgumentException expected) {
+            // all is well
+        } catch (Exception e) {
+            fail("Got unexpected exception parsing illegal SQLite URI: " + text, e);
+        }
+    }
+
 }

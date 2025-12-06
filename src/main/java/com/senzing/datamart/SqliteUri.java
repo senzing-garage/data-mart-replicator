@@ -237,7 +237,7 @@ public class SqliteUri extends ConnectionUri {
     protected SqliteUri(String              unusedUser,
                         String              unusedPassword, 
                         File                file, 
-                        Map<String, String>  queryOptions)
+                        Map<String, String> queryOptions)
     {
         super(SCHEME_PREFIX, queryOptions);
         
@@ -564,10 +564,43 @@ public class SqliteUri extends ConnectionUri {
      *         otherwise <code>false</code>.
      */
     private static boolean isNonstandardWindowsPath(String path) {
-        return ((path.length() == 2 && path.charAt(1) == ':')
-                || (path.length() > 2 
-                    && (path.substring(1).startsWith(":\\"))
-                        || path.startsWith("\\\\")));
+        // ensure the path is trimmed of all whitespace
+        path = path.trim();
+
+        // path length is less than 2, so it cannot begin with 
+        // a drive letter prefix, nor can it start with double-backslash (UNC)
+        if (path.length() < 2) {
+            return false;
+        }
+
+        // path length is exactly 2, this could be a bare drive letter prefix
+        // with no slash, but CANNOT be a UNC paths
+        if (path.length() == 2 && path.charAt(1) == ':') {
+            return startsWithLegalWindowsDriveLetter(path);
+        }
+
+        // check for the drive letter prefix
+        if (path.substring(1).startsWith(":\\")) {
+            return startsWithLegalWindowsDriveLetter(path);
+        }
+
+        // finally check for a UNC path which should begin with two backslash
+        // characters followed by a non-backslash character
+        return (path.startsWith("\\\\") && path.charAt(2) != '\\');
+    }
+
+    /**
+     * Checks if the first character of a string is a potential Windows drive letter.
+     * 
+     * @param path The path to check.
+     * 
+     * @return <code>true</code> if the specified {@link String} starts with a
+     *         potential Windows drive letter, otherwise <code>false</code>
+     */
+    private static boolean startsWithLegalWindowsDriveLetter(String path) {
+        String upperPrefix = path.substring(0, 1).toUpperCase();
+        char driveLetter = upperPrefix.charAt(0);
+        return (driveLetter >= 'A' && driveLetter <= 'Z');
     }
 
     static {
