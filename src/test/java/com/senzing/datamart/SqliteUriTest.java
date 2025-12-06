@@ -102,6 +102,18 @@ public class SqliteUriTest {
 
             result.add(Arguments.of(
                 null, null, new File("C:\\temp\\test.db"), null));
+            
+            result.add(Arguments.of(
+                null, null, new File("C:\\"), null));
+
+            result.add(Arguments.of(
+                null, null, new File("C:"), null));
+
+            result.add(Arguments.of(
+                null, null, new File("D:\\path with spaces\\file.db"), null));
+
+            result.add(Arguments.of(
+                null, null, new File("\\\\server\\share\\test.db"), null));
 
             return result;
         } catch (IOException e) {
@@ -392,8 +404,10 @@ public class SqliteUriTest {
                          "Query options are not as expected: " + uriText);
             assertEquals(expectedQuery, uri.getQueryString(),
                          "Query string is not as expected: " + uriText);
-            assertEquals(expectedUri, uri.toString(),
-                "Result from toString() not as expected.");
+            assertTrue(expectedUri.equals(uri.toString())
+                || expectedUri.equals(uri.toString().replaceAll("%20", " "))
+                || expectedUri.equals(uri.toString().replaceAll("\\+", " ")),
+                "Result from toString() (" + uri.toString() + ") not as expected: " + expectedUri);
 
             assertEquals(SCHEME_PREFIX, uri.getSchemePrefix(),
                         "Scheme prefix is not as expected");
