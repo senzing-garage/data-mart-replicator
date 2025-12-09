@@ -36,16 +36,6 @@ public abstract class SchemaBuilder {
   public abstract void ensureSchema(Connection conn, boolean recreate) throws SQLException;
 
   /**
-   * Dummy SQL sanitization function.
-   * 
-   * @param sql The SQL to sanitize.
-   * @return The sanitized SQL.
-   */
-  private static String sanitize(String sql) {
-    return sql;
-  }
-
-  /**
    * Utility method to execute a {@link List} of SQL statements.
    *
    * @param conn    The {@link Connection} with which to execute the statements.
@@ -62,7 +52,7 @@ public abstract class SchemaBuilder {
       // execute the SQL statements
       for (String sql : sqlList) {
         try {
-          stmt.execute(sanitize(sql));
+          stmt.execute(sql);
         } catch (SQLException e) {
           logError(e, "SQL ERROR:", sql);
           throw e;
