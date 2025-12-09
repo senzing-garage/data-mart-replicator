@@ -687,13 +687,12 @@ public class Task {
    */
   private static String toSignature(String jsonText) {
     try {
+      HexFormat hex = HexFormat.of();
       MessageDigest md = MessageDigest.getInstance("SHA-256");
       md.update(jsonText.getBytes(UTF_8));
       byte[] digest = md.digest();
       StringBuilder sb = new StringBuilder();
-      for (byte b : digest) {
-        sb.append(Integer.toHexString(0xFF & ((int) b)));
-      }
+      sb.append(hex.formatHex(digest));
       return sb.toString();
 
     } catch (NoSuchAlgorithmException cannotHappen) {
