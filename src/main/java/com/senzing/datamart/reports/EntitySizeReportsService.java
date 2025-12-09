@@ -12,6 +12,7 @@ import com.senzing.datamart.reports.model.SzEntitySizeCount;
 import com.senzing.util.Timers;
 
 import static com.senzing.sql.SQLUtilities.close;
+import static com.senzing.util.LoggingUtilities.formatStackTrace;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -39,7 +40,7 @@ public interface EntitySizeReportsService extends ReportsService {
      * The endpoint for the entities report based on entity size.
      */
     String ENTITY_SIZE_ENTITIES_ENDPOINT = ENTITY_SIZE_COUNT_ENDPOINT + "/entities";
-    
+
     /**
      * Exposes {@link EntitySizeReports#getEntitySizeBreakdown(Connection, Timers)}
      * as a REST/JSON service at {@link #ENTITY_SIZE_BREAKDOWN_ENDPOINT}.
@@ -50,9 +51,7 @@ public interface EntitySizeReportsService extends ReportsService {
      */
     @Get(ENTITY_SIZE_BREAKDOWN_ENDPOINT)
     @ProducesJson
-    default SzEntitySizeBreakdown getEntitySizeBreakdown() 
-        throws ReportsServiceException
-    {
+    default SzEntitySizeBreakdown getEntitySizeBreakdown() throws ReportsServiceException {
         Connection conn = null;
         try {
             conn = this.getConnection();
@@ -60,13 +59,15 @@ public interface EntitySizeReportsService extends ReportsService {
             Timers timers = this.getTimers();
 
             return EntitySizeReports.getEntitySizeBreakdown(conn, timers);
-            
+
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) { 
-            e.printStackTrace();
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -91,9 +92,7 @@ public interface EntitySizeReportsService extends ReportsService {
      */
     @Get(ENTITY_SIZE_COUNT_ENDPOINT)
     @ProducesJson
-    default SzEntitySizeCount getEntitySizeCount(@Param("entitySize") int entitySize) 
-        throws ReportsServiceException
-    {
+    default SzEntitySizeCount getEntitySizeCount(@Param("entitySize") int entitySize) throws ReportsServiceException {
         Connection conn = null;
         try {
             conn = this.getConnection();
@@ -101,19 +100,21 @@ public interface EntitySizeReportsService extends ReportsService {
             Timers timers = this.getTimers();
 
             return EntitySizeReports.getEntitySizeCount(conn, entitySize, timers);
-            
+
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) { 
-            e.printStackTrace();
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
                 throw new ReportsServiceException(e);
             }
-        
+
         } finally {
             conn = close(conn);
         }
@@ -121,16 +122,17 @@ public interface EntitySizeReportsService extends ReportsService {
     }
 
     /**
-     * Exposes {@link EntitySizeReports#getEntityIdsForEntitySize(Connection, int, String, SzBoundType, Integer, Integer, Timers)}
+     * Exposes
+     * {@link EntitySizeReports#getEntityIdsForEntitySize(Connection, int, String, SzBoundType, Integer, Integer, Timers)}
      * as a REST/JSON service at {@link #ENTITY_SIZE_ENTITIES_ENDPOINT}.
      * 
-     * @param entitySize The entity size (record count) for which the entity count
-     *                   is being requested.
+     * @param entitySize    The entity size (record count) for which the entity
+     *                      count is being requested.
      * @param entityIdBound The bound value for the entity ID's that will be
      *                      returned.
-     * @param boundType The {@link SzBoundType} that describes how to apply the
-     *                  specified entity ID bound.
-     * @param pageSize The maximum number of entity ID's to return.
+     * @param boundType     The {@link SzBoundType} that describes how to apply the
+     *                      specified entity ID bound.
+     * @param pageSize      The maximum number of entity ID's to return.
      * 
      * @param sampleSize    The optional number of results to randomly sample from
      *                      the page, which, if specified, must be strictly
@@ -142,33 +144,23 @@ public interface EntitySizeReportsService extends ReportsService {
      */
     @Get(ENTITY_SIZE_ENTITIES_ENDPOINT)
     @ProducesJson
-    default SzEntitiesPage getEntitySizeEntities(
-            @Param("entitySize")                            int         entitySize,
-            @Param("bound") @Nullable                       String      entityIdBound,
-            @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType,
-            @Param("pageSize") @Nullable                    Integer     pageSize,
-            @Param("sampleSize") @Nullable                  Integer     sampleSize)
-        throws ReportsServiceException
-    {
+    default SzEntitiesPage getEntitySizeEntities(@Param("entitySize") int entitySize, @Param("bound") @Nullable String entityIdBound, @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType, @Param("pageSize") @Nullable Integer pageSize, @Param("sampleSize") @Nullable Integer sampleSize) throws ReportsServiceException {
         Connection conn = null;
         try {
             conn = this.getConnection();
 
             Timers timers = this.getTimers();
 
-            return EntitySizeReports.getEntityIdsForEntitySize(conn, 
-                                                               entitySize,
-                                                               entityIdBound,
-                                                               boundType,
-                                                               pageSize,
-                                                               sampleSize,
-                                                               timers);
+            return EntitySizeReports.getEntityIdsForEntitySize(conn, entitySize, entityIdBound, boundType, pageSize,
+                    sampleSize, timers);
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) { 
-            e.printStackTrace();
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {

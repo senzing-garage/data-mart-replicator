@@ -9,6 +9,7 @@ import javax.json.JsonObjectBuilder;
 import java.util.*;
 
 import static com.senzing.util.JsonUtilities.*;
+import static com.senzing.util.LoggingUtilities.formatStackTrace;
 
 /**
  * Describes a relationship between two entities as it is stored in the data
@@ -257,7 +258,7 @@ public class SzRelationship {
      * is an instance of the same class with equivalent properties.
      * 
      * @param object The object to compare with.
-     * @return <code>true</code> if the specified parameter is an instance of the 
+     * @return <code>true</code> if the specified parameter is an instance of the
      *         same class with equivalent properties, otherwise <code>false</code>.
      */
     @Override
@@ -278,7 +279,7 @@ public class SzRelationship {
     }
 
     /**
-     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
+     * Overridden to return a hash code consistent with the {@link #equals(Object)}
      * implementation.
      * 
      * @return The hash code for this instance.
@@ -449,7 +450,8 @@ public class SzRelationship {
             System.out.println(relationship1.equals(relationship2));
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
         }
     }
 }
