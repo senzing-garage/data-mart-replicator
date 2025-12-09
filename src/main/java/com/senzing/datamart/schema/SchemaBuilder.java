@@ -21,10 +21,10 @@ public abstract class SchemaBuilder {
   }
 
   /**
-   * Ensures the schema exists and optionally drops the schema before
-   * recreating it.
+   * Ensures the schema exists and optionally drops the schema before recreating
+   * it.
    *
-   * @param conn The JDBC {@link Connection} to use for creating the schema.
+   * @param conn     The JDBC {@link Connection} to use for creating the schema.
    *
    * @param recreate <code>true</code> if the schema should be dropped and
    *                 recreated, or <code>false</code> if any existing schema
@@ -33,20 +33,27 @@ public abstract class SchemaBuilder {
    * @throws SQLException If a JDBC failure occurs.
    *
    */
-  public abstract void ensureSchema(Connection conn, boolean recreate)
-    throws SQLException;
+  public abstract void ensureSchema(Connection conn, boolean recreate) throws SQLException;
+
+  /**
+   * Dummy SQL sanitization function.
+   * 
+   * @param sql The SQL to sanitize.
+   * @return The sanitized SQL.
+   */
+  private static String sanitize(String sql) {
+    return sql;
+  }
 
   /**
    * Utility method to execute a {@link List} of SQL statements.
    *
-   * @param conn The {@link Connection} with which to execute the statements.
+   * @param conn    The {@link Connection} with which to execute the statements.
    * @param sqlList The {@link List} of SQL statements to execute.
    *
    * @throws SQLException If a JDBC failure occurs.
    */
-  protected void executeStatements(Connection conn, List<String> sqlList)
-      throws SQLException
-  {
+  protected void executeStatements(Connection conn, List<String> sqlList) throws SQLException {
     Statement stmt = null;
     ResultSet rs = null;
     try {
@@ -55,7 +62,7 @@ public abstract class SchemaBuilder {
       // execute the SQL statements
       for (String sql : sqlList) {
         try {
-          stmt.execute(sql);
+          stmt.execute(sanitize(sql));
         } catch (SQLException e) {
           logError(e, "SQL ERROR:", sql);
           throw e;
