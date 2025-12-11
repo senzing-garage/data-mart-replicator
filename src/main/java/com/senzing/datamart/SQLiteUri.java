@@ -26,7 +26,7 @@ import static com.senzing.text.TextUtilities.urlEncodeUtf8;
  * legal for parsing and attempts to reproduce the equivalent URI when formatted
  * via {@link #toString()} (save preserving the spaces without URL encoding).
  */
-public class SqliteUri extends ConnectionUri {
+public class SQLiteUri extends ConnectionUri {
     /**
      * The query option key for the SQLite mode.
      */
@@ -142,7 +142,7 @@ public class SqliteUri extends ConnectionUri {
     /**
      * Default constructor for a SQLite connection to an in-memory database.
      */
-    public SqliteUri() {
+    public SQLiteUri() {
         this((Map<String, String>) null);
     }
 
@@ -158,7 +158,7 @@ public class SqliteUri extends ConnectionUri {
      *                                  {@linkplain #MODE_KEY mode} other than
      *                                  {@linkplain #MEMORY_MODE memory mode}.
      */
-    public SqliteUri(Map<String, String> queryOptions) {
+    public SQLiteUri(Map<String, String> queryOptions) {
         super(SCHEME_PREFIX, stripMemoryOption(queryOptions));
         if (queryOptions != null && queryOptions.containsKey(MODE_KEY)
                 && !MEMORY_MODE.equalsIgnoreCase(queryOptions.get(MODE_KEY))) {
@@ -182,7 +182,7 @@ public class SqliteUri extends ConnectionUri {
      * @throws NullPointerException If the specified {@link File} is
      *                              <code>null</code>.
      */
-    public SqliteUri(File file) {
+    public SQLiteUri(File file) {
         this(file, null);
     }
 
@@ -199,7 +199,7 @@ public class SqliteUri extends ConnectionUri {
      * @throws NullPointerException If the specified {@link File} is
      *                              <code>null</code>.
      */
-    public SqliteUri(File file, Map<String, String> queryOptions) {
+    public SQLiteUri(File file, Map<String, String> queryOptions) {
         this(null, null, file, queryOptions);
     }
 
@@ -221,7 +221,7 @@ public class SqliteUri extends ConnectionUri {
      * @throws NullPointerException If the specified {@link File} is
      *                              <code>null</code>.
      */
-    protected SqliteUri(String unusedUser, String unusedPassword, File file, Map<String, String> queryOptions) {
+    protected SQLiteUri(String unusedUser, String unusedPassword, File file, Map<String, String> queryOptions) {
         super(SCHEME_PREFIX, queryOptions);
 
         requireNonNull(file, "The file cannot be null");
@@ -402,7 +402,7 @@ public class SqliteUri extends ConnectionUri {
         if (this.getClass() != obj.getClass()) {
             return false;
         }
-        SqliteUri url = (SqliteUri) obj;
+        SQLiteUri url = (SQLiteUri) obj;
         return Objects.equals(this.isMemory(), url.isMemory()) && Objects.equals(this.getFile(), url.getFile())
                 && Objects.equals(this.getUnusedUser(), url.getUnusedUser())
                 && Objects.equals(this.getUnusedPassword(), url.getUnusedPassword())
@@ -424,7 +424,7 @@ public class SqliteUri extends ConnectionUri {
      * 
      * @param uri The URI to parse.
      * 
-     * @return The newly constructed {@link SqliteUri} instance.
+     * @return The newly constructed {@link SQLiteUri} instance.
      * 
      * @throws NullPointerException     If the specified parameter is
      *                                  <code>null</code>.
@@ -432,7 +432,7 @@ public class SqliteUri extends ConnectionUri {
      * @throws IllegalArgumentException If the specified URI is not properly
      *                                  formatted.
      */
-    public static SqliteUri parse(String uri) {
+    public static SQLiteUri parse(String uri) {
         requireNonNull(uri, "The URI cannot be null");
 
         // check the prefix
@@ -454,7 +454,7 @@ public class SqliteUri extends ConnectionUri {
             } else {
                 suffix = "";
             }
-            return new SqliteUri(parseQueryOptions(suffix));
+            return new SQLiteUri(parseQueryOptions(suffix));
         } else if (suffix.startsWith("//") && suffix.length() > 2) {
             suffix = suffix.substring(2);
         } else {
@@ -515,7 +515,7 @@ public class SqliteUri extends ConnectionUri {
         }
 
         // construct the instance
-        return new SqliteUri(unusedUser, unusedPassword, file, map);
+        return new SQLiteUri(unusedUser, unusedPassword, file, map);
     }
 
     /**
@@ -569,6 +569,6 @@ public class SqliteUri extends ConnectionUri {
     }
 
     static {
-        registerConnectionType(SCHEME_PREFIX, SqliteUri.class);
+        registerConnectionType(SCHEME_PREFIX, SQLiteUri.class);
     }
 }

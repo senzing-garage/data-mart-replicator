@@ -19,17 +19,17 @@ import java.util.TreeMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static com.senzing.text.TextUtilities.*;
-import static com.senzing.datamart.SqliteUri.*;
+import static com.senzing.datamart.SQLiteUri.*;
 
 /**
- * Tests for {@link SqliteUri}.
+ * Tests for {@link SQLiteUri}.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class SqliteUriTest {
+public class SQLiteUriTest {
 
     @Test
     public void testDefaultConstructor() {
-        SqliteUri uri = new SqliteUri();
+        SQLiteUri uri = new SQLiteUri();
 
         assertEquals(true, uri.isMemory(), "uri.isMemory() not as expected");
         assertEquals(Collections.emptyMap(), uri.getQueryOptions(), "Query options are not empty");
@@ -94,7 +94,7 @@ public class SqliteUriTest {
     @MethodSource("getConstructParameters")
     public void testQueryConstructor(String unusedUser, String unusedPassword, File file, Map<String, String> queryOptions) {
         try {
-            SqliteUri uri = new SqliteUri(queryOptions);
+            SQLiteUri uri = new SQLiteUri(queryOptions);
 
             if (queryOptions != null && queryOptions.containsKey(MODE_KEY)
                     && !MEMORY_MODE.equals(queryOptions.get(MODE_KEY))) {
@@ -130,7 +130,7 @@ public class SqliteUriTest {
     @MethodSource("getConstructParameters")
     public void testFileConstructor(String unusedUser, String unusedPassword, File file, Map<String, String> queryOptions) {
         try {
-            SqliteUri uri = new SqliteUri(file);
+            SQLiteUri uri = new SQLiteUri(file);
             Map<String, String> expectedOptions = Collections.emptyMap();
 
             if (file == null) {
@@ -159,7 +159,7 @@ public class SqliteUriTest {
     @MethodSource("getConstructParameters")
     public void testFileQueryConstructor(String unusedUser, String unusedPassword, File file, Map<String, String> queryOptions) {
         try {
-            SqliteUri uri = new SqliteUri(file, queryOptions);
+            SQLiteUri uri = new SQLiteUri(file, queryOptions);
 
             if (file == null) {
                 fail("Unexpectedly succeeded with null file");
@@ -196,7 +196,7 @@ public class SqliteUriTest {
     @MethodSource("getConstructParameters")
     public void testProtectedConstructor(String unusedUser, String unusedPassword, File file, Map<String, String> queryOptions) {
         try {
-            SqliteUri uri = new SqliteUri(unusedUser, unusedPassword, file, queryOptions);
+            SQLiteUri uri = new SQLiteUri(unusedUser, unusedPassword, file, queryOptions);
 
             if (file == null) {
                 fail("Unexpectedly succeeded with null file");
@@ -290,12 +290,12 @@ public class SqliteUriTest {
                 expectedQuery = sb.toString();
             }
 
-            uriText = SqliteUri.SCHEME_PREFIX + ((file == null) ? ":memory:" : ("//" + authority + file)) + queryString;
+            uriText = SQLiteUri.SCHEME_PREFIX + ((file == null) ? ":memory:" : ("//" + authority + file)) + queryString;
 
-            String expectedUri = SqliteUri.SCHEME_PREFIX + ((file == null) ? ":memory:" : ("//" + authority + file))
+            String expectedUri = SQLiteUri.SCHEME_PREFIX + ((file == null) ? ":memory:" : ("//" + authority + file))
                     + expectedQuery;
 
-            SqliteUri uri = SqliteUri.parse(uriText);
+            SQLiteUri uri = SQLiteUri.parse(uriText);
 
             assertEquals(expectedUser, uri.getUnusedUser(), "User is not as expected: " + uriText);
             assertEquals(expectedPassword, uri.getUnusedPassword(), "Password is not as expected: " + uriText);
@@ -332,9 +332,9 @@ public class SqliteUriTest {
     @Test
     public void testEqualsAndHashDefault() {
         try {
-            SqliteUri uri1 = new SqliteUri();
+            SQLiteUri uri1 = new SQLiteUri();
 
-            SqliteUri uri2 = new SqliteUri();
+            SQLiteUri uri2 = new SQLiteUri();
 
             assertEquals(uri1, uri2, "Objects are unexpectedly not equal");
             assertEquals(uri1.hashCode(), uri2.hashCode(), "Objects unexpectedly have different hash codes");
@@ -356,8 +356,8 @@ public class SqliteUriTest {
                 queryOptions.put(MODE_KEY, MEMORY_MODE);
             }
 
-            SqliteUri uri1 = new SqliteUri(queryOptions);
-            SqliteUri uri2 = new SqliteUri(queryOptions);
+            SQLiteUri uri1 = new SQLiteUri(queryOptions);
+            SQLiteUri uri2 = new SQLiteUri(queryOptions);
 
             assertEquals(uri1, uri2, "Objects are unexpectedly not equal");
             assertEquals(uri1.hashCode(), uri2.hashCode(), "Objects unexpectedly have different hash codes");
@@ -365,8 +365,8 @@ public class SqliteUriTest {
             Map<String, String> queryOptions2 = (queryOptions == null) ? new TreeMap<>() : new TreeMap<>(queryOptions);
             queryOptions2.put(TextUtilities.randomAlphabeticText(5), TextUtilities.randomAlphanumericText(5));
 
-            uri1 = new SqliteUri(queryOptions);
-            uri2 = new SqliteUri(queryOptions2);
+            uri1 = new SQLiteUri(queryOptions);
+            uri2 = new SQLiteUri(queryOptions2);
 
             assertNotEquals(uri1, uri2, "Objects are unexpectedly equal");
             assertNotEquals(uri1.hashCode(), uri2.hashCode(), "Objects unexpectedly have the same hash codes");
@@ -384,16 +384,16 @@ public class SqliteUriTest {
             if (file == null) {
                 file = File.createTempFile("test-", ".db");
             }
-            SqliteUri uri1 = new SqliteUri(file);
-            SqliteUri uri2 = new SqliteUri(file);
+            SQLiteUri uri1 = new SQLiteUri(file);
+            SQLiteUri uri2 = new SQLiteUri(file);
 
             assertEquals(uri1, uri2, "Objects are unexpectedly not equal");
             assertEquals(uri1.hashCode(), uri2.hashCode(), "Objects unexpectedly have different hash codes");
 
             File file2 = File.createTempFile("test-", ".db");
 
-            uri1 = new SqliteUri(file);
-            uri2 = new SqliteUri(file2);
+            uri1 = new SQLiteUri(file);
+            uri2 = new SQLiteUri(file2);
 
             assertNotEquals(uri1, uri2, "Objects are unexpectedly equal");
             assertNotEquals(uri1.hashCode(), uri2.hashCode(), "Objects unexpectedly have the same hash codes");
@@ -411,8 +411,8 @@ public class SqliteUriTest {
                 file = File.createTempFile("test-", ".db");
             }
 
-            SqliteUri uri1 = new SqliteUri(file, queryOptions);
-            SqliteUri uri2 = new SqliteUri(file, queryOptions);
+            SQLiteUri uri1 = new SQLiteUri(file, queryOptions);
+            SQLiteUri uri2 = new SQLiteUri(file, queryOptions);
 
             assertEquals(uri1, uri2, "Objects are unexpectedly not equal");
             assertEquals(uri1.hashCode(), uri2.hashCode(), "Objects unexpectedly have different hash codes");
@@ -434,8 +434,8 @@ public class SqliteUriTest {
                 fail("Unrecognized change index: " + changeIndex);
             }
 
-            uri1 = new SqliteUri(file, queryOptions);
-            uri2 = new SqliteUri(file2, queryOptions2);
+            uri1 = new SQLiteUri(file, queryOptions);
+            uri2 = new SQLiteUri(file2, queryOptions2);
 
             assertNotEquals(uri1, uri2, "Objects are unexpectedly equal");
             assertNotEquals(uri1.hashCode(), uri2.hashCode(), "Objects unexpectedly have the same hash codes");
@@ -457,8 +457,8 @@ public class SqliteUriTest {
                 unusedPassword = (unusedPassword == null) ? "na" : unusedPassword;
             }
 
-            SqliteUri uri1 = new SqliteUri(unusedUser, unusedPassword, file, queryOptions);
-            SqliteUri uri2 = new SqliteUri(unusedUser, unusedPassword, file, queryOptions);
+            SQLiteUri uri1 = new SQLiteUri(unusedUser, unusedPassword, file, queryOptions);
+            SQLiteUri uri2 = new SQLiteUri(unusedUser, unusedPassword, file, queryOptions);
 
             assertEquals(uri1, uri2, "Objects are unexpectedly not equal");
             assertEquals(uri1.hashCode(), uri2.hashCode(), "Objects unexpectedly have different hash codes");
@@ -494,8 +494,8 @@ public class SqliteUriTest {
                 fail("Unrecognized change index: " + changeIndex);
             }
 
-            uri1 = new SqliteUri(unusedUser, unusedPassword, file, queryOptions);
-            uri2 = new SqliteUri(unusedUser2, unusedPassword2, file2, queryOptions2);
+            uri1 = new SQLiteUri(unusedUser, unusedPassword, file, queryOptions);
+            uri2 = new SQLiteUri(unusedUser2, unusedPassword2, file2, queryOptions2);
 
             assertNotEquals(uri1, uri2, "Objects are unexpectedly equal");
             assertNotEquals(uri1.hashCode(), uri2.hashCode(), "Objects unexpectedly have the same hash codes");
@@ -509,7 +509,7 @@ public class SqliteUriTest {
     @CsvSource({ "sqlite3://*:", "sqlite2:///tmp/test.db", "sqlite3://foo\\bar\\phoo", "sqlite3://foo/bar  /ph%o" })
     public void testBadUriParse(String text) {
         try {
-            SqliteUri.parse(text);
+            SQLiteUri.parse(text);
 
             fail("Succeeded in parsing illegal SQLite URI: " + text);
         } catch (IllegalArgumentException expected) {

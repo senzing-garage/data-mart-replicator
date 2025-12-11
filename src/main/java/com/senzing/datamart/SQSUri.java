@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * Represents an SQS connection URI.
  */
-public class SqsUri extends ConnectionUri {
+public class SQSUri extends ConnectionUri {
     /**
      * The default port for HTTP insecure communication.
      */
@@ -87,7 +87,7 @@ public class SqsUri extends ConnectionUri {
      * @throws IllegalArgumentException If the specified port is
      *                                  not a positive integer.
      */
-    public SqsUri(URI uri)
+    public SQSUri(URI uri)
     {
         super(uri.getScheme().equalsIgnoreCase("https") 
               ? SECURE_SCHEME_PREFIX : SCHEME_PREFIX,
@@ -230,7 +230,7 @@ public class SqsUri extends ConnectionUri {
         if (this.getClass() != obj.getClass()) {
             return false;
         }
-        SqsUri url = (SqsUri) obj;
+        SQSUri url = (SQSUri) obj;
         return Objects.equals(this.getUri(), url.getUri())
             && Objects.equals(this.isSecure(), url.isSecure())
             && Objects.equals(this.getHost(), url.getHost())
@@ -245,7 +245,7 @@ public class SqsUri extends ConnectionUri {
      * 
      * @param uri The URI to parse.
      * 
-     * @return The newly constructed {@link SqsUri} instance.
+     * @return The newly constructed {@link SQSUri} instance.
      * 
      * @throws NullPointerException If the specified parameter is
      *                              <code>null</code>.
@@ -253,16 +253,16 @@ public class SqsUri extends ConnectionUri {
      * @throws IllegalArgumentException If the specified URI is not properly
      *                                  formatted.
      */
-    public static SqsUri parse(String uri) {
+    public static SQSUri parse(String uri) {
         try {
-            return new SqsUri(new URI(uri));
+            return new SQSUri(new URI(uri));
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Invalid SQS URI: " + uri, e);
         }
     }
 
     static {
-        registerConnectionType(SCHEME_PREFIX, SqsUri.class);
-        registerConnectionType(SECURE_SCHEME_PREFIX, SqsUri.class);
+        registerConnectionType(SCHEME_PREFIX, SQSUri.class);
+        registerConnectionType(SECURE_SCHEME_PREFIX, SQSUri.class);
     }
 }

@@ -297,9 +297,9 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      * <ul>
      *   <li><code>{@value PostgreSqlUri#SUPPORTED_FORMAT_1}</code></li>
      *   <li><code>{@value PostgreSqlUri#SUPPORTED_FORMAT_2}</code></li>
-     *   <li><code>{@value SqliteUri#SUPPORTED_FORMAT_1}</code></li>
-     *   <li><code>{@value SqliteUri#SUPPORTED_FORMAT_2}</code></li>
-     *   <li><code>{@value SqliteUri#SUPPORTED_FORMAT_3}</code></li>
+     *   <li><code>{@value SQLiteUri#SUPPORTED_FORMAT_1}</code></li>
+     *   <li><code>{@value SQLiteUri#SUPPORTED_FORMAT_2}</code></li>
+     *   <li><code>{@value SQLiteUri#SUPPORTED_FORMAT_3}</code></li>
      * </ul>
      * <b>NOTE:</b> The PostgreSQL or SQLite URI can also be obtained from the 
      * {@link #CORE_SETTINGS} by using a special URI in the following format:
@@ -486,10 +486,10 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
         // force load the URI classes
         Class<?>[] classes = {
             ConnectionUri.class,
-            SqliteUri.class,
+            SQLiteUri.class,
             PostgreSqlUri.class,
             RabbitMqUri.class,
-            SqsUri.class,
+            SQSUri.class,
             SzCoreSettingsUri.class
         };
         for (Class c : classes) {
@@ -736,7 +736,7 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
                 return parseProcessingRate(params.get(0));
 
             case SQS_INFO_URI:
-                return SqsUri.parse(params.get(0));
+                return SQSUri.parse(params.get(0));
 
             case RABBITMQ_URI:
                 return RabbitMqUri.parse(params.get(0));
@@ -793,7 +793,7 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
     public static ConnectionUri parseDatabaseUri(String paramValue) {
         Objects.requireNonNull(paramValue, "Parameter value cannot be null");
         Set<Class<? extends ConnectionUri>> allowed
-            = Set.of(PostgreSqlUri.class, SqliteUri.class);
+            = Set.of(PostgreSqlUri.class, SQLiteUri.class);
         
         ConnectionUri uri = ConnectionUri.parse(paramValue);
         if (!allowed.contains(uri.getClass())) {
