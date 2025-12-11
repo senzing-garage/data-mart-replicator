@@ -6,6 +6,7 @@ import com.senzing.listener.service.MessageProcessor;
 import com.senzing.listener.service.locking.LockingService;
 import com.senzing.listener.service.locking.ProcessScopeLockingService;
 import com.senzing.util.AsyncWorkerPool;
+import com.senzing.util.AsyncWorkerPool.AsyncResult;
 import com.senzing.util.JsonUtilities;
 import com.senzing.util.Timers;
 
@@ -462,12 +463,12 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     }
 
     /**
-     * Once this instance has transferred to the {@link State#DESTROYING}
-     * state, this method can be called to wait until we have transitioned
-     * to the {@link State#DESTROYED} state.
+     * Once this instance has transferred to the {@link State#DESTROYING} state,
+     * this method can be called to wait until we have transitioned to the
+     * {@link State#DESTROYED} state.
      * 
-     * @throws IllegalStateException If this method is called when <b>NOT</b>
-     *                               in the {@link State#DESTROYED} or 
+     * @throws IllegalStateException If this method is called when <b>NOT</b> in the
+     *                               {@link State#DESTROYED} or
      *                               {@link State#DESTROYING} state.
      */
     protected synchronized void waitUntilDestroyed() {
@@ -479,8 +480,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
         // check if NOT destroying
         if (this.getState() != State.DESTROYING) {
             throw new IllegalStateException(
-                "Cannot call waitUntilDestroyed() if NOT currently destroying: "
-                + this.getState());
+                    "Cannot call waitUntilDestroyed() if NOT currently destroying: " + this.getState());
         }
 
         // wait until notified
@@ -1214,7 +1214,8 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
         }
     }
 

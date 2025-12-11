@@ -211,7 +211,7 @@ public class SzReplicator extends Thread {
                 System.err.println();
                 System.err.println(e.getMessage());
                 System.err.println();
-                e.printStackTrace();
+                System.err.println(formatStackTrace(e.getStackTrace()));
             }
             System.exit(1);
         }
@@ -245,7 +245,8 @@ public class SzReplicator extends Thread {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             exitOnError(e);
         }
 
@@ -284,7 +285,8 @@ public class SzReplicator extends Thread {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
 
         } finally {
             this.messageConsumer.destroy();
@@ -314,11 +316,11 @@ public class SzReplicator extends Thread {
     }
 
     /**
-     * Gets the {@link Map} of {@link Statistic} keys to {@link Number}
-     * values for this instance.
+     * Gets the {@link Map} of {@link Statistic} keys to {@link Number} values for
+     * this instance.
      * 
-     * @return The {@link Map} of {@link Statistic} keys to {@link Number}
-     *         values for this instance.
+     * @return The {@link Map} of {@link Statistic} keys to {@link Number} values
+     *         for this instance.
      */
     public Map<Statistic, Number> getStatistics() {
         Map<Statistic, Number> stats = new LinkedHashMap<>();
@@ -350,8 +352,8 @@ public class SzReplicator extends Thread {
     }
 
     /**
-     * Formats and prints the specified {@link Map} of {@link Statistic} keys
-     * to {@link Number} values.
+     * Formats and prints the specified {@link Map} of {@link Statistic} keys to
+     * {@link Number} values.
      * 
      * @param stats The {@link Map} of {@link Statistic} keys to {@link Number}
      *              values to print.
@@ -473,12 +475,13 @@ public class SzReplicator extends Thread {
                 "        operations (i.e.: the number of engine threads).  The number of",
                 "        threads for consuming messages and handling tasks is scaled based",
                 "        on the engine concurrency.  If not specified, then this defaults to "
-                            + DEFAULT_CORE_CONCURRENCY + ".",
+                        + DEFAULT_CORE_CONCURRENCY + ".",
                 "        --> VIA ENVIRONMENT: " + CORE_CONCURRENCY.getEnvironmentVariable(), "",
                 "   --module-name <module-name>",
                 "        The module name to initialize with.  If not specified, then the module",
                 "        name defaults to \"" + DEFAULT_INSTANCE_NAME + "\".",
-                "        --> VIA ENVIRONMENT: " + CORE_INSTANCE_NAME.getEnvironmentVariable(), "", "   --verbose [true|false]",
+                "        --> VIA ENVIRONMENT: " + CORE_INSTANCE_NAME.getEnvironmentVariable(), "",
+                "   --verbose [true|false]",
                 "        Also -verbose.  If specified then initialize in verbose mode.  The",
                 "        true/false parameter is optional, if not specified then true is assumed.",
                 "        If specified as false then it is the same as omitting the option with",
@@ -531,14 +534,11 @@ public class SzReplicator extends Thread {
     protected static void printDatabaseOptionsUsage(PrintWriter pw) {
         pw.println(multilineFormat("[ Data Mart Database Connectivity Options ]",
                 "   The following options pertain to configuring the connection to the data-mart",
-                "   database.  Exactly one such database must be configured.", 
-                "", 
-                "   --sqlite-database-file <url>",
+                "   database.  Exactly one such database must be configured.", "", "   --sqlite-database-file <url>",
                 "        Specifies an SQLite database file to open (or create) to use as the",
                 "        data-mart database.  NOTE: SQLite may be used for testing, but because",
                 "        only one connection may be made, it will not scale for production use.",
-                "        --> VIA ENVIRONMENT: " + DATABASE_URI.getEnvironmentVariable(),
-                ""));
+                "        --> VIA ENVIRONMENT: " + DATABASE_URI.getEnvironmentVariable(), ""));
     }
 
     /**
@@ -619,8 +619,7 @@ public class SzReplicator extends Thread {
     private SzEnvironment environment = null;
 
     /**
-     * The proxied {@link SzEnvironment} to prevent calling of
-     * {@link #destroy()}.
+     * The proxied {@link SzEnvironment} to prevent calling of {@link #destroy()}.
      */
     private SzEnvironment proxyEnvironment = null;
 
@@ -646,8 +645,8 @@ public class SzReplicator extends Thread {
     private SzReplicatorService replicatorService;
 
     /**
-     * Creates a new instance of {@link SzAutoCoreEnvironment} using 
-     * the specified options.
+     * Creates a new instance of {@link SzAutoCoreEnvironment} using the specified
+     * options.
      * 
      * @param options The {@link SzReplicatorOptions} to use.
      * @return The {@link SzAutoCoreEnvironment} that was created using the
@@ -656,104 +655,86 @@ public class SzReplicator extends Thread {
      * @throws IllegalStateException If there is already an active instance of
      *                               {@link com.senzing.sdk.core.SzCoreEnvironment}.
      */
-    protected static SzAutoCoreEnvironment createSzAutoCoreEnvironment(
-        SzReplicatorOptions options)
-        throws IllegalStateException
-    {
+    protected static SzAutoCoreEnvironment createSzAutoCoreEnvironment(SzReplicatorOptions options) throws IllegalStateException {
         String settings = JsonUtilities.toJsonText(options.getCoreSettings());
 
         String instanceName = options.getCoreInstanceName();
-        
-        boolean verbose = (options.getCoreLogLevel() != 0);
-        
-        int concurrency = options.getCoreConcurrency();
-     
-        long refreshSeconds = options.getRefreshConfigSeconds();
-        Duration duration = (refreshSeconds < 0) 
-            ? null : Duration.ofSeconds(refreshSeconds);
 
-        return SzAutoCoreEnvironment.newAutoBuilder()
-                .concurrency(concurrency)
-                .configRefreshPeriod(duration)
-                .settings(settings)
-                .instanceName(instanceName)
-                .verboseLogging(verbose)
-                .build();
+        boolean verbose = (options.getCoreLogLevel() != 0);
+
+        int concurrency = options.getCoreConcurrency();
+
+        long refreshSeconds = options.getRefreshConfigSeconds();
+        Duration duration = (refreshSeconds < 0) ? null : Duration.ofSeconds(refreshSeconds);
+
+        return SzAutoCoreEnvironment.newAutoBuilder().concurrency(concurrency).configRefreshPeriod(duration)
+                .settings(settings).instanceName(instanceName).verboseLogging(verbose).build();
     }
 
     /**
      * Constructs an instance of {@link SzReplicator} with the specified
-     * {@link SzReplicatorOptions} instance.  The server will be started
-     * upon construction.
+     * {@link SzReplicatorOptions} instance. The server will be started upon
+     * construction.
      *
      * <b>NOTE:</b> This will initialize the Senzing Core SDK via
      * {@link SzAutoCoreEnvironment} and only one active instance of
-     * {@link com.senzing.sdk.core.SzCoreEnvironment} is allowed in a
-     * process at any given time.
+     * {@link com.senzing.sdk.core.SzCoreEnvironment} is allowed in a process at any
+     * given time.
      * 
      * @param options The {@link SzReplicatorOptions} instance with which to
      *                construct the API server instance.
      * 
-     * @throws IllegalStateException If another instance of Senzing Core SDK
-     *                               is already actively initialized.
+     * @throws IllegalStateException If another instance of Senzing Core SDK is
+     *                               already actively initialized.
      * 
-     * @throws Exception If a failure occurs.
+     * @throws Exception             If a failure occurs.
      */
-    public SzReplicator(SzReplicatorOptions options) 
-        throws Exception 
-    {
+    public SzReplicator(SzReplicatorOptions options) throws Exception {
         this(options, true);
     }
 
     /**
      * Constructs an instance of {@link SzReplicator} with the specified
-     * {@link SzReplicatorOptions} instance, optionally {@linkplain 
-     * #start() starting} processing upon construction.
+     * {@link SzReplicatorOptions} instance, optionally {@linkplain #start()
+     * starting} processing upon construction.
      *
-     * @param options The {@link SzReplicatorOptions} instance with which to
-     *                construct the API server instance.
+     * @param options         The {@link SzReplicatorOptions} instance with which to
+     *                        construct the API server instance.
      * 
-     * @param startProcessing <code>true</code> if processing should be started
-     *                        upon construction, otherwise <code>false</code>.
+     * @param startProcessing <code>true</code> if processing should be started upon
+     *                        construction, otherwise <code>false</code>.
      * 
      * @throws Exception If a failure occurs.
      */
-    public SzReplicator(SzReplicatorOptions options, boolean startProcessing) 
-        throws Exception 
-    {
-        this(createSzAutoCoreEnvironment(options),
-             true,
-             options,
-             startProcessing);
+    public SzReplicator(SzReplicatorOptions options, boolean startProcessing) throws Exception {
+        this(createSzAutoCoreEnvironment(options), true, options, startProcessing);
     }
 
     /**
      * Constructs an instance of {@link SzReplicator} with the specified
-     * {@link SzEnvironment} and {@link SzReplicatorOptions} instance.
-     * The constructed instance will <b>not</b> manage the specified
-     * {@link SzEnvironment} in that it will <b>not</b> attempt {@linkplain
-     * SzEnvironment#destroy() destroy} it upon destruction of this instance.
+     * {@link SzEnvironment} and {@link SzReplicatorOptions} instance. The
+     * constructed instance will <b>not</b> manage the specified
+     * {@link SzEnvironment} in that it will <b>not</b> attempt
+     * {@linkplain SzEnvironment#destroy() destroy} it upon destruction of this
+     * instance.
      *
      * <p>
-     * <b>NOTE:</b> Any of the {@linkplain SzReplicatorOptions options}
-     * specified pertaining to the creation of an {@link SzAutoCoreEnvironment}
-     * will be ignored.
+     * <b>NOTE:</b> Any of the {@linkplain SzReplicatorOptions options} specified
+     * pertaining to the creation of an {@link SzAutoCoreEnvironment} will be
+     * ignored.
      * 
-     * @param environment The {@link SzEnvironment} to use.
+     * @param environment     The {@link SzEnvironment} to use.
      * 
-     * @param options     The {@link SzReplicatorOptions} instance with which to
-     *                    construct the API server instance.
+     * @param options         The {@link SzReplicatorOptions} instance with which to
+     *                        construct the API server instance.
      * 
-     * @param startProcessing <code>true</code> if processing should be started
-     *                        upon construction, otherwise <code>false</code>.
+     * @param startProcessing <code>true</code> if processing should be started upon
+     *                        construction, otherwise <code>false</code>.
      * 
      * @throws Exception If a failure occurs.
      */
-    public SzReplicator(SzEnvironment       environment,
-                        SzReplicatorOptions options,
-                        boolean             startProcessing)
-        throws Exception 
-    {
+    public SzReplicator(SzEnvironment environment, SzReplicatorOptions options, boolean startProcessing)
+            throws Exception {
         this(environment, false, options, startProcessing);
     }
 
@@ -761,25 +742,21 @@ public class SzReplicator extends Thread {
      * Constructs an instance of {@link SzReplicator} with the specified
      * {@link SzReplicatorOptions} instance.
      *
-     * @param environment The {@link SzEnvironment} to use.
+     * @param environment     The {@link SzEnvironment} to use.
      * 
-     * @param manageEnv <code>true</code> if this instance should destroy the
-     *                  environment when done, otherwise <code>false</code>.
+     * @param manageEnv       <code>true</code> if this instance should destroy the
+     *                        environment when done, otherwise <code>false</code>.
      * 
-     * @param options     The {@link SzReplicatorOptions} instance with which to
-     *                    construct the API server instance.
+     * @param options         The {@link SzReplicatorOptions} instance with which to
+     *                        construct the API server instance.
      * 
-     * @param startProcessing <code>true</code> if processing should be started
-     *                        upon construction, otherwise <code>false</code>.
+     * @param startProcessing <code>true</code> if processing should be started upon
+     *                        construction, otherwise <code>false</code>.
      * 
      * @throws Exception If a failure occurs.
      */
-    protected SzReplicator(SzEnvironment        environment,
-                           boolean              manageEnv,
-                           SzReplicatorOptions  options,
-                           boolean              startProcessing)
-        throws Exception 
-    {
+    protected SzReplicator(SzEnvironment environment, boolean manageEnv, SzReplicatorOptions options, boolean startProcessing)
+            throws Exception {
         // get the concurrency
         if (environment instanceof SzAutoEnvironment) {
             SzAutoEnvironment autoEnv = (SzAutoEnvironment) environment;
@@ -795,18 +772,17 @@ public class SzReplicator extends Thread {
 
         // set the environment
         this.environment = environment;
-        this.manageEnv   = manageEnv;
+        this.manageEnv = manageEnv;
 
         // proxy the environment
-        this.proxyEnvironment = (SzEnvironment)
-            ReflectionUtilities.restrictedProxy(this.environment, DESTROY_METHOD);
-        
+        this.proxyEnvironment = (SzEnvironment) ReflectionUtilities.restrictedProxy(this.environment, DESTROY_METHOD);
+
         // declare the scheduling service class (determine based on database type)
         String schedulingServiceClassName = null;
 
         // get the database URI
         ConnectionUri databaseUri = options.getDatabaseUri();
-        
+
         if (databaseUri instanceof SqliteUri) {
             SqliteUri sqliteUri = (SqliteUri) databaseUri;
             File dbFile = sqliteUri.getFile();
@@ -820,16 +796,11 @@ public class SzReplicator extends Thread {
         } else if (databaseUri instanceof PostgreSqlUri) {
             PostgreSqlUri postgreSqlUri = (PostgreSqlUri) databaseUri;
 
-            this.connector = new PostgreSqlConnector(postgreSqlUri.getHost(),
-                                                     postgreSqlUri.getPort(),
-                                                     postgreSqlUri.getDatabase(),
-                                                     postgreSqlUri.getHost(),
-                                                     postgreSqlUri.getPassword());
+            this.connector = new PostgreSqlConnector(postgreSqlUri.getHost(), postgreSqlUri.getPort(),
+                    postgreSqlUri.getDatabase(), postgreSqlUri.getHost(), postgreSqlUri.getPassword());
 
-            this.connPool = new ConnectionPool(this.connector, 
-                                               TransactionIsolation.READ_COMMITTED,
-                                               poolSize,
-                                               maxPoolSize);
+            this.connPool = new ConnectionPool(this.connector, TransactionIsolation.READ_COMMITTED, poolSize,
+                    maxPoolSize);
 
             schedulingServiceClassName = PostgreSQLSchedulingService.class.getName();
         }
@@ -860,12 +831,12 @@ public class SzReplicator extends Thread {
         this.replicatorService.init(replicatorJOB.build());
 
         // build the message consumer
-        RabbitMqUri rabbitMqUri     = options.getRabbitMqUri();
-        SqsUri      sqsUri          = options.getSqsInfoUri();
-        Boolean     databaseQueue   = options.isUsingDatabaseQueue();
-        
+        RabbitMqUri rabbitMqUri = options.getRabbitMqUri();
+        SqsUri sqsUri = options.getSqsInfoUri();
+        Boolean databaseQueue = options.isUsingDatabaseQueue();
+
         JsonObjectBuilder consumerJOB = Json.createObjectBuilder();
-        if (Boolean.TRUE.equals(databaseQueue))  {
+        if (Boolean.TRUE.equals(databaseQueue)) {
             this.queueRegistryName = TextUtilities.randomAlphanumericText(25);
             consumerJOB.add(SQLConsumer.CONNECTION_PROVIDER_KEY, this.connProviderName);
             consumerJOB.add(SQLConsumer.QUEUE_REGISTRY_NAME_KEY, this.queueRegistryName);
@@ -875,14 +846,14 @@ public class SzReplicator extends Thread {
             String queueName = options.getRabbitMqInfoQueue();
             if (queueName == null) {
                 throw new IllegalArgumentException(
-                    "The RabbitMQ MQ must be specified if the RabbitMQ URI is provided.");
+                        "The RabbitMQ MQ must be specified if the RabbitMQ URI is provided.");
             }
             consumerJOB.add(RabbitMQConsumer.CONCURRENCY_KEY, consumerConcurrency);
             consumerJOB.add(RabbitMQConsumer.MQ_HOST_KEY, rabbitMqUri.getHost());
             consumerJOB.add(RabbitMQConsumer.MQ_USER_KEY, rabbitMqUri.getUser());
             consumerJOB.add(RabbitMQConsumer.MQ_PASSWORD_KEY, rabbitMqUri.getPassword());
             consumerJOB.add(RabbitMQConsumer.MQ_QUEUE_KEY, queueName);
-            
+
             // check if we have the port parameter
             if (rabbitMqUri.hasPort()) {
                 consumerJOB.add(RabbitMQConsumer.MQ_PORT_KEY, rabbitMqUri.getPort());
