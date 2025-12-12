@@ -97,7 +97,7 @@ public class SzReplicatorOptions {
      * The SQS info URI, or <code>null</code> if using alternate
      * message queue.
      */
-    private SqsUri sqsInfoUri = null;
+    private SQSUri sqsInfoUri = null;
 
     /**
      * Whether or not to use the info queue in the database.
@@ -432,7 +432,7 @@ public class SzReplicatorOptions {
     @Option(DATABASE_INFO_QUEUE)
     public SzReplicatorOptions setUsingDatabaseQueue(boolean useDatabaseQueue) {
         if (useDatabaseQueue) {
-            if (this.getSqsInfoUri() != null) {
+            if (this.getSQSInfoUri() != null) {
                 throw new IllegalStateException(
                     "Cannot use a database info queue if "
                     + "using an SQS info queue.");
@@ -477,7 +477,7 @@ public class SzReplicatorOptions {
                     "Cannot specify a RabbitMQ URI if using "
                     + "a database info queue");
             }
-            if (this.getSqsInfoUri() != null) {
+            if (this.getSQSInfoUri() != null) {
                 throw new IllegalStateException(
                     "Cannot specify a RabbitMQ URI if using "
                     + "an SQS info queue.");
@@ -512,7 +512,7 @@ public class SzReplicatorOptions {
                     "Cannot specify a RabbitMQ queue if using "
                     + "a database info queue");
             }
-            if (this.getSqsInfoUri() != null) {
+            if (this.getSQSInfoUri() != null) {
                 throw new IllegalStateException(
                     "Cannot specify a RabbitMQ queue if using "
                     + "an SQS info queue.");
@@ -523,24 +523,24 @@ public class SzReplicatorOptions {
     }
 
     /**
-     * Returns the {@link SqsUri} for the "info" queue.
+     * Returns the {@link SQSUri} for the "info" queue.
      *
-     * @return The {@link SqsUri} for the "info" queue.
+     * @return The {@link SQSUri} for the "info" queue.
      */
     @Option(SQS_INFO_URI)
-    public SqsUri getSqsInfoUri() {
+    public SQSUri getSQSInfoUri() {
         return this.sqsInfoUri;
     }
 
     /**
-     * Sets the {@link SqsUri} for the "info" queue.
+     * Sets the {@link SQSUri} for the "info" queue.
      *
-     * @param uri The {@link SqsUri} for the "info" queue.
+     * @param uri The {@link SQSUri} for the "info" queue.
      *
      * @return A reference to this instance.
      */
     @Option(SQS_INFO_URI)
-    public SzReplicatorOptions setSqsInfoUri(SqsUri uri) {
+    public SzReplicatorOptions setSQSInfoUri(SQSUri uri) {
         if (uri != null) {
             if (this.isUsingDatabaseQueue()) {
                 throw new IllegalStateException(
@@ -588,7 +588,7 @@ public class SzReplicatorOptions {
     public SzReplicatorOptions setDatabaseUri(ConnectionUri uri) 
     {
         if ((uri != null) && (!(uri instanceof PostgreSqlUri))
-            && (!(uri instanceof SqliteUri))) 
+            && (!(uri instanceof SQLiteUri))) 
         {
             throw new IllegalArgumentException(
                 "Unsupported database connection URL type: " + uri);

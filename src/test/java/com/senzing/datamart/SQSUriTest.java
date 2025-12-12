@@ -15,19 +15,19 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static com.senzing.text.TextUtilities.*;
-import static com.senzing.datamart.SqsUri.*;
+import static com.senzing.datamart.SQSUri.*;
 
 /**
- * Tests for {@link SqsUri}.
+ * Tests for {@link SQSUri}.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class SqsUriTest {
+public class SQSUriTest {
 
     @Test
     public void testNullParameter()
     {
         try {
-            new SqsUri(null);
+            new SQSUri(null);
             
             fail("Unexpectedly succeeded in constructing with "
                 + "a null URI.");
@@ -158,10 +158,10 @@ public class SqsUriTest {
                                 Map<String, String>         queryOptions,
                                 Class<? extends Exception>  exceptionClass)
     {
-        SqsUri uri = null;
+        SQSUri uri = null;
 
         try {
-            uri = new SqsUri(httpUri);
+            uri = new SQSUri(httpUri);
 
             if (exceptionClass != null) {
                 fail("Unexpectedly succeeded when an exception "
@@ -217,12 +217,12 @@ public class SqsUriTest {
                           Map<String, String>           queryOptions,
                           Class<? extends Exception>    exceptionClass)
     {
-        SqsUri uri = null;
+        SQSUri uri = null;
 
         String uriText = httpUri.toASCIIString();
 
         try {
-            uri = SqsUri.parse(uriText);
+            uri = SQSUri.parse(uriText);
 
             if (exceptionClass != null) {
                 fail("Unexpectedly succeeded when an exception "
@@ -289,12 +289,12 @@ public class SqsUriTest {
                                   Map<String, String>           queryOptions,
                                   Class<? extends Exception>    exceptionClass)
     {
-        SqsUri uri1 = null;
-        SqsUri uri2 = null;
+        SQSUri uri1 = null;
+        SQSUri uri2 = null;
         String uriText = httpUri.toASCIIString();
 
         try {
-            uri1 = new SqsUri(httpUri);
+            uri1 = new SQSUri(httpUri);
 
             if (exceptionClass != null) {
                 fail("Unexpectedly succeeded when an exception "
@@ -314,7 +314,7 @@ public class SqsUriTest {
 
 
         try {
-            uri2 = new SqsUri(httpUri);
+            uri2 = new SQSUri(httpUri);
 
             assertEquals(uri1, uri2, "Objects are unexpectedly not equal");
             assertEquals(uri1.hashCode(), uri2.hashCode(),
@@ -327,7 +327,7 @@ public class SqsUriTest {
 
             URI httpUri2 = new URI(uriText);
 
-            uri2 = new SqsUri(httpUri2);
+            uri2 = new SQSUri(httpUri2);
 
             assertNotEquals(uri1, uri2, "Objects are unexpectedly not equal");
             assertNotEquals(uri1.hashCode(), uri2.hashCode(),

@@ -807,11 +807,13 @@ public class SzReplicator extends Thread {
         // get the database URI
         ConnectionUri databaseUri = options.getDatabaseUri();
         
-        if (databaseUri instanceof SqliteUri) {
-            SqliteUri sqliteUri = (SqliteUri) databaseUri;
-            File dbFile = sqliteUri.getFile();
+        if (databaseUri instanceof SQLiteUri) {
+            SQLiteUri sqliteUri = (SQLiteUri) databaseUri;
+            Map<String, String> connProps = sqliteUri.getQueryOptions();
 
-            this.connector = new SQLiteConnector(dbFile);
+            this.connector = (sqliteUri.isMemory())
+                ? new SQLiteConnector(sqliteUri.getInMemoryIdentifier(), connProps)
+                : new SQLiteConnector(sqliteUri.getFile(), connProps);
 
             this.connPool = new ConnectionPool(this.connector, poolSize, maxPoolSize);
 
@@ -861,7 +863,7 @@ public class SzReplicator extends Thread {
 
         // build the message consumer
         RabbitMqUri rabbitMqUri     = options.getRabbitMqUri();
-        SqsUri      sqsUri          = options.getSqsInfoUri();
+        SQSUri      sqsUri          = options.getSQSInfoUri();
         Boolean     databaseQueue   = options.isUsingDatabaseQueue();
         
         JsonObjectBuilder consumerJOB = Json.createObjectBuilder();
