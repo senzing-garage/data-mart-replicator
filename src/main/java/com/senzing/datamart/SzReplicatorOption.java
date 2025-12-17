@@ -753,14 +753,8 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      */
     public static ConnectionUri parseDatabaseUri(String paramValue) {
         Objects.requireNonNull(paramValue, "Parameter value cannot be null");
-<<<<<<< HEAD
-        Set<Class<? extends ConnectionUri>> allowed = Set.of(PostgreSqlUri.class, SqliteUri.class);
+        Set<Class<? extends ConnectionUri>> allowed = Set.of(PostgreSqlUri.class, SQLiteUri.class);
 
-=======
-        Set<Class<? extends ConnectionUri>> allowed
-            = Set.of(PostgreSqlUri.class, SQLiteUri.class);
-        
->>>>>>> main
         ConnectionUri uri = ConnectionUri.parse(paramValue);
         if (!allowed.contains(uri.getClass())) {
             throw new IllegalArgumentException("Unrecognized database connection URI: " + paramValue);
