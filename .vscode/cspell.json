@@ -73,6 +73,7 @@
     "senzingsdk",
     "sonatype",
     "spotbugs",
+    "sqli",
     "stackoverflow",
     "STRFTIME",
     "temurin",
@@ -88,5 +89,10 @@
     "Xlint",
     "xstream"
   ],
-  "ignorePaths": [".git/**", ".gitignore", "target/**", ".claude/**"]
+  "ignorePaths": [
+    ".git/**",
+    ".gitignore",
+    "target/**",
+    ".claude/**"
+  ]
 }
