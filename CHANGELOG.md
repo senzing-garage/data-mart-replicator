@@ -6,12 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-beta.1.2] - 2025-12-10
+
+### Changed in 2.0.0-beta.1.2
+
+- Changed `SqsUri` to `SQSUri`
+- Changed `SqliteUri` to `SQLiteUri`
+- Changes to `SQLiteUri` to support multiple in-memory databases.
+
 ## [2.0.0-beta.1.1] - 2025-12-05
 
 ### Changed in 2.0.0-beta.1.1
 
 - Modified `SQLiteUri` to handle Windows paths with drive letters and back-slashes
-  as path separators in the URI even these are NOT standard URI's.  This was done
+  as path separators in the URI even these are NOT standard URI's.  This was done 
   because such URI's are supported by the underlying Senzing engine in the
   initialization settings and therefore need to be handled when encountered.
 

@@ -285,9 +285,9 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      * <ul>
      * <li><code>{@value PostgreSqlUri#SUPPORTED_FORMAT_1}</code></li>
      * <li><code>{@value PostgreSqlUri#SUPPORTED_FORMAT_2}</code></li>
-     * <li><code>{@value SqliteUri#SUPPORTED_FORMAT_1}</code></li>
-     * <li><code>{@value SqliteUri#SUPPORTED_FORMAT_2}</code></li>
-     * <li><code>{@value SqliteUri#SUPPORTED_FORMAT_3}</code></li>
+     * <li><code>{@value SQLiteUri#SUPPORTED_FORMAT_1}</code></li>
+     * <li><code>{@value SQLiteUri#SUPPORTED_FORMAT_2}</code></li>
+     * <li><code>{@value SQLiteUri#SUPPORTED_FORMAT_3}</code></li>
      * </ul>
      * <b>NOTE:</b> The PostgreSQL or SQLite URI can also be obtained from the
      * {@link #CORE_SETTINGS} by using a special URI in the following format:
@@ -469,8 +469,8 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
 
     static {
         // force load the URI classes
-        Class<?>[] classes = { ConnectionUri.class, SqliteUri.class, PostgreSqlUri.class, RabbitMqUri.class,
-                SqsUri.class, SzCoreSettingsUri.class };
+        Class<?>[] classes = { ConnectionUri.class, SQLiteUri.class, PostgreSqlUri.class, RabbitMqUri.class,
+                SQSUri.class, SzCoreSettingsUri.class };
         for (Class c : classes) {
             try {
                 // attempt to preload the class
@@ -701,7 +701,7 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
                 return parseProcessingRate(params.get(0));
 
             case SQS_INFO_URI:
-                return SqsUri.parse(params.get(0));
+                return SQSUri.parse(params.get(0));
 
             case RABBITMQ_URI:
                 return RabbitMqUri.parse(params.get(0));
@@ -753,8 +753,14 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      */
     public static ConnectionUri parseDatabaseUri(String paramValue) {
         Objects.requireNonNull(paramValue, "Parameter value cannot be null");
+<<<<<<< HEAD
         Set<Class<? extends ConnectionUri>> allowed = Set.of(PostgreSqlUri.class, SqliteUri.class);
 
+=======
+        Set<Class<? extends ConnectionUri>> allowed
+            = Set.of(PostgreSqlUri.class, SQLiteUri.class);
+        
+>>>>>>> main
         ConnectionUri uri = ConnectionUri.parse(paramValue);
         if (!allowed.contains(uri.getClass())) {
             throw new IllegalArgumentException("Unrecognized database connection URI: " + paramValue);
