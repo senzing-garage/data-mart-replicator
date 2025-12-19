@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-beta.1.3] - 2025-12-19
+
+### Changed in 2.0.0-beta.1.3
+
+- Replaced parsing of `MATCH_LEVEL` (Senzing 3.x) with `MATCH_LEVEL_CODE` (Senzing 4.x)
+- Introduced `SzMatchLevelCode` enum class to support parsing `MATCH_LEVEL_CODE`
+- Updated report services to allow the inclusion or omission of trailing slash on many endpoints
+
 ## [2.0.0-beta.1.2] - 2025-12-10
 
 ### Changed in 2.0.0-beta.1.2
