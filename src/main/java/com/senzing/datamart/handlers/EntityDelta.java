@@ -1119,8 +1119,7 @@ public class EntityDelta {
             }
 
             // check if other aspects of the related entity have changed
-            if ((oldRelated.getMatchLevel() != newRelated.getMatchLevel())
-                    || (oldRelated.getMatchType() != newRelated.getMatchType())
+            if ((oldRelated.getMatchType() != newRelated.getMatchType())
                     || (!oldRelated.getMatchKey().equals(newRelated.getMatchKey()))
                     || (!oldRelated.getPrinciple().equals(newRelated.getPrinciple()))) {
                 relations.put(newRelated.getEntityId(), newRelated);
@@ -2013,9 +2012,9 @@ public class EntityDelta {
                 && (newMatchType != null || newPrinciple != null || newMatchKey != null)) {
             throw new IllegalArgumentException(
                     "If the relationship no longer exists then the new match type, principle "
-                    + "AND match key must all be null.  If it does exist, then ALL must NOT "
-                    + "be null.  mathType=[ " + oldMatchType + " ], principle=[ " + oldPrinciple
-                    + " ], matchKey=[ " + oldMatchKey + " ]");
+                            + "AND match key must all be null.  If it does exist, then ALL must NOT "
+                            + "be null.  mathType=[ " + oldMatchType + " ], principle=[ " + oldPrinciple
+                            + " ], matchKey=[ " + oldMatchKey + " ]");
         }
     }
 }

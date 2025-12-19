@@ -11,11 +11,6 @@ import static com.senzing.util.JsonUtilities.*;
  */
 public class SzRelatedEntity extends SzEntity {
     /**
-     * The match level for this related entity.
-     */
-    private int matchLevel;
-
-    /**
      * The {@link SzMatchType} for this related entity.
      */
     private SzMatchType matchType;
@@ -34,28 +29,9 @@ public class SzRelatedEntity extends SzEntity {
      * Default constructor.
      */
     public SzRelatedEntity() {
-        this.matchLevel = 0;
         this.matchType = null;
         this.matchKey = null;
         this.principle = null;
-    }
-
-    /**
-     * Gets the match level for this related entity.
-     *
-     * @return The match level for this related entity.
-     */
-    public int getMatchLevel() {
-        return this.matchLevel;
-    }
-
-    /**
-     * Sets the match level for this related entity.
-     *
-     * @param matchLevel The match level for this related entity.
-     */
-    public void setMatchLevel(int matchLevel) {
-        this.matchLevel = matchLevel;
     }
 
     /**
@@ -127,7 +103,6 @@ public class SzRelatedEntity extends SzEntity {
      */
     public void buildJson(JsonObjectBuilder builder) {
         super.buildJson(builder);
-        builder.add("matchLevel", this.getMatchLevel());
         builder.add("matchType", this.getMatchType().getCode());
         builder.add("matchKey", this.getMatchKey());
         builder.add("principle", this.getPrinciple());
@@ -149,13 +124,6 @@ public class SzRelatedEntity extends SzEntity {
             entity = new SzRelatedEntity();
         }
         SzEntity.parse(entity, jsonObject);
-
-        // get and set the match level
-        Integer matchLevel = getInteger(jsonObject, "matchLevel");
-        if (matchLevel == null) {
-            matchLevel = getInteger(jsonObject, "MATCH_LEVEL");
-        }
-        entity.setMatchLevel(matchLevel);
 
         // get and set the relationship type
         SzMatchType matchType = null;
@@ -193,7 +161,7 @@ public class SzRelatedEntity extends SzEntity {
      * is an instance of the same class with equivalent properties.
      * 
      * @param o The object to compare with.
-     * @return <code>true</code> if the specified parameter is an instance of the 
+     * @return <code>true</code> if the specified parameter is an instance of the
      *         same class with equivalent properties, otherwise <code>false</code>.
      */
     @Override
@@ -208,20 +176,20 @@ public class SzRelatedEntity extends SzEntity {
             return false;
         }
         SzRelatedEntity that = (SzRelatedEntity) o;
-        return this.getMatchLevel() == that.getMatchLevel() && this.getMatchType() == that.getMatchType()
+        return this.getMatchType() == that.getMatchType()
                 && Objects.equals(this.getMatchKey(), that.getMatchKey())
                 && Objects.equals(this.getPrinciple(), that.getPrinciple());
     }
 
     /**
-     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
+     * Overridden to return a hash code consistent with the {@link #equals(Object)}
      * implementation.
      * 
      * @return The hash code for this instance.
      */
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), this.getMatchLevel(), this.getMatchType(), this.getMatchKey(),
+        return Objects.hash(super.hashCode(), this.getMatchType(), this.getMatchKey(),
                 this.getPrinciple());
     }
 }
