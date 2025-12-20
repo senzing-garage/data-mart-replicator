@@ -17,8 +17,8 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
     }
 
     /**
-     * Ensures the SQLite schema exists and optionally drops the schema before
-     * creating it.
+     * Ensures the SQLite schema exists and optionally drops the schema
+     * before creating it.
      *
      * @param conn     The JDBC {@link Connection} to use for creating the schema.
      *
@@ -33,15 +33,23 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
         List<String> sqlList = new LinkedList<>();
 
         String createLockTable = "CREATE TABLE IF NOT EXISTS sz_dm_locks ("
-                + "  resource_key TEXT NOT NULL PRIMARY KEY, " + "  modifier_id TEXT NOT NULL);";
+                + "  resource_key TEXT NOT NULL PRIMARY KEY, "
+                + "  modifier_id TEXT NOT NULL);";
 
         String dropLockTable = "DROP TABLE IF EXISTS sz_dm_locks;";
 
         String createEntityTable = "CREATE TABLE IF NOT EXISTS sz_dm_entity ("
-                + "  entity_id INTEGER NOT NULL PRIMARY KEY, " + "  entity_name TEXT, " + "  record_count INTEGER, "
-                + "  relation_count INTEGER, " + "  entity_hash TEXT, " + "  prev_entity_hash TEXT,"
-                + "  creator_id TEXT NOT NULL, " + "  modifier_id TEXT NOT NULL, " + "  created_on TIMESTAMP NOT NULL "
-                + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), " + "  modified_on TIMESTAMP NOT NULL "
+                + "  entity_id INTEGER NOT NULL PRIMARY KEY, "
+                + "  entity_name TEXT, "
+                + "  record_count INTEGER, "
+                + "  relation_count INTEGER, "
+                + "  entity_hash TEXT, "
+                + "  prev_entity_hash TEXT,"
+                + "  creator_id TEXT NOT NULL, "
+                + "  modifier_id TEXT NOT NULL, "
+                + "  created_on TIMESTAMP NOT NULL "
+                + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), "
+                + "  modified_on TIMESTAMP NOT NULL "
                 + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')))";
 
         String dropEntityTable = "DROP TABLE IF EXISTS sz_dm_entity;";
@@ -64,12 +72,20 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
 
         String dropEntityUpdateTrigger = formatDropSQLiteUpdateTrigger("sz_dm_entity");
 
-        String createRecordTable = "CREATE TABLE IF NOT EXISTS sz_dm_record (" + "  data_source TEXT NOT NULL, "
-                + "  record_id TEXT NOT NULL, " + "  entity_id INTEGER NOT NULL, " + "  match_key TEXT, "
-                + "  errule_code TEXT, " + "  creator_id TEXT NOT NULL, " + "  modifier_id TEXT NOT NULL, "
-                + "  adopter_id TEXT NULL, " + "  created_on TIMESTAMP NOT NULL "
-                + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), " + "  modified_on TIMESTAMP NOT NULL "
-                + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), " + "PRIMARY KEY(data_source, record_id));";
+        String createRecordTable = "CREATE TABLE IF NOT EXISTS sz_dm_record ("
+                + "  data_source TEXT NOT NULL, "
+                + "  record_id TEXT NOT NULL, "
+                + "  entity_id INTEGER NOT NULL, "
+                + "  match_key TEXT, "
+                + "  errule_code TEXT, "
+                + "  creator_id TEXT NOT NULL, "
+                + "  modifier_id TEXT NOT NULL, "
+                + "  adopter_id TEXT NULL, "
+                + "  created_on TIMESTAMP NOT NULL "
+                + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), "
+                + "  modified_on TIMESTAMP NOT NULL "
+                + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), "
+                + "PRIMARY KEY(data_source, record_id));";
 
         String dropRecordTable = "DROP TABLE IF EXISTS sz_dm_record;";
 
@@ -81,7 +97,8 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
 
         String dropRecordUpdateTrigger = formatDropSQLiteUpdateTrigger("sz_dm_record");
 
-        String createRecordIndex = "CREATE INDEX IF NOT EXISTS sz_dm_record_ix ON sz_dm_record (" + "entity_id)";
+        String createRecordIndex = "CREATE INDEX IF NOT EXISTS sz_dm_record_ix ON sz_dm_record ("
+                + "entity_id)";
 
         String dropRecordIndex = "DROP INDEX IF EXISTS sz_dm_record_ix;";
 
@@ -105,12 +122,20 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
 
         String dropRecordModIndex = "DROP INDEX IF EXISTS sz_dm_record_mod_ix;";
 
-        String createRelationTable = "CREATE TABLE IF NOT EXISTS sz_dm_relation (" + "  entity_id INTEGER NOT NULL, "
-                + "  related_id INTEGER NOT NULL, " + "  match_level INTEGER, " + "  match_type TEXT, "
-                + "  match_key TEXT, " + "  errule_code TEXT, " + "  relation_hash TEXT, "
-                + "  prev_relation_hash TEXT, " + "  creator_id TEXT NOT NULL, " + "  modifier_id TEXT NOT NULL, "
-                + "  created_on TIMESTAMP NOT NULL " + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), "
-                + "  modified_on TIMESTAMP NOT NULL " + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), "
+        String createRelationTable = "CREATE TABLE IF NOT EXISTS sz_dm_relation ("
+                + "  entity_id INTEGER NOT NULL, "
+                + "  related_id INTEGER NOT NULL, "
+                + "  match_type TEXT, "
+                + "  match_key TEXT, "
+                + "  errule_code TEXT, "
+                + "  relation_hash TEXT, "
+                + "  prev_relation_hash TEXT, "
+                + "  creator_id TEXT NOT NULL, "
+                + "  modifier_id TEXT NOT NULL, "
+                + "  created_on TIMESTAMP NOT NULL "
+                + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), "
+                + "  modified_on TIMESTAMP NOT NULL "
+                + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), "
                 + "PRIMARY KEY(entity_id, related_id));";
 
         String dropRelationTable = "DROP TABLE IF EXISTS sz_dm_relation;";
@@ -149,11 +174,18 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
         String dropRelationUpdateTrigger = formatDropSQLiteUpdateTrigger("sz_dm_relation");
 
         String createReportTable = "CREATE TABLE IF NOT EXISTS sz_dm_report ("
-                + "  report_key TEXT NOT NULL PRIMARY KEY, " + "  report TEXT NOT NULL, "
-                + "  statistic TEXT NOT NULL, " + "  data_source1 TEXT, " + "  data_source2 TEXT, "
-                + "  entity_count INTEGER, " + "  record_count INTEGER, " + "  relation_count INTEGER, "
-                + "  report_notes TEXT, " + "  created_on TIMESTAMP NOT NULL "
-                + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), " + "  modified_on TIMESTAMP NOT NULL "
+                + "  report_key TEXT NOT NULL PRIMARY KEY, "
+                + "  report TEXT NOT NULL, "
+                + "  statistic TEXT NOT NULL, "
+                + "  data_source1 TEXT, "
+                + "  data_source2 TEXT, "
+                + "  entity_count INTEGER, "
+                + "  record_count INTEGER, "
+                + "  relation_count INTEGER, "
+                + "  report_notes TEXT, "
+                + "  created_on TIMESTAMP NOT NULL "
+                + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), "
+                + "  modified_on TIMESTAMP NOT NULL "
                 + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')));";
 
         String dropReportTable = "DROP TABLE IF EXISTS sz_dm_report;";
@@ -167,11 +199,17 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
         String dropReportUpdateTrigger = formatDropSQLiteUpdateTrigger("sz_dm_report");
 
         String createReportDetailTable = "CREATE TABLE IF NOT EXISTS sz_dm_report_detail ("
-                + "  report_key TEXT NOT NULL, " + "  entity_id INTEGER NOT NULL, "
-                + "  related_id INTEGER NOT NULL DEFAULT (0), " + "  stat_count INTEGER DEFAULT (0), "
-                + "  report_notes TEXT, " + "  creator_id TEXT NOT NULL, " + "  modifier_id TEXT NOT NULL, "
-                + "  created_on TIMESTAMP NOT NULL " + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), "
-                + "  modified_on TIMESTAMP NOT NULL " + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), "
+                + "  report_key TEXT NOT NULL, "
+                + "  entity_id INTEGER NOT NULL, "
+                + "  related_id INTEGER NOT NULL DEFAULT (0), "
+                + "  stat_count INTEGER DEFAULT (0), "
+                + "  report_notes TEXT, "
+                + "  creator_id TEXT NOT NULL, "
+                + "  modifier_id TEXT NOT NULL, "
+                + "  created_on TIMESTAMP NOT NULL "
+                + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), "
+                + "  modified_on TIMESTAMP NOT NULL "
+                + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), "
                 + "PRIMARY KEY(entity_id, related_id, report_key));";
 
         String dropReportDetailTable = "DROP TABLE IF EXISTS sz_dm_report_detail;";
@@ -205,10 +243,17 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
         String dropReportDetailUpdateTrigger = formatDropSQLiteUpdateTrigger("sz_dm_report_detail");
 
         String createPendingReportTable = "CREATE TABLE IF NOT EXISTS sz_dm_pending_report ("
-                + "  report_key TEXT NOT NULL, " + "  lease_id TEXT, " + "  expire_lease_at TIMESTAMP, "
-                + "  entity_delta INTEGER, " + "  record_delta INTEGER, " + "  relation_delta INTEGER, "
-                + "  entity_id INTEGER, " + "  related_id INTEGER, " + "  created_on TIMESTAMP NOT NULL "
-                + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), " + "  modified_on TIMESTAMP NOT NULL "
+                + "  report_key TEXT NOT NULL, "
+                + "  lease_id TEXT, "
+                + "  expire_lease_at TIMESTAMP, "
+                + "  entity_delta INTEGER, "
+                + "  record_delta INTEGER, "
+                + "  relation_delta INTEGER, "
+                + "  entity_id INTEGER, "
+                + "  related_id INTEGER, "
+                + "  created_on TIMESTAMP NOT NULL "
+                + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), "
+                + "  modified_on TIMESTAMP NOT NULL "
                 + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')));";
 
         String dropPendingReportTable = "DROP TABLE IF EXISTS sz_dm_pending_report;";
@@ -331,14 +376,17 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
      * @return The create trigger statement.
      */
     protected String formatCreateSQLiteInsertTrigger(String tableName) {
-        return "CREATE TRIGGER IF NOT EXISTS " + tableName + "_new " + "AFTER INSERT ON " + tableName + " FOR EACH ROW "
-                + "BEGIN UPDATE " + tableName + " " + "SET created_on = (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')),"
-                + " modified_on = (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')) " + "WHERE rowid = new.rowid; END;";
+        return "CREATE TRIGGER IF NOT EXISTS " + tableName + "_new "
+                + "AFTER INSERT ON " + tableName + " FOR EACH ROW "
+                + "BEGIN UPDATE " + tableName + " "
+                + "SET created_on = (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')),"
+                + " modified_on = (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')) "
+                + "WHERE rowid = new.rowid; END;";
     }
 
     /**
-     * Formats a SQLite drop trigger statement for the timestamp maintenance trigger
-     * for the specified table name.
+     * Formats a SQLite drop trigger statement for the timestamp maintenance
+     * trigger for the specified table name.
      *
      * @param tableName The table name for the drop trigger statement.
      * @return The drop trigger statement.
@@ -355,14 +403,17 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
      * @return The create trigger statement.
      */
     protected String formatCreateSQLiteUpdateTrigger(String tableName) {
-        return "CREATE TRIGGER IF NOT EXISTS " + tableName + "_mod " + "AFTER UPDATE ON " + tableName + " FOR EACH ROW "
-                + "BEGIN UPDATE " + tableName + " " + "SET created_on = old.created_on, "
-                + " modified_on = (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')) " + "WHERE rowid = old.rowid; END;";
+        return "CREATE TRIGGER IF NOT EXISTS " + tableName + "_mod "
+                + "AFTER UPDATE ON " + tableName + " FOR EACH ROW "
+                + "BEGIN UPDATE " + tableName + " "
+                + "SET created_on = old.created_on, "
+                + " modified_on = (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')) "
+                + "WHERE rowid = old.rowid; END;";
     }
 
     /**
-     * Formats a SQLite drop trigger statement for the timestamp maintenance trigger
-     * for the specified table name.
+     * Formats a SQLite drop trigger statement for the timestamp maintenance
+     * trigger for the specified table name.
      *
      * @param tableName The table name for the drop trigger statement.
      * @return The drop trigger statement.

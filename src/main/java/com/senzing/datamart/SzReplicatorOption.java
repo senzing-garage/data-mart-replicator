@@ -458,19 +458,25 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
     @Override
     public boolean isSensitive() {
         switch (this) {
-        case RABBITMQ_URI:
-        case DATABASE_URI:
-        case CORE_SETTINGS:
-            return true;
-        default:
-            return false;
+            case RABBITMQ_URI:
+            case DATABASE_URI:
+            case CORE_SETTINGS:
+                return true;
+            default:
+                return false;
         }
     }
 
     static {
         // force load the URI classes
-        Class<?>[] classes = { ConnectionUri.class, SQLiteUri.class, PostgreSqlUri.class, RabbitMqUri.class,
-                SQSUri.class, SzCoreSettingsUri.class };
+        Class<?>[] classes = {
+                ConnectionUri.class,
+                SQLiteUri.class,
+                PostgreSqlUri.class,
+                RabbitMqUri.class,
+                SQSUri.class,
+                SzCoreSettingsUri.class
+        };
         for (Class c : classes) {
             try {
                 // attempt to preload the class
@@ -595,126 +601,128 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
             // down-cast
             SzReplicatorOption replicatorOption = (SzReplicatorOption) option;
             switch (replicatorOption) {
-            case HELP:
-            case VERSION:
-                return Boolean.TRUE;
-
-            case IGNORE_ENVIRONMENT:
-            case DATABASE_INFO_QUEUE:
-                if (params.size() == 0) {
+                case HELP:
+                case VERSION:
                     return Boolean.TRUE;
-                }
-                String boolText = params.get(0);
-                if ("false".equalsIgnoreCase(boolText)) {
-                    return Boolean.FALSE;
-                }
-                if ("true".equalsIgnoreCase(boolText)) {
-                    return Boolean.TRUE;
-                }
-                throw new IllegalArgumentException("The specified parameter for " + option.getCommandLineFlag()
-                        + " must be true or false: " + params.get(0));
 
-            case CORE_INSTANCE_NAME:
-                return params.get(0).trim();
+                case IGNORE_ENVIRONMENT:
+                case DATABASE_INFO_QUEUE:
+                    if (params.size() == 0) {
+                        return Boolean.TRUE;
+                    }
+                    String boolText = params.get(0);
+                    if ("false".equalsIgnoreCase(boolText)) {
+                        return Boolean.FALSE;
+                    }
+                    if ("true".equalsIgnoreCase(boolText)) {
+                        return Boolean.TRUE;
+                    }
+                    throw new IllegalArgumentException("The specified parameter for " + option.getCommandLineFlag()
+                            + " must be true or false: " + params.get(0));
 
-            case CORE_SETTINGS: {
-                String paramVal = params.get(0).trim();
-                if (paramVal.length() == 0) {
-                    throw new IllegalArgumentException("Missing parameter for core settings.");
+                case CORE_INSTANCE_NAME:
+                    return params.get(0).trim();
+
+                case CORE_SETTINGS: {
+                    String paramVal = params.get(0).trim();
+                    if (paramVal.length() == 0) {
+                        throw new IllegalArgumentException("Missing parameter for core settings.");
+                    }
+                    if (paramVal.startsWith("{")) {
+                        try {
+                            return JsonUtilities.parseJsonObject(paramVal);
+
+                        } catch (Exception e) {
+                            throw new IllegalArgumentException(
+                                    multilineFormat("Core settings is not valid JSON: ", paramVal));
+                        }
+                    } else {
+                        File initFile = new File(paramVal);
+                        if (!initFile.exists()) {
+                            throw new IllegalArgumentException("Specified JSON init file does not exist: " + initFile);
+                        }
+                        String jsonText;
+                        try {
+                            jsonText = readTextFileAsString(initFile, "UTF-8");
+
+                        } catch (IOException e) {
+                            throw new RuntimeException(
+                                    multilineFormat("Failed to read JSON initialization file: " + initFile, "",
+                                            "Cause: " + e.getMessage()));
+                        }
+                        try {
+                            return JsonUtilities.parseJsonObject(jsonText);
+
+                        } catch (Exception e) {
+                            throw new IllegalArgumentException(
+                                    "The initialization file does not contain valid JSON: " + initFile);
+                        }
+                    }
                 }
-                if (paramVal.startsWith("{")) {
+                case CORE_CONFIG_ID:
                     try {
-                        return JsonUtilities.parseJsonObject(paramVal);
+                        return Long.parseLong(params.get(0));
+                    } catch (Exception e) {
+                        throw new IllegalArgumentException("The configuration ID for " + option.getCommandLineFlag()
+                                + " must be an integer: " + params.get(0));
+                    }
 
+                case CORE_LOG_LEVEL: {
+                    String paramVal = params.get(0).trim().toLowerCase();
+
+                    switch (paramVal) {
+                        case "verbose":
+                        case "1":
+                            return true;
+                        case "muted":
+                        case "0":
+                            return false;
+                        default:
+                            throw new IllegalArgumentException(
+                                    "The specified core log level is not recognized; " + paramVal);
+                    }
+                }
+
+                case CORE_CONCURRENCY: {
+                    int threadCount;
+                    try {
+                        threadCount = Integer.parseInt(params.get(0));
+                    } catch (IllegalArgumentException e) {
+                        throw new IllegalArgumentException("Thread count must be an integer: " + params.get(0));
+                    }
+                    if (threadCount <= 0) {
+                        throw new IllegalArgumentException("Negative thread counts are not allowed: " + threadCount);
+                    }
+                    return threadCount;
+                }
+
+                case REFRESH_CONFIG_SECONDS:
+                    try {
+                        return Long.parseLong(params.get(0));
                     } catch (Exception e) {
                         throw new IllegalArgumentException(
-                                multilineFormat("Core settings is not valid JSON: ", paramVal));
+                                "The specified refresh period for " + option.getCommandLineFlag()
+                                        + " must be an integer: " + params.get(0));
                     }
-                } else {
-                    File initFile = new File(paramVal);
-                    if (!initFile.exists()) {
-                        throw new IllegalArgumentException("Specified JSON init file does not exist: " + initFile);
-                    }
-                    String jsonText;
-                    try {
-                        jsonText = readTextFileAsString(initFile, "UTF-8");
 
-                    } catch (IOException e) {
-                        throw new RuntimeException(
-                                multilineFormat("Failed to read JSON initialization file: " + initFile, "",
-                                        "Cause: " + e.getMessage()));
-                    }
-                    try {
-                        return JsonUtilities.parseJsonObject(jsonText);
+                case PROCESSING_RATE:
+                    return parseProcessingRate(params.get(0));
 
-                    } catch (Exception e) {
-                        throw new IllegalArgumentException(
-                                "The initialization file does not contain valid JSON: " + initFile);
-                    }
-                }
-            }
-            case CORE_CONFIG_ID:
-                try {
-                    return Long.parseLong(params.get(0));
-                } catch (Exception e) {
-                    throw new IllegalArgumentException("The configuration ID for " + option.getCommandLineFlag()
-                            + " must be an integer: " + params.get(0));
-                }
+                case SQS_INFO_URI:
+                    return SQSUri.parse(params.get(0));
 
-            case CORE_LOG_LEVEL: {
-                String paramVal = params.get(0).trim().toLowerCase();
+                case RABBITMQ_URI:
+                    return RabbitMqUri.parse(params.get(0));
 
-                switch (paramVal) {
-                case "verbose":
-                case "1":
-                    return true;
-                case "muted":
-                case "0":
-                    return false;
+                case RABBITMQ_INFO_QUEUE:
+                    return params.get(0);
+
+                case DATABASE_URI:
+                    return parseDatabaseUri(params.get(0));
+
                 default:
-                    throw new IllegalArgumentException("The specified core log level is not recognized; " + paramVal);
-                }
-            }
-
-            case CORE_CONCURRENCY: {
-                int threadCount;
-                try {
-                    threadCount = Integer.parseInt(params.get(0));
-                } catch (IllegalArgumentException e) {
-                    throw new IllegalArgumentException("Thread count must be an integer: " + params.get(0));
-                }
-                if (threadCount <= 0) {
-                    throw new IllegalArgumentException("Negative thread counts are not allowed: " + threadCount);
-                }
-                return threadCount;
-            }
-
-            case REFRESH_CONFIG_SECONDS:
-                try {
-                    return Long.parseLong(params.get(0));
-                } catch (Exception e) {
-                    throw new IllegalArgumentException("The specified refresh period for " + option.getCommandLineFlag()
-                            + " must be an integer: " + params.get(0));
-                }
-
-            case PROCESSING_RATE:
-                return parseProcessingRate(params.get(0));
-
-            case SQS_INFO_URI:
-                return SQSUri.parse(params.get(0));
-
-            case RABBITMQ_URI:
-                return RabbitMqUri.parse(params.get(0));
-
-            case RABBITMQ_INFO_QUEUE:
-                return params.get(0);
-
-            case DATABASE_URI:
-                return parseDatabaseUri(params.get(0));
-
-            default:
-                throw new IllegalArgumentException(
-                        "Unhandled command line option: " + option.getCommandLineFlag() + " / " + option);
+                    throw new IllegalArgumentException(
+                            "Unhandled command line option: " + option.getCommandLineFlag() + " / " + option);
 
             }
         }

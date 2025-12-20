@@ -100,11 +100,18 @@ public enum SzMatchType {
                 return DISCLOSED_RELATION;
             }
         }
-        int matchLevel = JsonUtilities.getInteger(jsonObject, "MATCH_LEVEL");
 
-        // check the match level
-        if (matchLevel == 2) {
-            return POSSIBLE_MATCH;
+        String code = JsonUtilities.getString(jsonObject, "MATCH_LEVEL_CODE");
+        try {
+            SzMatchLevelCode matchLevelCode = (code == null) ? null : SzMatchLevelCode.valueOf(code);
+
+            // check the match level
+            if (matchLevelCode == SzMatchLevelCode.POSSIBLY_SAME) {
+                return POSSIBLE_MATCH;
+            }
+
+        } catch (IllegalArgumentException e) {
+            System.err.println("WARNING: Unrecognized MATCH_LEVEL_CODE value: " + code);
         }
 
         // assume its a possible relation

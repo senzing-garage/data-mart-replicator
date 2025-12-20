@@ -2,6 +2,7 @@ package com.senzing.datamart.reports;
 
 import com.linecorp.armeria.server.annotation.Get;
 import com.linecorp.armeria.server.annotation.Param;
+import com.linecorp.armeria.server.annotation.Path;
 import com.linecorp.armeria.server.annotation.ProducesJson;
 import com.linecorp.armeria.common.annotation.Nullable;
 import com.linecorp.armeria.server.annotation.Default;
@@ -49,7 +50,9 @@ public interface EntitySizeReportsService extends ReportsService {
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(ENTITY_SIZE_BREAKDOWN_ENDPOINT)
+    @Get
+    @Path(ENTITY_SIZE_PREFIX)
+    @Path(ENTITY_SIZE_BREAKDOWN_ENDPOINT)
     @ProducesJson
     default SzEntitySizeBreakdown getEntitySizeBreakdown() throws ReportsServiceException {
         Connection conn = null;
@@ -142,7 +145,9 @@ public interface EntitySizeReportsService extends ReportsService {
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(ENTITY_SIZE_ENTITIES_ENDPOINT)
+    @Get
+    @Path(ENTITY_SIZE_ENTITIES_ENDPOINT)
+    @Path(ENTITY_SIZE_ENTITIES_ENDPOINT + "/")
     @ProducesJson
     default SzEntitiesPage getEntitySizeEntities(@Param("entitySize") int entitySize, @Param("bound") @Nullable String entityIdBound, @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType, @Param("pageSize") @Nullable Integer pageSize, @Param("sampleSize") @Nullable Integer sampleSize) throws ReportsServiceException {
         Connection conn = null;

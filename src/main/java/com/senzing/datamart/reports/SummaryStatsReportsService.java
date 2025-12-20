@@ -2,6 +2,7 @@ package com.senzing.datamart.reports;
 
 import com.linecorp.armeria.server.annotation.Get;
 import com.linecorp.armeria.server.annotation.Param;
+import com.linecorp.armeria.server.annotation.Path;
 import com.linecorp.armeria.server.annotation.ProducesJson;
 import com.linecorp.armeria.common.annotation.Nullable;
 import com.linecorp.armeria.server.annotation.Default;
@@ -186,7 +187,9 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(SUMMARY_STATS_ENDPOINT)
+    @Get
+    @Path(SUMMARY_STATS_PREFIX)
+    @Path(SUMMARY_STATS_ENDPOINT)
     @ProducesJson
     default SzSummaryStats getSummaryStats(@Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("onlyLoadedSources") @Default("true") boolean onlyLoaded) throws ReportsServiceException {
         Connection conn = null;
@@ -356,7 +359,9 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(CROSS_SOURCE_MATCH_SUMMARY_ENDPOINT)
+    @Get
+    @Path(CROSS_SOURCE_MATCH_SUMMARY_ENDPOINT)
+    @Path(CROSS_SOURCE_MATCH_SUMMARY_ENDPOINT + "/")
     @ProducesJson
     default SzCrossSourceMatchCounts getCrossSourceMatchSummary(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("onlyLoadedSources") @Default("true") boolean onlyLoaded) throws ReportsServiceException {
         Connection conn = null;
@@ -472,7 +477,9 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(CROSS_SOURCE_POSSIBLE_MATCH_SUMMARY_ENDPOINT)
+    @Get
+    @Path(CROSS_SOURCE_POSSIBLE_MATCH_SUMMARY_ENDPOINT)
+    @Path(CROSS_SOURCE_POSSIBLE_MATCH_SUMMARY_ENDPOINT + "/")
     @ProducesJson
     default SzCrossSourceRelationCounts getCrossSourcePossibleMatchSummary(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("onlyLoadedSources") @Default("true") boolean onlyLoaded) throws ReportsServiceException {
         Connection conn = null;
@@ -530,7 +537,9 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(CROSS_SOURCE_POSSIBLE_RELATION_SUMMARY_ENDPOINT)
+    @Get
+    @Path(CROSS_SOURCE_POSSIBLE_RELATION_SUMMARY_ENDPOINT)
+    @Path(CROSS_SOURCE_POSSIBLE_RELATION_SUMMARY_ENDPOINT + "/")
     @ProducesJson
     default SzCrossSourceRelationCounts getCrossSourcePossibleRelationSummary(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("onlyLoadedSources") @Default("true") boolean onlyLoaded) throws ReportsServiceException {
         Connection conn = null;
@@ -588,7 +597,9 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(CROSS_SOURCE_DISCLOSED_RELATION_SUMMARY_ENDPOINT)
+    @Get
+    @Path(CROSS_SOURCE_DISCLOSED_RELATION_SUMMARY_ENDPOINT)
+    @Path(CROSS_SOURCE_DISCLOSED_RELATION_SUMMARY_ENDPOINT + "/")
     @ProducesJson
     default SzCrossSourceRelationCounts getCrossSourceDisclosedRelationSummary(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("onlyLoadedSources") @Default("true") boolean onlyLoaded) throws ReportsServiceException {
         Connection conn = null;
@@ -651,7 +662,9 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(SOURCE_SUMMARY_MATCH_ENTITIES_ENDPOINT)
+    @Get
+    @Path(SOURCE_SUMMARY_MATCH_ENTITIES_ENDPOINT)
+    @Path(SOURCE_SUMMARY_MATCH_ENTITIES_ENDPOINT + "/")
     @ProducesJson
     default SzEntitiesPage getSummaryMatchEntityIds(@Param("dataSourceCode") String dataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("bound") @Nullable String entityIdBound, @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType, @Param("pageSize") @Nullable Integer pageSize, @Param("sampleSize") @Nullable Integer sampleSize) throws ReportsServiceException {
         Connection conn = null;
@@ -714,7 +727,9 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(SOURCE_SUMMARY_AMBIGUOUS_MATCH_ENTITIES_ENDPOINT)
+    @Get
+    @Path(SOURCE_SUMMARY_AMBIGUOUS_MATCH_ENTITIES_ENDPOINT)
+    @Path(SOURCE_SUMMARY_AMBIGUOUS_MATCH_ENTITIES_ENDPOINT + "/")
     @ProducesJson
     default SzEntitiesPage getSummaryAmbiguousMatchEntityIds(@Param("dataSourceCode") String dataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("bound") @Nullable String entityIdBound, @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType, @Param("pageSize") @Nullable Integer pageSize, @Param("sampleSize") @Nullable Integer sampleSize) throws ReportsServiceException {
         Connection conn = null;
@@ -778,7 +793,9 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(SOURCE_SUMMARY_POSSIBLE_MATCH_ENTITIES_ENDPOINT)
+    @Get
+    @Path(SOURCE_SUMMARY_POSSIBLE_MATCH_ENTITIES_ENDPOINT)
+    @Path(SOURCE_SUMMARY_POSSIBLE_MATCH_ENTITIES_ENDPOINT + "/")
     @ProducesJson
     default SzEntitiesPage getSummaryPossibleMatchEntityIds(@Param("dataSourceCode") String dataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("bound") @Nullable String entityIdBound, @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType, @Param("pageSize") @Nullable Integer pageSize, @Param("sampleSize") @Nullable Integer sampleSize) throws ReportsServiceException {
         Connection conn = null;
@@ -842,7 +859,9 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(SOURCE_SUMMARY_POSSIBLE_RELATION_ENTITIES_ENDPOINT)
+    @Get
+    @Path(SOURCE_SUMMARY_POSSIBLE_RELATION_ENTITIES_ENDPOINT)
+    @Path(SOURCE_SUMMARY_POSSIBLE_RELATION_ENTITIES_ENDPOINT + "/")
     @ProducesJson
     default SzEntitiesPage getSummaryPossibleRelationEntityIds(@Param("dataSourceCode") String dataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("bound") @Nullable String entityIdBound, @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType, @Param("pageSize") @Nullable Integer pageSize, @Param("sampleSize") @Nullable Integer sampleSize) throws ReportsServiceException {
         Connection conn = null;
@@ -906,7 +925,9 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(SOURCE_SUMMARY_DISCLOSED_RELATION_ENTITIES_ENDPOINT)
+    @Get
+    @Path(SOURCE_SUMMARY_DISCLOSED_RELATION_ENTITIES_ENDPOINT)
+    @Path(SOURCE_SUMMARY_DISCLOSED_RELATION_ENTITIES_ENDPOINT + "/")
     @ProducesJson
     default SzEntitiesPage getSummaryDisclosedRelatedEntityIds(@Param("dataSourceCode") String dataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("bound") @Nullable String entityIdBound, @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType, @Param("pageSize") @Nullable Integer pageSize, @Param("sampleSize") @Nullable Integer sampleSize) throws ReportsServiceException {
         Connection conn = null;
@@ -974,7 +995,9 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(CROSS_SOURCE_SUMMARY_MATCH_ENTITIES_ENDPOINT)
+    @Get
+    @Path(CROSS_SOURCE_SUMMARY_MATCH_ENTITIES_ENDPOINT)
+    @Path(CROSS_SOURCE_SUMMARY_MATCH_ENTITIES_ENDPOINT + "/")
     @ProducesJson
     default SzEntitiesPage getSummaryMatchEntityIds(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("bound") @Nullable String entityIdBound, @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType, @Param("pageSize") @Nullable Integer pageSize, @Param("sampleSize") @Nullable Integer sampleSize) throws ReportsServiceException {
         Connection conn = null;
@@ -1042,7 +1065,9 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(CROSS_SOURCE_SUMMARY_AMBIGUOUS_MATCH_ENTITIES_ENDPOINT)
+    @Get
+    @Path(CROSS_SOURCE_SUMMARY_AMBIGUOUS_MATCH_ENTITIES_ENDPOINT)
+    @Path(CROSS_SOURCE_SUMMARY_AMBIGUOUS_MATCH_ENTITIES_ENDPOINT + "/")
     @ProducesJson
     default SzEntitiesPage getSummaryAmbiguousMatchEntityIds(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("bound") @Nullable String entityIdBound, @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType, @Param("pageSize") @Nullable Integer pageSize, @Param("sampleSize") @Nullable Integer sampleSize) throws ReportsServiceException {
         Connection conn = null;
@@ -1110,7 +1135,9 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(CROSS_SOURCE_SUMMARY_POSSIBLE_MATCH_ENTITIES_ENDPOINT)
+    @Get
+    @Path(CROSS_SOURCE_SUMMARY_POSSIBLE_MATCH_ENTITIES_ENDPOINT)
+    @Path(CROSS_SOURCE_SUMMARY_POSSIBLE_MATCH_ENTITIES_ENDPOINT + "/")
     @ProducesJson
     default SzEntitiesPage getSummaryPossibleMatchEntityIds(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("bound") @Nullable String entityIdBound, @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType, @Param("pageSize") @Nullable Integer pageSize, @Param("sampleSize") @Nullable Integer sampleSize) throws ReportsServiceException {
         Connection conn = null;
@@ -1178,7 +1205,9 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(CROSS_SOURCE_SUMMARY_POSSIBLE_RELATION_ENTITIES_ENDPOINT)
+    @Get
+    @Path(CROSS_SOURCE_SUMMARY_POSSIBLE_RELATION_ENTITIES_ENDPOINT)
+    @Path(CROSS_SOURCE_SUMMARY_POSSIBLE_RELATION_ENTITIES_ENDPOINT + "/")
     @ProducesJson
     default SzEntitiesPage getSummaryPossibleRelationEntityIds(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("bound") @Nullable String entityIdBound, @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType, @Param("pageSize") @Nullable Integer pageSize, @Param("sampleSize") @Nullable Integer sampleSize) throws ReportsServiceException {
         Connection conn = null;
@@ -1246,7 +1275,9 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(CROSS_SOURCE_SUMMARY_DISCLOSED_RELATION_ENTITIES_ENDPOINT)
+    @Get
+    @Path(CROSS_SOURCE_SUMMARY_DISCLOSED_RELATION_ENTITIES_ENDPOINT)
+    @Path(CROSS_SOURCE_SUMMARY_DISCLOSED_RELATION_ENTITIES_ENDPOINT + "/")
     @ProducesJson
     default SzEntitiesPage getSummaryDisclosedRelationEntityIds(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("bound") @Nullable String entityIdBound, @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType, @Param("pageSize") @Nullable Integer pageSize, @Param("sampleSize") @Nullable Integer sampleSize) throws ReportsServiceException {
         Connection conn = null;
@@ -1314,7 +1345,9 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(CROSS_SOURCE_SUMMARY_AMBIGUOUS_MATCH_RELATIONS_ENDPOINT)
+    @Get
+    @Path(CROSS_SOURCE_SUMMARY_AMBIGUOUS_MATCH_RELATIONS_ENDPOINT)
+    @Path(CROSS_SOURCE_SUMMARY_AMBIGUOUS_MATCH_RELATIONS_ENDPOINT + "/")
     @ProducesJson
     default SzRelationsPage getSummaryAmbiguousMatchRelations(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("bound") @Nullable String entityIdBound, @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType, @Param("pageSize") @Nullable Integer pageSize, @Param("sampleSize") @Nullable Integer sampleSize) throws ReportsServiceException {
         Connection conn = null;
@@ -1382,7 +1415,9 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(CROSS_SOURCE_SUMMARY_POSSIBLE_MATCH_RELATIONS_ENDPOINT)
+    @Get
+    @Path(CROSS_SOURCE_SUMMARY_POSSIBLE_MATCH_RELATIONS_ENDPOINT)
+    @Path(CROSS_SOURCE_SUMMARY_POSSIBLE_MATCH_RELATIONS_ENDPOINT + "/")
     @ProducesJson
     default SzRelationsPage getSummaryPossibleMatchRelations(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("bound") @Nullable String entityIdBound, @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType, @Param("pageSize") @Nullable Integer pageSize, @Param("sampleSize") @Nullable Integer sampleSize) throws ReportsServiceException {
         Connection conn = null;
@@ -1450,7 +1485,9 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(CROSS_SOURCE_SUMMARY_POSSIBLE_RELATIONS_ENDPOINT)
+    @Get
+    @Path(CROSS_SOURCE_SUMMARY_POSSIBLE_RELATIONS_ENDPOINT)
+    @Path(CROSS_SOURCE_SUMMARY_POSSIBLE_RELATIONS_ENDPOINT + "/")
     @ProducesJson
     default SzRelationsPage getSummaryPossibleRelations(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("bound") @Nullable String entityIdBound, @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType, @Param("pageSize") @Nullable Integer pageSize, @Param("sampleSize") @Nullable Integer sampleSize) throws ReportsServiceException {
         Connection conn = null;
@@ -1518,7 +1555,9 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(CROSS_SOURCE_SUMMARY_DISCLOSED_RELATIONS_ENDPOINT)
+    @Get
+    @Path(CROSS_SOURCE_SUMMARY_DISCLOSED_RELATIONS_ENDPOINT)
+    @Path(CROSS_SOURCE_SUMMARY_DISCLOSED_RELATIONS_ENDPOINT + "/")
     @ProducesJson
     default SzRelationsPage getSummaryDisclosedRelations(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("bound") @Nullable String entityIdBound, @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType, @Param("pageSize") @Nullable Integer pageSize, @Param("sampleSize") @Nullable Integer sampleSize) throws ReportsServiceException {
         Connection conn = null;

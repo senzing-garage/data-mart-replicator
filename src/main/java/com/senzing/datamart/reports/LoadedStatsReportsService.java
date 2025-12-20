@@ -2,6 +2,7 @@ package com.senzing.datamart.reports;
 
 import com.linecorp.armeria.server.annotation.Get;
 import com.linecorp.armeria.server.annotation.Param;
+import com.linecorp.armeria.server.annotation.Path;
 import com.linecorp.armeria.server.annotation.ProducesJson;
 import com.linecorp.armeria.common.annotation.Nullable;
 import com.linecorp.armeria.server.annotation.Default;
@@ -55,7 +56,9 @@ public interface LoadedStatsReportsService extends ReportsService {
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(LOADED_STATS_ENDPOINT)
+    @Get
+    @Path(LOADED_STATS_PREFIX)
+    @Path(LOADED_STATS_ENDPOINT)
     @ProducesJson
     default SzLoadedStats getLoadedStatistics(@Param("onlyLoadedSources") @Default("true") boolean onlyLoaded) throws ReportsServiceException {
         Connection conn = null;
@@ -151,7 +154,9 @@ public interface LoadedStatsReportsService extends ReportsService {
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
-    @Get(SOURCE_LOADED_ENTITIES_ENDPOINT)
+    @Get
+    @Path(SOURCE_LOADED_ENTITIES_ENDPOINT)
+    @Path(SOURCE_LOADED_ENTITIES_ENDPOINT + "/")
     @ProducesJson
     default SzEntitiesPage getEntityIdsForDataSource(@Param("dataSourceCode") String dataSource, @Param("bound") @Nullable String entityIdBound, @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType, @Param("pageSize") @Nullable Integer pageSize, @Param("sampleSize") @Nullable Integer sampleSize) throws ReportsServiceException {
         Connection conn = null;
