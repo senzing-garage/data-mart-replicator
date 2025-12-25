@@ -1,6 +1,7 @@
 package com.senzing.datamart.handlers;
 
 import com.senzing.datamart.SzReplicationProvider;
+import com.senzing.datamart.SzReplicationProvider.TaskAction;
 import com.senzing.datamart.model.*;
 import com.senzing.listener.service.exception.ServiceExecutionException;
 import com.senzing.listener.service.scheduling.Scheduler;
@@ -9,6 +10,7 @@ import com.senzing.sql.DatabaseType;
 
 import java.sql.*;
 import java.util.*;
+import java.util.Map.Entry;
 
 import static com.senzing.datamart.SzReplicationProvider.TaskAction;
 import static com.senzing.sql.SQLUtilities.close;
@@ -116,7 +118,8 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
                 }
             } catch (Exception e2) {
                 logError(e2, "**** FAILED TO ROLLBACK");
-                e2.printStackTrace();
+                System.err.println(e2.getMessage());
+                System.err.println(formatStackTrace(e2.getStackTrace()));
             }
             throw new ServiceExecutionException(e);
 
@@ -434,7 +437,7 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
                     String key = String.valueOf(entityId);
                     int[] deltaArr = deltaSumMap.get(key);
                     if (deltaArr == null) {
-                        deltaArr = new int[] {0};
+                        deltaArr = new int[] { 0 };
                         deltaSumMap.put(key, deltaArr);
                     }
                     deltaArr[0] += entityDelta;
@@ -445,7 +448,7 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
                     String key = entityId + ":" + relatedId;
                     int[] deltaArr = deltaSumMap.get(key);
                     if (deltaArr == null) {
-                        deltaArr = new int[] {0};
+                        deltaArr = new int[] { 0 };
                         deltaSumMap.put(key, deltaArr);
                     }
                     deltaArr[0] += relationDelta;

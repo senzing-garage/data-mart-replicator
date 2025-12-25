@@ -1,0 +1,25 @@
+name: bearer
+
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  rule_check:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Bearer
+        uses: bearer/bearer-action@v2
+        with:
+          skip-rule: "java_lang_sqli,java_lang_observable_timing"

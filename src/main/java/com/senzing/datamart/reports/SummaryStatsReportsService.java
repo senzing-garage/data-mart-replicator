@@ -17,6 +17,7 @@ import com.senzing.datamart.reports.model.SzSummaryStats;
 import com.senzing.util.Timers;
 
 import static com.senzing.sql.SQLUtilities.close;
+import static com.senzing.util.LoggingUtilities.formatStackTrace;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -202,11 +203,13 @@ public interface SummaryStatsReportsService extends ReportsService {
             return SummaryStatsReports.getSummaryStatistics(conn, matchKey, principle, dataSources, timers);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -255,11 +258,13 @@ public interface SummaryStatsReportsService extends ReportsService {
             return SummaryStatsReports.getSourceSummary(conn, dataSource, matchKey, principle, dataSources, timers);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -311,11 +316,13 @@ public interface SummaryStatsReportsService extends ReportsService {
                     timers);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -367,11 +374,13 @@ public interface SummaryStatsReportsService extends ReportsService {
                     timers);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -423,11 +432,13 @@ public interface SummaryStatsReportsService extends ReportsService {
                     principle, timers);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -481,11 +492,13 @@ public interface SummaryStatsReportsService extends ReportsService {
                     principle, timers);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -539,11 +552,13 @@ public interface SummaryStatsReportsService extends ReportsService {
                     principle, timers);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -597,11 +612,13 @@ public interface SummaryStatsReportsService extends ReportsService {
                     principle, timers);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -659,11 +676,13 @@ public interface SummaryStatsReportsService extends ReportsService {
             return SummaryStatsReports.getSummaryMatchEntityIds(conn, dataSource, matchKey, principle, entityIdBound,
                     boundType, pageSize, sampleSize, timers);
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -722,11 +741,13 @@ public interface SummaryStatsReportsService extends ReportsService {
             return SummaryStatsReports.getSummaryAmbiguousMatchEntityIds(conn, dataSource, matchKey, principle,
                     entityIdBound, boundType, pageSize, sampleSize, timers);
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -786,11 +807,13 @@ public interface SummaryStatsReportsService extends ReportsService {
             return SummaryStatsReports.getSummaryPossibleMatchEntityIds(conn, dataSource, matchKey, principle,
                     entityIdBound, boundType, pageSize, sampleSize, timers);
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -850,11 +873,13 @@ public interface SummaryStatsReportsService extends ReportsService {
             return SummaryStatsReports.getSummaryPossibleRelationEntityIds(conn, dataSource, matchKey, principle,
                     entityIdBound, boundType, pageSize, sampleSize, timers);
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -914,11 +939,13 @@ public interface SummaryStatsReportsService extends ReportsService {
             return SummaryStatsReports.getSummaryDisclosedRelatedEntityIds(conn, dataSource, matchKey, principle,
                     entityIdBound, boundType, pageSize, sampleSize, timers);
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -982,11 +1009,13 @@ public interface SummaryStatsReportsService extends ReportsService {
             return SummaryStatsReports.getSummaryMatchEntityIds(conn, dataSource, vsDataSource, matchKey, principle,
                     entityIdBound, boundType, pageSize, sampleSize, timers);
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -1050,11 +1079,13 @@ public interface SummaryStatsReportsService extends ReportsService {
             return SummaryStatsReports.getSummaryAmbiguousMatchEntityIds(conn, dataSource, vsDataSource, matchKey,
                     principle, entityIdBound, boundType, pageSize, sampleSize, timers);
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -1118,11 +1149,13 @@ public interface SummaryStatsReportsService extends ReportsService {
             return SummaryStatsReports.getSummaryPossibleMatchEntityIds(conn, dataSource, vsDataSource, matchKey,
                     principle, entityIdBound, boundType, pageSize, sampleSize, timers);
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -1186,11 +1219,13 @@ public interface SummaryStatsReportsService extends ReportsService {
             return SummaryStatsReports.getSummaryPossibleRelationEntityIds(conn, dataSource, vsDataSource, matchKey,
                     principle, entityIdBound, boundType, pageSize, sampleSize, timers);
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -1254,11 +1289,13 @@ public interface SummaryStatsReportsService extends ReportsService {
             return SummaryStatsReports.getSummaryDisclosedRelationEntityIds(conn, dataSource, vsDataSource, matchKey,
                     principle, entityIdBound, boundType, pageSize, sampleSize, timers);
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -1322,11 +1359,13 @@ public interface SummaryStatsReportsService extends ReportsService {
             return SummaryStatsReports.getSummaryAmbiguousMatchRelations(conn, dataSource, vsDataSource, matchKey,
                     principle, entityIdBound, boundType, pageSize, sampleSize, timers);
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -1390,11 +1429,13 @@ public interface SummaryStatsReportsService extends ReportsService {
             return SummaryStatsReports.getSummaryPossibleMatchRelations(conn, dataSource, vsDataSource, matchKey,
                     principle, entityIdBound, boundType, pageSize, sampleSize, timers);
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -1458,11 +1499,13 @@ public interface SummaryStatsReportsService extends ReportsService {
             return SummaryStatsReports.getSummaryPossibleRelations(conn, dataSource, vsDataSource, matchKey, principle,
                     entityIdBound, boundType, pageSize, sampleSize, timers);
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -1526,11 +1569,13 @@ public interface SummaryStatsReportsService extends ReportsService {
             return SummaryStatsReports.getSummaryDisclosedRelations(conn, dataSource, vsDataSource, matchKey, principle,
                     entityIdBound, boundType, pageSize, sampleSize, timers);
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
