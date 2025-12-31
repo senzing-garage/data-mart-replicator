@@ -1,6 +1,7 @@
 package com.senzing.datamart.handlers;
 
 import com.senzing.datamart.SzReplicationProvider;
+import com.senzing.datamart.SzReplicationProvider.TaskAction;
 import com.senzing.datamart.model.*;
 import com.senzing.listener.service.exception.ServiceExecutionException;
 import com.senzing.listener.service.locking.ResourceKey;
@@ -190,7 +191,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                 conn.rollback();
             } catch (Exception e2) {
                 logError(e2, "FAILED TO ROLLBACK: ");
-                e2.printStackTrace();
+                System.err.println(e2.getMessage());
+                System.err.println(formatStackTrace(e2.getStackTrace()));
             }
             throw new ServiceExecutionException(e);
 
@@ -821,10 +823,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
         }
 
         logDebug("ENTITY " + entityId + " FOLLOWING UP ON ENTITY " + relatedId);
-        followUpScheduler.createTaskBuilder(REFRESH_ENTITY.toString())
-                .resource(ENTITY_RESOURCE_KEY, relatedId)
-                .parameter(RefreshEntityHandler.ENTITY_ID_KEY, relatedId)
-                .schedule(true);
+        followUpScheduler.createTaskBuilder(REFRESH_ENTITY.toString()).resource(ENTITY_RESOURCE_KEY, relatedId)
+                .parameter(RefreshEntityHandler.ENTITY_ID_KEY, relatedId).schedule(true);
         followUpSet.add(relatedId);
     }
 

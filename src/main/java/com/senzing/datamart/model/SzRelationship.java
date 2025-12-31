@@ -9,6 +9,7 @@ import javax.json.JsonObjectBuilder;
 import java.util.*;
 
 import static com.senzing.util.JsonUtilities.*;
+import static com.senzing.util.LoggingUtilities.formatStackTrace;
 
 /**
  * Describes a relationship between two entities as it is stored in the data
@@ -428,7 +429,8 @@ public class SzRelationship {
             System.out.println(relationship1.equals(relationship2));
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
         }
     }
 }
