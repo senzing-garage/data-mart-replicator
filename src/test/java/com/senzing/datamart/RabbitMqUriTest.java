@@ -1312,9 +1312,11 @@ public class RabbitMqUriTest {
             uri2 = new RabbitMqUri(
                 secure2, user2, password2, host2, virtualHost2, queryOptions2);
 
-            assertNotEquals(uri1, uri2, "Objects are unexpectedly not equal");
+            assertNotEquals(uri1, uri2, "Objects are unexpectedly equal: "
+                + "uri1=[ " + uri1 + " ], uri2=[ " + uri2 + " ]");
             assertNotEquals(uri1.hashCode(), uri2.hashCode(),
-                "Objects unexpectedly have different hash codes");
+                "Objects unexpectedly have the same hash code: uri1=[ " 
+                + uri1 + " ], uri2=[ " + uri2 + " ]");
             
         } catch (Exception e) {
             fail("Failed test with exception.", e);
