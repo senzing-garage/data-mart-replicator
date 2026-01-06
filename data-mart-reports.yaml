@@ -34,7 +34,7 @@ paths:
         data mart.
       description: >-
         Gets the entity and record counts in total and by data source from the
-        data mart.  *NOTE*: Data mart statistics may be slightly delayed from 
+        data mart.  *NOTE*: Data mart statistics may be slightly delayed from
         the entity repository.
       operationId: getLoadedStatistics
       parameters:
@@ -63,7 +63,7 @@ paths:
         data mart.
       description: >-
         Gets the entity and record counts for a specific data source from the
-        data mart.  If no records have been loaded for the data source then 
+        data mart.  If no records have been loaded for the data source then
         this returns a 200 OK response with counts of zero.  However, if the
         data source is not recognized then a 404 Not Found response is returned.
         *NOTE*: Data mart statistics may be slightly delayed from the entity
@@ -100,7 +100,7 @@ paths:
         Gets the entity ID's of the entities having at least one record from the
         respective data source.  If no records have been loaded for that data source
         then this will return a 200 OK response that will have an empty array of
-        entity ID's rather than giving a 404 Not Found response.  However, the data 
+        entity ID's rather than giving a 404 Not Found response.  However, the data
         source code in the path is not configured then this will return a 404 Not Found
         response.  *NOTE*: Data mart statistics may be slightly delayed from the entity
         repository.
@@ -126,7 +126,7 @@ paths:
                 $ref: "#/components/schemas/SzEntitiesPage"
         "400":
           description: >-
-            If the `sampleSize` and `pageSize` parameter are both specified 
+            If the `sampleSize` and `pageSize` parameter are both specified
             and the `pageSize` is **not strictly greater-than** the `sampleSize`.
         "404":
           description: >-
@@ -140,7 +140,7 @@ paths:
       summary: >-
         Gets the entity counts by entity size (Entity Size Breakdown).
       description: >-
-        Gets the number of entities in the repository for each entity size 
+        Gets the number of entities in the repository for each entity size
         that exists.  *NOTE*: Data mart statistics may be slightly delayed
         from the entity repository.
       operationId: getEntitySizeBreakdown
@@ -227,7 +227,7 @@ paths:
                 $ref: "#/components/schemas/SzEntitiesPage"
         "400":
           description: >-
-            If the `sampleSize` and `pageSize` parameter are both specified 
+            If the `sampleSize` and `pageSize` parameter are both specified
             and the `pageSize` is **not** strictly greater-than the `sampleSize`.
         "500":
           description: If a server-side error occurred.
@@ -236,7 +236,7 @@ paths:
       tags:
         - Statistics
       summary: >-
-        Gets the entity counts by the number of entity relations (Entity 
+        Gets the entity counts by the number of entity relations (Entity
         Relation Breakdown).
       description: >-
         Gets the number of entities in the repository for each number of entity
@@ -326,7 +326,7 @@ paths:
                 $ref: "#/components/schemas/SzEntitiesPage"
         "400":
           description: >-
-            If the `sampleSize` and `pageSize` parameter are both specified 
+            If the `sampleSize` and `pageSize` parameter are both specified
             and the `pageSize` is **not** strictly greater-than the `sampleSize`.
         "500":
           description: If a server-side error occurred.
@@ -335,7 +335,7 @@ paths:
       tags:
         - Statistics
       summary: >-
-        Gets the summary statistics for each data source versus every other 
+        Gets the summary statistics for each data source versus every other
         data source including itself.
       description: >-
         Gets the summary statistics for each data source versus every other
@@ -435,7 +435,7 @@ paths:
       summary: >-
         Gets the cross-summary statistics for matches for entities having at
         least one record from a primary data source and at least one **other**
-        record from another data source (which may be the same data source), 
+        record from another data source (which may be the same data source),
         optionally for one or more combination of match key and principle.
       description: >-
         Gets the cross-summary statistics for matches between a primary data
@@ -626,15 +626,15 @@ paths:
         first data source and at least one other record from the versus data
         source.
       description: >-
-        Gets the entity ID's of the entities having at least one record from the 
+        Gets the entity ID's of the entities having at least one record from the
         first data source and at least one record from the versus data source.  If
         no entities have at least one record from the first data source and at least
-        one other record from the versus data source then this will return a 200 OK 
+        one other record from the versus data source then this will return a 200 OK
         response that will have an empty array of entity ID's rather than giving a
         404 Not Found response.  Further, if there are no entity ID's for entities
         satisfying the bound conditions of the request then similarly a 200 OK
         response is returned but the array of ID's contained in the response will be
-        empty.  However, if either data source code is not found in the configuration 
+        empty.  However, if either data source code is not found in the configuration
         then a 404 Not Found response is returned.  *NOTE*: Data mart statistics may
         be slightly delayed from the entity repository.
       operationId: getEntityIdsForCrossMatches
@@ -662,7 +662,7 @@ paths:
                 $ref: "#/components/schemas/SzEntitiesPage"
         "400":
           description: >-
-            If the `sampleSize` and `pageSize` parameter are both specified 
+            If the `sampleSize` and `pageSize` parameter are both specified
             and the `pageSize` is **not** strictly greater-than the `sampleSize`.
         "404":
           description: >-
@@ -714,7 +714,7 @@ paths:
                 $ref: "#/components/schemas/SzEntitiesPage"
         "400":
           description: >-
-            If the `sampleSize` and `pageSize` parameter are both specified 
+            If the `sampleSize` and `pageSize` parameter are both specified
             and the `pageSize` is **not** strictly greater-than the `sampleSize`.
         "404":
           description: >-
@@ -766,7 +766,7 @@ paths:
                 $ref: "#/components/schemas/SzRelationsPage"
         "400":
           description: >-
-            If the `sampleSize` and `pageSize` parameter are both specified 
+            If the `sampleSize` and `pageSize` parameter are both specified
             and the `pageSize` is **not** strictly greater-than the `sampleSize`.
         "404":
           description: >-
@@ -818,7 +818,7 @@ paths:
                 $ref: "#/components/schemas/SzEntitiesPage"
         "400":
           description: >-
-            If the `sampleSize` and `pageSize` parameter are both specified 
+            If the `sampleSize` and `pageSize` parameter are both specified
             and the `pageSize` is **not** strictly greater-than the `sampleSize`.
         "404":
           description: >-
@@ -870,7 +870,7 @@ paths:
                 $ref: "#/components/schemas/SzRelationsPage"
         "400":
           description: >-
-            If the `sampleSize` and `pageSize` parameter are both specified 
+            If the `sampleSize` and `pageSize` parameter are both specified
             and the `pageSize` is **not** strictly greater-than the `sampleSize`.
         "404":
           description: >-
@@ -889,7 +889,7 @@ paths:
         Gets the entity ID's of the entities having at least one record from the
         first data source and a possible relationship to an entity having at least
         one record from the versus data source.  If there are no such entities then
-        this will return a 200 OK response that will have an empty array of 
+        this will return a 200 OK response that will have an empty array of
         entity ID values rather than giving a 404 Not Found response.  Further, if
         there are no entities satisfying the bound conditions of the request then
         similarly a 200 OK response is returned but the entity ID array contained
@@ -921,7 +921,7 @@ paths:
                 $ref: "#/components/schemas/SzEntitiesPage"
         "400":
           description: >-
-            If the `sampleSize` and `pageSize` parameter are both specified 
+            If the `sampleSize` and `pageSize` parameter are both specified
             and the `pageSize` is **not** strictly greater-than the `sampleSize`.
         "404":
           description: >-
@@ -946,7 +946,7 @@ paths:
         bound conditions of the request then similarly a 200 OK response is returned
         but the `SzRelation` array contained in the response will be empty.  However,
         if either data source code is not found in the configuration then a 404 Not
-        Found response is returned.  *NOTE*: Data mart statistics may be slightly 
+        Found response is returned.  *NOTE*: Data mart statistics may be slightly
         delayed from the entity repository.
       operationId: getPossiblyCrossRelatedRelations
       parameters:
@@ -973,7 +973,7 @@ paths:
                 $ref: "#/components/schemas/SzRelationsPage"
         "400":
           description: >-
-            If the `sampleSize` and `pageSize` parameter are both specified 
+            If the `sampleSize` and `pageSize` parameter are both specified
             and the `pageSize` is **not** strictly greater-than the `sampleSize`.
         "404":
           description: >-
@@ -992,7 +992,7 @@ paths:
         Gets the entity ID's of the entities having at least one record from the
         first data source and a disclosed relationship to an entity having at least
         one record from the versus data source.  If there are no such entities then
-        this will return a 200 OK response that will have an empty array of 
+        this will return a 200 OK response that will have an empty array of
         entity ID values rather than giving a 404 Not Found response.  Further, if
         there are no entities satisfying the bound conditions of the request then
         similarly a 200 OK response is returned but the entity ID array contained
@@ -1024,7 +1024,7 @@ paths:
                 $ref: "#/components/schemas/SzEntitiesPage"
         "400":
           description: >-
-            If the `sampleSize` and `pageSize` parameter are both specified 
+            If the `sampleSize` and `pageSize` parameter are both specified
             and the `pageSize` is **not** strictly greater-than the `sampleSize`.
         "404":
           description: >-
@@ -1049,7 +1049,7 @@ paths:
         bound conditions of the request then similarly a 200 OK response is returned
         but the `SzRelation` array contained in the response will be empty.  However,
         if either data source code is not found in the configuration then a 404 Not
-        Found response is returned.  *NOTE*: Data mart statistics may be slightly 
+        Found response is returned.  *NOTE*: Data mart statistics may be slightly
         delayed from the entity repository.
       operationId: getDisclosedCrossRelatedRelations
       parameters:
@@ -1076,7 +1076,7 @@ paths:
                 $ref: "#/components/schemas/SzRelationsPage"
         "400":
           description: >-
-            If the `sampleSize` and `pageSize` parameter are both specified 
+            If the `sampleSize` and `pageSize` parameter are both specified
             and the `pageSize` is **not** strictly greater-than the `sampleSize`.
         "404":
           description: >-
@@ -1109,7 +1109,7 @@ components:
       required: false
       description: >-
         The optional parameter to specify a principle for which the statistics
-        are being requested.  Specify an asterisk (`*`) if the statistics for 
+        are being requested.  Specify an asterisk (`*`) if the statistics for
         all principles should be returned.
       schema:
         type: string
@@ -1132,7 +1132,7 @@ components:
       required: false
       description: >-
         The optional parameter to specify a match key for which the statistics
-        are being requested.  Specify an asterisk (`*`) if the statistics for 
+        are being requested.  Specify an asterisk (`*`) if the statistics for
         all match keys should be returned.
       schema:
         type: string
@@ -1160,7 +1160,7 @@ components:
         If not specified, then the default value is taken as `0` if a
         `boundType` of `INCLUSIVE_LOWER` or `EXCLUSIVE_LOWER` is being used,
         otherwise for a `boundType` of `INCLUSIVE_UPPER` or `EXCLUSIVE_UPPER`
-        it defaults to `max` (indicating the maximum legal value of an 
+        it defaults to `max` (indicating the maximum legal value of an
         entity ID).
       schema:
         type: string
@@ -1171,15 +1171,15 @@ components:
       description: >-
         The optional parameter to provide for "paging" through relationships
         associated with a statistic.  The value is specified as a bound on the
-        entity ID's in the `SzRelation` values returned and contains two 
+        entity ID's in the `SzRelation` values returned and contains two
         entity ID values separated by a colon (e.g.: `1000:5500`).  Either of
         the entity ID's can be specified as `max` to indicate the maximum legal
         value of an entity ID (e.g.: `max:max` or `1000:max`).  If `max` is
         specified by itself it is interpreted as `max:max`. The type of bound
         is given by the `boundType` parameter.  For example, by default the
         `boundType` is `EXCLUSIVE_LOWER` so the returned `SzRelation` values
-        must be canonically greater than the relationship described by the 
-        entity ID values encoded in the bound.  `SzRelation` values are ordered 
+        must be canonically greater than the relationship described by the
+        entity ID values encoded in the bound.  `SzRelation` values are ordered
         on the first entity ID value and then on the second related entity ID
         value.  To move to the "next page" of relationships specify the encoded
         value of the entity ID and related ID of the greatest (last) `SzRelation`
@@ -1203,12 +1203,12 @@ components:
       required: false
       description: >-
         The optional parameter to provide for "paging" through results associated
-        with a statistic.  The value is specified as an `SzBoundType` and the 
+        with a statistic.  The value is specified as an `SzBoundType` and the
         bound value is given by the `bound` parameter.  For example, by default
         the `boundType` is `EXCLUSIVE_LOWER` so the returned values must satisfy
         the condition that they are strictly greater than the bound value.  To move
         to the "next page" of results specify the greatest result value from the
-        current page and use `boundType` of `EXCLUSIVE_LOWER`.  To move to the 
+        current page and use `boundType` of `EXCLUSIVE_LOWER`.  To move to the
         "previous page" of results specify the least result value on the current
         page and use a `boundType` of `EXCLUSIVE_UPPER`.  To change the number of
         results shown on the current page specify the least result value on the
@@ -1217,14 +1217,14 @@ components:
           * `INCLUSIVE_LOWER` - The bound represents an inclusive lower bound whereby
                                 values satisfying the bound will be greater-than or equal
                                 to the value associated with the bound.
-          * `EXCLUSIVE_LOWER` - The bound represents an exclusive lower bound whereby 
-                                values satisfying the bound will be strictly greater-than 
+          * `EXCLUSIVE_LOWER` - The bound represents an exclusive lower bound whereby
+                                values satisfying the bound will be strictly greater-than
                                 the value associated with the bound.
           * `INCLUSIVE_UPPER` - The bound represents an inclusive upper bound whereby
                                 values satisfying the bound will be less-than or equal
                                 to the value associated with the bound.
-          * `EXCLUSIVE_UPPER` - The bound represents an exclusive upper bound whereby 
-                                values satisfying the bound will be strictly less-than 
+          * `EXCLUSIVE_UPPER` - The bound represents an exclusive upper bound whereby
+                                values satisfying the bound will be strictly less-than
                                 the value associated with the bound.
       schema:
         allOf:
@@ -1237,13 +1237,13 @@ components:
       description: >-
         The optional parameter to limit the number of returned results per page.
         If not specified then a default value is determined.  If the `sampleSize`
-        parameter is provided, then this defaults to 20 times the value of the 
+        parameter is provided, then this defaults to 20 times the value of the
         `sampleSize` parameter.  If the `sampleSize` parameter is **not** provided
-        then this simply defaults to `100`.  If using the `sampleSize` query 
-        parameter and specifying a value for the `pageSize` then the `pageSize` 
+        then this simply defaults to `100`.  If using the `sampleSize` query
+        parameter and specifying a value for the `pageSize` then the `pageSize`
         should be greater than the `sampleSize` by at least an order of magnitude
         in order tp provide an adequate set of results from which to choose a random
-        sample.  For example, a `pageSize` of `1000` would be appropriate for a 
+        sample.  For example, a `pageSize` of `1000` would be appropriate for a
         `sampleSize` of `50` or `100`.
       schema:
         type: integer
@@ -1254,9 +1254,9 @@ components:
       name: sampleSize
       required: false
       description: >-
-        The optional parameter to extract a sample of this size from the page of 
+        The optional parameter to extract a sample of this size from the page of
         results being returned.  When using this parameter the caller should
-        typically use a much larger page size (e.g.: 1000 or 5000) and pull a 
+        typically use a much larger page size (e.g.: 1000 or 5000) and pull a
         random sample (e.g.: 50 to 100).  To obtain another sample with no overlap
         with the previous sample(s), simply change the `bound` and `boundType`
         parameter so the eligible results for the page are outside the range
@@ -1338,7 +1338,7 @@ components:
           format: int64
           nullable: false
         boundType:
-          allOf: 
+          allOf:
             - $ref: "#/components/schemas/SzBoundType"
           description: >-
             The `SzBoundType` associated with the `bound` value to describe
@@ -1346,7 +1346,7 @@ components:
           nullable: false
         pageSize:
           description: >-
-            The requested page size representing the maximum number of 
+            The requested page size representing the maximum number of
             entities that were included in the page.
           type: integer
           format: int32
@@ -1374,9 +1374,9 @@ components:
           nullable: true
         pageMinimumValue:
           description: >-
-            The minimum entity ID of the entire entity page.  This will 
-            be the same as `minimumValue` if `sampleSize` was not 
-            specified, however, if `sampleSize` was specified then this 
+            The minimum entity ID of the entire entity page.  This will
+            be the same as `minimumValue` if `sampleSize` was not
+            specified, however, if `sampleSize` was specified then this
             will be the minimum entity ID value of all the candidate
             entities on the page that were used for random sample selection
             even if that entity was not randomly selected.  **NOTE:** This
@@ -1386,9 +1386,9 @@ components:
           nullable: true
         pageMaximumValue:
           description: >-
-            The maximum entity ID of the entire entity page.  This will 
-            be the same as `maximumValue` if `sampleSize` was not 
-            specified, however, if `sampleSize` was specified then this 
+            The maximum entity ID of the entire entity page.  This will
+            be the same as `maximumValue` if `sampleSize` was not
+            specified, however, if `sampleSize` was specified then this
             will be the maximum entity ID value of all the candidate
             entities on the page that were used for random sample selection
             even if that entity was not randomly selected.  **NOTE:** This
@@ -1398,14 +1398,14 @@ components:
           nullable: true
         totalEntityCount:
           description: >-
-            The total number of entities representing the set of all 
+            The total number of entities representing the set of all
             possible results across all pages.
           type: integer
           format: int64
           nullable: false
         beforePageCount:
           description: >-
-            The number of entities in the set that exist on pages before 
+            The number of entities in the set that exist on pages before
             this page.
           type: integer
           format: int64
@@ -1443,20 +1443,20 @@ components:
           description: >-
             The relationship bound value that contains two (2) entity ID values
             separated by a colon (e.g.: `1000:5005`).  The first entity ID value
-            identifies the first entity in the relationship and the second entity 
+            identifies the first entity in the relationship and the second entity
             ID value identifies the related entity in the relationship.
           type: string
           nullable: false
         boundType:
-          allOf: 
+          allOf:
             - $ref: "#/components/schemas/SzBoundType"
           description: >-
-            The `SzBoundType` associated with the `entityBound` and 
+            The `SzBoundType` associated with the `entityBound` and
             `relatedBound` values to describe how the bound was applied.
           nullable: false
         pageSize:
           description: >-
-            The requested page size representing the maximum number of 
+            The requested page size representing the maximum number of
             `SzRelation`'s' that were included in the page.
           type: integer
           format: int32
@@ -1486,7 +1486,7 @@ components:
             values separated by a colon (e.g.: `1000:5005`).  The first
             entity ID value identifies the greatest value of first entity
             in the relationship and the second entity ID value identifies
-            the greatest value of those entity ID's related to the first 
+            the greatest value of those entity ID's related to the first
             entity.  **NOTE:** This field is absent or `null` if there are
             no results.
           type: string
@@ -1494,8 +1494,8 @@ components:
         pageMinimumValue:
           description: >-
             The minimum relation value of the entire relations page.  This
-            will be the same as `minimumValue` if `sampleSize` was not 
-            specified, however, if `sampleSize` was specified then this 
+            will be the same as `minimumValue` if `sampleSize` was not
+            specified, however, if `sampleSize` was specified then this
             will be the minimum relation value of all the candidate
             relations on the page that were used for random sample selection
             even if that relation was not randomly selected.  This is
@@ -1510,8 +1510,8 @@ components:
         pageMaximumValue:
           description: >-
             The maximum relation value of the entire relations page.  This
-            will be the same as `maximumValue` if `sampleSize` was not 
-            specified, however, if `sampleSize` was specified then this 
+            will be the same as `maximumValue` if `sampleSize` was not
+            specified, however, if `sampleSize` was specified then this
             will be the maximum relation value of all the candidate
             relations on the page that were used for random sample selection
             even if that relation was not randomly selected.  This is
@@ -1525,7 +1525,7 @@ components:
           nullable: true
         totalRelationCount:
           description: >-
-            The total number of relationships representing the set of all 
+            The total number of relationships representing the set of all
             possible results across all pages.
           type: integer
           format: int64
@@ -1547,7 +1547,7 @@ components:
         relations:
           description: >-
             An array of `SzRelation`'s describing the relationships for the page.
-            The `SzRelation` array will be in ascending order of the first 
+            The `SzRelation` array will be in ascending order of the first
             entity ID and then the second related entity ID.
           type: array
           maxItems: 100000
@@ -1572,14 +1572,14 @@ components:
           nullable: false
         totalEntityCount:
           description: >-
-            The total number of entities that have been resolved from 
+            The total number of entities that have been resolved from
             the loaded records.
           type: integer
           format: int64
           nullable: false
         totalUnmatchedRecordCount:
           description: >-
-            The total number of records that did not match against any 
+            The total number of records that did not match against any
             other records and belong to singleton entities.  This doubles
             as the count of all entities that only contain a single record.
           type: integer
@@ -1618,7 +1618,7 @@ components:
           nullable: false
         entityCount:
           description: >-
-            The number of entities that have at least one record from the 
+            The number of entities that have at least one record from the
             associated data source.
           type: integer
           format: int64
@@ -1626,7 +1626,7 @@ components:
         unmatchedRecordCount:
           description: >-
             The total number of records that have been loaded for the associated
-            data source that did *NOT* match against any other records.  This 
+            data source that did *NOT* match against any other records.  This
             represents the number of entities having a record from this data source
             where that is the *ONLY* (single) record in the entity.
           type: integer
@@ -1686,7 +1686,7 @@ components:
           description: >-
             The array of `EntitySizeCount` instances describing the number
             of entities having each number of composite records.  If there
-            are no entities having a specific composite record count then 
+            are no entities having a specific composite record count then
             no entry is included in the array for that entity size.  The
             array will be in descending order of entity size.
           type: array
@@ -1705,7 +1705,7 @@ components:
           description: >-
             The array of `EntityRelationsCount` instances describing the number
             of entities having each distinct number of entity relations.  If
-            there are no entities having a specific entity relations count then 
+            there are no entities having a specific entity relations count then
             no entry is included in the array for that number of entity relations.
             The array will be in descending order of number of entity relations.
           type: array
@@ -1746,7 +1746,7 @@ components:
     SzRelationCounts:
       description: >-
         Describes the entity, record and relationship counts for the respective relation
-        type for entities having at least one record from the primary data source to 
+        type for entities having at least one record from the primary data source to
         entities having at least one record from the "versus" data source.
       type: object
       properties:
@@ -1765,7 +1765,7 @@ components:
         entityCount:
           description: >-
             The number of entities having at least one record from the primary data
-            source related by a relationship of the respective relationship type to 
+            source related by a relationship of the respective relationship type to
             an entity with at least one record from the "versus" data source.
           type: integer
           format: int64
@@ -1806,9 +1806,9 @@ components:
           type: string
         matches:
           description: >-
-            The array of `SzMatchCounts` describing the entity and record counts 
-            associated with matches from records of the primary data source to at 
-            least one record of the "versus" data source for each combination of 
+            The array of `SzMatchCounts` describing the entity and record counts
+            associated with matches from records of the primary data source to at
+            least one record of the "versus" data source for each combination of
             match key and principle that were requested.  If all were requested,
             this includes the cases where either or both of the match key and
             principle are absent or `null` indicating tracking across all match
@@ -1893,9 +1893,9 @@ components:
           type: string
         counts:
           description: >-
-            The array of `SzMatchCounts` describing the entity and record counts 
-            associated with matches from records of the primary data source to at 
-            least one record of the "versus" data source for each combination of 
+            The array of `SzMatchCounts` describing the entity and record counts
+            associated with matches from records of the primary data source to at
+            least one record of the "versus" data source for each combination of
             match key and principle that were requested.  If all were requested,
             this includes the cases where either or both of the match key and
             principle are absent or `null` indicating tracking across all match
@@ -1923,7 +1923,7 @@ components:
             The versus data source in the cross comparison.
           type: string
         relationType:
-          allOf: 
+          allOf:
             - $ref: "#/components/schemas/SzRelationType"
           description: >-
             The `SzRelationType` describing the type of relationship match for
@@ -1931,7 +1931,7 @@ components:
         counts:
           description: >-
             The array of `SzRelationCounts` describing the entity, record and
-            relationship counts associated with the relationships of the 
+            relationship counts associated with the relationships of the
             associated `relationType` from entities having at least one record
             from the primary data source to entities having at least at least
             one record from the "versus" data source for each combination of
@@ -2003,7 +2003,7 @@ components:
       properties:
         dataSource:
           description: >-
-            The data source code identifying the data source from 
+            The data source code identifying the data source from
             which the record was loaded.
           type: string
         recordId:
@@ -2071,7 +2071,7 @@ components:
         - relatedEntity
       properties:
         entity:
-          allOf: 
+          allOf:
             - $ref: "#/components/schemas/SzEntity"
           description: >-
             The entity describing the first entity in the relationship.
@@ -2102,14 +2102,14 @@ components:
           * `INCLUSIVE_LOWER` - The bound represents an inclusive lower bound whereby
                                 values satisfying the bound will be greater-than or equal
                                 to the value associated with the bound.
-          * `EXCLUSIVE_LOWER` - The bound represents an exclusive lower bound whereby 
-                                values satisfying the bound will be strictly greater-than 
+          * `EXCLUSIVE_LOWER` - The bound represents an exclusive lower bound whereby
+                                values satisfying the bound will be strictly greater-than
                                 the value associated with the bound.
           * `INCLUSIVE_UPPER` - The bound represents an inclusive upper bound whereby
                                 values satisfying the bound will be less-than or equal
                                 to the value associated with the bound.
-          * `EXCLUSIVE_UPPER` - The bound represents an exclusive upper bound whereby 
-                                values satisfying the bound will be strictly less-than 
+          * `EXCLUSIVE_UPPER` - The bound represents an exclusive upper bound whereby
+                                values satisfying the bound will be strictly less-than
                                 the value associated with the bound.
       type: string
       enum:
