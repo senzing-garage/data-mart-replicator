@@ -1547,6 +1547,7 @@ components:
             The `SzRelation` array will be in ascending order of the first 
             entity ID and then the second related entity ID.
           type: array
+          maxItems: 100000
           items:
             $ref: "#/components/schemas/SzRelation"
     SzLoadedStats:
@@ -1586,6 +1587,7 @@ components:
             An array of `SzSourceLoadedStats` describing the entity and record
             counts by data source.
           type: array
+          maxItems: 100000
           items:
             $ref: "#/components/schemas/SzSourceLoadedStats"
     SzSourceLoadedStats:
@@ -1685,6 +1687,7 @@ components:
             no entry is included in the array for that entity size.  The
             array will be in descending order of entity size.
           type: array
+          maxItems: 100000
           items:
             $ref: "#/components/schemas/SzEntitySizeCount"
     SzEntityRelationsBreakdown:
@@ -1703,6 +1706,7 @@ components:
             no entry is included in the array for that number of entity relations.
             The array will be in descending order of number of entity relations.
           type: array
+          maxItems: 100000
           items:
             $ref: "#/components/schemas/SzEntityRelationsCount"
     SzMatchCounts:
@@ -1807,6 +1811,7 @@ components:
             principle are absent or `null` indicating tracking across all match
             keys and/or principles.
           type: array
+          maxItems: 100000
           items:
             $ref: "#/components/schemas/SzMatchCounts"
         ambiguousMatches:
@@ -1820,6 +1825,7 @@ components:
             of the match key and principle are absent or `null` indicating
             tracking across all match keys and/or principles.
           type: array
+          maxItems: 100000
           items:
             $ref: "#/components/schemas/SzRelationCounts"
         possibleMatches:
@@ -1833,6 +1839,7 @@ components:
             match key and principle are absent or `null` indicating tracking
             across all match keys and/or principles.
           type: array
+          maxItems: 100000
           items:
             $ref: "#/components/schemas/SzRelationCounts"
         possibleRelations:
@@ -1846,6 +1853,7 @@ components:
             match key and principle are absent or `null` indicating tracking
             across all match keys and/or principles.
           type: array
+          maxItems: 100000
           items:
             $ref: "#/components/schemas/SzRelationCounts"
         disclosedRelations:
@@ -1859,6 +1867,7 @@ components:
             match key and principle are absent or `null` indicating tracking
             across all match keys and/or principles.
           type: array
+          maxItems: 100000
           items:
             $ref: "#/components/schemas/SzRelationCounts"
     SzCrossSourceMatchCounts:
@@ -1889,6 +1898,7 @@ components:
             principle are absent or `null` indicating tracking across all match
             keys and/or principles.
           type: array
+          maxItems: 100000
           items:
             $ref: "#/components/schemas/SzMatchCounts"
     SzCrossSourceRelationCounts:
@@ -1926,6 +1936,7 @@ components:
             principle are absent or `null` indicating tracking across all match
             keys and/or principles.
           type: array
+          maxItems: 100000
           items:
             $ref: "#/components/schemas/SzRelationCounts"
     SzSourceSummary:
@@ -1960,6 +1971,7 @@ components:
             statistics between the associated data source versus every data source
             (including itself).
           type: array
+          maxItems: 100000
           items:
             $ref: "#/components/schemas/SzCrossSourceSummary"
     SzSummaryStats:
@@ -1972,6 +1984,7 @@ components:
             The array of `SzSourceSummary` instances describing the summary statistics
             for every configured data source.
           type: array
+          maxItems: 100000
           items:
             $ref: "#/components/schemas/SzSourceSummary"
     SzRecord:
@@ -2042,6 +2055,7 @@ components:
           description: >-
             The array of `SzRecord` describing the records for this entity.
           type: array
+          maxItems: 100000
           items:
             $ref: "#/components/schemas/SzRecord"
     SzRelation:
