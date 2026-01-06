@@ -1227,8 +1227,9 @@ components:
                                 values satisfying the bound will be strictly less-than 
                                 the value associated with the bound.
       schema:
+        allOf:
+          - $ref: "#/components/schemas/SzBoundType"
         default: EXCLUSIVE_LOWER
-        $ref: "#/components/schemas/SzBoundType"
     pageSizeQueryParam:
       in: query
       name: pageSize
@@ -1337,10 +1338,11 @@ components:
           format: int64
           nullable: false
         boundType:
+          allOf: 
+            - $ref: "#/components/schemas/SzBoundType"
           description: >-
             The `SzBoundType` associated with the `bound` value to describe
             how the bound was applied.
-          $ref: "#/components/schemas/SzBoundType"
           nullable: false
         pageSize:
           description: >-
@@ -1446,10 +1448,11 @@ components:
           type: string
           nullable: false
         boundType:
+          allOf: 
+            - $ref: "#/components/schemas/SzBoundType"
           description: >-
             The `SzBoundType` associated with the `entityBound` and 
             `relatedBound` values to describe how the bound was applied.
-          $ref: "#/components/schemas/SzBoundType"
           nullable: false
         pageSize:
           description: >-
@@ -1920,10 +1923,11 @@ components:
             The versus data source in the cross comparison.
           type: string
         relationType:
+          allOf: 
+            - $ref: "#/components/schemas/SzRelationType"
           description: >-
             The `SzRelationType` describing the type of relationship match for
             the returned statistics.
-          $ref: "#/components/schemas/SzRelationType"
         counts:
           description: >-
             The array of `SzRelationCounts` describing the entity, record and
@@ -2067,17 +2071,20 @@ components:
         - relatedEntity
       properties:
         entity:
+          allOf: 
+            - $ref: "#/components/schemas/SzEntity"
           description: >-
             The entity describing the first entity in the relationship.
-          $ref: "#/components/schemas/SzEntity"
         relatedEntity:
+          allOf:
+            - $ref: "#/components/schemas/SzEntity"
           description: >-
             The entity describing the second entity in the relationship.
-          $ref: "#/components/schemas/SzEntity"
         matchType:
+          allOf:
+            - $ref: "#/components/schemas/SzRelationType"
           description: >-
             The `SzRelationType` describing the type of the relationship.
-          $ref: "#/components/schemas/SzRelationType"
         matchKey:
           description: >-
             The match key describing what features matched between
