@@ -1,3 +1,5 @@
+# checkov:skip=CKV_OPENAPI_4:Public API - no auth required
+# checkov:skip=CKV_OPENAPI_5:Public API - no auth required
 openapi: 3.0.1
 info:
   title: Senzing Data Mart Reports REST API
@@ -1418,6 +1420,7 @@ components:
             An array of `SzEntity` instances describing the entities for the page.
             The array will be in ascending order of entity ID.
           type: array
+          maxItems: 100000
           items:
             $ref: "#/components/schemas/SzEntity"
     SzRelationsPage:
