@@ -89,10 +89,5 @@
     "Xlint",
     "xstream"
   ],
-  "ignorePaths": [
-    ".git/**",
-    ".gitignore",
-    "target/**",
-    ".claude/**"
-  ]
+  "ignorePaths": [".git/**", ".gitignore", "target/**", ".claude/**"]
 }
