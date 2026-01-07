@@ -8,5 +8,8 @@
   "[yaml]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "editor.formatOnSave": false
+  "editor.formatOnSave": true,
+  "[java]": {
+     "editor.formatOnSave": false
+  }
 }
