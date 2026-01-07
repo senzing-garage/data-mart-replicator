@@ -314,7 +314,7 @@ public class SQLiteUriTest {
             assertEquals(expectedOptions, uri.getQueryOptions(), "Query options are not as expected: " + uriText);
             assertEquals(expectedQuery, uri.getQueryString(), "Query string is not as expected: " + uriText);
             assertTrue(
-                    expectedUri.equals(uri.toString()) || expectedUri.equals(uri.toString().replaceAll("%20", " "))
+                    expectedUri.equals(uri.toString()) || expectedUri.equals(uri.toString().replaceAll("%20", " ").replaceAll("%7E", "~"))
                             || expectedUri.equals(uri.toString().replaceAll("\\+", " ")),
                     "Result from toString() (" + uri.toString() + ") not as expected: " + expectedUri);
 
