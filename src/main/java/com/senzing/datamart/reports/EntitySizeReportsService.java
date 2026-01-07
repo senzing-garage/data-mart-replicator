@@ -13,6 +13,7 @@ import com.senzing.datamart.reports.model.SzEntitySizeCount;
 import com.senzing.util.Timers;
 
 import static com.senzing.sql.SQLUtilities.close;
+import static com.senzing.util.LoggingUtilities.formatStackTrace;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -63,11 +64,13 @@ public interface EntitySizeReportsService extends ReportsService {
             return EntitySizeReports.getEntitySizeBreakdown(conn, timers);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -102,11 +105,13 @@ public interface EntitySizeReportsService extends ReportsService {
             return EntitySizeReports.getEntitySizeCount(conn, entitySize, timers);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {
@@ -154,11 +159,13 @@ public interface EntitySizeReportsService extends ReportsService {
             return EntitySizeReports.getEntityIdsForEntitySize(conn, entitySize, entityIdBound, boundType, pageSize,
                     sampleSize, timers);
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
             if (e instanceof RuntimeException) {
                 throw ((RuntimeException) e);
             } else {

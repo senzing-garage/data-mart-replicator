@@ -16,4 +16,5 @@
   <suppress checks="AvoidNestedBlocks" files="."/>
   <suppress checks="MethodLength" files="."/>
   <suppress checks="FileLength" files="."/>
+  <suppress checks="NoWhitespaceAfter" files="."/>
 </suppressions>
