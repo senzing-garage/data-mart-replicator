@@ -9,7 +9,7 @@ import javax.json.JsonObjectBuilder;
 import java.util.*;
 
 import static com.senzing.util.JsonUtilities.*;
-import static com.senzing.util.LoggingUtilities.formatStackTrace;
+//import static com.senzing.util.LoggingUtilities.formatStackTrace;
 
 /**
  * Describes a relationship between two entities as it is stored in the data
@@ -395,42 +395,5 @@ public class SzRelationship {
         }
         String jsonText = ZipUtilities.unzipText64(hashText);
         return parse(jsonText);
-    }
-
-    /**
-     * Test main method.
-     * 
-     * @param args The command-line arguments.
-     */
-    public static void main(String[] args) {
-        try {
-            SzResolvedEntity resolved = new SzResolvedEntity();
-            resolved.setEntityId(1);
-            resolved.setEntityName("Foo Smith");
-            resolved.addRecord(new SzRecord("FOO", "FOO-1", null, null));
-            SzRelatedEntity related = new SzRelatedEntity();
-            related.setEntityId(2);
-            related.addRecord(new SzRecord("BAR", "BAR-1", null, null));
-            related.setEntityName("Bar Jones");
-            related.setMatchKey("ADDRESS+PHONE_NUMBER");
-            related.setPrinciple("MFF");
-            related.setMatchType(SzMatchType.POSSIBLE_RELATION);
-            resolved.addRelatedEntity(related);
-
-            SzRelationship relationship1 = new SzRelationship(resolved, related);
-            String hash = relationship1.toHash();
-            SzRelationship relationship2 = SzRelationship.parseHash(hash);
-
-            System.out.println();
-            System.out.println(relationship1);
-            System.out.println();
-            System.out.println(relationship2);
-            System.out.println();
-            System.out.println(relationship1.equals(relationship2));
-
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-            System.err.println(formatStackTrace(e.getStackTrace()));
-        }
     }
 }
