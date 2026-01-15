@@ -1,25 +1,15 @@
 package com.senzing.listener.communication.sql;
 
-import java.io.File;
 import java.util.List;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Instant;
 
-import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonArray;
-import javax.json.JsonObjectBuilder;
-import javax.json.JsonArrayBuilder;
 import javax.naming.NameNotFoundException;
 
 import com.senzing.sql.ConnectionProvider;
 import com.senzing.sql.DatabaseType;
-import com.senzing.sql.Connector;
-import com.senzing.sql.SQLiteConnector;
-import com.senzing.sql.PostgreSqlConnector;
-import com.senzing.sql.ConnectionPool;
-import com.senzing.sql.PoolConnectionProvider;
 
 import com.senzing.text.TextUtilities;
 import com.senzing.listener.communication.AbstractMessageConsumer;
@@ -27,7 +17,6 @@ import com.senzing.listener.communication.exception.MessageConsumerException;
 import com.senzing.listener.communication.exception.MessageConsumerSetupException;
 import com.senzing.listener.service.MessageProcessor;
 import com.senzing.util.AccessToken;
-import com.senzing.util.JsonUtilities;
 import com.senzing.naming.Registry;
 
 import static java.lang.Boolean.*;
@@ -887,167 +876,5 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
         } catch (InterruptedException ignore) {
             // ignore
         }
-    }
-
-    /**
-     * Provides a means to test this class from the command-line.
-     * 
-     * @param args The command-line arguments.
-     */
-    public static void main(String[] args) {
-        // check if no arguments specified
-        if (args.length != 1 && args.length != 2 && args.length != 6) {
-            System.err.println("Unexpected number of command-line arguments.");
-            printUsage();
-            System.exit(1);
-        }
-
-        try {
-            DatabaseType dbType = DatabaseType.valueOf(args[0]);
-
-            Connector connector = null;
-            int minPoolSize = 1;
-            int maxPoolSize = 1;
-            switch (dbType) {
-            case SQLITE:
-                if (args.length == 1) {
-                    SQLiteConnector conn = new SQLiteConnector();
-                    File file = conn.getSqliteFile();
-                    System.out.println("SQLite File: " + file);
-                    connector = conn;
-
-                } else if (args.length == 2) {
-                    connector = new SQLiteConnector(args[1]);
-                } else {
-                    System.err.println("Unexpected number of command-line arguments.");
-                    printUsage();
-                    System.exit(1);
-                }
-                break;
-            case POSTGRESQL:
-                if (args.length != 6) {
-                    System.err.println("Unexpected number of command-line arguments.");
-                    printUsage();
-                    System.exit(1);
-                }
-                String host = args[1];
-                int port = Integer.parseInt(args[2]);
-                String database = args[3];
-                String user = args[4];
-                String password = args[5];
-
-                connector = new PostgreSqlConnector(host, port, database, user, password);
-                minPoolSize = 2;
-                maxPoolSize = 5;
-
-                break;
-            default:
-                System.err.println("Unsupported database type: " + dbType);
-                printUsage();
-                System.exit(1);
-                break;
-            }
-
-            ConnectionPool pool = new ConnectionPool(connector, minPoolSize, maxPoolSize);
-
-            ConnectionProvider provider = new PoolConnectionProvider(pool);
-
-            ConnectionProvider.REGISTRY.bind("test-provider", provider);
-
-            JsonObjectBuilder builder = Json.createObjectBuilder();
-            builder.add(CLEAN_DATABASE_KEY, false);
-            builder.add(CONNECTION_PROVIDER_KEY, "test-provider");
-            builder.add(QUEUE_REGISTRY_NAME_KEY, "message-queue");
-
-            JsonObject config = builder.build();
-
-            SQLConsumer consumer = new SQLConsumer();
-            consumer.init(config);
-
-            consumer.consume((jsonMessage) -> {
-                String recordId = jsonMessage.getString("RECORD_ID");
-                JsonArray array = jsonMessage.getJsonArray("AFFECTED_ENTITIES");
-                for (JsonObject obj : array.getValuesAs(JsonObject.class)) {
-                    long entityId = obj.getJsonNumber("ENTITY_ID").longValue();
-
-                    System.out.println();
-                    System.out.println("ENTITY ID: " + entityId + " / RECORD ID: " + recordId);
-                }
-            });
-
-            MessageQueue messageQueue = SQLConsumer.MESSAGE_QUEUE_REGISTRY.lookup("message-queue");
-
-            int entityId = 10;
-            int recordId = 100000;
-            int messageCount = 0;
-            for (int index1 = 0; index1 < 100; index1++) {
-                JsonArrayBuilder jab = Json.createArrayBuilder();
-                for (int index2 = 0; index2 < 15; index2++) {
-                    JsonObjectBuilder job = Json.createObjectBuilder();
-                    job.add("DATA_SOURCE", "CUSTOMERS");
-                    job.add("RECORD_ID", String.valueOf(recordId++));
-
-                    JsonArrayBuilder jab2 = Json.createArrayBuilder();
-
-                    JsonObjectBuilder job2 = Json.createObjectBuilder();
-                    job2.add("ENTITY_ID", entityId++);
-                    jab2.add(job2);
-                    job.add("AFFECTED_ENTITIES", jab2);
-
-                    jab.add(job);
-                }
-                String message = JsonUtilities.toJsonText(jab);
-                messageQueue.enqueueMessage(message);
-                messageCount++;
-            }
-
-            System.out.println();
-            System.out.println("ENQUEUED " + messageCount + " MESSAGES");
-
-            // wait until the queue is empty
-            for (int index = 0; !messageQueue.isEmpty(); index++) {
-                Thread.sleep(1000L);
-                if (index % 10 == 0) {
-                    java.util.Map<Statistic, Number> statistics = consumer.getStatistics();
-                    System.out.println();
-                    System.out.println("------------------------------");
-                    statistics.forEach((stat, value) -> {
-                        System.out.println(stat.getName() + " : " + value + " " + stat.getUnits());
-                    });
-                    System.out.println();
-                    System.out.println("QUEUE SIZE  : " + messageQueue.getMessageCount());
-                    System.out.println("------------------------------");
-                }
-            }
-
-            System.out.println();
-            System.out.println("QUEUE EMPTY : " + messageQueue.isEmpty());
-            System.out.println("QUEUE SIZE  : " + messageQueue.getMessageCount());
-
-            // destroy the consumer
-            consumer.destroy();
-            pool.shutdown();
-
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-            System.err.println(formatStackTrace(e.getStackTrace()));
-            printUsage();
-            System.exit(1);
-        }
-    }
-
-    /**
-     * 
-     */
-    private static void printUsage() {
-        System.err.println();
-        System.err.println("COMMAND-LINE ARGUMENT OPTIONS: ");
-        System.err.println("  - For SQLite with an auto-created temporary file:");
-        System.err.println("       SQLITE");
-        System.err.println("  - For SQLite with a specific database file:");
-        System.err.println("       SQLITE <sqlite-file-path>");
-        System.err.println("  - For PostrgreSQL:");
-        System.err.println("       POSTGRESQL <db-host> <db-port> <db-name> <db-user> <db-password>");
-        System.err.println();
     }
 }

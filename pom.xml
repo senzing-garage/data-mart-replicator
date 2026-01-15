@@ -164,6 +164,12 @@
       <version>2.0.17</version>
       <scope>test</scope>
     </dependency>
+    <dependency>                                                                                                                                       
+      <groupId>io.zonky.test</groupId>                                                                                                                 
+      <artifactId>embedded-postgres</artifactId>                                                                                                       
+      <version>2.2.0</version>                                                                                                                         
+      <scope>test</scope>                                                                                                                              
+   </dependency>         
   </dependencies>
   <properties>
     <gpg.skip>true</gpg.skip> <!-- skip GPG unless release profile -->

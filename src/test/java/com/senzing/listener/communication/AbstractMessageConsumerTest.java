@@ -43,7 +43,7 @@ import static com.senzing.util.LoggingUtilities.*;
 public class AbstractMessageConsumerTest {
     private static SecureRandom PRNG = new SecureRandom();
     static {
-        double value = PRNG.nextDouble();
+        PRNG.nextDouble();
     }
     private Set<Long> previousAffectedSet = null;
     private int noOverlapCount = 0;
