@@ -856,7 +856,9 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
     protected void doDestroy() {
         // join to the consumption thread
         try {
-            this.consumptionThread.join();
+            if (Thread.currentThread() != this.consumptionThread) {
+                this.consumptionThread.join();
+            }
             synchronized (this) {
                 this.consumptionThread = null;
             }

@@ -746,7 +746,9 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
 
         // join against the processing thread
         try {
-            this.processingThread.join();
+            if (Thread.currentThread() != this.processingThread) {
+                this.processingThread.join();
+            }
         } catch (InterruptedException ignore) {
             // ignore the exception
         }

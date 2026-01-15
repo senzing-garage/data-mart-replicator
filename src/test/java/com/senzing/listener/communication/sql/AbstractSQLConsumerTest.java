@@ -9,6 +9,13 @@ import com.senzing.sql.PoolConnectionProvider;
 import com.senzing.util.AccessToken;
 
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
+import uk.org.webcompere.systemstubs.stream.SystemErr;
+import uk.org.webcompere.systemstubs.stream.SystemOut;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -32,7 +39,15 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ExtendWith(SystemStubsExtension.class)
+@Execution(ExecutionMode.SAME_THREAD)
 abstract class AbstractSQLConsumerTest {
+
+    @SystemStub
+    protected SystemErr systemErr;
+
+    @SystemStub
+    protected SystemOut systemOut;
 
     protected ConnectionPool connectionPool;
     protected PoolConnectionProvider connectionProvider;
@@ -700,9 +715,267 @@ abstract class AbstractSQLConsumerTest {
         // The message should have been processed at least twice due to lease expiration
         assertTrue(processCount.get() >= 2,
                 "Message should be reprocessed after lease expires. Actual count: " + processCount.get());
+        // Note: Log output is captured by SystemStubs to suppress console noise
 
         consumer.destroy();
         consumeThread.join(5000);
+    }
+
+    // ========================================================================
+    // Exception Handling and Failure Injection Tests
+    // ========================================================================
+
+    @Test
+    @Order(50)
+    void testInitWithInvalidConnectionProvider() {
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(SQLConsumer.CONNECTION_PROVIDER_KEY, "non-existent-provider-" + System.currentTimeMillis());
+        builder.add(SQLConsumer.CLEAN_DATABASE_KEY, false);
+        JsonObject config = builder.build();
+
+        SQLConsumer consumer = new SQLConsumer();
+
+        // Should throw MessageConsumerSetupException due to NameNotFoundException
+        Exception exception = assertThrows(Exception.class, () -> consumer.init(config));
+        assertTrue(exception.getMessage().contains("ConnectionProvider") ||
+                   exception.getCause() != null,
+                   "Should fail due to invalid connection provider");
+    }
+
+    @Test
+    @Order(51)
+    void testHandleFailureWithRetries() throws Exception {
+        // Clean schema first
+        Connection conn = connectionProvider.getConnection();
+        conn.setAutoCommit(false);
+        sqlClient.ensureSchema(conn, true);
+        conn.close();
+
+        // Configure with 3 retries and short retry wait time
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(SQLConsumer.CONNECTION_PROVIDER_KEY, this.providerName);
+        builder.add(SQLConsumer.CLEAN_DATABASE_KEY, false);
+        builder.add(SQLConsumer.MAXIMUM_RETRIES_KEY, 3);
+        builder.add(SQLConsumer.RETRY_WAIT_TIME_KEY, 100); // 100ms retry wait
+        JsonObject config = builder.build();
+
+        SQLConsumer consumer = new SQLConsumer();
+        consumer.init(config);
+
+        // Test handleFailure with failure count below max retries
+        long startTime = System.currentTimeMillis();
+        boolean shouldAbort = consumer.handleFailure(1, new SQLException("Test failure"));
+        long elapsed = System.currentTimeMillis() - startTime;
+
+        assertFalse(shouldAbort, "Should not abort when failure count is below max retries");
+        assertTrue(elapsed >= 90, "Should have waited approximately retry wait time");
+        // Note: Log output is captured by SystemStubs to suppress console noise
+    }
+
+    @Test
+    @Order(52)
+    void testHandleFailureExceedsMaxRetries() throws Exception {
+        // Clean schema first
+        Connection conn = connectionProvider.getConnection();
+        conn.setAutoCommit(false);
+        sqlClient.ensureSchema(conn, true);
+        conn.close();
+
+        // Configure with 2 retries
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(SQLConsumer.CONNECTION_PROVIDER_KEY, this.providerName);
+        builder.add(SQLConsumer.CLEAN_DATABASE_KEY, false);
+        builder.add(SQLConsumer.MAXIMUM_RETRIES_KEY, 2);
+        builder.add(SQLConsumer.RETRY_WAIT_TIME_KEY, 10);
+        JsonObject config = builder.build();
+
+        SQLConsumer consumer = new SQLConsumer();
+        consumer.init(config);
+
+        // Test handleFailure with failure count exceeding max retries
+        boolean shouldAbort = consumer.handleFailure(3, new SQLException("Test failure"));
+
+        assertTrue(shouldAbort, "Should abort when failure count exceeds max retries");
+        // Note: Log output is captured by SystemStubs to suppress console noise
+    }
+
+    @Test
+    @Order(53)
+    void testGenerateLeaseId() throws Exception {
+        // Clean schema first
+        Connection conn = connectionProvider.getConnection();
+        conn.setAutoCommit(false);
+        sqlClient.ensureSchema(conn, true);
+        conn.close();
+
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(SQLConsumer.CONNECTION_PROVIDER_KEY, this.providerName);
+        builder.add(SQLConsumer.CLEAN_DATABASE_KEY, false);
+        JsonObject config = builder.build();
+
+        SQLConsumer consumer = new SQLConsumer();
+        consumer.init(config);
+
+        // Generate multiple lease IDs and verify they are unique and well-formed
+        String leaseId1 = consumer.generateLeaseId();
+        String leaseId2 = consumer.generateLeaseId();
+        String leaseId3 = consumer.generateLeaseId();
+
+        // Verify not null and not empty
+        assertNotNull(leaseId1);
+        assertNotNull(leaseId2);
+        assertNotNull(leaseId3);
+        assertFalse(leaseId1.isEmpty());
+
+        // Verify uniqueness
+        assertNotEquals(leaseId1, leaseId2);
+        assertNotEquals(leaseId2, leaseId3);
+        assertNotEquals(leaseId1, leaseId3);
+
+        // Verify format contains expected parts (pid|timestamp|random)
+        assertTrue(leaseId1.contains("|"), "Lease ID should contain pipe separators");
+        String[] parts = leaseId1.split("\\|");
+        assertEquals(3, parts.length, "Lease ID should have 3 parts");
+    }
+
+    @Test
+    @Order(54)
+    void testConsumeWithDatabaseFailureTriggeringAbort() throws Exception {
+        // Clean schema first
+        Connection conn = connectionProvider.getConnection();
+        conn.setAutoCommit(false);
+        sqlClient.ensureSchema(conn, true);
+        conn.close();
+
+        // Configure with 0 retries so first failure triggers abort
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(SQLConsumer.CONNECTION_PROVIDER_KEY, this.providerName);
+        builder.add(SQLConsumer.CLEAN_DATABASE_KEY, false);
+        builder.add(SQLConsumer.MAXIMUM_RETRIES_KEY, 0); // No retries - abort on first failure
+        builder.add(SQLConsumer.RETRY_WAIT_TIME_KEY, 10);
+        JsonObject config = builder.build();
+
+        FailureInjectingSQLConsumer consumer = new FailureInjectingSQLConsumer();
+        consumer.init(config);
+
+        // Enqueue a message
+        SQLConsumer.MessageQueue queue = consumer.getMessageQueue();
+        queue.enqueueMessage("{\"test\": \"failure\"}");
+
+        // Set up failure injection - fail on first getConnection call during consumption
+        consumer.setFailOnGetConnection(true);
+
+        AtomicInteger processedCount = new AtomicInteger(0);
+        CountDownLatch destroyedLatch = new CountDownLatch(1);
+
+        // Start consuming - should abort due to failure
+        Thread consumeThread = new Thread(() -> {
+            try {
+                consumer.consume((msg) -> processedCount.incrementAndGet());
+            } catch (Exception ignore) {
+                // Expected
+            } finally {
+                destroyedLatch.countDown();
+            }
+        });
+        consumeThread.start();
+
+        // Wait for consumption to abort (should be quick due to 0 retries)
+        boolean finished = destroyedLatch.await(10, TimeUnit.SECONDS);
+        assertTrue(finished, "Consumer should abort within timeout");
+
+        // Message should not have been processed due to failure before processing
+        assertEquals(0, processedCount.get(), "No messages should be processed when getConnection fails");
+        // Note: Log output is captured by SystemStubs to suppress console noise
+
+        // Clean up
+        if (consumeThread.isAlive()) {
+            consumer.destroy();
+            consumeThread.join(5000);
+        }
+    }
+
+    @Test
+    @Order(55)
+    void testConsumeWithTransientFailureAndRetry() throws Exception {
+        // Clean schema first
+        Connection conn = connectionProvider.getConnection();
+        conn.setAutoCommit(false);
+        sqlClient.ensureSchema(conn, true);
+        conn.close();
+
+        // Configure with 3 retries
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(SQLConsumer.CONNECTION_PROVIDER_KEY, this.providerName);
+        builder.add(SQLConsumer.CLEAN_DATABASE_KEY, false);
+        builder.add(SQLConsumer.MAXIMUM_RETRIES_KEY, 3);
+        builder.add(SQLConsumer.RETRY_WAIT_TIME_KEY, 50); // 50ms retry
+        builder.add(SQLConsumer.LEASE_TIME_KEY, 60);
+        JsonObject config = builder.build();
+
+        FailureInjectingSQLConsumer consumer = new FailureInjectingSQLConsumer();
+        consumer.init(config);
+
+        // Enqueue messages
+        SQLConsumer.MessageQueue queue = consumer.getMessageQueue();
+        queue.enqueueMessage("{\"test\": \"recovery\"}");
+
+        // Set up transient failure - fail twice, then succeed
+        consumer.setFailureCount(2);
+
+        AtomicInteger processedCount = new AtomicInteger(0);
+        CountDownLatch processedLatch = new CountDownLatch(1);
+
+        // Start consuming
+        Thread consumeThread = new Thread(() -> {
+            try {
+                consumer.consume((msg) -> {
+                    processedCount.incrementAndGet();
+                    processedLatch.countDown();
+                });
+            } catch (Exception ignore) {
+                // Expected during destroy
+            }
+        });
+        consumeThread.start();
+
+        // Wait for message to be processed after retries
+        boolean processed = processedLatch.await(15, TimeUnit.SECONDS);
+        assertTrue(processed, "Message should eventually be processed after transient failures");
+        assertEquals(1, processedCount.get());
+
+        // Verify handleFailure was called (failure count should have been tracked)
+        assertTrue(consumer.getHandleFailureCallCount() >= 2,
+                "handleFailure should have been called at least twice");
+        // Note: Log output is captured by SystemStubs to suppress console noise
+
+        consumer.destroy();
+        consumeThread.join(5000);
+    }
+
+    @Test
+    @Order(56)
+    void testDefaultConfigurationValues() throws Exception {
+        // Clean schema first
+        Connection conn = connectionProvider.getConnection();
+        conn.setAutoCommit(false);
+        sqlClient.ensureSchema(conn, true);
+        conn.close();
+
+        // Initialize with minimal config to test defaults
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(SQLConsumer.CONNECTION_PROVIDER_KEY, this.providerName);
+        JsonObject config = builder.build();
+
+        SQLConsumer consumer = new SQLConsumer();
+        consumer.init(config);
+
+        // Verify default values are applied
+        assertEquals(SQLConsumer.DEFAULT_LEASE_TIME, consumer.getLeaseTime());
+        assertEquals(SQLConsumer.DEFAULT_MAXIMUM_LEASE_COUNT, consumer.getMaximumLeaseCount());
+        assertEquals(SQLConsumer.DEFAULT_MAXIMUM_SLEEP_TIME, consumer.getMaximumSleepTime());
+        assertEquals(SQLConsumer.DEFAULT_MAXIMUM_RETRIES, consumer.getMaximumRetries());
+        assertEquals(SQLConsumer.DEFAULT_RETRY_WAIT_TIME, consumer.getRetryWaitTime());
     }
 
     // ========================================================================
@@ -754,6 +1027,49 @@ abstract class AbstractSQLConsumerTest {
 
         public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
             return latch.await(timeout, unit);
+        }
+    }
+
+    // ========================================================================
+    // Helper Classes for Exception Injection Testing
+    // ========================================================================
+
+    /**
+     * A SQLConsumer subclass that can inject failures for testing error handling paths.
+     */
+    protected static class FailureInjectingSQLConsumer extends SQLConsumer {
+        private volatile boolean failOnGetConnection = false;
+        private volatile int failuresRemaining = 0;
+        private final AtomicInteger handleFailureCallCount = new AtomicInteger(0);
+
+        public void setFailOnGetConnection(boolean fail) {
+            this.failOnGetConnection = fail;
+        }
+
+        public void setFailureCount(int count) {
+            this.failuresRemaining = count;
+        }
+
+        public int getHandleFailureCallCount() {
+            return handleFailureCallCount.get();
+        }
+
+        @Override
+        protected Connection getConnection() throws SQLException {
+            if (failOnGetConnection) {
+                throw new SQLException("Injected failure for testing");
+            }
+            if (failuresRemaining > 0) {
+                failuresRemaining--;
+                throw new SQLException("Transient failure for testing (" + failuresRemaining + " remaining)");
+            }
+            return super.getConnection();
+        }
+
+        @Override
+        protected boolean handleFailure(int failureCount, Exception failure) {
+            handleFailureCallCount.incrementAndGet();
+            return super.handleFailure(failureCount, failure);
         }
     }
 }
