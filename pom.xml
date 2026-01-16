@@ -170,12 +170,25 @@
       <version>2.0.17</version>
       <scope>test</scope>
     </dependency>
-    <dependency>                                                                                                                                       
-      <groupId>io.zonky.test</groupId>                                                                                                                 
-      <artifactId>embedded-postgres</artifactId>                                                                                                       
-      <version>2.2.0</version>                                                                                                                         
-      <scope>test</scope>                                                                                                                              
-   </dependency>         
+    <dependency>
+      <groupId>io.zonky.test</groupId>
+      <artifactId>embedded-postgres</artifactId>
+      <version>2.2.0</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- ARM64 binaries for Zonky embedded-postgres (not included as transitive dependencies) -->
+    <dependency>
+      <groupId>io.zonky.test.postgres</groupId>
+      <artifactId>embedded-postgres-binaries-darwin-arm64v8</artifactId>
+      <version>14.20.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.zonky.test.postgres</groupId>
+      <artifactId>embedded-postgres-binaries-linux-arm64v8</artifactId>
+      <version>14.20.0</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <properties>
     <gpg.skip>true</gpg.skip> <!-- skip GPG unless release profile -->

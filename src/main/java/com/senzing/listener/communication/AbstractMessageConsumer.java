@@ -428,9 +428,14 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
 
     /**
      * Flag to use to suppress checking if already processing when backgrounding
-     * message processing.
+     * message processing.  Initialized to {@link Boolean#FALSE} by default.
      */
-    private static final ThreadLocal<Boolean> SUPPRESS_PROCESSING_CHECK = new ThreadLocal<>();
+    private static final ThreadLocal<Boolean> SUPPRESS_PROCESSING_CHECK = new ThreadLocal<>() {
+        @Override
+        protected Boolean initialValue() {
+            return Boolean.FALSE;
+        }
+    };
 
     /**
      * Default constructor.
@@ -1104,28 +1109,28 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
      *                  locking.
      */
     protected void processMessages(MessageProcessor processor) {
-        try {
-            // check if we should validate the current state
-            if (!SUPPRESS_PROCESSING_CHECK.get()) {
-                // first check if we are even consuming
-                synchronized (this) {
-                    // check if not consuming messages
-                    if (this.getState() != CONSUMING) {
-                        throw new IllegalStateException("Cannot call processMessages() if not in the " + CONSUMING
-                                + " state.  Current state is " + this.getState());
-                    }
-
-                    // check if already processing
-                    if (this.processing) {
-                        throw new IllegalStateException("Cannot call processMessages() when it has already been called "
-                                + "and is still processing messages.");
-                    }
-
-                    // set the processing flag
-                    this.processing = true;
+        // check if we should validate the current state
+        if (!SUPPRESS_PROCESSING_CHECK.get()) {
+            // first check if we are even consuming
+            synchronized (this) {
+                // check if not consuming messages
+                if (this.getState() != CONSUMING) {
+                    throw new IllegalStateException("Cannot call processMessages() if not in the " + CONSUMING
+                            + " state.  Current state is " + this.getState());
                 }
-            }
 
+                // check if already processing
+                if (this.processing) {
+                    throw new IllegalStateException("Cannot call processMessages() when it has already been called "
+                            + "and is still processing messages.");
+                }
+
+                // set the processing flag
+                this.processing = true;
+            }
+        }
+
+        try {
             // create the worker pool
             synchronized (this) {
                 this.workerPool = new AsyncWorkerPool<>(this.getConcurrency());
