@@ -154,11 +154,21 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
             // get the visibility timeout
             this.visibilityTimeout = getConfigInteger(config, VISIBILITY_TIMEOUT_KEY, 1, null);
 
-            this.sqsClient = SqsClient.builder().build();
+            this.sqsClient = createSqsClient();
 
         } catch (RuntimeException e) {
             throw new MessageConsumerSetupException(e);
         }
+    }
+
+    /**
+     * Creates the {@link SqsClient} for this consumer. This method is protected
+     * to allow test subclasses to inject mock clients.
+     *
+     * @return The {@link SqsClient} to use.
+     */
+    protected SqsClient createSqsClient() {
+        return SqsClient.builder().build();
     }
 
     /**
@@ -267,7 +277,10 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
 
                     // failed obtaining a response
                     if (!response.sdkHttpResponse().isSuccessful()) {
-                        int responseCode = response.sdkHttpResponse().statusCode();
+                        // check if we intentionally shut down before logging/retrying
+                        if (this.getState() != CONSUMING) {
+                            return;
+                        }
                         if (this.handleFailure(++failureCount, response, null)) {
                             // destroy and then return to abort consumption
                             this.destroy();
@@ -292,10 +305,16 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
                     }
 
                 } catch (SdkException e) {
-                    System.err.println(e.getMessage());
-                    System.err.println(formatStackTrace(e.getStackTrace()));
-                    failureCount++;
-
+                    // check if we intentionally shut down before logging/retrying
+                    if (this.getState() != CONSUMING) {
+                        return;
+                    }
+                    if (this.handleFailure(++failureCount, null, e)) {
+                        // destroy and then return to abort consumption
+                        this.destroy();
+                        return;
+                    }
+                    // otherwise retry
                 }
             }
         });

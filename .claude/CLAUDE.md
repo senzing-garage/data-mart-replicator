@@ -169,6 +169,33 @@ Background thread (`ReportUpdater`) periodically schedules pending report update
 - Test files mirror src structure in src/test/java
 - Use `mvn test -Dtest=ClassName` to run individual tests
 
+### JUnit @Order Annotation Convention
+
+When using JUnit's `@Order` annotation on test methods, always increment by 100 instead of 1. This allows inserting new tests between existing ones without renumbering all subsequent tests.
+
+Example:
+
+```java
+@Test
+@Order(100)
+void testFirst() { }
+
+@Test
+@Order(200)
+void testSecond() { }
+
+@Test
+@Order(300)
+void testThird() { }
+```
+
+### Generating Coverage Report
+
+```bash
+mvn test jacoco:report -P jacoco
+```
+The JaCoCo profile must be activated with `-P jacoco`. The coverage report is generated at `target/site/jacoco/index.html`.
+
 ## Dependencies
 
 **Core:**

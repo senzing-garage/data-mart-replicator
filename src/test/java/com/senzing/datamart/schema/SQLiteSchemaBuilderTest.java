@@ -105,7 +105,7 @@ class SQLiteSchemaBuilderTest {
      * Verifies all expected database objects are created.
      */
     @Test
-    @Order(1)
+    @Order(100)
     void testEnsureSchemaOnEmptyDatabase() throws SQLException {
         // Call ensureSchema with recreate=false on empty database
         assertDoesNotThrow(() -> schemaBuilder.ensureSchema(connection, false));
@@ -119,7 +119,7 @@ class SQLiteSchemaBuilderTest {
      * Verifies tables are recreated (empty) and all objects still exist.
      */
     @Test
-    @Order(2)
+    @Order(200)
     void testEnsureSchemaWithRecreateTrue() throws SQLException {
         // Insert test rows into tables
         insertTestData();
@@ -149,7 +149,7 @@ class SQLiteSchemaBuilderTest {
      * Verifies no exception is thrown and all objects remain.
      */
     @Test
-    @Order(3)
+    @Order(300)
     void testEnsureSchemaOnExistingSchemaNoRecreate() throws SQLException {
         // Insert some test data first
         insertTestData();

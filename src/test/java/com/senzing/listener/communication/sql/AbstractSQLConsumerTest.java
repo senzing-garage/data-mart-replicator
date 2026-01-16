@@ -113,7 +113,7 @@ abstract class AbstractSQLConsumerTest {
      * Test 1: Create schema on empty database with recreate=false.
      */
     @Test
-    @Order(1)
+    @Order(100)
     void testEnsureSchemaOnEmptyDatabase() throws SQLException {
         try (Connection conn = connectionProvider.getConnection()) {
             conn.setAutoCommit(false);
@@ -131,7 +131,7 @@ abstract class AbstractSQLConsumerTest {
      * Test 2: Insert data, then ensureSchema with recreate=true, verify data is gone.
      */
     @Test
-    @Order(2)
+    @Order(200)
     void testEnsureSchemaWithRecreateTrue() throws SQLException {
         Connection conn = null;
         try {
@@ -166,7 +166,7 @@ abstract class AbstractSQLConsumerTest {
      * Test 3: Call ensureSchema with recreate=false on existing schema - no error.
      */
     @Test
-    @Order(3)
+    @Order(300)
     void testEnsureSchemaOnExistingSchemaNoRecreate() throws SQLException {
         try (Connection conn = connectionProvider.getConnection()) {
             conn.setAutoCommit(false);
@@ -199,7 +199,7 @@ abstract class AbstractSQLConsumerTest {
     // ========================================================================
 
     @Test
-    @Order(10)
+    @Order(1000)
     void testInsertAndGetMessageCount() throws SQLException {
         Connection conn = null;
         try {
@@ -225,7 +225,7 @@ abstract class AbstractSQLConsumerTest {
     }
 
     @Test
-    @Order(11)
+    @Order(1100)
     void testIsQueueEmpty() throws SQLException {
         Connection conn = null;
         try {
@@ -251,7 +251,7 @@ abstract class AbstractSQLConsumerTest {
     }
 
     @Test
-    @Order(12)
+    @Order(1200)
     void testLeaseAndGetLeasedMessages() throws SQLException {
         Connection conn = null;
         try {
@@ -292,7 +292,7 @@ abstract class AbstractSQLConsumerTest {
     }
 
     @Test
-    @Order(13)
+    @Order(1300)
     void testDeleteMessage() throws SQLException {
         Connection conn = null;
         try {
@@ -330,7 +330,7 @@ abstract class AbstractSQLConsumerTest {
     }
 
     @Test
-    @Order(14)
+    @Order(1400)
     void testRenewLease() throws SQLException {
         Connection conn = null;
         try {
@@ -368,7 +368,7 @@ abstract class AbstractSQLConsumerTest {
     }
 
     @Test
-    @Order(15)
+    @Order(1500)
     void testReleaseExpiredLeases() throws SQLException, InterruptedException {
         Connection conn = null;
         try {
@@ -414,7 +414,7 @@ abstract class AbstractSQLConsumerTest {
     // ========================================================================
 
     @Test
-    @Order(20)
+    @Order(2000)
     void testSQLConsumerInitWithConnectionProvider() throws Exception {
         // Ensure clean schema first
         Connection conn = connectionProvider.getConnection();
@@ -439,7 +439,7 @@ abstract class AbstractSQLConsumerTest {
     }
 
     @Test
-    @Order(21)
+    @Order(2100)
     void testSQLConsumerInitWithCleanDatabaseTrue() throws Exception {
         // First insert some data
         Connection conn = connectionProvider.getConnection();
@@ -472,7 +472,7 @@ abstract class AbstractSQLConsumerTest {
     }
 
     @Test
-    @Order(22)
+    @Order(2200)
     void testSQLConsumerInitParameters() throws Exception {
         // Clean schema first
         Connection conn = connectionProvider.getConnection();
@@ -503,7 +503,7 @@ abstract class AbstractSQLConsumerTest {
     }
 
     @Test
-    @Order(23)
+    @Order(2300)
     void testSQLConsumerWithQueueRegistry() throws Exception {
         String queueName = "test-queue-" + System.currentTimeMillis();
 
@@ -557,7 +557,7 @@ abstract class AbstractSQLConsumerTest {
     // ========================================================================
 
     @Test
-    @Order(30)
+    @Order(3000)
     void testMessageQueueEnqueueAndCount() throws Exception {
         // Clean schema first
         Connection conn = connectionProvider.getConnection();
@@ -592,7 +592,7 @@ abstract class AbstractSQLConsumerTest {
     // ========================================================================
 
     @Test
-    @Order(40)
+    @Order(4000)
     void testConsumeMessages() throws Exception {
         // Clean schema first
         Connection conn = connectionProvider.getConnection();
@@ -655,7 +655,7 @@ abstract class AbstractSQLConsumerTest {
     }
 
     @Test
-    @Order(41)
+    @Order(4100)
     void testLeaseExpirationAndReprocessing() throws Exception {
         // Clean schema first
         Connection conn = connectionProvider.getConnection();
@@ -726,7 +726,7 @@ abstract class AbstractSQLConsumerTest {
     // ========================================================================
 
     @Test
-    @Order(50)
+    @Order(5000)
     void testInitWithInvalidConnectionProvider() {
         JsonObjectBuilder builder = Json.createObjectBuilder();
         builder.add(SQLConsumer.CONNECTION_PROVIDER_KEY, "non-existent-provider-" + System.currentTimeMillis());
@@ -743,7 +743,7 @@ abstract class AbstractSQLConsumerTest {
     }
 
     @Test
-    @Order(51)
+    @Order(5100)
     void testHandleFailureWithRetries() throws Exception {
         // Clean schema first
         Connection conn = connectionProvider.getConnection();
@@ -773,7 +773,7 @@ abstract class AbstractSQLConsumerTest {
     }
 
     @Test
-    @Order(52)
+    @Order(5200)
     void testHandleFailureExceedsMaxRetries() throws Exception {
         // Clean schema first
         Connection conn = connectionProvider.getConnection();
@@ -800,7 +800,7 @@ abstract class AbstractSQLConsumerTest {
     }
 
     @Test
-    @Order(53)
+    @Order(5300)
     void testGenerateLeaseId() throws Exception {
         // Clean schema first
         Connection conn = connectionProvider.getConnection();
@@ -839,7 +839,7 @@ abstract class AbstractSQLConsumerTest {
     }
 
     @Test
-    @Order(54)
+    @Order(5400)
     void testConsumeWithDatabaseFailureTriggeringAbort() throws Exception {
         // Clean schema first
         Connection conn = connectionProvider.getConnection();
@@ -896,7 +896,7 @@ abstract class AbstractSQLConsumerTest {
     }
 
     @Test
-    @Order(55)
+    @Order(5500)
     void testConsumeWithTransientFailureAndRetry() throws Exception {
         // Clean schema first
         Connection conn = connectionProvider.getConnection();
@@ -954,7 +954,7 @@ abstract class AbstractSQLConsumerTest {
     }
 
     @Test
-    @Order(56)
+    @Order(5600)
     void testDefaultConfigurationValues() throws Exception {
         // Clean schema first
         Connection conn = connectionProvider.getConnection();

@@ -197,39 +197,71 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
     }
 
     /**
+     * Creates the {@link ConnectionFactory} for connecting to RabbitMQ. This
+     * method is protected to allow test subclasses to inject mock factories.
+     *
+     * @return The {@link ConnectionFactory} to use.
+     */
+    protected ConnectionFactory createConnectionFactory() {
+        return new ConnectionFactory();
+    }
+
+    /**
+     * Creates the {@link Connection} to RabbitMQ. This method configures the
+     * connection factory and creates a new connection.
+     *
+     * @return The {@link Connection} to use.
+     *
+     * @throws IOException If an I/O error occurs.
+     * @throws TimeoutException If a timeout occurs.
+     */
+    protected Connection createConnection() throws IOException, TimeoutException {
+        // construct the factory
+        ConnectionFactory factory = createConnectionFactory();
+
+        // set the host
+        factory.setHost(this.queueHost);
+
+        // optionally set the port, otherwise uses RabbitMQ default
+        if (this.queuePort != null) {
+            factory.setPort(this.queuePort);
+        }
+
+        // optionally set the virtual host
+        if (this.virtualHost != null) {
+            factory.setVirtualHost(this.virtualHost);
+        }
+
+        // if we have credentials then set them
+        if (this.userName != null && !this.userName.isEmpty()) {
+            factory.setUsername(this.userName);
+            factory.setPassword(this.password);
+        }
+
+        return factory.newConnection();
+    }
+
+    /**
+     * Returns the configured queue name.
+     *
+     * @return The configured queue name.
+     */
+    public String getQueueName() {
+        return this.queueName;
+    }
+
+    /**
      * Sets up a RabbitMQ consumer and then receives messages from RabbitMQ and
      * feeds to service.
-     * 
+     *
      * @param processor Processes messages
-     * 
+     *
      * @throws MessageConsumerException If a failure occurs.
      */
     @Override
     protected void doConsume(MessageProcessor processor) throws MessageConsumerException {
         try {
-            // construct the factory
-            ConnectionFactory factory = new ConnectionFactory();
-
-            // set the host
-            factory.setHost(this.queueHost);
-
-            // optionally set the port, otherwise uses RabbitMQ default
-            if (this.queuePort != null) {
-                factory.setPort(this.queuePort);
-            }
-
-            // optionally set the virtual host
-            if (this.virtualHost != null) {
-                factory.setVirtualHost(this.virtualHost);
-            }
-
-            // if we have credentials then set them
-            if (this.userName != null && !this.userName.isEmpty()) {
-                factory.setUsername(this.userName);
-                factory.setPassword(this.password);
-            }
-
-            Connection connection = factory.newConnection();
+            Connection connection = createConnection();
             this.channel = this.getChannel(connection, queueName);
 
             this.messageProcessor = processor;
@@ -356,7 +388,7 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
         } catch (IOException e) {
             // Possibly the queue is already declared and as non-durable.
             // Retry with durable = false.
-            return declareQueue(connection, queueName, false, false, false, null);
+            return this.declareQueue(connection, queueName, false, false, false, null);
         }
     }
 
