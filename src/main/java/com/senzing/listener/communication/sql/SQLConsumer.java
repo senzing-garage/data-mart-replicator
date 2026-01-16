@@ -23,6 +23,7 @@ import static java.lang.Boolean.*;
 import static com.senzing.sql.SQLUtilities.*;
 import static com.senzing.util.LoggingUtilities.*;
 import static com.senzing.listener.communication.MessageConsumer.State.*;
+import static com.senzing.listener.service.ServiceUtilities.*;
 
 /**
  * A consumer for a SQL-based message queue using a database table to hold the
@@ -424,6 +425,9 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
                 this.registryToken = MESSAGE_QUEUE_REGISTRY.bind(this.queueRegistryName, this.messageQueue);
             }
 
+        } catch (MessageConsumerSetupException e) {
+            throw e;
+        
         } catch (Exception e) {
             throw new MessageConsumerSetupException(e);
         }

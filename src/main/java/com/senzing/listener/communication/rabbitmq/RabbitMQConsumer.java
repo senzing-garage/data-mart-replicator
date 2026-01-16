@@ -18,6 +18,7 @@ import com.senzing.listener.communication.exception.MessageConsumerSetupExceptio
 import com.senzing.listener.service.MessageProcessor;
 import static com.senzing.util.LoggingUtilities.*;
 import static com.senzing.io.IOUtilities.UTF_8;
+import static com.senzing.listener.service.ServiceUtilities.*;
 
 /**
  * A consumer for RabbitMQ. The initialization parameters include:

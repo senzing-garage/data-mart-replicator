@@ -8,6 +8,8 @@ import com.senzing.listener.communication.AbstractMessageConsumer;
 import com.senzing.listener.communication.exception.MessageConsumerException;
 import com.senzing.listener.communication.exception.MessageConsumerSetupException;
 import com.senzing.listener.service.MessageProcessor;
+import com.senzing.listener.service.exception.ServiceSetupException;
+
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.Message;
@@ -16,6 +18,7 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 import static com.senzing.util.LoggingUtilities.*;
 import static com.senzing.listener.communication.MessageConsumer.State.*;
+import static com.senzing.listener.service.ServiceUtilities.*;
 
 /**
  * A consumer for SQS.
@@ -156,7 +159,7 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
 
             this.sqsClient = createSqsClient();
 
-        } catch (RuntimeException e) {
+        } catch (ServiceSetupException | RuntimeException e) {
             throw new MessageConsumerSetupException(e);
         }
     }
