@@ -406,18 +406,18 @@ public class SzSampleRecord implements Serializable {
       return null;
     }
     if (!jsonObject.containsKey(dataSourceKey)
-        || !jsonObject.containsKey(flagsKey)
         || !jsonObject.containsKey(recordIdKey))
     {
       throw new IllegalArgumentException(
           "The specified JSON must contain the \"" + dataSourceKey
-              + "\", \"" + recordIdKey + "\", and \"" + flagsKey
+              + "\" and \"" + recordIdKey
               + "\" properties: " + JsonUtilities.toJsonText(jsonObject));
     }
     String dataSource = JsonUtilities.getString(jsonObject, dataSourceKey);
 
     String recordId = JsonUtilities.getString(jsonObject, recordIdKey);
 
+    // absent flags key treated as null, constructor normalizes to empty
     List<String> flags = JsonUtilities.getStrings(jsonObject, flagsKey);
 
     return new SzSampleRecord(dataSource, recordId, flags);

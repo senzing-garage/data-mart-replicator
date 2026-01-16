@@ -381,7 +381,7 @@ public class SzInterestingEntity implements Serializable {
      *
      */
     public static SzInterestingEntity fromJson(JsonObject jsonObject) throws IllegalArgumentException {
-        return fromJson(jsonObject, ENTITY_ID_KEY, DEGREES_KEY, FLAGS_KEY, SAMPLE_RECORDS_KEY);
+        return fromJson(jsonObject, ENTITY_ID_KEY, DEGREES_KEY, FLAGS_KEY, SAMPLE_RECORDS_KEY, false);
     }
 
     /**
@@ -423,7 +423,7 @@ public class SzInterestingEntity implements Serializable {
      *
      */
     public static SzInterestingEntity fromRawJson(JsonObject jsonObject) throws IllegalArgumentException {
-        return fromJson(jsonObject, RAW_ENTITY_ID_KEY, RAW_DEGREES_KEY, RAW_FLAGS_KEY, RAW_SAMPLE_RECORDS_KEY);
+        return fromJson(jsonObject, RAW_ENTITY_ID_KEY, RAW_DEGREES_KEY, RAW_FLAGS_KEY, RAW_SAMPLE_RECORDS_KEY, true);
     }
 
     /**
@@ -442,6 +442,10 @@ public class SzInterestingEntity implements Serializable {
      * @param sampleRecordsKey The JSON property key for the sample records
      *                         property.
      *
+     * @param rawJson          <code>true</code> if parsing raw Senzing INFO
+     *                         message JSON, <code>false</code> if parsing
+     *                         the serialized form from this class.
+     *
      * @return The created {@link SzInterestingEntity} instance, or
      *         <code>null</code> if the specified parameter is <code>null</code>.
      *
@@ -450,14 +454,13 @@ public class SzInterestingEntity implements Serializable {
      *                                  properties.
      *
      */
-    private static SzInterestingEntity fromJson(JsonObject jsonObject, String entityIdKey, String degreesKey, String flagsKey, String sampleRecordsKey) throws IllegalArgumentException {
+    private static SzInterestingEntity fromJson(JsonObject jsonObject, String entityIdKey, String degreesKey, String flagsKey, String sampleRecordsKey, boolean rawJson) throws IllegalArgumentException {
         if (jsonObject == null) {
             return null;
         }
-        if (!jsonObject.containsKey(entityIdKey) || !jsonObject.containsKey(degreesKey)
-                || !jsonObject.containsKey(flagsKey) || !jsonObject.containsKey(sampleRecordsKey)) {
-            throw new IllegalArgumentException("The specified JSON must at contain the \"" + entityIdKey + "\", \""
-                    + degreesKey + "\", \"" + flagsKey + "\" and \"" + sampleRecordsKey + "\" properties: "
+        if (!jsonObject.containsKey(entityIdKey) || !jsonObject.containsKey(degreesKey)) {
+            throw new IllegalArgumentException("The specified JSON must contain the \"" + entityIdKey + "\" and \""
+                    + degreesKey + "\" properties: "
                     + JsonUtilities.toJsonText(jsonObject));
         }
 
@@ -465,13 +468,18 @@ public class SzInterestingEntity implements Serializable {
 
         Integer degrees = JsonUtilities.getInteger(jsonObject, degreesKey);
 
+        // absent flags key treated as null, constructor normalizes to empty
         List<String> flags = JsonUtilities.getStrings(jsonObject, flagsKey);
 
+        // absent sample records key treated as null, constructor normalizes to empty
         JsonArray arr = JsonUtilities.getJsonArray(jsonObject, sampleRecordsKey);
-        List<SzSampleRecord> sampleRecords = (arr == null) ? null : new ArrayList<>(arr.size());
+        List<SzSampleRecord> sampleRecords = null;
         if (arr != null) {
+            sampleRecords = new ArrayList<>(arr.size());
             for (JsonObject obj : arr.getValuesAs(JsonObject.class)) {
-                sampleRecords.add(SzSampleRecord.fromJson(obj));
+                sampleRecords.add(rawJson
+                        ? SzSampleRecord.fromRawJson(obj)
+                        : SzSampleRecord.fromJson(obj));
             }
         }
 
