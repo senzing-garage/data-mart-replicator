@@ -1,13 +1,10 @@
 package com.senzing.datamart.model;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import uk.org.webcompere.systemstubs.jupiter.SystemStub;
-import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 import uk.org.webcompere.systemstubs.stream.SystemErr;
 
 import javax.json.Json;
@@ -16,12 +13,8 @@ import javax.json.JsonObjectBuilder;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(SystemStubsExtension.class)
 @Execution(ExecutionMode.SAME_THREAD)
 class SzMatchTypeTest {
-
-    @SystemStub
-    private SystemErr systemErr;
 
     @Test
     void testAmbiguousMatchCode() {
@@ -202,13 +195,17 @@ class SzMatchTypeTest {
     }
 
     @Test
-    void testDetectWithUnknownMatchLevelCode() {
+    void testDetectWithUnknownMatchLevelCode() throws Exception {
         JsonObjectBuilder builder = Json.createObjectBuilder();
         builder.add("MATCH_LEVEL_CODE", "UNKNOWN_CODE");
         JsonObject json = builder.build();
 
-        // Should default to POSSIBLE_RELATION for unknown codes
-        assertEquals(SzMatchType.POSSIBLE_RELATION, SzMatchType.detect(json));
+        // Capture stderr output for this test that triggers a warning log
+        SystemErr systemErr = new SystemErr();
+        systemErr.execute(() -> {
+            // Should default to POSSIBLE_RELATION for unknown codes
+            assertEquals(SzMatchType.POSSIBLE_RELATION, SzMatchType.detect(json));
+        });
 
         // Verify the expected warning was logged
         String errOutput = systemErr.getText();

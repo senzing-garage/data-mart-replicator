@@ -9,13 +9,9 @@ import com.senzing.sql.PoolConnectionProvider;
 import com.senzing.util.AccessToken;
 
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
-import uk.org.webcompere.systemstubs.jupiter.SystemStub;
-import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 import uk.org.webcompere.systemstubs.stream.SystemErr;
-import uk.org.webcompere.systemstubs.stream.SystemOut;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -39,15 +35,8 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ExtendWith(SystemStubsExtension.class)
 @Execution(ExecutionMode.SAME_THREAD)
 abstract class AbstractSQLConsumerTest {
-
-    @SystemStub
-    protected SystemErr systemErr;
-
-    @SystemStub
-    protected SystemOut systemOut;
 
     protected ConnectionPool connectionPool;
     protected PoolConnectionProvider connectionProvider;
@@ -715,7 +704,6 @@ abstract class AbstractSQLConsumerTest {
         // The message should have been processed at least twice due to lease expiration
         assertTrue(processCount.get() >= 2,
                 "Message should be reprocessed after lease expires. Actual count: " + processCount.get());
-        // Note: Log output is captured by SystemStubs to suppress console noise
 
         consumer.destroy();
         consumeThread.join(5000);
@@ -762,14 +750,16 @@ abstract class AbstractSQLConsumerTest {
         SQLConsumer consumer = new SQLConsumer();
         consumer.init(config);
 
-        // Test handleFailure with failure count below max retries
-        long startTime = System.currentTimeMillis();
-        boolean shouldAbort = consumer.handleFailure(1, new SQLException("Test failure"));
-        long elapsed = System.currentTimeMillis() - startTime;
+        // Suppress console output from failure logging
+        new SystemErr().execute(() -> {
+            // Test handleFailure with failure count below max retries
+            long startTime = System.currentTimeMillis();
+            boolean shouldAbort = consumer.handleFailure(1, new SQLException("Test failure"));
+            long elapsed = System.currentTimeMillis() - startTime;
 
-        assertFalse(shouldAbort, "Should not abort when failure count is below max retries");
-        assertTrue(elapsed >= 90, "Should have waited approximately retry wait time");
-        // Note: Log output is captured by SystemStubs to suppress console noise
+            assertFalse(shouldAbort, "Should not abort when failure count is below max retries");
+            assertTrue(elapsed >= 90, "Should have waited approximately retry wait time");
+        });
     }
 
     @Test
@@ -792,11 +782,13 @@ abstract class AbstractSQLConsumerTest {
         SQLConsumer consumer = new SQLConsumer();
         consumer.init(config);
 
-        // Test handleFailure with failure count exceeding max retries
-        boolean shouldAbort = consumer.handleFailure(3, new SQLException("Test failure"));
+        // Suppress console output from failure logging
+        new SystemErr().execute(() -> {
+            // Test handleFailure with failure count exceeding max retries
+            boolean shouldAbort = consumer.handleFailure(3, new SQLException("Test failure"));
 
-        assertTrue(shouldAbort, "Should abort when failure count exceeds max retries");
-        // Note: Log output is captured by SystemStubs to suppress console noise
+            assertTrue(shouldAbort, "Should abort when failure count exceeds max retries");
+        });
     }
 
     @Test
@@ -868,31 +860,31 @@ abstract class AbstractSQLConsumerTest {
         AtomicInteger processedCount = new AtomicInteger(0);
         CountDownLatch destroyedLatch = new CountDownLatch(1);
 
-        // Start consuming - should abort due to failure
-        Thread consumeThread = new Thread(() -> {
-            try {
-                consumer.consume((msg) -> processedCount.incrementAndGet());
-            } catch (Exception ignore) {
-                // Expected
-            } finally {
-                destroyedLatch.countDown();
-            }
-        });
-        consumeThread.start();
+        // Suppress console output from failure logging
+        new SystemErr().execute(() -> {
+            // Start consuming - should abort due to failure
+            Thread consumeThread = new Thread(() -> {
+                try {
+                    consumer.consume((msg) -> processedCount.incrementAndGet());
+                } catch (Exception ignore) {
+                    // Expected
+                } finally {
+                    destroyedLatch.countDown();
+                }
+            });
+            consumeThread.start();
 
-        // Wait for consumption to abort (should be quick due to 0 retries)
-        boolean finished = destroyedLatch.await(10, TimeUnit.SECONDS);
-        assertTrue(finished, "Consumer should abort within timeout");
+            // Wait for consumption to abort (should be quick due to 0 retries)
+            boolean finished = destroyedLatch.await(10, TimeUnit.SECONDS);
+            assertTrue(finished, "Consumer should abort within timeout");
 
-        // Message should not have been processed due to failure before processing
-        assertEquals(0, processedCount.get(), "No messages should be processed when getConnection fails");
-        // Note: Log output is captured by SystemStubs to suppress console noise
+            // Message should not have been processed due to failure before processing
+            assertEquals(0, processedCount.get(), "No messages should be processed when getConnection fails");
 
-        // Clean up
-        if (consumeThread.isAlive()) {
+            // Always destroy and join to ensure thread completes within execute() block
             consumer.destroy();
             consumeThread.join(5000);
-        }
+        });
     }
 
     @Test
@@ -926,31 +918,33 @@ abstract class AbstractSQLConsumerTest {
         AtomicInteger processedCount = new AtomicInteger(0);
         CountDownLatch processedLatch = new CountDownLatch(1);
 
-        // Start consuming
-        Thread consumeThread = new Thread(() -> {
-            try {
-                consumer.consume((msg) -> {
-                    processedCount.incrementAndGet();
-                    processedLatch.countDown();
-                });
-            } catch (Exception ignore) {
-                // Expected during destroy
-            }
+        // Suppress console output from failure logging
+        new SystemErr().execute(() -> {
+            // Start consuming
+            Thread consumeThread = new Thread(() -> {
+                try {
+                    consumer.consume((msg) -> {
+                        processedCount.incrementAndGet();
+                        processedLatch.countDown();
+                    });
+                } catch (Exception ignore) {
+                    // Expected during destroy
+                }
+            });
+            consumeThread.start();
+
+            // Wait for message to be processed after retries
+            boolean processed = processedLatch.await(15, TimeUnit.SECONDS);
+            assertTrue(processed, "Message should eventually be processed after transient failures");
+            assertEquals(1, processedCount.get());
+
+            // Verify handleFailure was called (failure count should have been tracked)
+            assertTrue(consumer.getHandleFailureCallCount() >= 2,
+                    "handleFailure should have been called at least twice");
+
+            consumer.destroy();
+            consumeThread.join(5000);
         });
-        consumeThread.start();
-
-        // Wait for message to be processed after retries
-        boolean processed = processedLatch.await(15, TimeUnit.SECONDS);
-        assertTrue(processed, "Message should eventually be processed after transient failures");
-        assertEquals(1, processedCount.get());
-
-        // Verify handleFailure was called (failure count should have been tracked)
-        assertTrue(consumer.getHandleFailureCallCount() >= 2,
-                "handleFailure should have been called at least twice");
-        // Note: Log output is captured by SystemStubs to suppress console noise
-
-        consumer.destroy();
-        consumeThread.join(5000);
     }
 
     @Test

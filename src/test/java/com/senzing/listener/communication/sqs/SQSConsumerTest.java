@@ -3,13 +3,9 @@ package com.senzing.listener.communication.sqs;
 import com.senzing.listener.service.MessageProcessor;
 
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
-import uk.org.webcompere.systemstubs.jupiter.SystemStub;
-import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 import uk.org.webcompere.systemstubs.stream.SystemErr;
-import uk.org.webcompere.systemstubs.stream.SystemOut;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -28,15 +24,8 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ExtendWith(SystemStubsExtension.class)
 @Execution(ExecutionMode.SAME_THREAD)
 class SQSConsumerTest {
-
-    @SystemStub
-    private SystemErr systemErr;
-
-    @SystemStub
-    private SystemOut systemOut;
 
     private MockSqsClient mockSqsClient;
 
@@ -241,33 +230,34 @@ class SQSConsumerTest {
         builder.add(SQSConsumer.RETRY_WAIT_TIME_KEY, 10);
         JsonObject config = builder.build();
 
-        TestableSQSConsumer consumer = new TestableSQSConsumer();
-        consumer.setInjectedClient(mockSqsClient);
-        consumer.init(config);
-
         AtomicInteger processedCount = new AtomicInteger(0);
         CountDownLatch destroyedLatch = new CountDownLatch(1);
 
-        Thread consumeThread = new Thread(() -> {
-            try {
-                consumer.consume((msg) -> processedCount.incrementAndGet());
-            } catch (Exception ignore) {
-            } finally {
-                destroyedLatch.countDown();
-            }
-        });
-        consumeThread.start();
+        // Suppress console output from failure logging
+        new SystemErr().execute(() -> {
+            TestableSQSConsumer consumer = new TestableSQSConsumer();
+            consumer.setInjectedClient(mockSqsClient);
+            consumer.init(config);
 
-        // Wait for consumption to abort
-        boolean finished = destroyedLatch.await(10, TimeUnit.SECONDS);
-        assertTrue(finished, "Consumer should abort within timeout");
+            Thread consumeThread = new Thread(() -> {
+                try {
+                    consumer.consume((msg) -> processedCount.incrementAndGet());
+                } catch (Exception ignore) {
+                } finally {
+                    destroyedLatch.countDown();
+                }
+            });
+            consumeThread.start();
 
-        assertEquals(0, processedCount.get(), "No messages should be processed when failure occurs");
+            // Wait for consumption to abort
+            boolean finished = destroyedLatch.await(10, TimeUnit.SECONDS);
+            assertTrue(finished, "Consumer should abort within timeout");
 
-        if (consumeThread.isAlive()) {
+            assertEquals(0, processedCount.get(), "No messages should be processed when failure occurs");
+
             consumer.destroy();
             consumeThread.join(5000);
-        }
+        });
     }
 
     @Test
@@ -286,31 +276,34 @@ class SQSConsumerTest {
         builder.add(SQSConsumer.VISIBILITY_TIMEOUT_KEY, 30);
         JsonObject config = builder.build();
 
-        TestableSQSConsumer consumer = new TestableSQSConsumer();
-        consumer.setInjectedClient(mockSqsClient);
-        consumer.init(config);
-
         AtomicInteger processedCount = new AtomicInteger(0);
         CountDownLatch processedLatch = new CountDownLatch(1);
 
-        Thread consumeThread = new Thread(() -> {
-            try {
-                consumer.consume((msg) -> {
-                    processedCount.incrementAndGet();
-                    processedLatch.countDown();
-                });
-            } catch (Exception ignore) {
-            }
+        // Suppress console output from failure logging
+        new SystemErr().execute(() -> {
+            TestableSQSConsumer consumer = new TestableSQSConsumer();
+            consumer.setInjectedClient(mockSqsClient);
+            consumer.init(config);
+
+            Thread consumeThread = new Thread(() -> {
+                try {
+                    consumer.consume((msg) -> {
+                        processedCount.incrementAndGet();
+                        processedLatch.countDown();
+                    });
+                } catch (Exception ignore) {
+                }
+            });
+            consumeThread.start();
+
+            // Wait for message to be processed after retries
+            boolean processed = processedLatch.await(15, TimeUnit.SECONDS);
+            assertTrue(processed, "Message should eventually be processed after transient failures");
+            assertEquals(1, processedCount.get());
+
+            consumer.destroy();
+            consumeThread.join(5000);
         });
-        consumeThread.start();
-
-        // Wait for message to be processed after retries
-        boolean processed = processedLatch.await(15, TimeUnit.SECONDS);
-        assertTrue(processed, "Message should eventually be processed after transient failures");
-        assertEquals(1, processedCount.get());
-
-        consumer.destroy();
-        consumeThread.join(5000);
     }
 
     // ========================================================================
@@ -471,9 +464,12 @@ class SQSConsumerTest {
         consumer.setInjectedClient(mockSqsClient);
         consumer.init(config);
 
-        // Call handleFailure directly - first failure should abort with maxRetries=0
-        boolean shouldAbort = consumer.handleFailure(1, null, new RuntimeException("Test failure"));
-        assertTrue(shouldAbort, "Should abort on first failure when maxRetries=0");
+        // Suppress console output from failure logging
+        new SystemErr().execute(() -> {
+            // Call handleFailure directly - first failure should abort with maxRetries=0
+            boolean shouldAbort = consumer.handleFailure(1, null, new RuntimeException("Test failure"));
+            assertTrue(shouldAbort, "Should abort on first failure when maxRetries=0");
+        });
     }
 
     @Test
@@ -489,21 +485,24 @@ class SQSConsumerTest {
         consumer.setInjectedClient(mockSqsClient);
         consumer.init(config);
 
-        // First failure - should not abort (1 <= 3)
-        boolean shouldAbort1 = consumer.handleFailure(1, null, new RuntimeException("Test"));
-        assertFalse(shouldAbort1, "Should not abort on first failure");
+        // Suppress console output from failure logging
+        new SystemErr().execute(() -> {
+            // First failure - should not abort (1 <= 3)
+            boolean shouldAbort1 = consumer.handleFailure(1, null, new RuntimeException("Test"));
+            assertFalse(shouldAbort1, "Should not abort on first failure");
 
-        // Second failure - should not abort (2 <= 3)
-        boolean shouldAbort2 = consumer.handleFailure(2, null, new RuntimeException("Test"));
-        assertFalse(shouldAbort2, "Should not abort on second failure");
+            // Second failure - should not abort (2 <= 3)
+            boolean shouldAbort2 = consumer.handleFailure(2, null, new RuntimeException("Test"));
+            assertFalse(shouldAbort2, "Should not abort on second failure");
 
-        // Third failure - should not abort (3 <= 3)
-        boolean shouldAbort3 = consumer.handleFailure(3, null, new RuntimeException("Test"));
-        assertFalse(shouldAbort3, "Should not abort on third failure");
+            // Third failure - should not abort (3 <= 3)
+            boolean shouldAbort3 = consumer.handleFailure(3, null, new RuntimeException("Test"));
+            assertFalse(shouldAbort3, "Should not abort on third failure");
 
-        // Fourth failure - should abort (4 > 3)
-        boolean shouldAbort4 = consumer.handleFailure(4, null, new RuntimeException("Test"));
-        assertTrue(shouldAbort4, "Should abort when failures exceed max retries");
+            // Fourth failure - should abort (4 > 3)
+            boolean shouldAbort4 = consumer.handleFailure(4, null, new RuntimeException("Test"));
+            assertTrue(shouldAbort4, "Should abort when failures exceed max retries");
+        });
     }
 
     // ========================================================================
@@ -530,28 +529,32 @@ class SQSConsumerTest {
         AtomicInteger processedCount = new AtomicInteger(0);
         CountDownLatch destroyedLatch = new CountDownLatch(1);
 
-        Thread consumeThread = new Thread(() -> {
-            try {
-                consumer.consume((msg) -> processedCount.incrementAndGet());
-            } catch (Exception ignore) {
-            } finally {
-                destroyedLatch.countDown();
-            }
+        // Capture stderr output from failure logging
+        SystemErr systemErr = new SystemErr();
+        systemErr.execute(() -> {
+            Thread consumeThread = new Thread(() -> {
+                try {
+                    consumer.consume((msg) -> processedCount.incrementAndGet());
+                } catch (Exception ignore) {
+                } finally {
+                    destroyedLatch.countDown();
+                }
+            });
+            consumeThread.start();
+
+            // Wait for consumption to abort due to HTTP error
+            boolean finished = destroyedLatch.await(10, TimeUnit.SECONDS);
+            assertTrue(finished, "Consumer should abort within timeout due to HTTP error");
+
+            assertEquals(0, processedCount.get(), "No messages should be processed when HTTP error occurs");
+
+            // Always call destroy and join to ensure all threads complete and logging finishes
+            consumer.destroy();
+            consumeThread.join(5000);
+
+            // Allow any async logging to complete
+            Thread.sleep(100);
         });
-        consumeThread.start();
-
-        // Wait for consumption to abort due to HTTP error
-        boolean finished = destroyedLatch.await(10, TimeUnit.SECONDS);
-        assertTrue(finished, "Consumer should abort within timeout due to HTTP error");
-
-        assertEquals(0, processedCount.get(), "No messages should be processed when HTTP error occurs");
-
-        // Always call destroy and join to ensure all threads complete and logging finishes
-        consumer.destroy();
-        consumeThread.join(5000);
-
-        // Allow any async logging to complete
-        Thread.sleep(100);
 
         // Verify expected failure messages were logged (captured by SystemStubs)
         String errOutput = systemErr.getText();
@@ -582,28 +585,32 @@ class SQSConsumerTest {
         AtomicInteger processedCount = new AtomicInteger(0);
         CountDownLatch processedLatch = new CountDownLatch(1);
 
-        Thread consumeThread = new Thread(() -> {
-            try {
-                consumer.consume((msg) -> {
-                    processedCount.incrementAndGet();
-                    processedLatch.countDown();
-                });
-            } catch (Exception ignore) {
-            }
+        // Capture stderr output from failure logging
+        SystemErr systemErr = new SystemErr();
+        systemErr.execute(() -> {
+            Thread consumeThread = new Thread(() -> {
+                try {
+                    consumer.consume((msg) -> {
+                        processedCount.incrementAndGet();
+                        processedLatch.countDown();
+                    });
+                } catch (Exception ignore) {
+                }
+            });
+            consumeThread.start();
+
+            // Wait for message to be processed after HTTP error retries
+            boolean processed = processedLatch.await(15, TimeUnit.SECONDS);
+            assertTrue(processed, "Message should eventually be processed after HTTP error retries");
+            assertEquals(1, processedCount.get());
+
+            // Always call destroy and join to ensure all threads complete and logging finishes
+            consumer.destroy();
+            consumeThread.join(5000);
+
+            // Allow any async logging to complete
+            Thread.sleep(100);
         });
-        consumeThread.start();
-
-        // Wait for message to be processed after HTTP error retries
-        boolean processed = processedLatch.await(15, TimeUnit.SECONDS);
-        assertTrue(processed, "Message should eventually be processed after HTTP error retries");
-        assertEquals(1, processedCount.get());
-
-        // Always call destroy and join to ensure all threads complete and logging finishes
-        consumer.destroy();
-        consumeThread.join(5000);
-
-        // Allow any async logging to complete
-        Thread.sleep(100);
 
         // Verify expected failure messages were logged (captured by SystemStubs)
         String errOutput = systemErr.getText();
@@ -633,28 +640,32 @@ class SQSConsumerTest {
         AtomicInteger processedCount = new AtomicInteger(0);
         CountDownLatch destroyedLatch = new CountDownLatch(1);
 
-        Thread consumeThread = new Thread(() -> {
-            try {
-                consumer.consume((msg) -> processedCount.incrementAndGet());
-            } catch (Exception ignore) {
-            } finally {
-                destroyedLatch.countDown();
-            }
+        // Capture stderr output from failure logging
+        SystemErr systemErr = new SystemErr();
+        systemErr.execute(() -> {
+            Thread consumeThread = new Thread(() -> {
+                try {
+                    consumer.consume((msg) -> processedCount.incrementAndGet());
+                } catch (Exception ignore) {
+                } finally {
+                    destroyedLatch.countDown();
+                }
+            });
+            consumeThread.start();
+
+            // Wait for consumption to abort
+            boolean finished = destroyedLatch.await(10, TimeUnit.SECONDS);
+            assertTrue(finished, "Consumer should abort when HTTP errors exceed max retries");
+
+            assertEquals(0, processedCount.get(), "No messages should be processed");
+
+            // Always call destroy and join to ensure all threads complete and logging finishes
+            consumer.destroy();
+            consumeThread.join(5000);
+
+            // Allow any async logging to complete
+            Thread.sleep(100);
         });
-        consumeThread.start();
-
-        // Wait for consumption to abort
-        boolean finished = destroyedLatch.await(10, TimeUnit.SECONDS);
-        assertTrue(finished, "Consumer should abort when HTTP errors exceed max retries");
-
-        assertEquals(0, processedCount.get(), "No messages should be processed");
-
-        // Always call destroy and join to ensure all threads complete and logging finishes
-        consumer.destroy();
-        consumeThread.join(5000);
-
-        // Allow any async logging to complete
-        Thread.sleep(100);
 
         // Verify expected failure messages were logged (captured by SystemStubs)
         String errOutput = systemErr.getText();

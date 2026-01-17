@@ -314,6 +314,11 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
     private Thread consumptionThread = null;
 
     /**
+     * Indicates the thread currently being joined against.
+     */
+    private Thread joiningThread = null;
+
+    /**
      * The maximum number of times to retry failed SQS requests before aborting
      * consumption.
      */
@@ -662,111 +667,165 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
      */
     @Override
     protected void doConsume(MessageProcessor processor) throws MessageConsumerException {
-        this.consumptionThread = new Thread(() -> {
-            int failureCount = 0;
-            long sleepTime = ONE_SECOND;
-            while (this.getState() == CONSUMING) {
-                // get the SQLClient
-                SQLClient sqlClient = this.getSQLClient();
+        Thread thread = new Thread(() -> {
+            try {
+                int failureCount = 0;
+                long sleepTime = ONE_SECOND;
+                while (this.getState() == CONSUMING) {
+                    // get the SQLClient
+                    SQLClient sqlClient = this.getSQLClient();
 
-                // generate a lease ID
-                String leaseId = this.generateLeaseId();
+                    // generate a lease ID
+                    String leaseId = this.generateLeaseId();
 
-                // get the lease time (in seconds)
-                int leaseTime = this.getLeaseTime();
+                    // get the lease time (in seconds)
+                    int leaseTime = this.getLeaseTime();
 
-                // get the maximum lease count
-                int maxLeaseCount = this.getMaximumLeaseCount();
+                    // get the maximum lease count
+                    int maxLeaseCount = this.getMaximumLeaseCount();
 
-                // initialize the messages list
-                List<LeasedMessage> messages = null;
+                    // initialize the messages list
+                    List<LeasedMessage> messages = null;
 
-                // initialize the connection
-                Connection conn = null;
+                    // initialize the connection
+                    Connection conn = null;
 
-                try {
-                    // get the connection
-                    conn = this.getConnection();
+                    try {
+                        // get the connection
+                        conn = this.getConnection();
 
-                    // first release any expired leases so we can lease those messages
-                    int count = sqlClient.releaseExpiredLeases(conn, leaseTime);
+                        // first release any expired leases so we can lease those messages
+                        int count = sqlClient.releaseExpiredLeases(conn, leaseTime);
 
-                    // commit the transaction
-                    conn.commit();
+                        // commit the transaction
+                        conn.commit();
 
-                    if (count > 0) {
-                        logInfo("expired leases on " + count + " messages");
-                    }
-
-                    // lease messages
-                    count = sqlClient.leaseMessages(conn, leaseId, leaseTime, maxLeaseCount);
-
-                    // commit and close the connection so the leases are marked
-                    // and the connection is available
-                    conn.commit();
-                    conn = close(conn);
-
-                    // check if we have an empty queue
-                    if (count == 0) {
-                        failureCount = 0;
-                        try {
-                            Thread.sleep(sleepTime);
-                        } catch (InterruptedException ignore) {
-                            // do nothing
-                        }
-                        sleepTime = sleepTime * 2L;
-                        long maxSleepTime = ONE_SECOND * ((long) this.getMaximumSleepTime());
-
-                        if (sleepTime > maxSleepTime) {
-                            sleepTime = maxSleepTime;
+                        if (count > 0) {
+                            logInfo("expired leases on " + count + " messages");
                         }
 
-                        // try again
-                        continue;
+                        // lease messages
+                        count = sqlClient.leaseMessages(conn, leaseId, leaseTime, maxLeaseCount);
+
+                        // commit and close the connection so the leases are marked
+                        // and the connection is available
+                        conn.commit();
+                        conn = close(conn);
+
+                        // check if we have an empty queue
+                        if (count == 0) {
+                            failureCount = 0;
+                            try {
+                                Thread.sleep(sleepTime);
+                            } catch (InterruptedException ignore) {
+                                // do nothing
+                            }
+                            sleepTime = sleepTime * 2L;
+                            long maxSleepTime = ONE_SECOND * ((long) this.getMaximumSleepTime());
+
+                            if (sleepTime > maxSleepTime) {
+                                sleepTime = maxSleepTime;
+                            }
+
+                            // try again
+                            continue;
+                        }
+
+                        // we got a non-empty queue so restore the sleep time to one second
+                        sleepTime = ONE_SECOND;
+
+                        // get the connection
+                        conn = this.getConnection();
+
+                        // get the list of leased messages
+                        messages = sqlClient.getLeasedMessages(conn, leaseId);
+
+                        // close the connection
+                        conn = close(conn);
+
+                    } catch (SQLException e) {
+                        if (this.handleFailure(++failureCount, e)) {
+                            // check if already joining the consumption thread
+                            synchronized (this) {
+                                // if destroying & joining, short-circuit here and return
+                                if (Thread.currentThread() == this.joiningThread) {
+                                    return;
+                                }
+                            }
+
+                            // destroy and then return to abort consumption
+                            this.destroy();
+                            return;
+
+                        } else {
+                            // let's retry
+                            continue;
+                        }
+                    } finally {
+                        // close the connection
+                        conn = close(conn);
                     }
 
-                    // we got a non-empty queue so restore the sleep time to one second
-                    sleepTime = ONE_SECOND;
+                    // if we get here then we have leased messages without a failure
+                    // so we reset the failure count
+                    failureCount = 0;
 
-                    // get the connection
-                    conn = this.getConnection();
-
-                    // get the list of leased messages
-                    messages = sqlClient.getLeasedMessages(conn, leaseId);
-
-                    // close the connection
-                    conn = close(conn);
-
-                } catch (SQLException e) {
-                    if (this.handleFailure(++failureCount, e)) {
-                        // destroy and then return to abort consumption
-                        this.destroy();
-                        return;
-
-                    } else {
-                        // let's retry
-                        continue;
+                    // get the messages from the response
+                    for (LeasedMessage message : messages) {
+                        // enqueue the next message for processing -- this call may wait
+                        // for enough room in the queue for the messages to be enqueued
+                        this.enqueueMessages(processor, message);
                     }
-                } finally {
-                    // close the connection
-                    conn = close(conn);
                 }
-
-                // if we get here then we have leased messages without a failure
-                // so we reset the failure count
-                failureCount = 0;
-
-                // get the messages from the response
-                for (LeasedMessage message : messages) {
-                    // enqueue the next message for processing -- this call may wait
-                    // for enough room in the queue for the messages to be enqueued
-                    this.enqueueMessages(processor, message);
+            } finally {
+                synchronized (this) {
+                    this.consumptionThread = null;
                 }
             }
         });
 
+        // set the member field in a thread-safe manner
+        synchronized (this) {
+            this.consumptionThread = thread;
+        }
+
         // start the thread
         this.consumptionThread.start();
+    }
+
+    /**
+     * Overridden to avoid deadlocks when called from the consumption thread.
+     * 
+     * {@inheritDoc}
+     */
+    protected synchronized void waitUntilDestroyed() {
+        // check if already destroyed
+        if (this.getState() == State.DESTROYED) {
+            return;
+        }
+
+        // check if NOT destroying
+        if (this.getState() != State.DESTROYING) {
+            throw new IllegalStateException(
+                    "Cannot call waitUntilDestroyed() if NOT currently destroying: " + this.getState());
+        }
+
+        // wait until notified
+        while (this.getState() != State.DESTROYED) {
+            // check if called from consumption thread
+            if (Thread.currentThread() == this.joiningThread) {
+                // do not wait, simply return here
+                return;
+            }
+
+            try {
+                // wait for destruction
+                this.wait(this.getTimeout());
+
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     /**
@@ -860,11 +919,29 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
     protected void doDestroy() {
         // join to the consumption thread
         try {
-            if (Thread.currentThread() != this.consumptionThread) {
-                this.consumptionThread.join();
-            }
+            Thread consumeThread = null;
             synchronized (this) {
-                this.consumptionThread = null;
+                consumeThread = this.consumptionThread;
+            }
+            if (consumeThread != null && Thread.currentThread() != consumeThread) {
+                synchronized (this) {
+                    this.joiningThread = consumeThread;
+                    this.notifyAll();
+                }
+                try {
+                    consumeThread.join();
+                    synchronized (this) {
+                        if (this.consumptionThread == consumeThread) {
+                            this.consumptionThread = null;
+                        }
+                    }
+
+                } finally {
+                    synchronized (this) {
+                        this.joiningThread = null;
+                        this.notifyAll();
+                    }
+                }
             }
 
             // unregister the the message queue if registered

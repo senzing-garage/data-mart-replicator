@@ -3,13 +3,9 @@ package com.senzing.listener.communication.rabbitmq;
 import com.senzing.listener.service.MessageProcessor;
 
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
-import uk.org.webcompere.systemstubs.jupiter.SystemStub;
-import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 import uk.org.webcompere.systemstubs.stream.SystemErr;
-import uk.org.webcompere.systemstubs.stream.SystemOut;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -28,15 +24,8 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ExtendWith(SystemStubsExtension.class)
 @Execution(ExecutionMode.SAME_THREAD)
 class RabbitMQConsumerTest {
-
-    @SystemStub
-    private SystemErr systemErr;
-
-    @SystemStub
-    private SystemOut systemOut;
 
     private MockConnectionFactory mockFactory;
     private MockRabbitMQChannel mockChannel;
@@ -652,8 +641,11 @@ class RabbitMQConsumerTest {
         consumer.setInjectedConnectionFactory(mockFactory);
         consumer.init(config);
 
-        // Consume should throw MessageConsumerSetupException wrapping the IOException
-        assertThrows(Exception.class, () -> consumer.consume((msg) -> {}));
+        // Suppress console output from exception logging
+        new SystemErr().execute(() -> {
+            // Consume should throw MessageConsumerSetupException wrapping the IOException
+            assertThrows(Exception.class, () -> consumer.consume((msg) -> {}));
+        });
     }
 
     @Test
@@ -689,22 +681,25 @@ class RabbitMQConsumerTest {
             latch.countDown();
         };
 
-        // Start consuming
-        Thread consumeThread = new Thread(() -> {
-            try {
-                consumer.consume(processor);
-            } catch (Exception ignore) {
-            }
+        // Suppress console output from exception logging in consumer thread
+        new SystemErr().execute(() -> {
+            // Start consuming
+            Thread consumeThread = new Thread(() -> {
+                try {
+                    consumer.consume(processor);
+                } catch (Exception ignore) {
+                }
+            });
+            consumeThread.start();
+
+            // Wait for some messages to be processed (exception should be logged but not stop processing)
+            latch.await(60, TimeUnit.SECONDS);
+
+            // Disable the exception for cleanup
+            mockChannel.setThrowOnBasicCancel(false);
+            consumer.destroy();
+            consumeThread.join(5000);
         });
-        consumeThread.start();
-
-        // Wait for some messages to be processed (exception should be logged but not stop processing)
-        latch.await(60, TimeUnit.SECONDS);
-
-        // Disable the exception for cleanup
-        mockChannel.setThrowOnBasicCancel(false);
-        consumer.destroy();
-        consumeThread.join(5000);
 
         // Verify that processing continued despite the exception
         assertTrue(processedCount.get() >= 10, "Should have processed messages despite basicCancel exception");
@@ -736,24 +731,27 @@ class RabbitMQConsumerTest {
             latch.countDown();
         };
 
-        // Start consuming
-        Thread consumeThread = new Thread(() -> {
-            try {
-                consumer.consume(processor);
-            } catch (Exception ignore) {
-            }
+        // Suppress console output from exception logging in consumer thread
+        new SystemErr().execute(() -> {
+            // Start consuming
+            Thread consumeThread = new Thread(() -> {
+                try {
+                    consumer.consume(processor);
+                } catch (Exception ignore) {
+                }
+            });
+            consumeThread.start();
+
+            // Wait for the message to be processed
+            latch.await(30, TimeUnit.SECONDS);
+
+            // Give time for disposeMessage to be called (which will log but not throw)
+            Thread.sleep(500);
+
+            mockChannel.setThrowOnBasicAck(false);
+            consumer.destroy();
+            consumeThread.join(5000);
         });
-        consumeThread.start();
-
-        // Wait for the message to be processed
-        latch.await(30, TimeUnit.SECONDS);
-
-        // Give time for disposeMessage to be called (which will log but not throw)
-        Thread.sleep(500);
-
-        mockChannel.setThrowOnBasicAck(false);
-        consumer.destroy();
-        consumeThread.join(5000);
 
         // Message should have been processed (exception only logged)
         assertEquals(1, processedCount.get());
@@ -780,25 +778,28 @@ class RabbitMQConsumerTest {
             latch.countDown();
         };
 
-        // Start consuming
-        Thread consumeThread = new Thread(() -> {
-            try {
-                consumer.consume(processor);
-            } catch (Exception ignore) {
-            }
+        // Suppress console output from exception logging in consumer thread
+        new SystemErr().execute(() -> {
+            // Start consuming
+            Thread consumeThread = new Thread(() -> {
+                try {
+                    consumer.consume(processor);
+                } catch (Exception ignore) {
+                }
+            });
+            consumeThread.start();
+
+            // Wait for the message to be processed
+            latch.await(30, TimeUnit.SECONDS);
+            Thread.sleep(500);
+
+            // Enable basicCancel exception before destroy
+            mockChannel.setThrowOnBasicCancel(true);
+
+            // Destroy should handle the exception gracefully (log warning but not throw)
+            assertDoesNotThrow(() -> consumer.destroy());
+            consumeThread.join(5000);
         });
-        consumeThread.start();
-
-        // Wait for the message to be processed
-        latch.await(30, TimeUnit.SECONDS);
-        Thread.sleep(500);
-
-        // Enable basicCancel exception before destroy
-        mockChannel.setThrowOnBasicCancel(true);
-
-        // Destroy should handle the exception gracefully (log warning but not throw)
-        assertDoesNotThrow(() -> consumer.destroy());
-        consumeThread.join(5000);
     }
 
     @Test
@@ -816,25 +817,28 @@ class RabbitMQConsumerTest {
         consumer.setInjectedConnectionFactory(mockFactory);
         consumer.init(config);
 
-        // Start consuming - getChannel should retry after first failure
-        CountDownLatch startedLatch = new CountDownLatch(1);
-        Thread consumeThread = new Thread(() -> {
-            startedLatch.countDown();
-            try {
-                consumer.consume((msg) -> {});
-            } catch (Exception ignore) {
-            }
+        // Suppress console output from exception logging during retry
+        new SystemErr().execute(() -> {
+            // Start consuming - getChannel should retry after first failure
+            CountDownLatch startedLatch = new CountDownLatch(1);
+            Thread consumeThread = new Thread(() -> {
+                startedLatch.countDown();
+                try {
+                    consumer.consume((msg) -> {});
+                } catch (Exception ignore) {
+                }
+            });
+            consumeThread.start();
+            startedLatch.await(5, TimeUnit.SECONDS);
+            Thread.sleep(500);
+
+            // Verify queueDeclare was called twice (first failed, second succeeded)
+            assertEquals(2, mockChannel.getQueueDeclareCallCount(),
+                    "queueDeclare should be called twice due to retry");
+
+            consumer.destroy();
+            consumeThread.join(5000);
         });
-        consumeThread.start();
-        startedLatch.await(5, TimeUnit.SECONDS);
-        Thread.sleep(500);
-
-        // Verify queueDeclare was called twice (first failed, second succeeded)
-        assertEquals(2, mockChannel.getQueueDeclareCallCount(),
-                "queueDeclare should be called twice due to retry");
-
-        consumer.destroy();
-        consumeThread.join(5000);
     }
 
     @Test
@@ -871,22 +875,25 @@ class RabbitMQConsumerTest {
             processedLatch.countDown();
         };
 
-        // Start consuming
-        Thread consumeThread = new Thread(() -> {
-            try {
-                consumer.consume(processor);
-            } catch (Exception ignore) {
-            }
+        // Suppress console output from exception logging in consumer thread
+        new SystemErr().execute(() -> {
+            // Start consuming
+            Thread consumeThread = new Thread(() -> {
+                try {
+                    consumer.consume(processor);
+                } catch (Exception ignore) {
+                }
+            });
+            consumeThread.start();
+
+            // Wait for initial messages and throttle to trigger
+            processedLatch.await(60, TimeUnit.SECONDS);
+            Thread.sleep(2000); // Allow throttle resume thread to run and fail
+
+            mockChannel.setThrowOnBasicConsume(false);
+            consumer.destroy();
+            consumeThread.join(5000);
         });
-        consumeThread.start();
-
-        // Wait for initial messages and throttle to trigger
-        processedLatch.await(60, TimeUnit.SECONDS);
-        Thread.sleep(2000); // Allow throttle resume thread to run and fail
-
-        mockChannel.setThrowOnBasicConsume(false);
-        consumer.destroy();
-        consumeThread.join(5000);
 
         // Should have processed some messages before the throttle resume failure
         assertTrue(processedCount.get() >= 5, "Should have processed initial messages");
