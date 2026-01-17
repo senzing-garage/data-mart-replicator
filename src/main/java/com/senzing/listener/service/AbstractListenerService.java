@@ -550,7 +550,7 @@ public abstract class AbstractListenerService implements ListenerService {
                     System.err.println(formatStackTrace(failure.getStackTrace()));
                     pw.println();
                 }
-                throw new ServiceExecutionException(pw.toString());
+                throw new ServiceExecutionException(sw.toString());
             }
         } catch (ServiceExecutionException e) {
             throw e;

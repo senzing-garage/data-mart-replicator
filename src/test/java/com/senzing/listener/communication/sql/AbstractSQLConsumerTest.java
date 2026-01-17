@@ -972,6 +972,117 @@ abstract class AbstractSQLConsumerTest {
         assertEquals(SQLConsumer.DEFAULT_RETRY_WAIT_TIME, consumer.getRetryWaitTime());
     }
 
+    /**
+     * Test that concurrent destroy() calls properly handle the DESTROYING state.
+     * Thread 1 calls destroy() and blocks waiting for message processing to complete.
+     * Thread 2 calls destroy() while Thread 1 is blocked, triggering waitUntilDestroyed().
+     * This covers lines 731-732 in AbstractMessageConsumer.destroy().
+     */
+    @Test
+    @Order(5700)
+    void testConcurrentDestroyCallsWithWaitUntilDestroyed() throws Exception {
+        // Clean schema first
+        Connection conn = connectionProvider.getConnection();
+        conn.setAutoCommit(false);
+        sqlClient.ensureSchema(conn, true);
+        conn.close();
+
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(SQLConsumer.CONNECTION_PROVIDER_KEY, this.providerName);
+        builder.add(SQLConsumer.CLEAN_DATABASE_KEY, false);
+        builder.add(SQLConsumer.LEASE_TIME_KEY, 60);
+        builder.add(SQLConsumer.MAXIMUM_LEASE_COUNT_KEY, 10);
+        JsonObject config = builder.build();
+
+        SQLConsumer consumer = new SQLConsumer();
+        consumer.init(config);
+
+        SQLConsumer.MessageQueue queue = consumer.getMessageQueue();
+
+        // Enqueue a message
+        queue.enqueueMessage("{\"concurrent\": \"destroy\"}");
+
+        // Track when processing starts and when destroy threads complete
+        CountDownLatch processingStartedLatch = new CountDownLatch(1);
+        CountDownLatch destroy1CompleteLatch = new CountDownLatch(1);
+        CountDownLatch destroy2CompleteLatch = new CountDownLatch(1);
+        CountDownLatch destroy2StartedLatch = new CountDownLatch(1);
+
+        // Create a processor that signals when processing starts and sleeps long enough
+        // to ensure both destroy threads can start while processing is in progress
+        MessageProcessor slowProcessor = (message) -> {
+            processingStartedLatch.countDown();
+            try {
+                // Sleep long enough for both destroy threads to start
+                // Thread 1 will enter DESTROYING state and wait on isProcessing()
+                // Thread 2 will see DESTROYING state and enter waitUntilDestroyed()
+                Thread.sleep(3000);
+            } catch (InterruptedException ignore) {
+                // Expected when destroy completes
+            }
+        };
+
+        // Start consuming in a separate thread
+        Thread consumeThread = new Thread(() -> {
+            try {
+                consumer.consume(slowProcessor);
+            } catch (Exception ignore) {
+                // Expected during destroy
+            }
+        });
+        consumeThread.start();
+
+        // Wait for processing to start
+        boolean started = processingStartedLatch.await(10, TimeUnit.SECONDS);
+        assertTrue(started, "Message processing should start within timeout");
+
+        // Give a brief moment for the processor to be fully engaged
+        Thread.sleep(200);
+
+        // Thread 1: Call destroy() - this will set state to DESTROYING and block
+        // waiting for isProcessing() to become false
+        Thread destroyThread1 = new Thread(() -> {
+            consumer.destroy();
+            destroy1CompleteLatch.countDown();
+        }, "DestroyThread1");
+
+        // Thread 2: Call destroy() after Thread 1 has started - this should see
+        // state == DESTROYING and call waitUntilDestroyed()
+        Thread destroyThread2 = new Thread(() -> {
+            destroy2StartedLatch.countDown();
+            consumer.destroy();
+            destroy2CompleteLatch.countDown();
+        }, "DestroyThread2");
+
+        // Start Thread 1
+        destroyThread1.start();
+
+        // Wait a moment for Thread 1 to acquire the lock and set state to DESTROYING
+        Thread.sleep(300);
+
+        // Start Thread 2 - it should hit the waitUntilDestroyed() path
+        destroyThread2.start();
+
+        // Verify Thread 2 has started (it will block on waitUntilDestroyed)
+        boolean thread2Started = destroy2StartedLatch.await(5, TimeUnit.SECONDS);
+        assertTrue(thread2Started, "Thread 2 should start");
+
+        // Wait for both destroy threads to complete
+        boolean destroy1Complete = destroy1CompleteLatch.await(15, TimeUnit.SECONDS);
+        boolean destroy2Complete = destroy2CompleteLatch.await(15, TimeUnit.SECONDS);
+
+        assertTrue(destroy1Complete, "Destroy thread 1 should complete within timeout");
+        assertTrue(destroy2Complete, "Destroy thread 2 should complete within timeout");
+
+        // Verify consumer is destroyed
+        assertEquals(SQLConsumer.State.DESTROYED, consumer.getState());
+
+        // Join all threads
+        consumeThread.join(5000);
+        destroyThread1.join(5000);
+        destroyThread2.join(5000);
+    }
+
     // ========================================================================
     // Helper Methods
     // ========================================================================

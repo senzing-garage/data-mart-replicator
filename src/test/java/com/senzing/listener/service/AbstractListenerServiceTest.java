@@ -793,11 +793,10 @@ class AbstractListenerServiceTest {
             ServiceExecutionException exception = assertThrows(ServiceExecutionException.class,
                     () -> service.process(message));
             assertNotNull(exception);
-            // Note: There's a bug in AbstractListenerService.java line 553 where
-            // pw.toString() is used instead of sw.toString(), so the exception message
-            // contains the PrintWriter object reference instead of the actual content.
-            // This test still exercises the multi-failure code path (lines 542-553).
-            assertNotNull(exception.getMessage());
+            // The exception message should contain info about multiple failures
+            // with "---" separators between each failed task
+            assertTrue(exception.getMessage().contains("---"),
+                    "Exception message should contain task failure separators");
         });
 
         service.destroy();
