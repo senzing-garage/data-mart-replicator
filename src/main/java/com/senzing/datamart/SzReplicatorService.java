@@ -268,9 +268,12 @@ public class SzReplicatorService extends AbstractListenerService {
 
         RelationBreakdownReportHandler relBreakdownHandler = new RelationBreakdownReportHandler(this.provider);
 
-        this.handlerMap = Map.of(REFRESH_ENTITY, entityHandler, UPDATE_DATA_SOURCE_SUMMARY, summaryHandler,
-                UPDATE_CROSS_SOURCE_SUMMARY, crossHandler, UPDATE_ENTITY_SIZE_BREAKDOWN, sizeBreakdownHandler,
-                UPDATE_ENTITY_RELATION_BREAKDOWN, relBreakdownHandler);
+        this.handlerMap = Map.of(
+            REFRESH_ENTITY, entityHandler,
+            UPDATE_DATA_SOURCE_SUMMARY, summaryHandler,
+            UPDATE_CROSS_SOURCE_SUMMARY, crossHandler,
+            UPDATE_ENTITY_SIZE_BREAKDOWN, sizeBreakdownHandler,
+            UPDATE_ENTITY_RELATION_BREAKDOWN, relBreakdownHandler);
     }
 
     /**

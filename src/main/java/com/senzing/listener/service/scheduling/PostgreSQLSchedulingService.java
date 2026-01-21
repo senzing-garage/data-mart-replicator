@@ -7,7 +7,7 @@ import static com.senzing.sql.SQLUtilities.close;
 import static com.senzing.util.LoggingUtilities.logError;
 
 /**
- * Implements {@link SchedulingService} using a SQLite database to handle
+ * Implements {@link SchedulingService} using a PostgreSQL database to handle
  * persisting the follow-up tasks by extending
  * {@link AbstractSQLSchedulingService}.
  */

@@ -1361,10 +1361,8 @@ public class AbstractMessageConsumerTest {
 
         // Manually set state to CONSUMING using reflection
         synchronized (consumer) {
-            java.lang.reflect.Method setState = AbstractMessageConsumer.class
-                    .getDeclaredMethod("setState", State.class);
-            setState.setAccessible(true);
-            setState.invoke(consumer, CONSUMING);
+            // setState is protected - directly accessible in same package
+            consumer.setState(CONSUMING);
         }
 
         // Manually set processing flag to true
@@ -1408,10 +1406,8 @@ public class AbstractMessageConsumerTest {
 
         // Manually set state to CONSUMING using reflection
         synchronized (consumer) {
-            java.lang.reflect.Method setState = AbstractMessageConsumer.class
-                    .getDeclaredMethod("setState", State.class);
-            setState.setAccessible(true);
-            setState.invoke(consumer, CONSUMING);
+            // setState is protected - directly accessible in same package
+            consumer.setState(CONSUMING);
         }
 
         // Ensure processing flag is false
@@ -1466,10 +1462,8 @@ public class AbstractMessageConsumerTest {
 
         // Change state to trigger loop exit
         synchronized (consumer) {
-            java.lang.reflect.Method setState = AbstractMessageConsumer.class
-                    .getDeclaredMethod("setState", State.class);
-            setState.setAccessible(true);
-            setState.invoke(consumer, DESTROYING);
+            // setState is protected - directly accessible in same package
+            consumer.setState(DESTROYING);
         }
 
         // Wait for thread to complete
@@ -1694,18 +1688,9 @@ public class AbstractMessageConsumerTest {
         // Try to call waitUntilDestroyed() directly via reflection
         // It should throw because we're not in DESTROYING state
         synchronized (consumer) {
-            java.lang.reflect.Method waitMethod = AbstractMessageConsumer.class
-                    .getDeclaredMethod("waitUntilDestroyed");
-            waitMethod.setAccessible(true);
-
+            // waitUntilDestroyed is protected - directly accessible in same package
             IllegalStateException exception = assertThrows(IllegalStateException.class,
-                    () -> {
-                        try {
-                            waitMethod.invoke(consumer);
-                        } catch (java.lang.reflect.InvocationTargetException e) {
-                            throw (Exception) e.getCause();
-                        }
-                    },
+                    () -> consumer.waitUntilDestroyed(),
                     "Should throw IllegalStateException when not in DESTROYING state");
 
             assertTrue(exception.getMessage().contains("waitUntilDestroyed"),
@@ -1893,13 +1878,11 @@ public class AbstractMessageConsumerTest {
 
         // Call waitUntilDestroyed() again - should return immediately without blocking
         // because state is already DESTROYED (exercises line 481)
-        java.lang.reflect.Method waitMethod = AbstractMessageConsumer.class
-                .getDeclaredMethod("waitUntilDestroyed");
-        waitMethod.setAccessible(true);
+        // waitUntilDestroyed is protected - directly accessible in same package
 
         // This should not block and should not throw
         synchronized (consumer) {
-            waitMethod.invoke(consumer);
+            consumer.waitUntilDestroyed();
         }
 
         // If we get here without blocking or exception, the test passes
@@ -2108,10 +2091,8 @@ public class AbstractMessageConsumerTest {
 
         // Manually set state to CONSUMING
         synchronized (consumer) {
-            java.lang.reflect.Method setState = AbstractMessageConsumer.class
-                    .getDeclaredMethod("setState", State.class);
-            setState.setAccessible(true);
-            setState.invoke(consumer, CONSUMING);
+            // setState is protected - directly accessible in same package
+            consumer.setState(CONSUMING);
         }
 
         // Set override to return null body
@@ -2142,10 +2123,8 @@ public class AbstractMessageConsumerTest {
 
         // Manually set state to CONSUMING
         synchronized (consumer) {
-            java.lang.reflect.Method setState = AbstractMessageConsumer.class
-                    .getDeclaredMethod("setState", State.class);
-            setState.setAccessible(true);
-            setState.invoke(consumer, CONSUMING);
+            // setState is protected - directly accessible in same package
+            consumer.setState(CONSUMING);
         }
 
         MessageProcessor processor = (msg) -> {};
@@ -2180,10 +2159,8 @@ public class AbstractMessageConsumerTest {
 
         // Manually set state to CONSUMING
         synchronized (consumer) {
-            java.lang.reflect.Method setState = AbstractMessageConsumer.class
-                    .getDeclaredMethod("setState", State.class);
-            setState.setAccessible(true);
-            setState.invoke(consumer, CONSUMING);
+            // setState is protected - directly accessible in same package
+            consumer.setState(CONSUMING);
         }
 
         // Set override to return invalid JSON (not a Senzing INFO message format)
@@ -2251,10 +2228,8 @@ public class AbstractMessageConsumerTest {
 
         // Manually set state to CONSUMING
         synchronized (consumer) {
-            java.lang.reflect.Method setState = AbstractMessageConsumer.class
-                    .getDeclaredMethod("setState", State.class);
-            setState.setAccessible(true);
-            setState.invoke(consumer, CONSUMING);
+            // setState is protected - directly accessible in same package
+            consumer.setState(CONSUMING);
         }
 
         // Set processing flag to true
@@ -2287,10 +2262,8 @@ public class AbstractMessageConsumerTest {
 
         // Manually set state to CONSUMING
         synchronized (consumer) {
-            java.lang.reflect.Method setState = AbstractMessageConsumer.class
-                    .getDeclaredMethod("setState", State.class);
-            setState.setAccessible(true);
-            setState.invoke(consumer, CONSUMING);
+            // setState is protected - directly accessible in same package
+            consumer.setState(CONSUMING);
         }
 
         // Set processing flag to true (required) and processingThread to non-null
