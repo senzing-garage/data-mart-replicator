@@ -1,6 +1,8 @@
 package com.senzing.listener.service.scheduling;
 
 import com.senzing.listener.service.locking.ResourceKey;
+
+import org.checkerframework.checker.units.qual.s;
 import org.junit.jupiter.api.*;
 
 import java.util.*;
@@ -87,19 +89,11 @@ class ScheduledTaskTest {
 
         long expiration = System.currentTimeMillis() + 5000;
 
-        // Use reflection to call setFollowUpExpiration
-        java.lang.reflect.Method method = AbstractSchedulingService.ScheduledTask.class.getDeclaredMethod(
-            "setFollowUpExpiration", long.class);
-        method.setAccessible(true);
-
-        method.invoke(scheduledTask, expiration);
+        // call setFollowUpExpiration
+        scheduledTask.setFollowUpExpiration(expiration);
 
         // Verify it was set (check via isFollowUpExpired)
-        java.lang.reflect.Method isExpiredMethod = AbstractSchedulingService.ScheduledTask.class.getDeclaredMethod(
-            "isFollowUpExpired");
-        isExpiredMethod.setAccessible(true);
-
-        Boolean expired = (Boolean) isExpiredMethod.invoke(scheduledTask);
+        boolean expired = scheduledTask.isFollowUpExpired();
         assertFalse(expired, "Should not be expired immediately after setting future expiration");
     }
 
@@ -110,17 +104,10 @@ class ScheduledTaskTest {
             new AbstractSchedulingService.ScheduledTask(task);
 
         // Set expiration in the future
-        java.lang.reflect.Method setMethod = AbstractSchedulingService.ScheduledTask.class.getDeclaredMethod(
-            "setFollowUpExpiration", long.class);
-        setMethod.setAccessible(true);
-        setMethod.invoke(scheduledTask, System.currentTimeMillis() + 10000);
+        scheduledTask.setFollowUpExpiration(System.currentTimeMillis() + 10000);
 
         // Check if expired
-        java.lang.reflect.Method isExpiredMethod = AbstractSchedulingService.ScheduledTask.class.getDeclaredMethod(
-            "isFollowUpExpired");
-        isExpiredMethod.setAccessible(true);
-
-        Boolean expired = (Boolean) isExpiredMethod.invoke(scheduledTask);
+        boolean expired = scheduledTask.isFollowUpExpired();
         assertFalse(expired, "Should not be expired when expiration is in future");
     }
 
@@ -131,17 +118,10 @@ class ScheduledTaskTest {
             new AbstractSchedulingService.ScheduledTask(task);
 
         // Set expiration in the past
-        java.lang.reflect.Method setMethod = AbstractSchedulingService.ScheduledTask.class.getDeclaredMethod(
-            "setFollowUpExpiration", long.class);
-        setMethod.setAccessible(true);
-        setMethod.invoke(scheduledTask, System.currentTimeMillis() - 1000);
+        scheduledTask.setFollowUpExpiration(System.currentTimeMillis() - 1000);
 
         // Check if expired
-        java.lang.reflect.Method isExpiredMethod = AbstractSchedulingService.ScheduledTask.class.getDeclaredMethod(
-            "isFollowUpExpired");
-        isExpiredMethod.setAccessible(true);
-
-        Boolean expired = (Boolean) isExpiredMethod.invoke(scheduledTask);
+        boolean expired = scheduledTask.isFollowUpExpired();
         assertTrue(expired, "Should be expired when expiration is in past");
     }
 
@@ -152,11 +132,7 @@ class ScheduledTaskTest {
             new AbstractSchedulingService.ScheduledTask(task);
 
         // Don't set expiration
-        java.lang.reflect.Method isExpiredMethod = AbstractSchedulingService.ScheduledTask.class.getDeclaredMethod(
-            "isFollowUpExpired");
-        isExpiredMethod.setAccessible(true);
-
-        Boolean expired = (Boolean) isExpiredMethod.invoke(scheduledTask);
+        boolean expired = scheduledTask.isFollowUpExpired();
         assertFalse(expired, "Should not be expired when expiration not set");
     }
 
@@ -169,14 +145,9 @@ class ScheduledTaskTest {
             new AbstractSchedulingService.ScheduledTask(task);
 
         // Use reflection to get original task ID
-        java.lang.reflect.Method method = AbstractSchedulingService.ScheduledTask.class.getDeclaredMethod(
-            "getOriginalBackingTaskId");
-        method.setAccessible(true);
-
-        Long retrievedId = (Long) method.invoke(scheduledTask);
-
-        assertEquals(originalTaskId, retrievedId.longValue(),
-            "Original task ID should match");
+        long retrievedId = scheduledTask.getOriginalBackingTaskId();
+        
+        assertEquals(originalTaskId, retrievedId, "Original task ID should match");
     }
 
     @Test

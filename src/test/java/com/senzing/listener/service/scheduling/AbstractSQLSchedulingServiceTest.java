@@ -241,10 +241,8 @@ class AbstractSQLSchedulingServiceTest {
 
             Thread.sleep(100);
 
-            // Call dumpFollowUpTable using reflection
-            java.lang.reflect.Method method = AbstractSQLSchedulingService.class.getDeclaredMethod("dumpFollowUpTable");
-            method.setAccessible(true);
-            method.invoke(service);
+            // dumpFollowUpTable is protected - directly accessible in same package
+            service.dumpFollowUpTable();
         });
 
         String output = systemErr.getText();
@@ -269,10 +267,8 @@ class AbstractSQLSchedulingServiceTest {
                 conn.close();
             }
 
-            // Call dumpFollowUpTable
-            java.lang.reflect.Method method = AbstractSQLSchedulingService.class.getDeclaredMethod("dumpFollowUpTable");
-            method.setAccessible(true);
-            method.invoke(service);
+            // dumpFollowUpTable is protected - directly accessible in same package
+            service.dumpFollowUpTable();
         });
 
         String output = systemErr.getText();
@@ -372,17 +368,13 @@ class AbstractSQLSchedulingServiceTest {
         TestSQLService testService = new TestSQLService(testConn);
 
         try {
-            // Call initDatabaseType via reflection
-            java.lang.reflect.Method method = AbstractSQLSchedulingService.class.getDeclaredMethod("initDatabaseType");
-            method.setAccessible(true);
-
             // Set connectionProvider
             java.lang.reflect.Field field = AbstractSQLSchedulingService.class.getDeclaredField("connectionProvider");
             field.setAccessible(true);
             field.set(testService, ConnectionProvider.REGISTRY.lookup(PROVIDER_KEY));
 
-            com.senzing.sql.DatabaseType dbType = (com.senzing.sql.DatabaseType) method.invoke(testService);
-
+            com.senzing.sql.DatabaseType dbType = (com.senzing.sql.DatabaseType) testService.initDatabaseType();
+            
             assertNotNull(dbType);
             assertEquals(com.senzing.sql.DatabaseType.SQLITE, dbType);
 
@@ -393,12 +385,9 @@ class AbstractSQLSchedulingServiceTest {
 
     @Test
     void testGetTotalExpiredFollowUpTaskCount() throws Exception {
-        // Access via reflection since it's a getter for statistics
-        java.lang.reflect.Method method = AbstractSQLSchedulingService.class.getDeclaredMethod("getTotalExpiredFollowUpTaskCount");
-        method.setAccessible(true);
+        // getTotalExpiredFollowUpTaskCount is protected - directly accessible in same package
+        long count = service.getTotalExpiredFollowUpTaskCount();
 
-        Long count = (Long) method.invoke(service);
-        assertNotNull(count);
         assertTrue(count >= 0, "Expired count should be non-negative");
     }
 
@@ -414,12 +403,9 @@ class AbstractSQLSchedulingServiceTest {
         Thread.sleep(100);
 
         // Dequeue tasks to get a non-empty list
-        java.lang.reflect.Method dequeueMethod = AbstractSQLSchedulingService.class.getDeclaredMethod("dequeueFollowUpTasks", int.class);
-        dequeueMethod.setAccessible(true);
+        // dequeueFollowUpTasks is protected - directly accessible in same package
 
-        @SuppressWarnings("unchecked")
-        List<AbstractSchedulingService.ScheduledTask> tasks =
-            (List<AbstractSchedulingService.ScheduledTask>) dequeueMethod.invoke(service, 10);
+        List<AbstractSchedulingService.ScheduledTask> tasks = service.dequeueFollowUpTasks(10);
 
         // Ensure we have tasks to renew
         if (!tasks.isEmpty()) {
@@ -427,9 +413,9 @@ class AbstractSQLSchedulingServiceTest {
             int taskCount = tasks.size();
 
             // Call renewFollowUpTasks with the non-empty list
-            java.lang.reflect.Method renewMethod = AbstractSQLSchedulingService.class.getDeclaredMethod("renewFollowUpTasks", List.class);
-            renewMethod.setAccessible(true);
-            renewMethod.invoke(service, tasks);
+            // renewFollowUpTasks is protected - directly accessible in same package
+
+            service.renewFollowUpTasks(tasks);
 
             // Should update lease expiration for all tasks in the list
             // Verify by checking the method completed without exception
@@ -449,16 +435,12 @@ class AbstractSQLSchedulingServiceTest {
         // Use reflection to call updateLeaseExpiration
         Connection conn = service.getConnection();
         try {
-            java.lang.reflect.Method method = AbstractSQLSchedulingService.class.getDeclaredMethod(
-                "updateLeaseExpiration", Connection.class, Timestamp.class, Set.class);
-            method.setAccessible(true);
-
+            // updateLeaseExpiration is protected - directly accessible in same package
             Timestamp expiration = new Timestamp(System.currentTimeMillis() + 10000);
             Set<String> leaseIds = new HashSet<>();
             leaseIds.add("test-lease-id-123");
 
-            Integer updateCount = (Integer) method.invoke(service, conn, expiration, leaseIds);
-            assertNotNull(updateCount);
+            int updateCount = service.updateLeaseExpiration(conn, expiration, leaseIds);
             assertTrue(updateCount >= 0, "Update count should be non-negative");
 
             conn.commit();
@@ -479,20 +461,13 @@ class AbstractSQLSchedulingServiceTest {
         Thread.sleep(100);
 
         // Dequeue tasks
-        java.lang.reflect.Method dequeueMethod = AbstractSQLSchedulingService.class.getDeclaredMethod("dequeueFollowUpTasks", int.class);
-        dequeueMethod.setAccessible(true);
+        // dequeueFollowUpTasks is protected - directly accessible in same package
 
-        @SuppressWarnings("unchecked")
-        List<AbstractSchedulingService.ScheduledTask> tasks =
-            (List<AbstractSchedulingService.ScheduledTask>) dequeueMethod.invoke(service, 5);
+        List<AbstractSchedulingService.ScheduledTask> tasks = service.dequeueFollowUpTasks(5);
 
         if (!tasks.isEmpty()) {
-            // Call completeFollowUpTask
-            java.lang.reflect.Method completeMethod = AbstractSQLSchedulingService.class.getDeclaredMethod(
-                "completeFollowUpTask", AbstractSchedulingService.ScheduledTask.class);
-            completeMethod.setAccessible(true);
-
-            completeMethod.invoke(service, tasks.get(0));
+            // completeFollowUpTask is protected - directly accessible in same package
+            service.completeFollowUpTask(tasks.get(0));
 
             // Task should be removed from database
         }
@@ -505,19 +480,12 @@ class AbstractSQLSchedulingServiceTest {
 
         Connection conn = service.getConnection();
         try {
-            // Insert the task first
-            java.lang.reflect.Method insertMethod = AbstractSQLSchedulingService.class.getDeclaredMethod(
-                "insertNewFollowUpTask", Connection.class, Task.class);
-            insertMethod.setAccessible(true);
-            insertMethod.invoke(service, conn, task);
+            // insertNewFollowUpTask is protected - directly accessible in same package
+            service.insertNewFollowUpTask(conn, task);
             conn.commit();
 
-            // Now increment multiplicity
-            java.lang.reflect.Method incrMethod = AbstractSQLSchedulingService.class.getDeclaredMethod(
-                "incrementFollowUpMultiplicity", Connection.class, Task.class);
-            incrMethod.setAccessible(true);
-
-            Boolean updated = (Boolean) incrMethod.invoke(service, conn, task);
+            // incrementFollowUpMultiplicity is protected - directly accessible in same package
+            boolean updated = service.incrementFollowUpMultiplicity(conn, task);
             assertTrue(updated, "Should have incremented existing task");
             conn.commit();
 
@@ -539,16 +507,11 @@ class AbstractSQLSchedulingServiceTest {
         // Call leaseFollowUpTasks via reflection
         Connection conn = service.getConnection();
         try {
-            java.lang.reflect.Method generateMethod = AbstractSQLSchedulingService.class.getDeclaredMethod("generateLeaseId");
-            generateMethod.setAccessible(true);
-            String leaseId = (String) generateMethod.invoke(service);
-
-            java.lang.reflect.Method leaseMethod = AbstractSQLSchedulingService.class.getDeclaredMethod(
-                "leaseFollowUpTasks", Connection.class, int.class, String.class);
-            leaseMethod.setAccessible(true);
-
-            Integer leasedCount = (Integer) leaseMethod.invoke(service, conn, 5, leaseId);
-            assertNotNull(leasedCount);
+            // get the lease ID
+            String leaseId = service.generateLeaseId();
+            
+            // leaseFollowUpTasks is protected - directly accessible in same package
+            int leasedCount = service.leaseFollowUpTasks(conn, 5, leaseId);
             assertTrue(leasedCount >= 0, "Leased count should be non-negative");
 
             conn.commit();
@@ -562,12 +525,8 @@ class AbstractSQLSchedulingServiceTest {
         // Call releaseExpiredLeases via reflection
         Connection conn = service.getConnection();
         try {
-            java.lang.reflect.Method method = AbstractSQLSchedulingService.class.getDeclaredMethod(
-                "releaseExpiredLeases", Connection.class);
-            method.setAccessible(true);
-
-            Integer released = (Integer) method.invoke(service, conn);
-            assertNotNull(released);
+            // releaseExpiredLeases is protected - directly accessible in same package
+            int released = service.releaseExpiredLeases(conn);
             assertTrue(released >= 0, "Released count should be non-negative");
 
             conn.commit();
@@ -590,20 +549,14 @@ class AbstractSQLSchedulingServiceTest {
         try {
             String leaseId = "test-lease-" + System.nanoTime();
 
-            java.lang.reflect.Method leaseMethod = AbstractSQLSchedulingService.class.getDeclaredMethod(
-                "leaseFollowUpTasks", Connection.class, int.class, String.class);
-            leaseMethod.setAccessible(true);
-            leaseMethod.invoke(service, conn, 5, leaseId);
+            // leaseFollowUpTasks is protected - directly accessible in same package
+            service.leaseFollowUpTasks(conn, 5, leaseId);
             conn.commit();
 
             // Now get leased tasks
-            java.lang.reflect.Method getMethod = AbstractSQLSchedulingService.class.getDeclaredMethod(
-                "getLeasedFollowUpTasks", Connection.class, String.class);
-            getMethod.setAccessible(true);
-
-            @SuppressWarnings("unchecked")
+            // getLeasedFollowUpTasks is protected - directly accessible in same package
             List<AbstractSchedulingService.ScheduledTask> leasedTasks =
-                (List<AbstractSchedulingService.ScheduledTask>) getMethod.invoke(service, conn, leaseId);
+                service.getLeasedFollowUpTasks(conn, leaseId);
 
             assertNotNull(leasedTasks);
             // May or may not have tasks depending on timing
@@ -623,22 +576,15 @@ class AbstractSQLSchedulingServiceTest {
         Thread.sleep(100);
 
         // Dequeue it
-        java.lang.reflect.Method dequeueMethod = AbstractSQLSchedulingService.class.getDeclaredMethod("dequeueFollowUpTasks", int.class);
-        dequeueMethod.setAccessible(true);
+        // dequeueFollowUpTasks is protected - directly accessible in same package
 
-        @SuppressWarnings("unchecked")
-        List<AbstractSchedulingService.ScheduledTask> tasks =
-            (List<AbstractSchedulingService.ScheduledTask>) dequeueMethod.invoke(service, 5);
+        List<AbstractSchedulingService.ScheduledTask> tasks = service.dequeueFollowUpTasks(5);
 
         if (!tasks.isEmpty()) {
             Connection conn = service.getConnection();
             try {
                 // Delete the task
-                java.lang.reflect.Method deleteMethod = AbstractSQLSchedulingService.class.getDeclaredMethod(
-                    "deleteFollowUpTask", Connection.class, AbstractSchedulingService.ScheduledTask.class);
-                deleteMethod.setAccessible(true);
-
-                deleteMethod.invoke(service, conn, tasks.get(0));
+                service.deleteFollowUpTask(conn, tasks.get(0));
                 conn.commit();
 
                 // Task should be deleted
@@ -654,11 +600,8 @@ class AbstractSQLSchedulingServiceTest {
 
         Connection conn = service.getConnection();
         try {
-            java.lang.reflect.Method method = AbstractSQLSchedulingService.class.getDeclaredMethod(
-                "insertNewFollowUpTask", Connection.class, Task.class);
-            method.setAccessible(true);
-
-            method.invoke(service, conn, task);
+            // insertNewFollowUpTask is protected - directly accessible in same package
+            service.insertNewFollowUpTask(conn, task);
             conn.commit();
 
             // Verify task was inserted
@@ -677,11 +620,7 @@ class AbstractSQLSchedulingServiceTest {
         Connection conn = service.getConnection();
         try {
             // Try to increment multiplicity on non-existent task
-            java.lang.reflect.Method method = AbstractSQLSchedulingService.class.getDeclaredMethod(
-                "incrementFollowUpMultiplicity", Connection.class, Task.class);
-            method.setAccessible(true);
-
-            Boolean updated = (Boolean) method.invoke(service, conn, task);
+            Boolean updated = service.incrementFollowUpMultiplicity(conn, task);
             assertFalse(updated, "Should return false when task doesn't exist");
 
         } finally {
@@ -692,12 +631,9 @@ class AbstractSQLSchedulingServiceTest {
     @Test
     void testGenerateUniqueLeaseIds() throws Exception {
         // Generate multiple lease IDs and verify they're unique
-        java.lang.reflect.Method method = AbstractSQLSchedulingService.class.getDeclaredMethod("generateLeaseId");
-        method.setAccessible(true);
-
-        String leaseId1 = (String) method.invoke(service);
-        String leaseId2 = (String) method.invoke(service);
-        String leaseId3 = (String) method.invoke(service);
+        String leaseId1 = service.generateLeaseId();
+        String leaseId2 = service.generateLeaseId();
+        String leaseId3 = service.generateLeaseId();
 
         assertNotEquals(leaseId1, leaseId2, "Lease IDs should be unique");
         assertNotEquals(leaseId2, leaseId3, "Lease IDs should be unique");
@@ -711,14 +647,11 @@ class AbstractSQLSchedulingServiceTest {
             // Enqueue a task then try to enqueue again to test error handling
             Task task = new Task("ERR_PATH", new TreeMap<>(), new TreeSet<>(), null, true);
 
-            java.lang.reflect.Method method = AbstractSQLSchedulingService.class.getDeclaredMethod("enqueueFollowUpTask", Task.class);
-            method.setAccessible(true);
-
             // First enqueue should succeed
-            method.invoke(service, task);
-
+            service.enqueueFollowUpTask(task);
+ 
             // Subsequent enqueue of identical task should increment multiplicity
-            method.invoke(service, task);
+            service.enqueueFollowUpTask(task);
         });
     }
 
@@ -731,11 +664,7 @@ class AbstractSQLSchedulingServiceTest {
             Connection conn = service.getConnection();
             try {
                 // Try increment without inserting first (should return false)
-                java.lang.reflect.Method method = AbstractSQLSchedulingService.class.getDeclaredMethod(
-                    "incrementFollowUpMultiplicity", Connection.class, Task.class);
-                method.setAccessible(true);
-
-                Boolean result = (Boolean) method.invoke(service, conn, task);
+                Boolean result = service.incrementFollowUpMultiplicity(conn, task);
                 assertFalse(result, "Should return false when task doesn't exist");
 
             } finally {
@@ -755,13 +684,8 @@ class AbstractSQLSchedulingServiceTest {
             conn.close();
         }
 
-        // Try to dequeue from empty database
-        java.lang.reflect.Method method = AbstractSQLSchedulingService.class.getDeclaredMethod("dequeueFollowUpTasks", int.class);
-        method.setAccessible(true);
-
-        @SuppressWarnings("unchecked")
-        List<AbstractSchedulingService.ScheduledTask> tasks =
-            (List<AbstractSchedulingService.ScheduledTask>) method.invoke(service, 5);
+        // dequeueFollowUpTasks is protected - directly accessible in same package
+        List<AbstractSchedulingService.ScheduledTask> tasks = service.dequeueFollowUpTasks(5);
 
         assertNotNull(tasks);
         // Should return empty list or wait
@@ -778,23 +702,17 @@ class AbstractSQLSchedulingServiceTest {
         Thread.sleep(100);
 
         // Dequeue it
-        java.lang.reflect.Method dequeueMethod = AbstractSQLSchedulingService.class.getDeclaredMethod("dequeueFollowUpTasks", int.class);
-        dequeueMethod.setAccessible(true);
+        // dequeueFollowUpTasks is protected - directly accessible in same package
 
-        @SuppressWarnings("unchecked")
-        List<AbstractSchedulingService.ScheduledTask> tasks =
-            (List<AbstractSchedulingService.ScheduledTask>) dequeueMethod.invoke(service, 10);
+        List<AbstractSchedulingService.ScheduledTask> tasks = service.dequeueFollowUpTasks(10);
 
         if (!tasks.isEmpty()) {
             AbstractSchedulingService.ScheduledTask task = tasks.get(0);
 
             // Complete it
-            java.lang.reflect.Method completeMethod = AbstractSQLSchedulingService.class.getDeclaredMethod(
-                "completeFollowUpTask", AbstractSchedulingService.ScheduledTask.class);
-            completeMethod.setAccessible(true);
+            // completeFollowUpTask is protected - directly accessible in same package
 
-            // This should delete the task from database
-            completeMethod.invoke(service, task);
+            service.completeFollowUpTask(task);
         }
     }
 
@@ -809,21 +727,17 @@ class AbstractSQLSchedulingServiceTest {
         Thread.sleep(100);
 
         // Dequeue and complete
-        java.lang.reflect.Method dequeueMethod = AbstractSQLSchedulingService.class.getDeclaredMethod("dequeueFollowUpTasks", int.class);
-        dequeueMethod.setAccessible(true);
+        // dequeueFollowUpTasks is protected - directly accessible in same package
 
-        @SuppressWarnings("unchecked")
-        List<AbstractSchedulingService.ScheduledTask> tasks =
-            (List<AbstractSchedulingService.ScheduledTask>) dequeueMethod.invoke(service, 10);
+        List<AbstractSchedulingService.ScheduledTask> tasks = service.dequeueFollowUpTasks(10);
 
         if (!tasks.isEmpty()) {
             AbstractSchedulingService.ScheduledTask task = tasks.get(0);
 
-            java.lang.reflect.Method completeMethod = AbstractSQLSchedulingService.class.getDeclaredMethod(
-                "completeFollowUpTask", AbstractSchedulingService.ScheduledTask.class);
-            completeMethod.setAccessible(true);
+            // completeFollowUpTask is protected - directly accessible in same package
 
-            completeMethod.invoke(service, task);
+
+            service.completeFollowUpTask(task);
 
             // Task should be removed - verify by trying to count
             // (Can't easily verify removal without more complex queries)
@@ -832,12 +746,7 @@ class AbstractSQLSchedulingServiceTest {
 
     @Test
     void testDequeueFollowUpTasksWithZeroCount() throws Exception {
-        java.lang.reflect.Method method = AbstractSQLSchedulingService.class.getDeclaredMethod("dequeueFollowUpTasks", int.class);
-        method.setAccessible(true);
-
-        @SuppressWarnings("unchecked")
-        List<AbstractSchedulingService.ScheduledTask> tasks =
-            (List<AbstractSchedulingService.ScheduledTask>) method.invoke(service, 0);
+        List<AbstractSchedulingService.ScheduledTask> tasks = service.dequeueFollowUpTasks(0);
 
         assertNotNull(tasks);
         // Should return empty or small list
@@ -845,11 +754,8 @@ class AbstractSQLSchedulingServiceTest {
 
     @Test
     void testRenewFollowUpTasksWithEmptyList() throws Exception {
-        java.lang.reflect.Method method = AbstractSQLSchedulingService.class.getDeclaredMethod("renewFollowUpTasks", List.class);
-        method.setAccessible(true);
-
         // Call with empty list
-        method.invoke(service, new ArrayList<AbstractSchedulingService.ScheduledTask>());
+        service.renewFollowUpTasks(new ArrayList<AbstractSchedulingService.ScheduledTask>());
 
         // Should complete without error
     }
@@ -860,16 +766,15 @@ class AbstractSQLSchedulingServiceTest {
         Task task1 = new Task("MULT_TEST", new TreeMap<>(), new TreeSet<>(), null, true);
         Task task2 = new Task("MULT_TEST", new TreeMap<>(), new TreeSet<>(), null, true);
 
-        java.lang.reflect.Method enqueueMethod = AbstractSQLSchedulingService.class.getDeclaredMethod("enqueueFollowUpTask", Task.class);
-        enqueueMethod.setAccessible(true);
+        // enqueueFollowUpTask is protected - directly accessible in same package
 
-        // Enqueue first task (will insert)
-        enqueueMethod.invoke(service, task1);
+
+        service.enqueueFollowUpTask(task1);
 
         Thread.sleep(50);
 
         // Enqueue second identical task (should increment multiplicity)
-        enqueueMethod.invoke(service, task2);
+        service.enqueueFollowUpTask(task2);
 
         Thread.sleep(50);
 
@@ -888,12 +793,8 @@ class AbstractSQLSchedulingServiceTest {
         Thread.sleep(200);
 
         // Dequeue with limit
-        java.lang.reflect.Method method = AbstractSQLSchedulingService.class.getDeclaredMethod("dequeueFollowUpTasks", int.class);
-        method.setAccessible(true);
-
-        @SuppressWarnings("unchecked")
-        List<AbstractSchedulingService.ScheduledTask> tasks =
-            (List<AbstractSchedulingService.ScheduledTask>) method.invoke(service, 3);
+        List<AbstractSchedulingService.ScheduledTask> tasks 
+            = service.dequeueFollowUpTasks(3);
 
         assertNotNull(tasks);
         // Should respect the limit or return what's available
@@ -910,26 +811,21 @@ class AbstractSQLSchedulingServiceTest {
         Thread.sleep(100);
 
         // Dequeue
-        java.lang.reflect.Method dequeueMethod = AbstractSQLSchedulingService.class.getDeclaredMethod("dequeueFollowUpTasks", int.class);
-        dequeueMethod.setAccessible(true);
+        // dequeueFollowUpTasks is protected - directly accessible in same package
 
-        @SuppressWarnings("unchecked")
-        List<AbstractSchedulingService.ScheduledTask> tasks =
-            (List<AbstractSchedulingService.ScheduledTask>) dequeueMethod.invoke(service, 5);
+        List<AbstractSchedulingService.ScheduledTask> tasks = service.dequeueFollowUpTasks(5);
 
         if (!tasks.isEmpty()) {
             AbstractSchedulingService.ScheduledTask task = tasks.get(0);
 
-            java.lang.reflect.Method completeMethod = AbstractSQLSchedulingService.class.getDeclaredMethod(
-                "completeFollowUpTask", AbstractSchedulingService.ScheduledTask.class);
-            completeMethod.setAccessible(true);
+            // completeFollowUpTask is protected - directly accessible in same package
 
-            // Complete the task
-            completeMethod.invoke(service, task);
+
+            service.completeFollowUpTask(task);
 
             // Try to complete again (should handle gracefully)
             try {
-                completeMethod.invoke(service, task);
+                service.completeFollowUpTask(task);
             } catch (Exception e) {
                 // May throw if task already deleted
             }
@@ -944,30 +840,20 @@ class AbstractSQLSchedulingServiceTest {
         Connection conn = service.getConnection();
         try {
             // Insert the task
-            java.lang.reflect.Method insertMethod = AbstractSQLSchedulingService.class.getDeclaredMethod(
-                "insertNewFollowUpTask", Connection.class, Task.class);
-            insertMethod.setAccessible(true);
-            insertMethod.invoke(service, conn, task);
+            service.insertNewFollowUpTask(conn, task);
             conn.commit();
 
             // Dequeue to get the ScheduledTask
-            java.lang.reflect.Method dequeueMethod = AbstractSQLSchedulingService.class.getDeclaredMethod("dequeueFollowUpTasks", int.class);
-            dequeueMethod.setAccessible(true);
+            // dequeueFollowUpTasks is protected - directly accessible in same package
 
-            @SuppressWarnings("unchecked")
-            List<AbstractSchedulingService.ScheduledTask> tasks =
-                (List<AbstractSchedulingService.ScheduledTask>) dequeueMethod.invoke(service, 10);
+            List<AbstractSchedulingService.ScheduledTask> tasks = service.dequeueFollowUpTasks(10);
 
             if (!tasks.isEmpty()) {
                 // Find our task and delete it
                 for (AbstractSchedulingService.ScheduledTask st : tasks) {
                     Connection deleteConn = service.getConnection();
                     try {
-                        java.lang.reflect.Method deleteMethod = AbstractSQLSchedulingService.class.getDeclaredMethod(
-                            "deleteFollowUpTask", Connection.class, AbstractSchedulingService.ScheduledTask.class);
-                        deleteMethod.setAccessible(true);
-
-                        Boolean deleted = (Boolean) deleteMethod.invoke(service, deleteConn, st);
+                        Boolean deleted = service.deleteFollowUpTask(deleteConn, st);
                         assertNotNull(deleted, "Delete should return a boolean");
 
                         deleteConn.commit();
@@ -1004,11 +890,8 @@ class AbstractSQLSchedulingServiceTest {
             // Try to enqueue after destroy
             Task task = new Task("AFTER_DESTROY", new TreeMap<>(), new TreeSet<>(), null, true);
 
-            java.lang.reflect.Method method = AbstractSQLSchedulingService.class.getDeclaredMethod("enqueueFollowUpTask", Task.class);
-            method.setAccessible(true);
-
             try {
-                method.invoke(tempService, task);
+                tempService.enqueueFollowUpTask(task);
             } catch (Exception e) {
                 // Expected - service is destroyed
             }
@@ -1025,21 +908,23 @@ class AbstractSQLSchedulingServiceTest {
 
             Connection conn = service.getConnection();
             try {
-                // Insert the same task signature multiple times (shouldn't happen normally)
-                java.lang.reflect.Method insertMethod = AbstractSQLSchedulingService.class.getDeclaredMethod(
-                    "insertNewFollowUpTask", Connection.class, Task.class);
-                insertMethod.setAccessible(true);
-
-                // Try to increment (should work normally)
-                java.lang.reflect.Method incrMethod = AbstractSQLSchedulingService.class.getDeclaredMethod(
-                    "incrementFollowUpMultiplicity", Connection.class, Task.class);
-                incrMethod.setAccessible(true);
-
                 // First call should return false (no existing task)
-                Boolean result = (Boolean) incrMethod.invoke(service, conn, task);
+                boolean result = service.incrementFollowUpMultiplicity(conn, task);
                 assertFalse(result);
 
+                // Insert the same task signature multiple times (shouldn't happen normally)
+                service.insertNewFollowUpTask(conn, task);
+                service.insertNewFollowUpTask(conn, task);
+                service.insertNewFollowUpTask(conn, task);
+                
                 conn.commit();
+
+                // Second call should return true (task exists)
+                result = service.incrementFollowUpMultiplicity(conn, task);
+                assertTrue(result);
+
+                conn.commit();
+
             } finally {
                 conn.close();
             }
@@ -1054,12 +939,8 @@ class AbstractSQLSchedulingServiceTest {
 
             Connection conn = service.getConnection();
             try {
-                java.lang.reflect.Method method = AbstractSQLSchedulingService.class.getDeclaredMethod(
-                    "insertNewFollowUpTask", Connection.class, Task.class);
-                method.setAccessible(true);
-
                 // Normal insert should work
-                method.invoke(service, conn, task);
+                service.insertNewFollowUpTask(conn, task);
                 conn.commit();
 
             } finally {
@@ -1079,21 +960,14 @@ class AbstractSQLSchedulingServiceTest {
         Thread.sleep(100);
 
         // Dequeue
-        java.lang.reflect.Method dequeueMethod = AbstractSQLSchedulingService.class.getDeclaredMethod("dequeueFollowUpTasks", int.class);
-        dequeueMethod.setAccessible(true);
+        // dequeueFollowUpTasks is protected - directly accessible in same package
 
-        @SuppressWarnings("unchecked")
-        List<AbstractSchedulingService.ScheduledTask> tasks =
-            (List<AbstractSchedulingService.ScheduledTask>) dequeueMethod.invoke(service, 10);
+        List<AbstractSchedulingService.ScheduledTask> tasks = service.dequeueFollowUpTasks(10);
 
         if (!tasks.isEmpty()) {
             Connection conn = service.getConnection();
             try {
-                java.lang.reflect.Method deleteMethod = AbstractSQLSchedulingService.class.getDeclaredMethod(
-                    "deleteFollowUpTask", Connection.class, AbstractSchedulingService.ScheduledTask.class);
-                deleteMethod.setAccessible(true);
-
-                Boolean deleted = (Boolean) deleteMethod.invoke(service, conn, tasks.get(0));
+                boolean deleted = service.deleteFollowUpTask(conn, tasks.get(0));
                 assertNotNull(deleted);
 
                 conn.commit();
@@ -1119,19 +993,13 @@ class AbstractSQLSchedulingServiceTest {
         int before = getFollowUpTaskCount();
 
         // Dequeue and complete
-        java.lang.reflect.Method dequeueMethod = AbstractSQLSchedulingService.class.getDeclaredMethod("dequeueFollowUpTasks", int.class);
-        dequeueMethod.setAccessible(true);
+        // dequeueFollowUpTasks is protected - directly accessible in same package
 
-        @SuppressWarnings("unchecked")
-        List<AbstractSchedulingService.ScheduledTask> tasks =
-            (List<AbstractSchedulingService.ScheduledTask>) dequeueMethod.invoke(service, 10);
+        List<AbstractSchedulingService.ScheduledTask> tasks = service.dequeueFollowUpTasks(10);
 
         if (!tasks.isEmpty()) {
-            java.lang.reflect.Method completeMethod = AbstractSQLSchedulingService.class.getDeclaredMethod(
-                "completeFollowUpTask", AbstractSchedulingService.ScheduledTask.class);
-            completeMethod.setAccessible(true);
-
-            completeMethod.invoke(service, tasks.get(0));
+            // completeFollowUpTask is protected - directly accessible in same package
+            service.completeFollowUpTask(tasks.get(0));
 
             Thread.sleep(50);
 
@@ -1144,12 +1012,8 @@ class AbstractSQLSchedulingServiceTest {
     @Test
     void testDequeueFollowUpTasksWithLargeCount() throws Exception {
         // Dequeue with a very large count
-        java.lang.reflect.Method method = AbstractSQLSchedulingService.class.getDeclaredMethod("dequeueFollowUpTasks", int.class);
-        method.setAccessible(true);
-
-        @SuppressWarnings("unchecked")
         List<AbstractSchedulingService.ScheduledTask> tasks =
-            (List<AbstractSchedulingService.ScheduledTask>) method.invoke(service, 1000);
+            service.dequeueFollowUpTasks(1000);
 
         assertNotNull(tasks);
         // Should handle large requests gracefully
@@ -1167,19 +1031,15 @@ class AbstractSQLSchedulingServiceTest {
         Thread.sleep(100);
 
         // Dequeue them
-        java.lang.reflect.Method dequeueMethod = AbstractSQLSchedulingService.class.getDeclaredMethod("dequeueFollowUpTasks", int.class);
-        dequeueMethod.setAccessible(true);
+        // dequeueFollowUpTasks is protected - directly accessible in same package
 
-        @SuppressWarnings("unchecked")
-        List<AbstractSchedulingService.ScheduledTask> tasks =
-            (List<AbstractSchedulingService.ScheduledTask>) dequeueMethod.invoke(service, 10);
+        List<AbstractSchedulingService.ScheduledTask> tasks = service.dequeueFollowUpTasks(10);
 
         if (tasks.size() >= 2) {
             // Renew them
-            java.lang.reflect.Method renewMethod = AbstractSQLSchedulingService.class.getDeclaredMethod("renewFollowUpTasks", List.class);
-            renewMethod.setAccessible(true);
+            // renewFollowUpTasks is protected - directly accessible in same package
 
-            renewMethod.invoke(service, tasks);
+            service.renewFollowUpTasks(tasks);
 
             // Should update lease expiration for all tasks
         }
@@ -1189,17 +1049,13 @@ class AbstractSQLSchedulingServiceTest {
     void testUpdateLeaseExpirationWithMultipleLeases() throws Exception {
         Connection conn = service.getConnection();
         try {
-            java.lang.reflect.Method method = AbstractSQLSchedulingService.class.getDeclaredMethod(
-                "updateLeaseExpiration", Connection.class, Timestamp.class, Set.class);
-            method.setAccessible(true);
-
             Timestamp expiration = new Timestamp(System.currentTimeMillis() + 30000);
             Set<String> leaseIds = new HashSet<>();
             leaseIds.add("lease-1");
             leaseIds.add("lease-2");
             leaseIds.add("lease-3");
 
-            Integer updated = (Integer) method.invoke(service, conn, expiration, leaseIds);
+            int updated = service.updateLeaseExpiration(conn, expiration, leaseIds);
             assertNotNull(updated);
             assertTrue(updated >= 0);
 
@@ -1234,18 +1090,15 @@ class AbstractSQLSchedulingServiceTest {
 
             Task task = new Task("SQL_ERROR_ACTION", new TreeMap<>(), new TreeSet<>(), null, true);
 
-            java.lang.reflect.Method method = AbstractSQLSchedulingService.class.getDeclaredMethod("enqueueFollowUpTask", Task.class);
-            method.setAccessible(true);
-
             // Should throw ServiceExecutionException wrapping SQLException
             try {
-                method.invoke(badService, task);
+                badService.enqueueFollowUpTask(task);
                 fail("Should have thrown exception");
-            } catch (java.lang.reflect.InvocationTargetException e) {
-                // Expected - verify it's ServiceExecutionException
-                Throwable cause = e.getCause();
-                assertTrue(cause instanceof com.senzing.listener.service.exception.ServiceExecutionException,
-                    "Should throw ServiceExecutionException");
+            } catch (ServiceExecutionException e) {
+                // expected
+            } catch (Exception e) {
+                // other exceptions are not expected
+                fail("Should have thrown ServiceExecutionException", e);
             }
         });
 
@@ -1302,17 +1155,15 @@ class AbstractSQLSchedulingServiceTest {
             field.setAccessible(true);
             field.set(badService, ConnectionProvider.REGISTRY.lookup(PROVIDER_KEY));
 
-            java.lang.reflect.Method method = AbstractSQLSchedulingService.class.getDeclaredMethod("dequeueFollowUpTasks", int.class);
-            method.setAccessible(true);
-
             // Should throw ServiceExecutionException
             try {
-                method.invoke(badService, 5);
+                badService.dequeueFollowUpTasks(5);
                 fail("Should have thrown exception");
-            } catch (java.lang.reflect.InvocationTargetException e) {
-                Throwable cause = e.getCause();
-                assertTrue(cause instanceof com.senzing.listener.service.exception.ServiceExecutionException,
-                    "Should throw ServiceExecutionException");
+            } catch (ServiceExecutionException e) {
+                // expected
+            } catch (Exception e) {
+                // unexpected
+                fail("Should throw ServiceExecutionException", e);
             }
         });
     }
