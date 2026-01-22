@@ -20,11 +20,12 @@ import static java.lang.Boolean.FALSE;
 import static com.senzing.util.LoggingUtilities.*;
 
 /**
- * Provides an abstract implementation of {@link SchedulingService} using a backing
- * database to provide persistent storage.  This class should be extended for specific
- * database implementations.  Database connectivity is abstracted using a  
- * {@link ConnectionProvider} which is obtained via a {@link ConnectionProvider#REGISTRY}
- * {@linkplain #CONNECTION_PROVIDER_KEY key} which is specified during initialization. 
+ * Extends {@link AbstractSchedulingService} to create an abstract base class for an
+ * implementation using a backing database to provide persistent storage.  This class
+ * should be extended for specific database implementations.  Database connectivity is
+ * abstracted using a {@link ConnectionProvider} which is obtained via a {@link
+ * ConnectionProvider#REGISTRY} {@linkplain #CONNECTION_PROVIDER_KEY key} which is
+ * specified during initialization. 
  */
 public abstract class AbstractSQLSchedulingService extends AbstractSchedulingService {
     /**
