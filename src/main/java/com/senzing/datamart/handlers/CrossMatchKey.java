@@ -30,11 +30,11 @@ public class CrossMatchKey implements Comparable<CrossMatchKey> {
     /**
      * Constructs with the specified parameters.
      *
-     * @param source    The data source code representing both the "from" and "to"
-     *                  data source.
+     * @param source    The non-null data source code representing both the
+     *                  "from" and "to" data source.
      * @param matchKey  The optional match key associated with the match.
      * @param principle The optional principle associated with the match.
-     * @throws NullPointerException If any of the parameter is <code>null</code>
+     * @throws NullPointerException If the specified data source is <code>null</code>
      */
     public CrossMatchKey(String source, String matchKey, String principle) 
         throws NullPointerException 
@@ -45,8 +45,8 @@ public class CrossMatchKey implements Comparable<CrossMatchKey> {
     /**
      * Constructs with the specified parameters.
      *
-     * @param source1   The first ("from") data source code.
-     * @param source2   The second ("to") data source code.
+     * @param source1   The non-null first ("from") data source code.
+     * @param source2   The non-null second ("to") data source code.
      * @param matchKey  The optional match key for the match.
      * @param principle The optional principle for the match.
      * @throws NullPointerException If either of the data sources is
