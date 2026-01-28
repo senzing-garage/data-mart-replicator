@@ -357,7 +357,7 @@ public class SzReplicator extends Thread {
      * @param stats The {@link Map} of {@link Statistic} keys to {@link Number}
      *              values to print.
      */
-    private static void printStatisticsMap(Map<Statistic, Number> stats) {
+    public static void printStatisticsMap(Map<Statistic, Number> stats) {
         stats.forEach((key, value) -> {
             String units = key.getUnits();
             System.out.println("  " + key.getName() + ": " + value + ((units != null) ? " " + units : ""));
@@ -755,7 +755,8 @@ public class SzReplicator extends Thread {
      * @throws Exception If a failure occurs.
      */
     protected SzReplicator(SzEnvironment environment, boolean manageEnv, SzReplicatorOptions options, boolean startProcessing)
-            throws Exception {
+        throws Exception
+    {
         // get the concurrency
         if (environment instanceof SzAutoEnvironment) {
             SzAutoEnvironment autoEnv = (SzAutoEnvironment) environment;
@@ -797,7 +798,7 @@ public class SzReplicator extends Thread {
             PostgreSqlUri postgreSqlUri = (PostgreSqlUri) databaseUri;
 
             this.connector = new PostgreSqlConnector(postgreSqlUri.getHost(), postgreSqlUri.getPort(),
-                    postgreSqlUri.getDatabase(), postgreSqlUri.getHost(), postgreSqlUri.getPassword());
+                    postgreSqlUri.getDatabase(), postgreSqlUri.getUser(), postgreSqlUri.getPassword());
 
             this.connPool = new ConnectionPool(this.connector, TransactionIsolation.READ_COMMITTED, poolSize,
                     maxPoolSize);
@@ -879,6 +880,10 @@ public class SzReplicator extends Thread {
         this.messageConsumer.init(consumerJOB.build());
         if (this.queueRegistryName != null) {
             this.sqlMessageQueue = SQLConsumer.MESSAGE_QUEUE_REGISTRY.lookup(this.queueRegistryName);
+        }
+
+        if (startProcessing) {
+            this.start();
         }
     }
 
