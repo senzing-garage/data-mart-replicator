@@ -95,8 +95,8 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
             ps = close(ps);
 
             if (leasedCount == 0) {
-                logWarning("No rows leased for entity ID zero and "
-                            + "data source: " + dataSource);
+                logInfo("No rows leased for entity ID zero and "
+                        + "data source: " + dataSource);
             }
 
             // select back the leased rows

@@ -41,8 +41,15 @@ public class SzEntityRelationsCount implements Serializable {
      *
      * @param relationsCount The number of entity relations for which the entity
      *                       count is provided.
+     * 
+     * @throws IllegalArgumentException If the specified parameter is negative.
      */
     public void setRelationsCount(int relationsCount) {
+        if (relationsCount < 0) {
+            throw new IllegalArgumentException(
+                "The specified relations count cannot be negative: "
+                + entityCount);
+        }
         this.relationsCount = relationsCount;
     }
 
@@ -64,8 +71,15 @@ public class SzEntityRelationsCount implements Serializable {
      * @param entityCount The number of entities in the entity repository having the
      *                    associated {@linkplain #getRelationsCount() number of
      *                    entity relations}.
+     * 
+     * @throws IllegalArgumentException If the specified parameter is negative.
      */
     public void setEntityCount(long entityCount) {
+        if (entityCount < 0) {
+            throw new IllegalArgumentException(
+                "The specified entity count cannot be negative: "
+                + entityCount);
+        }
         this.entityCount = entityCount;
     }
 

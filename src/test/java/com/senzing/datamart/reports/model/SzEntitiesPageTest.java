@@ -85,6 +85,7 @@ class SzEntitiesPageTest {
     @Test
     void testSetAndGetPageMinimumValue() {
         SzEntitiesPage page = new SzEntitiesPage();
+        page.setSampleSize(10);
         page.setPageMinimumValue(100L);
 
         assertEquals(Long.valueOf(100L), page.getPageMinimumValue());
@@ -93,6 +94,7 @@ class SzEntitiesPageTest {
     @Test
     void testSetAndGetPageMaximumValue() {
         SzEntitiesPage page = new SzEntitiesPage();
+        page.setSampleSize(10);
         page.setPageMaximumValue(200L);
 
         assertEquals(Long.valueOf(200L), page.getPageMaximumValue());

@@ -148,6 +148,75 @@ class SzSummaryStatsTest {
         assertTrue(stats instanceof java.io.Serializable);
     }
 
+    @Test
+    void testEqualsWithSameReference() {
+        SzSummaryStats stats = createTestSummaryStats();
+        assertEquals(stats, stats);
+    }
+
+    @Test
+    void testEqualsWithEqualObjects() {
+        SzSummaryStats stats1 = createTestSummaryStats();
+        SzSummaryStats stats2 = createTestSummaryStats();
+
+        assertEquals(stats1, stats2);
+        assertEquals(stats2, stats1);
+    }
+
+    @Test
+    void testEqualsWithDifferentSourceSummaries() {
+        SzSummaryStats stats1 = new SzSummaryStats();
+        stats1.addSourceSummary(new SzSourceSummary("CUSTOMERS"));
+
+        SzSummaryStats stats2 = new SzSummaryStats();
+        stats2.addSourceSummary(new SzSourceSummary("VENDORS"));
+
+        assertNotEquals(stats1, stats2);
+    }
+
+    @Test
+    void testEqualsWithDifferentNumberOfSummaries() {
+        SzSummaryStats stats1 = new SzSummaryStats();
+        stats1.addSourceSummary(new SzSourceSummary("CUSTOMERS"));
+
+        SzSummaryStats stats2 = new SzSummaryStats();
+        stats2.addSourceSummary(new SzSourceSummary("CUSTOMERS"));
+        stats2.addSourceSummary(new SzSourceSummary("VENDORS"));
+
+        assertNotEquals(stats1, stats2);
+    }
+
+    @Test
+    void testEqualsWithNull() {
+        SzSummaryStats stats = new SzSummaryStats();
+        assertNotEquals(null, stats);
+    }
+
+    @Test
+    void testEqualsWithDifferentClass() {
+        SzSummaryStats stats = new SzSummaryStats();
+        assertNotEquals(stats, "not a stats object");
+    }
+
+    @Test
+    void testHashCodeConsistency() {
+        SzSummaryStats stats1 = createTestSummaryStats();
+        SzSummaryStats stats2 = createTestSummaryStats();
+
+        assertEquals(stats1.hashCode(), stats2.hashCode());
+    }
+
+    @Test
+    void testHashCodeDifferentForDifferentObjects() {
+        SzSummaryStats stats1 = new SzSummaryStats();
+        stats1.addSourceSummary(new SzSourceSummary("CUSTOMERS"));
+
+        SzSummaryStats stats2 = new SzSummaryStats();
+        stats2.addSourceSummary(new SzSourceSummary("VENDORS"));
+
+        assertNotEquals(stats1.hashCode(), stats2.hashCode());
+    }
+
     private SzSummaryStats createTestSummaryStats() {
         SzSummaryStats stats = new SzSummaryStats();
 

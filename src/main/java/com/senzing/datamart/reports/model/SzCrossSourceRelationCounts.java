@@ -236,7 +236,7 @@ public class SzCrossSourceRelationCounts implements Serializable {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof SzCrossSourceRelationCounts)) {
+        if (obj == null || this.getClass() != obj.getClass()) {
             return false;
         }
         SzCrossSourceRelationCounts other = (SzCrossSourceRelationCounts) obj;

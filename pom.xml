@@ -66,7 +66,7 @@
     <dependency>
       <groupId>com.senzing</groupId>
       <artifactId>senzing-commons</artifactId>
-      <version>4.0.0-beta.2.0</version>
+      <version>4.0.0-beta.2.1</version>
     </dependency>
     <dependency>
       <groupId>com.linecorp.armeria</groupId>
@@ -200,6 +200,37 @@
     <finalName>${project.artifactId}</finalName>
     <plugins>
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.6.3</version>
+        <executions>
+          <execution>
+            <id>generate-java-wrapper</id>
+            <phase>process-test-classes</phase>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <configuration>
+              <mainClass>com.senzing.test.GenerateTestJVMScript</mainClass>
+              <classpathScope>test</classpathScope>
+              <arguments>
+                <argument>${project.build.directory}/java-wrapper/bin/java-wrapper.bat</argument>
+              </arguments>
+              <systemProperties>
+                <systemProperty>
+                  <key>senzing.path</key>
+                  <value>${SENZING_PATH}</value>
+                </systemProperty>
+                <systemProperty>
+                  <key>senzing.dev.lib.path</key>
+                  <value>${SENZING_DEV_LIBRARY_PATH}</value>
+                </systemProperty>
+              </systemProperties>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.14.1</version>
@@ -215,6 +246,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.5.4</version>
         <configuration>
+          <jvm>${project.build.directory}/java-wrapper/bin/java-wrapper.bat</jvm>        
           <systemPropertyVariables>
             <project.build.directory>${project.build.directory}</project.build.directory>
           </systemPropertyVariables>

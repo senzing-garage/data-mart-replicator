@@ -893,7 +893,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
     /**
      * Exposes
-     * {@link SummaryStatsReports#getSummaryDisclosedRelatedEntityIds(Connection, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
+     * {@link SummaryStatsReports#getSummaryDisclosedRelationEntityIds(Connection, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
      * as a REST/JSON service at
      * {@link #SOURCE_SUMMARY_DISCLOSED_RELATION_ENTITIES_ENDPOINT}.
      * 
@@ -936,7 +936,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             Timers timers = this.getTimers();
 
-            return SummaryStatsReports.getSummaryDisclosedRelatedEntityIds(conn, dataSource, matchKey, principle,
+            return SummaryStatsReports.getSummaryDisclosedRelationEntityIds(conn, dataSource, matchKey, principle,
                     entityIdBound, boundType, pageSize, sampleSize, timers);
         } catch (SQLException e) {
             System.err.println(e.getMessage());
@@ -959,7 +959,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
     /**
      * Exposes
-     * {@link SummaryStatsReports#getSummaryMatchEntityIds(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
+     * {@link SummaryStatsReports#getCrossMatchEntityIds(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
      * as a REST/JSON service at
      * {@link #CROSS_SOURCE_SUMMARY_MATCH_ENTITIES_ENDPOINT}.
      * 
@@ -1006,7 +1006,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             Timers timers = this.getTimers();
 
-            return SummaryStatsReports.getSummaryMatchEntityIds(conn, dataSource, vsDataSource, matchKey, principle,
+            return SummaryStatsReports.getCrossMatchEntityIds(conn, dataSource, vsDataSource, matchKey, principle,
                     entityIdBound, boundType, pageSize, sampleSize, timers);
         } catch (SQLException e) {
             System.err.println(e.getMessage());
@@ -1029,7 +1029,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
     /**
      * Exposes
-     * {@link SummaryStatsReports#getSummaryAmbiguousMatchEntityIds(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
+     * {@link SummaryStatsReports#getCrossAmbiguousMatchEntityIds(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
      * as a REST/JSON service at
      * {@link #CROSS_SOURCE_SUMMARY_AMBIGUOUS_MATCH_ENTITIES_ENDPOINT}.
      * 
@@ -1076,7 +1076,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             Timers timers = this.getTimers();
 
-            return SummaryStatsReports.getSummaryAmbiguousMatchEntityIds(conn, dataSource, vsDataSource, matchKey,
+            return SummaryStatsReports.getCrossAmbiguousMatchEntityIds(conn, dataSource, vsDataSource, matchKey,
                     principle, entityIdBound, boundType, pageSize, sampleSize, timers);
         } catch (SQLException e) {
             System.err.println(e.getMessage());
@@ -1099,7 +1099,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
     /**
      * Exposes
-     * {@link SummaryStatsReports#getSummaryPossibleMatchEntityIds(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
+     * {@link SummaryStatsReports#getCrossPossibleMatchEntityIds(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
      * as a REST/JSON service at
      * {@link #CROSS_SOURCE_SUMMARY_POSSIBLE_MATCH_ENTITIES_ENDPOINT}.
      * 
@@ -1146,7 +1146,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             Timers timers = this.getTimers();
 
-            return SummaryStatsReports.getSummaryPossibleMatchEntityIds(conn, dataSource, vsDataSource, matchKey,
+            return SummaryStatsReports.getCrossPossibleMatchEntityIds(conn, dataSource, vsDataSource, matchKey,
                     principle, entityIdBound, boundType, pageSize, sampleSize, timers);
         } catch (SQLException e) {
             System.err.println(e.getMessage());
@@ -1169,7 +1169,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
     /**
      * Exposes
-     * {@link SummaryStatsReports#getSummaryPossibleRelationEntityIds(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
+     * {@link SummaryStatsReports#getCrossPossibleRelationEntityIds(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
      * as a REST/JSON service at
      * {@link #CROSS_SOURCE_SUMMARY_POSSIBLE_RELATION_ENTITIES_ENDPOINT}.
      * 
@@ -1216,7 +1216,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             Timers timers = this.getTimers();
 
-            return SummaryStatsReports.getSummaryPossibleRelationEntityIds(conn, dataSource, vsDataSource, matchKey,
+            return SummaryStatsReports.getCrossPossibleRelationEntityIds(conn, dataSource, vsDataSource, matchKey,
                     principle, entityIdBound, boundType, pageSize, sampleSize, timers);
         } catch (SQLException e) {
             System.err.println(e.getMessage());
@@ -1239,7 +1239,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
     /**
      * Exposes
-     * {@link SummaryStatsReports#getSummaryDisclosedRelationEntityIds(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
+     * {@link SummaryStatsReports#getCrossDisclosedRelationEntityIds(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
      * as a REST/JSON service at
      * {@link #CROSS_SOURCE_SUMMARY_DISCLOSED_RELATION_ENTITIES_ENDPOINT}.
      * 
@@ -1286,7 +1286,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             Timers timers = this.getTimers();
 
-            return SummaryStatsReports.getSummaryDisclosedRelationEntityIds(conn, dataSource, vsDataSource, matchKey,
+            return SummaryStatsReports.getCrossDisclosedRelationEntityIds(conn, dataSource, vsDataSource, matchKey,
                     principle, entityIdBound, boundType, pageSize, sampleSize, timers);
         } catch (SQLException e) {
             System.err.println(e.getMessage());

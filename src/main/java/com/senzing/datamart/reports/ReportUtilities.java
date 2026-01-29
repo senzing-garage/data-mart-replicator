@@ -150,7 +150,7 @@ public final class ReportUtilities {
 
         // check if the bound type is null (this should not be the case)
         if (boundType == null) {
-            boundType = EXCLUSIVE_LOWER;
+            boundType = ("max".equals(entityIdBound)) ? EXCLUSIVE_UPPER : EXCLUSIVE_LOWER;
         }
 
         String formattedReportKey = reportKey.toString();
@@ -477,7 +477,8 @@ public final class ReportUtilities {
 
         // check if the bound type is null (this should not be the case)
         if (boundType == null) {
-            boundType = EXCLUSIVE_LOWER;
+            boundType = ("max:max".equals(relationBound)) 
+                ? EXCLUSIVE_UPPER : EXCLUSIVE_LOWER;
         }
 
         String formattedReportKey = reportKey.toString();

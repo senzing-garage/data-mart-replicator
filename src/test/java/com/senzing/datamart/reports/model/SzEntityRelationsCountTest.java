@@ -120,4 +120,56 @@ class SzEntityRelationsCountTest {
         SzEntityRelationsCount count = new SzEntityRelationsCount();
         assertTrue(count instanceof java.io.Serializable);
     }
+
+    @Test
+    void testSetRelationsCountWithZeroIsValid() {
+        SzEntityRelationsCount count = new SzEntityRelationsCount();
+        // Zero relations count should be valid (entities with no relations)
+        assertDoesNotThrow(() -> {
+            count.setRelationsCount(0);
+        });
+        assertEquals(0, count.getRelationsCount());
+    }
+
+    @Test
+    void testSetRelationsCountWithNegative() {
+        SzEntityRelationsCount count = new SzEntityRelationsCount();
+        assertThrows(IllegalArgumentException.class, () -> {
+            count.setRelationsCount(-1);
+        });
+    }
+
+    @Test
+    void testSetRelationsCountWithLargeNegative() {
+        SzEntityRelationsCount count = new SzEntityRelationsCount();
+        assertThrows(IllegalArgumentException.class, () -> {
+            count.setRelationsCount(-100);
+        });
+    }
+
+    @Test
+    void testSetEntityCountWithZeroIsValid() {
+        SzEntityRelationsCount count = new SzEntityRelationsCount();
+        // Zero entity count should be valid (no entities with this relation count)
+        assertDoesNotThrow(() -> {
+            count.setEntityCount(0L);
+        });
+        assertEquals(0L, count.getEntityCount());
+    }
+
+    @Test
+    void testSetEntityCountWithNegative() {
+        SzEntityRelationsCount count = new SzEntityRelationsCount();
+        assertThrows(IllegalArgumentException.class, () -> {
+            count.setEntityCount(-1L);
+        });
+    }
+
+    @Test
+    void testSetEntityCountWithLargeNegative() {
+        SzEntityRelationsCount count = new SzEntityRelationsCount();
+        assertThrows(IllegalArgumentException.class, () -> {
+            count.setEntityCount(-1000L);
+        });
+    }
 }

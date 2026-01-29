@@ -183,6 +183,107 @@ class SzSourceSummaryTest {
         assertTrue(summary instanceof java.io.Serializable);
     }
 
+    @Test
+    void testEqualsWithSameReference() {
+        SzSourceSummary summary = createTestSourceSummary();
+        assertEquals(summary, summary);
+    }
+
+    @Test
+    void testEqualsWithEqualObjects() {
+        SzSourceSummary summary1 = createTestSourceSummary();
+        SzSourceSummary summary2 = createTestSourceSummary();
+
+        assertEquals(summary1, summary2);
+        assertEquals(summary2, summary1);
+    }
+
+    @Test
+    void testEqualsWithDifferentDataSource() {
+        SzSourceSummary summary1 = new SzSourceSummary("CUSTOMERS");
+        summary1.setRecordCount(1000L);
+
+        SzSourceSummary summary2 = new SzSourceSummary("VENDORS");
+        summary2.setRecordCount(1000L);
+
+        assertNotEquals(summary1, summary2);
+    }
+
+    @Test
+    void testEqualsWithDifferentRecordCount() {
+        SzSourceSummary summary1 = new SzSourceSummary("CUSTOMERS");
+        summary1.setRecordCount(1000L);
+
+        SzSourceSummary summary2 = new SzSourceSummary("CUSTOMERS");
+        summary2.setRecordCount(2000L);
+
+        assertNotEquals(summary1, summary2);
+    }
+
+    @Test
+    void testEqualsWithDifferentEntityCount() {
+        SzSourceSummary summary1 = new SzSourceSummary("CUSTOMERS");
+        summary1.setEntityCount(500L);
+
+        SzSourceSummary summary2 = new SzSourceSummary("CUSTOMERS");
+        summary2.setEntityCount(600L);
+
+        assertNotEquals(summary1, summary2);
+    }
+
+    @Test
+    void testEqualsWithDifferentUnmatchedRecordCount() {
+        SzSourceSummary summary1 = new SzSourceSummary("CUSTOMERS");
+        summary1.setUnmatchedRecordCount(200L);
+
+        SzSourceSummary summary2 = new SzSourceSummary("CUSTOMERS");
+        summary2.setUnmatchedRecordCount(300L);
+
+        assertNotEquals(summary1, summary2);
+    }
+
+    @Test
+    void testEqualsWithDifferentCrossSummaries() {
+        SzSourceSummary summary1 = new SzSourceSummary("CUSTOMERS");
+        summary1.addCrossSourceSummary(new SzCrossSourceSummary("CUSTOMERS", "VENDORS"));
+
+        SzSourceSummary summary2 = new SzSourceSummary("CUSTOMERS");
+        summary2.addCrossSourceSummary(new SzCrossSourceSummary("CUSTOMERS", "EMPLOYEES"));
+
+        assertNotEquals(summary1, summary2);
+    }
+
+    @Test
+    void testEqualsWithNull() {
+        SzSourceSummary summary = new SzSourceSummary("CUSTOMERS");
+        assertNotEquals(null, summary);
+    }
+
+    @Test
+    void testEqualsWithDifferentClass() {
+        SzSourceSummary summary = new SzSourceSummary("CUSTOMERS");
+        assertNotEquals(summary, "CUSTOMERS");
+    }
+
+    @Test
+    void testHashCodeConsistency() {
+        SzSourceSummary summary1 = createTestSourceSummary();
+        SzSourceSummary summary2 = createTestSourceSummary();
+
+        assertEquals(summary1.hashCode(), summary2.hashCode());
+    }
+
+    @Test
+    void testHashCodeDifferentForDifferentObjects() {
+        SzSourceSummary summary1 = new SzSourceSummary("CUSTOMERS");
+        summary1.setRecordCount(1000L);
+
+        SzSourceSummary summary2 = new SzSourceSummary("VENDORS");
+        summary2.setRecordCount(1000L);
+
+        assertNotEquals(summary1.hashCode(), summary2.hashCode());
+    }
+
     private SzMatchCounts createTestMatchCounts(String matchKey, String principle) {
         SzMatchCounts counts = new SzMatchCounts(matchKey, principle);
         counts.setEntityCount(100L);

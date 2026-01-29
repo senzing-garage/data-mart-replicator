@@ -3,9 +3,10 @@ package com.senzing.datamart.reports.model;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * Describes the source summary and all cross-summaries with that data source.
@@ -34,11 +35,11 @@ public class SzSourceSummary implements Serializable {
     private long unmatchedRecordCount = 0L;
 
     /**
-     * The {@link Map} of {@link String} "versus" data source code keys to
+     * The {@link SortedMap} of {@link String} "versus" data source code keys to
      * {@link SzCrossSourceSummary} values describing the cross summary statistics
      * for that data source.
      */
-    private Map<String, SzCrossSourceSummary> crossSummaries = null;
+    private SortedMap<String, SzCrossSourceSummary> crossSummaries = null;
 
     /**
      * Default constructor.
@@ -59,7 +60,7 @@ public class SzSourceSummary implements Serializable {
         this.recordCount = 0L;
         this.entityCount = 0L;
         this.unmatchedRecordCount = 0L;
-        this.crossSummaries = new LinkedHashMap<>();
+        this.crossSummaries = new TreeMap<>();
     }
 
     /**
@@ -214,16 +215,56 @@ public class SzSourceSummary implements Serializable {
 
     /**
      * Overridden to return a diagnostic {@link String} describing this instance.
-     * 
+     *
      * @return A diagnostic {@link String} describing this instance.
      */
     @Override
     public String toString() {
         return "dataSource=[ " + this.getDataSource()
             + " ], recordCount=[ " + this.getRecordCount()
-            + " ], entityCount=[ " + this.getEntityCount() 
-            + " ], unmatchedRecordCount=[ " + this.getUnmatchedRecordCount() 
-            + " ], crossSourceSummaries=[ " + this.getCrossSourceSummaries() 
+            + " ], entityCount=[ " + this.getEntityCount()
+            + " ], unmatchedRecordCount=[ " + this.getUnmatchedRecordCount()
+            + " ], crossSourceSummaries=[ " + this.getCrossSourceSummaries()
             + " ]";
+    }
+
+    /**
+     * Overridden to return a hash code consistent with the {@link #equals(Object)}
+     * implementation.
+     *
+     * @return The hash code for this instance.
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hash(dataSource, entityCount, recordCount,
+                            unmatchedRecordCount, crossSummaries);
+    }
+
+    /**
+     * Overridden to return <code>true</code> if and only if the specified parameter
+     * is a non-null reference to an object of the same class with equivalent properties.
+     *
+     * @param obj The object to compare with.
+     *
+     * @return <code>true</code> if the specified parameter is an instance of the
+     *         same class with equivalent properties, otherwise <code>false</code>.
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (this == obj) {
+            return true;
+        }
+        if (this.getClass() != obj.getClass()) {
+            return false;
+        }
+        SzSourceSummary other = (SzSourceSummary) obj;
+        return Objects.equals(this.dataSource, other.dataSource)
+                && this.entityCount == other.entityCount
+                && this.recordCount == other.recordCount
+                && this.unmatchedRecordCount == other.unmatchedRecordCount
+                && Objects.equals(this.crossSummaries, other.crossSummaries);
     }
 }

@@ -838,7 +838,6 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
     protected synchronized InfoMessage<LeasedMessage> dequeueMessage(MessageProcessor processor) {
         // get the message
         InfoMessage<LeasedMessage> message = super.dequeueMessage(processor);
-
         // check if we got a message and renew its lease
         if (message != null) {
             Connection conn = null;

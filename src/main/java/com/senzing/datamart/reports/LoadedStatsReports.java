@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import com.senzing.datamart.model.SzReportKey;
 import com.senzing.datamart.reports.model.SzBoundType;
@@ -74,6 +75,10 @@ public final class LoadedStatsReports {
         PreparedStatement ps = null;
         ResultSet rs = null;
         SzLoadedStats result = new SzLoadedStats();
+        Set<String> unusedDataSources 
+            = (dataSources == null || dataSources.size() == 0)
+                ? null : new TreeSet<>(dataSources);
+        
         try {
             // get the total entity count
             queryingDatabase(timers, "selectEntityCount");
@@ -134,6 +139,9 @@ public final class LoadedStatsReports {
                     stats.setRecordCount(recordCount);
 
                     sourceStatsMap.put(dataSource, stats);
+                    if (unusedDataSources != null) {
+                        unusedDataSources.remove(dataSource);
+                    }
                 }
 
             } finally {
@@ -175,7 +183,7 @@ public final class LoadedStatsReports {
                     if (stats == null) {
                         stats = new SzSourceLoadedStats(dataSource);
                         logWarning("Missing entity and record count stats for data source, "
-                                + "but got unmatched record count stats: " + dataSource);
+                                   + "but got unmatched record count stats: " + dataSource);
                     }
 
                     // set the unmatched record count
@@ -183,6 +191,9 @@ public final class LoadedStatsReports {
 
                     // add the source stats to the result
                     result.addDataSourceCount(stats);
+                    if (unusedDataSources != null) {
+                        unusedDataSources.remove(dataSource);
+                    }
                 }
 
             } finally {
@@ -196,23 +207,25 @@ public final class LoadedStatsReports {
             // set the total unmatched record count
             result.setTotalUnmatchedRecordCount(totalUnmatchedRecordCount);
 
-            if (dataSources != null) {
-                // iterate over the data sources
-                dataSources.forEach(dataSource -> {
-                    if (!sourceStatsMap.containsKey(dataSource)) {
-                        SzSourceLoadedStats stats = new SzSourceLoadedStats(dataSource);
-                        stats.setEntityCount(0);
-                        stats.setRecordCount(0);
-                        stats.setUnmatchedRecordCount(0);
-                        sourceStatsMap.put(dataSource, stats);
-                    }
+            if (unusedDataSources != null) {
+                // iterate over the unused data sources
+                unusedDataSources.forEach(dataSource -> {
+                    SzSourceLoadedStats stats = new SzSourceLoadedStats(dataSource);
+                    stats.setEntityCount(0);
+                    stats.setRecordCount(0);
+                    stats.setUnmatchedRecordCount(0);
+                    sourceStatsMap.put(dataSource, stats);
                 });
             }
 
             // add the source stats to the result
             sourceStatsMap.values().forEach(stats -> {
-                logWarning("Missing unmatched record count stats for data source, but "
-                        + "got entity and record count stats: " + stats.getDataSource());
+                if (!unusedDataSources.contains(stats.getDataSource())) {
+                    logWarning("Missing unmatched record count stats for data source (" 
+                                + stats.getDataSource() + "), but got entity and record "
+                                + "count stats:  dataSources=[ " + dataSources 
+                                + " ], unusedDataSources=[ " + unusedDataSources + " ]");
+                }
                 result.addDataSourceCount(stats);
             });
 
@@ -240,7 +253,7 @@ public final class LoadedStatsReports {
      *         entity counts and unmatched record counts for the specified 
      *         data source.
      * 
-     * @throws NullPointerException If the specified {@link Connection} is
+     * @throws NullPointerException If either of the specified parameters is
      *                              <code>null</code>.
      * 
      * @throws SQLException If a JDBC failure occurs.

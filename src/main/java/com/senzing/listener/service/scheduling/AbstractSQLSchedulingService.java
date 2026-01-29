@@ -31,7 +31,8 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
     /**
      * The {@link Calendar} to use for retrieving timestamps from the database.
      */
-    private static final Calendar UTC_CALENDAR = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+    private static final Calendar UTC_CALENDAR 
+        = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 
     /**
      * The initialization parameter key for checking if the persistent store of
@@ -99,8 +100,11 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
             try {
                 this.connectionProvider = ConnectionProvider.REGISTRY.lookup(providerKey);
             } catch (NameNotFoundException e) {
-                throw new ServiceSetupException("No ConnectionProvider was registered to the name specified by the "
-                        + "\"" + CONNECTION_PROVIDER_KEY + "\" initialization parameter: " + providerKey);
+                throw new ServiceSetupException(
+                    "No ConnectionProvider was registered to the name specified by the "
+                    + "\"" + CONNECTION_PROVIDER_KEY 
+                    + "\" initialization parameter: " 
+                    + providerKey);
             }
 
             // set the database type
@@ -110,7 +114,8 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
             this.ensureSchema(clean);
 
         } catch (SQLException e) {
-            throw new ServiceSetupException("Failed to connect to database or initialize schema.", e);
+            throw new ServiceSetupException(
+                "Failed to connect to database or initialize schema.", e);
         }
     }
 
@@ -163,7 +168,9 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
      * persistent store.
      */
     @Override
-    protected synchronized void enqueueFollowUpTask(Task task) throws ServiceExecutionException {
+    protected synchronized void enqueueFollowUpTask(Task task) 
+        throws ServiceExecutionException 
+    {
         Connection conn = null;
         boolean success = false;
         try {
@@ -172,7 +179,6 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
 
             // update the multiplicity if the row exists
             boolean updated = this.incrementFollowUpMultiplicity(conn, task);
-
             // check if we updated a row
             if (!updated) {
                 // insert a new row since none was updated
@@ -211,10 +217,14 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
         PreparedStatement ps = null;
         try {
             // prepare the statement
-            ps = conn.prepareStatement("UPDATE sz_follow_up_tasks " + "SET multiplicity = multiplicity + 1 "
-                    + "WHERE signature = ? " + "AND allow_collapse_flag = 1 " + "AND expire_lease_at IS NULL "
+            ps = conn.prepareStatement("UPDATE sz_follow_up_tasks " 
+                    + "SET multiplicity = multiplicity + 1 "
+                    + "WHERE signature = ? " 
+                    + "AND allow_collapse_flag = 1 " 
+                    + "AND expire_lease_at IS NULL "
                     + "AND task_id = (SELECT MAX(task_id) FROM sz_follow_up_tasks "
-                    + "WHERE signature = ? AND allow_collapse_flag = 1 " + "AND expire_lease_at IS NULL)");
+                    + "WHERE signature = ? AND allow_collapse_flag = 1 " 
+                    + "AND expire_lease_at IS NULL)");
 
             ps.setString(1, task.getSignature());
             ps.setString(2, task.getSignature());
@@ -228,7 +238,8 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
             } else {
                 logError("MULTIPLE ROWS UPDATED FOR FOLLOW-UP TASK: ", task);
                 throw new IllegalStateException(
-                        "Somehow updated multiple rows when updating task multiplicity.  " + "task=[ " + task + " ]");
+                        "Somehow updated multiple rows when updating task multiplicity.  " 
+                        + "task=[ " + task + " ]");
             }
 
         } finally {
@@ -247,7 +258,9 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
         PreparedStatement ps = null;
         try {
             ps = conn.prepareStatement(
-                    "INSERT INTO sz_follow_up_tasks (" + "signature, allow_collapse_flag, json_text) VALUES (?, ?, ?)");
+                "INSERT INTO sz_follow_up_tasks (" 
+                + "signature, allow_collapse_flag, json_text) VALUES (?, ?, ?)");
+            
             ps.setString(1, task.getSignature());
             ps.setInt(2, (task.isAllowingCollapse() ? 1 : 0));
             ps.setString(3, task.toJsonText());
@@ -323,7 +336,9 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
      * @throws ServiceExecutionException If a failure occurs.
      */
     @Override
-    protected synchronized List<ScheduledTask> dequeueFollowUpTasks(int count) throws ServiceExecutionException {
+    protected synchronized List<ScheduledTask> dequeueFollowUpTasks(int count)
+        throws ServiceExecutionException 
+    {
         Connection conn = null;
         boolean success = false;
         try {
@@ -345,7 +360,6 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
 
             // lease the follow-up tasks
             int leasedCount = this.leaseFollowUpTasks(conn, count, leaseId);
-
             // this.dumpFollowUpTable();
 
             // check if no rows were updated
@@ -392,8 +406,10 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
             PreparedStatement ps = null;
             try {
                 // first release the lease on any task where the lease has expired
-                ps = conn.prepareStatement("UPDATE sz_follow_up_tasks " + "SET lease_id = NULL, expire_lease_at = NULL "
-                        + "WHERE lease_id IS NOT NULL " + "AND expire_lease_at < " + dbType.getTimestampBindingSQL());
+                ps = conn.prepareStatement("UPDATE sz_follow_up_tasks " 
+                        + "SET lease_id = NULL, expire_lease_at = NULL "
+                        + "WHERE lease_id IS NOT NULL " 
+                        + "AND expire_lease_at < " + dbType.getTimestampBindingSQL());
 
                 // don't be too aggressive on expiring leases
                 long now = System.currentTimeMillis();
@@ -420,7 +436,9 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
      * @return The actual number of follow-up tasks that were leased.
      * @throws SQLException If a JDBC failure occurs.
      */
-    protected int leaseFollowUpTasks(Connection conn, int limit, String leaseId) throws SQLException {
+    protected int leaseFollowUpTasks(Connection conn, int limit, String leaseId)
+        throws SQLException 
+    {
         DatabaseType dbType = this.getDatabaseType();
 
         PreparedStatement ps = null;
@@ -441,12 +459,16 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
             Timestamp timeoutTime = new Timestamp(timeoutMillis);
 
             // now let's lease some new follow up tasks
-            ps = conn.prepareStatement("UPDATE sz_follow_up_tasks " + "SET lease_id = ?, " + "expire_lease_at = "
-                    + dbType.getTimestampBindingSQL() + " "
-                    + "WHERE task_id IN (SELECT task_id FROM sz_follow_up_tasks "
-                    + "WHERE lease_id IS NULL AND expire_lease_at IS NULL " + "AND (modified_on < "
-                    + dbType.getTimestampBindingSQL() + " " + "OR created_on < " + dbType.getTimestampBindingSQL()
-                    + ") " + "ORDER BY created_on " + "LIMIT ?)");
+            ps = conn.prepareStatement(
+                "UPDATE sz_follow_up_tasks " 
+                + "SET lease_id = ?, " 
+                + "expire_lease_at = " + dbType.getTimestampBindingSQL() + " "
+                + "WHERE task_id IN (SELECT task_id FROM sz_follow_up_tasks "
+                + "WHERE lease_id IS NULL AND expire_lease_at IS NULL " 
+                + "AND (modified_on < " + dbType.getTimestampBindingSQL() + " " 
+                + "OR created_on < " + dbType.getTimestampBindingSQL() + ") " 
+                + "ORDER BY created_on " 
+                + "LIMIT ?)");
 
             long leaseExpire = now + (2 * this.getFollowUpTimeout());
             Timestamp expireTime = new Timestamp(leaseExpire);
@@ -476,13 +498,17 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
      *         leased follow-up tasks.
      * @throws SQLException If a JDBC failure occurs.
      */
-    protected List<ScheduledTask> getLeasedFollowUpTasks(Connection conn, String leaseId) throws SQLException {
+    protected List<ScheduledTask> getLeasedFollowUpTasks(Connection conn, String leaseId)
+        throws SQLException 
+    {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
             // set the leased rows
-            ps = conn.prepareStatement("SELECT " + "task_id, expire_lease_at, multiplicity, json_text, created_on "
-                    + "FROM sz_follow_up_tasks " + "WHERE lease_id = ?");
+            ps = conn.prepareStatement(
+                "SELECT task_id, expire_lease_at, multiplicity, json_text, created_on "
+                + "FROM sz_follow_up_tasks " 
+                + "WHERE lease_id = ?");
 
             ps.setString(1, leaseId);
 
@@ -500,8 +526,11 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
                 long now = System.currentTimeMillis();
                 long elapsedSinceCreation = now - createdOn.getTime();
 
-                ScheduledTask task = new ScheduledTask(jsonText, followUpId, multiplicity, expTime.getTime(),
-                        elapsedSinceCreation);
+                ScheduledTask task = new ScheduledTask(jsonText, 
+                                                       followUpId,
+                                                       multiplicity,
+                                                       expTime.getTime(),
+                                                       elapsedSinceCreation);
 
                 result.add(task);
             }
@@ -534,7 +563,9 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
      *
      * {@inheritDoc}
      */
-    protected synchronized void renewFollowUpTasks(List<ScheduledTask> tasks) throws ServiceExecutionException {
+    protected synchronized void renewFollowUpTasks(List<ScheduledTask> tasks)
+        throws ServiceExecutionException 
+    {
         Connection conn = null;
         boolean success = false;
         try {
@@ -557,8 +588,9 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
             int updateCount = this.updateLeaseExpiration(conn, expireTime, leaseIdSet);
 
             if (updateCount != tasks.size()) {
-                logWarning("WARNING: Renewed lease on " + updateCount + " follow-up tasks when expected to update "
-                        + tasks.size() + " follow-up tasks: " + leaseIdSet);
+                logWarning("WARNING: Renewed lease on " + updateCount 
+                    + " follow-up tasks when expected to update "
+                    + tasks.size() + " follow-up tasks: " + leaseIdSet);
             }
 
             // commit the change
@@ -587,7 +619,11 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
      * @return The number of follow-up tasks updated.
      * @throws SQLException If a JDBC failure occurs.
      */
-    protected int updateLeaseExpiration(Connection conn, Timestamp expireTime, Set<String> leaseIdSet) throws SQLException {
+    protected int updateLeaseExpiration(Connection  conn, 
+                                        Timestamp   expireTime, 
+                                        Set<String> leaseIdSet) 
+        throws SQLException 
+    {
         DatabaseType dbType = this.getDatabaseType();
 
         PreparedStatement ps = null;
@@ -595,8 +631,11 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
             int count = leaseIdSet.size();
 
             // build the SQL
-            StringBuilder sb = new StringBuilder("UPDATE sz_follow_up_tasks " + "SET expire_lease_at = "
-                    + dbType.getTimestampBindingSQL() + " " + "WHERE lease_id IN (");
+            StringBuilder sb = new StringBuilder("UPDATE sz_follow_up_tasks " 
+                    + "SET expire_lease_at = "
+                    + dbType.getTimestampBindingSQL() + " " 
+                    + "WHERE lease_id IN (");
+            
             String prefix = "";
             for (int index = 0; index < count; index++) {
                 sb.append(prefix).append("?");
@@ -629,7 +668,9 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
      *
      * {@inheritDoc}
      */
-    protected synchronized void completeFollowUpTask(ScheduledTask task) throws ServiceExecutionException {
+    protected synchronized void completeFollowUpTask(ScheduledTask task)
+        throws ServiceExecutionException 
+    {
         Connection conn = null;
         boolean success = false;
         try {
@@ -646,7 +687,8 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
             success = true;
 
         } catch (SQLException e) {
-            throw new ServiceExecutionException("Failed to delete completed follow-up task", e);
+            throw new ServiceExecutionException(
+                "Failed to delete completed follow-up task", e);
 
         } finally {
             if (!success) {
@@ -667,7 +709,9 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
      *         if not (usually because it was already deleted).
      * @throws SQLException If a JDBC failure occurs.
      */
-    protected boolean deleteFollowUpTask(Connection conn, ScheduledTask task) throws SQLException {
+    protected boolean deleteFollowUpTask(Connection conn, ScheduledTask task) 
+        throws SQLException 
+    {
         PreparedStatement ps = null;
         try {
             ps = conn.prepareStatement("DELETE FROM sz_follow_up_tasks WHERE task_id = ?");
@@ -681,7 +725,8 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
             int rowCount = ps.executeUpdate();
 
             if (rowCount > 1) {
-                throw new SQLException("Multiple follow-up rows deleted when one was expected: " + rowCount);
+                throw new SQLException(
+                    "Multiple follow-up rows deleted when one was expected: " + rowCount);
             }
 
             return (rowCount == 1);

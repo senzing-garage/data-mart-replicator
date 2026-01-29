@@ -120,4 +120,54 @@ class SzEntitySizeCountTest {
         SzEntitySizeCount count = new SzEntitySizeCount();
         assertTrue(count instanceof java.io.Serializable);
     }
+
+    @Test
+    void testSetEntitySizeWithZero() {
+        SzEntitySizeCount count = new SzEntitySizeCount();
+        assertThrows(IllegalArgumentException.class, () -> {
+            count.setEntitySize(0);
+        });
+    }
+
+    @Test
+    void testSetEntitySizeWithNegative() {
+        SzEntitySizeCount count = new SzEntitySizeCount();
+        assertThrows(IllegalArgumentException.class, () -> {
+            count.setEntitySize(-1);
+        });
+    }
+
+    @Test
+    void testSetEntitySizeWithLargeNegative() {
+        SzEntitySizeCount count = new SzEntitySizeCount();
+        assertThrows(IllegalArgumentException.class, () -> {
+            count.setEntitySize(-100);
+        });
+    }
+
+    @Test
+    void testSetEntityCountWithNegative() {
+        SzEntitySizeCount count = new SzEntitySizeCount();
+        assertThrows(IllegalArgumentException.class, () -> {
+            count.setEntityCount(-1L);
+        });
+    }
+
+    @Test
+    void testSetEntityCountWithLargeNegative() {
+        SzEntitySizeCount count = new SzEntitySizeCount();
+        assertThrows(IllegalArgumentException.class, () -> {
+            count.setEntityCount(-1000L);
+        });
+    }
+
+    @Test
+    void testSetEntityCountWithZeroIsValid() {
+        SzEntitySizeCount count = new SzEntitySizeCount();
+        // Zero entity count should be valid (no entities of this size)
+        assertDoesNotThrow(() -> {
+            count.setEntityCount(0L);
+        });
+        assertEquals(0L, count.getEntityCount());
+    }
 }

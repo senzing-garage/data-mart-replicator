@@ -154,7 +154,7 @@ public interface SQLClient {
     PreparedStatement ps = null;
     DatabaseType dbType = this.getDatabaseType();
 
-    try {
+    try {      
       // prepare the statement
       ps = conn.prepareStatement(
           "UPDATE sz_message_queue "
