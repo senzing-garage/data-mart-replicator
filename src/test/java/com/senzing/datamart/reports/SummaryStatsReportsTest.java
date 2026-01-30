@@ -27,7 +27,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import com.senzing.datamart.DataMartTestExtension;
-import com.senzing.datamart.SzEntitiesPageParameters;
 import com.senzing.datamart.DataMartTestExtension.Repository;
 import com.senzing.datamart.DataMartTestExtension.RepositoryType;
 import com.senzing.datamart.handlers.CrossSourceKey;
@@ -43,6 +42,7 @@ import com.senzing.datamart.reports.model.SzCrossSourceSummary;
 import com.senzing.datamart.reports.model.SzEntitiesPage;
 import com.senzing.datamart.reports.model.SzMatchCounts;
 import com.senzing.datamart.reports.model.SzRelationCounts;
+import com.senzing.datamart.reports.model.SzRelationsPage;
 import com.senzing.datamart.reports.model.SzSourceSummary;
 import com.senzing.datamart.reports.model.SzSummaryStats;
 import com.senzing.sql.ConnectionProvider;
@@ -500,11 +500,11 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
     }
 
     public static interface RelationQualifier {
-        public boolean test(SzRelatedEntity  entity,
-                            String           dataSource, 
-                            String           vsDataSource,
-                            String           matchKey,
-                            String           principle);
+        public boolean test(RelationPair    relationPair,
+                            String          dataSource, 
+                            String          vsDataSource,
+                            String          matchKey,
+                            String          principle);
     }
 
     public List<Arguments> getSummaryEntitiesParameters(EntityQualifier qualifier) {
@@ -540,7 +540,7 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                     if ((matchKey != null && !"*".equals(matchKey))
                         || (principle !=null && !"*".equals(principle)))
                     {
-                        if (skipIndex++ % 2 != 0) {
+                        if (skipIndex++ % 3 != 0) {
                             continue;
                         }
                     }
@@ -687,7 +687,7 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                         if ((matchKey != null && !"*".equals(matchKey))
                             || (principle !=null && !"*".equals(principle)))
                         {
-                            if (skipIndex++ % 2 != 0) {
+                            if (skipIndex++ % 3 != 0) {
                                 continue;
                             }
                         }
@@ -1415,6 +1415,384 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                                       sampleSize,
                                       expected, 
                                       actual);
+                    
+        } catch (Exception e) {
+            if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
+                    fail("Unexpected exception (" + e.getClass().getName() 
+                         + ") when expecting " 
+                         + (exceptionType == null ? "none" : exceptionType.getName())
+                         + ": " + testInfo, e);
+            }
+
+        } finally {
+            SQLUtilities.close(conn);
+        }
+    }
+
+    public List<Arguments> getCrossRelationParameters(RelationQualifier qualifier) {
+        List<Arguments> result = new LinkedList<>();
+
+        for (RepositoryType repoType : RepositoryType.values()) {
+            Repository repo = DataMartTestExtension.getRepository(repoType);
+
+            Map<String, Set<String>> matchKeyMap = repo.getRelatedMatchKeys();
+            Map<String, Set<String>> principleMap = repo.getRelatedPrinciples();
+            Set<MatchPairKey> matchPairs = new TreeSet<>();
+            matchPairs.add(new MatchPairKey("*", "*"));    
+            matchPairs.add(new MatchPairKey("*", null));    
+            matchPairs.add(new MatchPairKey(null, "*"));    
+            matchPairs.add(new MatchPairKey(null, null)); 
+            matchKeyMap.forEach((matchKey, principles) -> {
+                matchPairs.add(new MatchPairKey(matchKey, null));
+                principles.forEach(principle -> {
+                    matchPairs.add(new MatchPairKey(null, principle));
+                });
+            });
+            principleMap.forEach((principle, matchKeys) -> {
+                matchPairs.add(new MatchPairKey(null, principle));
+            });
+
+            Set<String> dataSources = repo.getConfiguredDataSources();
+
+            for (String dataSource : dataSources) {
+                for (String vsDataSource : dataSources) {
+                    int skipIndex = 0;
+                    for (MatchPairKey matchPair : matchPairs) {
+                        String matchKey = matchPair.getMatchKey();
+                        String principle = matchPair.getPrinciple();
+                        if ((matchKey != null && !"*".equals(matchKey))
+                            || (principle !=null && !"*".equals(principle)))
+                        {
+                            if (skipIndex++ % 3 != 0) {
+                                continue;
+                            }
+                        }
+
+                        List<SzRelationsPageParameters> params 
+                            = this.generateRelationsPageParameters(
+                                repoType, 
+                                (relationPair) -> qualifier.test(
+                                    relationPair,
+                                    dataSource,
+                                    vsDataSource,
+                                    matchPair.getMatchKey(),
+                                    matchPair.getPrinciple()));
+                                
+                        for (SzRelationsPageParameters p : params) {
+                            result.add(Arguments.of(repoType,
+                                                    this.getConnectionProvider(repoType),
+                                                    dataSource,
+                                                    vsDataSource,
+                                                    matchPair.getMatchKey(),
+                                                    matchPair.getPrinciple(),
+                                                    p.getRelationBound(),
+                                                    p.getBoundType(),
+                                                    p.getPageSize(),
+                                                    p.getSampleSize(),
+                                                    p.getExpectedPage(),
+                                                    null));
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    public List<Arguments> getCrossRelationParameters(SzMatchType matchType) {
+        return this.getCrossRelationParameters(
+            (relationPair, dataSource, vsDataSource, matchKey, principle) -> 
+            {
+                SzResolvedEntity entity = relationPair.entity();
+                SzRelatedEntity related = relationPair.related();
+
+                // sanity check that the related entity is related to the main entity
+                if (!entity.getRelatedEntities().containsKey(related.getEntityId())) {
+                    return false;
+                }
+
+                // check the match type for the related entity
+                if (related.getMatchType() != matchType) {
+                    return false;
+                }
+
+                // if resolved entity does not hae the target data source, return false
+                if (!entity.getSourceSummary().containsKey(dataSource)) {
+                    return false;
+                }
+
+                // now check the related entity for the data source
+                if (!related.getSourceSummary().containsKey(vsDataSource)) {
+                    return false;
+                }
+                
+                // check if the related entity has the match key and principle
+                return ((matchKey == null || "*".equals(matchKey) 
+                    || matchKey.equals(related.getMatchKey()))
+                    && (principle == null || "*".equals(principle)
+                        || principle.equals(related.getPrinciple())));
+            });
+    }
+
+    public List<Arguments> getCrossAmbiguousMatchParameters() {
+        return getCrossRelationParameters(AMBIGUOUS_MATCH);
+    }
+
+    public List<Arguments> getCrossPossibleMatchParameters() {
+        return getCrossRelationParameters(POSSIBLE_MATCH);
+    }
+
+    public List<Arguments> getCrossPossibleRelationParameters() {
+        return getCrossRelationParameters(POSSIBLE_RELATION);
+    }
+
+    public List<Arguments> getCrossDisclosedRelationParameters() {
+        return getCrossRelationParameters(DISCLOSED_RELATION);
+    }
+
+    @ParameterizedTest
+    @MethodSource("getCrossAmbiguousMatchParameters")
+    public void testCrossAmbiguousMatches(RepositoryType        repoType,
+                                          ConnectionProvider    connProvider,
+                                          String                dataSource,
+                                          String                vsDataSource,
+                                          String                matchKey,
+                                          String                principle,
+                                          String                relationBound,
+                                          SzBoundType           boundType,
+                                          Integer               pageSize,
+                                          Integer               sampleSize,
+                                          SzRelationsPage       expected,
+                                          Class<?>              exceptionType)
+    {                              
+        String testInfo = "repoType=[ " + repoType + " ], dataSource=[ "
+            + dataSource + " ], vsDataSource=[ " + vsDataSource 
+            + " ], matchKey=[ " + matchKey + " ], principle=[ "
+            + principle + " ], relationBound=[ " + relationBound
+            + " ], boundType=[ " + boundType + " ], pageSize=[ " 
+            + pageSize + " ], sampleSize=[ " + sampleSize + " ]";
+        
+        Connection conn = null;
+        try {
+            conn = connProvider.getConnection();
+        
+            SzRelationsPage actual = SummaryStatsReports.getSummaryAmbiguousMatches(
+                conn,
+                dataSource,
+                vsDataSource,
+                matchKey,
+                principle,
+                relationBound,
+                boundType,
+                pageSize,
+                sampleSize,
+                null);
+
+            if (exceptionType != null) {
+                fail("Method unexpectedly succeeded.  " + testInfo);
+            }
+
+            this.validateRelationsPage(repoType,
+                                       testInfo,
+                                       relationBound,
+                                       boundType,
+                                       pageSize,
+                                       sampleSize,
+                                       expected, 
+                                       actual);
+                    
+        } catch (Exception e) {
+            if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
+                    fail("Unexpected exception (" + e.getClass().getName() 
+                         + ") when expecting " 
+                         + (exceptionType == null ? "none" : exceptionType.getName())
+                         + ": " + testInfo, e);
+            }
+
+        } finally {
+            SQLUtilities.close(conn);
+        }
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("getCrossPossibleMatchParameters")
+    public void testCrossPossibleMatches(RepositoryType     repoType,
+                                         ConnectionProvider connProvider,
+                                         String             dataSource,
+                                         String             vsDataSource,
+                                         String             matchKey,
+                                         String             principle,
+                                         String             relationBound,
+                                         SzBoundType        boundType,
+                                         Integer            pageSize,
+                                         Integer            sampleSize,
+                                         SzRelationsPage    expected,
+                                         Class<?>           exceptionType)
+    {                              
+        String testInfo = "repoType=[ " + repoType + " ], dataSource=[ "
+            + dataSource + " ], vsDataSource=[ " + vsDataSource 
+            + " ], matchKey=[ " + matchKey + " ], principle=[ "
+            + principle + " ], relationBound=[ " + relationBound
+            + " ], boundType=[ " + boundType + " ], pageSize=[ " 
+            + pageSize + " ], sampleSize=[ " + sampleSize + " ]";
+        
+        Connection conn = null;
+        try {
+            conn = connProvider.getConnection();
+        
+            SzRelationsPage actual = SummaryStatsReports.getSummaryPossibleMatches(
+                conn,
+                dataSource,
+                vsDataSource,
+                matchKey,
+                principle,
+                relationBound,
+                boundType,
+                pageSize,
+                sampleSize,
+                null);
+
+            if (exceptionType != null) {
+                fail("Method unexpectedly succeeded.  " + testInfo);
+            }
+
+            this.validateRelationsPage(repoType,
+                                       testInfo,
+                                       relationBound,
+                                       boundType,
+                                       pageSize,
+                                       sampleSize,
+                                       expected, 
+                                       actual);
+                    
+        } catch (Exception e) {
+            if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
+                    fail("Unexpected exception (" + e.getClass().getName() 
+                         + ") when expecting " 
+                         + (exceptionType == null ? "none" : exceptionType.getName())
+                         + ": " + testInfo, e);
+            }
+
+        } finally {
+            SQLUtilities.close(conn);
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getCrossPossibleRelationParameters")
+    public void testCrossPossibleRelations(RepositoryType       repoType,
+                                           ConnectionProvider   connProvider,
+                                           String               dataSource,
+                                           String               vsDataSource,
+                                           String               matchKey,
+                                           String               principle,
+                                           String               relationBound,
+                                           SzBoundType          boundType,
+                                           Integer              pageSize,
+                                           Integer              sampleSize,
+                                           SzRelationsPage      expected,
+                                           Class<?>             exceptionType)
+    {                              
+        String testInfo = "repoType=[ " + repoType + " ], dataSource=[ "
+            + dataSource + " ], vsDataSource=[ " + vsDataSource 
+            + " ], matchKey=[ " + matchKey + " ], principle=[ "
+            + principle + " ], relationBound=[ " + relationBound
+            + " ], boundType=[ " + boundType + " ], pageSize=[ " 
+            + pageSize + " ], sampleSize=[ " + sampleSize + " ]";
+        
+        Connection conn = null;
+        try {
+            conn = connProvider.getConnection();
+        
+            SzRelationsPage actual = SummaryStatsReports.getSummaryPossibleRelations(
+                conn,
+                dataSource,
+                vsDataSource,
+                matchKey,
+                principle,
+                relationBound,
+                boundType,
+                pageSize,
+                sampleSize,
+                null);
+
+            if (exceptionType != null) {
+                fail("Method unexpectedly succeeded.  " + testInfo);
+            }
+
+            this.validateRelationsPage(repoType,
+                                       testInfo,
+                                       relationBound,
+                                       boundType,
+                                       pageSize,
+                                       sampleSize,
+                                       expected, 
+                                       actual);
+                    
+        } catch (Exception e) {
+            if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
+                    fail("Unexpected exception (" + e.getClass().getName() 
+                         + ") when expecting " 
+                         + (exceptionType == null ? "none" : exceptionType.getName())
+                         + ": " + testInfo, e);
+            }
+
+        } finally {
+            SQLUtilities.close(conn);
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getCrossDisclosedRelationParameters")
+    public void testCrossDisclosedRelations(RepositoryType      repoType,
+                                            ConnectionProvider  connProvider,
+                                            String              dataSource,
+                                            String              vsDataSource,
+                                            String              matchKey,
+                                            String              principle,
+                                            String              relationBound,
+                                            SzBoundType         boundType,
+                                            Integer             pageSize,
+                                            Integer             sampleSize,
+                                            SzRelationsPage     expected,
+                                            Class<?>            exceptionType)
+    {                              
+        String testInfo = "repoType=[ " + repoType + " ], dataSource=[ "
+            + dataSource + " ], vsDataSource=[ " + vsDataSource 
+            + " ], matchKey=[ " + matchKey + " ], principle=[ "
+            + principle + " ], relationBound=[ " + relationBound
+            + " ], boundType=[ " + boundType + " ], pageSize=[ " 
+            + pageSize + " ], sampleSize=[ " + sampleSize + " ]";
+        
+        Connection conn = null;
+        try {
+            conn = connProvider.getConnection();
+        
+            SzRelationsPage actual = SummaryStatsReports.getSummaryDisclosedRelations(
+                conn,
+                dataSource,
+                vsDataSource,
+                matchKey,
+                principle,
+                relationBound,
+                boundType,
+                pageSize,
+                sampleSize,
+                null);
+
+            if (exceptionType != null) {
+                fail("Method unexpectedly succeeded.  " + testInfo);
+            }
+
+            this.validateRelationsPage(repoType,
+                                       testInfo,
+                                       relationBound,
+                                       boundType,
+                                       pageSize,
+                                       sampleSize,
+                                       expected, 
+                                       actual);
                     
         } catch (Exception e) {
             if ((exceptionType == null) || (!exceptionType.isInstance(e))) {

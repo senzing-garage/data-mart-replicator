@@ -22,7 +22,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import com.senzing.datamart.DataMartTestExtension;
-import com.senzing.datamart.SzEntitiesPageParameters;
 import com.senzing.datamart.DataMartTestExtension.Repository;
 import com.senzing.datamart.DataMartTestExtension.RepositoryType;
 import com.senzing.datamart.reports.model.SzBoundType;

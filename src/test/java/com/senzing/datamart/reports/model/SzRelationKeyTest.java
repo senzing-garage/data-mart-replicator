@@ -343,4 +343,270 @@ class SzRelationKeyTest {
         SzRelationKey key = new SzRelationKey(100L, 200L);
         assertTrue(key instanceof java.io.Serializable, "SzRelationKey should be Serializable");
     }
+
+    // ========================================================================
+    // parse(String) tests
+    // ========================================================================
+
+    @Test
+    void testParseWithNull() {
+        SzRelationKey result = SzRelationKey.parse(null);
+        assertNull(result, "parse(null) should return null");
+    }
+
+    @Test
+    void testParseWithEmptyString() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            SzRelationKey.parse("");
+        }, "parse(\"\") should throw IllegalArgumentException");
+    }
+
+    @Test
+    void testParseWithNoColon() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            SzRelationKey.parse("100200");
+        }, "parse without colon should throw IllegalArgumentException");
+    }
+
+    @Test
+    void testParseWithColonAtStart() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            SzRelationKey.parse(":200");
+        }, "parse with colon at start should throw IllegalArgumentException");
+    }
+
+    @Test
+    void testParseWithColonAtEnd() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            SzRelationKey.parse("100:");
+        }, "parse with colon at end should throw IllegalArgumentException");
+    }
+
+    @Test
+    void testParseWithOnlyColon() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            SzRelationKey.parse(":");
+        }, "parse with only colon should throw IllegalArgumentException");
+    }
+
+    @Test
+    void testParseWithNonNumericEntityId() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            SzRelationKey.parse("abc:200");
+        }, "parse with non-numeric entityId should throw IllegalArgumentException");
+    }
+
+    @Test
+    void testParseWithNonNumericRelatedId() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            SzRelationKey.parse("100:xyz");
+        }, "parse with non-numeric relatedId should throw IllegalArgumentException");
+    }
+
+    @Test
+    void testParseWithBothNonNumeric() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            SzRelationKey.parse("abc:xyz");
+        }, "parse with both non-numeric should throw IllegalArgumentException");
+    }
+
+    @Test
+    void testParseWithMultipleColons() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            SzRelationKey.parse("100:200:300");
+        }, "parse with multiple colons should throw IllegalArgumentException");
+    }
+
+    @Test
+    void testParseWithValidPositiveValues() {
+        SzRelationKey key = SzRelationKey.parse("100:200");
+
+        assertNotNull(key);
+        assertEquals(100L, key.getEntityId());
+        assertEquals(200L, key.getRelatedId());
+    }
+
+    @Test
+    void testParseWithZeroValues() {
+        SzRelationKey key = SzRelationKey.parse("0:0");
+
+        assertNotNull(key);
+        assertEquals(0L, key.getEntityId());
+        assertEquals(0L, key.getRelatedId());
+    }
+
+    @Test
+    void testParseWithNegativeValues() {
+        SzRelationKey key = SzRelationKey.parse("-100:-200");
+
+        assertNotNull(key);
+        assertEquals(-100L, key.getEntityId());
+        assertEquals(-200L, key.getRelatedId());
+    }
+
+    @Test
+    void testParseWithLargeValues() {
+        String text = Long.MAX_VALUE + ":" + (Long.MAX_VALUE - 1);
+        SzRelationKey key = SzRelationKey.parse(text);
+
+        assertNotNull(key);
+        assertEquals(Long.MAX_VALUE, key.getEntityId());
+        assertEquals(Long.MAX_VALUE - 1, key.getRelatedId());
+    }
+
+    @Test
+    void testParseRoundTrip() {
+        SzRelationKey original = new SzRelationKey(12345L, 67890L);
+        String text = original.toString();
+        SzRelationKey parsed = SzRelationKey.parse(text);
+
+        assertEquals(original, parsed, "Round-trip through toString/parse should preserve value");
+        assertEquals(original.getEntityId(), parsed.getEntityId());
+        assertEquals(original.getRelatedId(), parsed.getRelatedId());
+    }
+
+    @Test
+    void testParseRoundTripWithNegativeValues() {
+        SzRelationKey original = new SzRelationKey(-12345L, -67890L);
+        String text = original.toString();
+        SzRelationKey parsed = SzRelationKey.parse(text);
+
+        assertEquals(original, parsed, "Round-trip should work with negative values");
+    }
+
+    @Test
+    void testParseRoundTripWithZeroValues() {
+        SzRelationKey original = new SzRelationKey(0L, 0L);
+        String text = original.toString();
+        SzRelationKey parsed = SzRelationKey.parse(text);
+
+        assertEquals(original, parsed, "Round-trip should work with zero values");
+    }
+
+    // ========================================================================
+    // parse(String) tests with "max" token
+    // ========================================================================
+
+    @Test
+    void testParseWithMaxForEntityId() {
+        SzRelationKey key = SzRelationKey.parse("max:200");
+
+        assertNotNull(key);
+        assertEquals(Long.MAX_VALUE, key.getEntityId());
+        assertEquals(200L, key.getRelatedId());
+    }
+
+    @Test
+    void testParseWithMaxForRelatedId() {
+        SzRelationKey key = SzRelationKey.parse("100:max");
+
+        assertNotNull(key);
+        assertEquals(100L, key.getEntityId());
+        assertEquals(Long.MAX_VALUE, key.getRelatedId());
+    }
+
+    @Test
+    void testParseWithMaxForBoth() {
+        SzRelationKey key = SzRelationKey.parse("max:max");
+
+        assertNotNull(key);
+        assertEquals(Long.MAX_VALUE, key.getEntityId());
+        assertEquals(Long.MAX_VALUE, key.getRelatedId());
+    }
+
+    @Test
+    void testParseWithMaxCaseInsensitive() {
+        SzRelationKey key1 = SzRelationKey.parse("MAX:200");
+        SzRelationKey key2 = SzRelationKey.parse("Max:200");
+        SzRelationKey key3 = SzRelationKey.parse("MaX:200");
+
+        assertEquals(Long.MAX_VALUE, key1.getEntityId());
+        assertEquals(Long.MAX_VALUE, key2.getEntityId());
+        assertEquals(Long.MAX_VALUE, key3.getEntityId());
+    }
+
+    // ========================================================================
+    // parse(String) tests with whitespace tolerance
+    // ========================================================================
+
+    @Test
+    void testParseWithLeadingWhitespaceOnEntityId() {
+        SzRelationKey key = SzRelationKey.parse("  100:200");
+
+        assertNotNull(key);
+        assertEquals(100L, key.getEntityId());
+        assertEquals(200L, key.getRelatedId());
+    }
+
+    @Test
+    void testParseWithTrailingWhitespaceOnEntityId() {
+        SzRelationKey key = SzRelationKey.parse("100  :200");
+
+        assertNotNull(key);
+        assertEquals(100L, key.getEntityId());
+        assertEquals(200L, key.getRelatedId());
+    }
+
+    @Test
+    void testParseWithLeadingWhitespaceOnRelatedId() {
+        SzRelationKey key = SzRelationKey.parse("100:  200");
+
+        assertNotNull(key);
+        assertEquals(100L, key.getEntityId());
+        assertEquals(200L, key.getRelatedId());
+    }
+
+    @Test
+    void testParseWithTrailingWhitespaceOnRelatedId() {
+        SzRelationKey key = SzRelationKey.parse("100:200  ");
+
+        assertNotNull(key);
+        assertEquals(100L, key.getEntityId());
+        assertEquals(200L, key.getRelatedId());
+    }
+
+    @Test
+    void testParseWithWhitespaceAroundBothTokens() {
+        SzRelationKey key = SzRelationKey.parse("  100  :  200  ");
+
+        assertNotNull(key);
+        assertEquals(100L, key.getEntityId());
+        assertEquals(200L, key.getRelatedId());
+    }
+
+    @Test
+    void testParseWithWhitespaceAndMax() {
+        SzRelationKey key = SzRelationKey.parse("  max  :  200  ");
+
+        assertNotNull(key);
+        assertEquals(Long.MAX_VALUE, key.getEntityId());
+        assertEquals(200L, key.getRelatedId());
+    }
+
+    @Test
+    void testParseWithWhitespaceAndMaxForBoth() {
+        SzRelationKey key = SzRelationKey.parse("  max  :  max  ");
+
+        assertNotNull(key);
+        assertEquals(Long.MAX_VALUE, key.getEntityId());
+        assertEquals(Long.MAX_VALUE, key.getRelatedId());
+    }
+
+    @Test
+    void testParseWithNegativeAndMax() {
+        SzRelationKey key = SzRelationKey.parse("-100:max");
+
+        assertNotNull(key);
+        assertEquals(-100L, key.getEntityId());
+        assertEquals(Long.MAX_VALUE, key.getRelatedId());
+    }
+
+    @Test
+    void testParseWithMaxAndNegative() {
+        SzRelationKey key = SzRelationKey.parse("max:-200");
+
+        assertNotNull(key);
+        assertEquals(Long.MAX_VALUE, key.getEntityId());
+        assertEquals(-200L, key.getRelatedId());
+    }
 }

@@ -1044,6 +1044,16 @@ public class DataMartTestExtension implements BeforeAllCallback {
                 // parse the entity
                 SzResolvedEntity entity = SzResolvedEntity.parse(entityJson);
 
+                // check the result from get entity
+                if (entity.getEntityId() == 91 || entity.getEntityId() == 57) {
+                    System.err.println();
+                    System.err.println("-------------------------------------------------------");
+                    System.err.println();
+                    System.err.println(toJsonText(parseJsonObject(entityJson), true));
+                    System.err.println();
+                    System.err.println("-------------------------------------------------------");
+                    System.err.println();
+                }
                 // track the entity
                 entities.put(entity.getEntityId(), entity);
 

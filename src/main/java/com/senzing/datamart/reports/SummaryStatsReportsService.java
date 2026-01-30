@@ -1309,7 +1309,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
     /**
      * Exposes
-     * {@link SummaryStatsReports#getSummaryAmbiguousMatchRelations(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
+     * {@link SummaryStatsReports#getSummaryAmbiguousMatches(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
      * as a REST/JSON service at
      * {@link #CROSS_SOURCE_SUMMARY_AMBIGUOUS_MATCH_RELATIONS_ENDPOINT}.
      * 
@@ -1356,7 +1356,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             Timers timers = this.getTimers();
 
-            return SummaryStatsReports.getSummaryAmbiguousMatchRelations(conn, dataSource, vsDataSource, matchKey,
+            return SummaryStatsReports.getSummaryAmbiguousMatches(conn, dataSource, vsDataSource, matchKey,
                     principle, entityIdBound, boundType, pageSize, sampleSize, timers);
         } catch (SQLException e) {
             System.err.println(e.getMessage());
@@ -1379,7 +1379,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
     /**
      * Exposes
-     * {@link SummaryStatsReports#getSummaryPossibleMatchRelations(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
+     * {@link SummaryStatsReports#getSummaryPossibleMatches(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
      * as a REST/JSON service at
      * {@link #CROSS_SOURCE_SUMMARY_POSSIBLE_MATCH_RELATIONS_ENDPOINT}.
      * 
@@ -1426,7 +1426,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             Timers timers = this.getTimers();
 
-            return SummaryStatsReports.getSummaryPossibleMatchRelations(conn, dataSource, vsDataSource, matchKey,
+            return SummaryStatsReports.getSummaryPossibleMatches(conn, dataSource, vsDataSource, matchKey,
                     principle, entityIdBound, boundType, pageSize, sampleSize, timers);
         } catch (SQLException e) {
             System.err.println(e.getMessage());

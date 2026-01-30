@@ -1666,7 +1666,7 @@ public final class SummaryStatsReports {
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
-    public static SzRelationsPage getSummaryAmbiguousMatchRelations(
+    public static SzRelationsPage getSummaryAmbiguousMatches(
             Connection  conn,
             String      dataSource,
             String      vsDataSource,
@@ -1733,7 +1733,7 @@ public final class SummaryStatsReports {
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
-    public static SzRelationsPage getSummaryPossibleMatchRelations(
+    public static SzRelationsPage getSummaryPossibleMatches(
             Connection  conn,
             String      dataSource,
             String      vsDataSource,

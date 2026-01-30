@@ -242,7 +242,7 @@ public class SzRelationsPage implements Serializable {
      */
     @JsonInclude(NON_NULL)
     public String getPageMinimumValue() {
-        if (this.getSampleSize() == null && this.pageMinimumValue == null) {
+        if (this.getSampleSize() == null || this.pageMinimumValue == null) {
             return this.getMinimumValue();
         }
         return this.pageMinimumValue;
@@ -288,7 +288,7 @@ public class SzRelationsPage implements Serializable {
      */
     @JsonInclude(NON_NULL)
     public String getPageMaximumValue() {
-        if (this.getSampleSize() == null && this.pageMaximumValue == null) {
+        if (this.getSampleSize() == null || this.pageMaximumValue == null) {
             return this.getMaximumValue();
         }
         return this.pageMaximumValue;

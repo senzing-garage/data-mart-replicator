@@ -84,8 +84,8 @@ public class SzRelationsPageParameters {
      *
      * @param entityIdBound The entity ID bound value for pagination.
      */
-    public void setRelationBound(String entityIdBound) {
-        this.relationBound = entityIdBound;
+    public void setRelationBound(String relationBound) {
+        this.relationBound = relationBound;
     }
 
     /**

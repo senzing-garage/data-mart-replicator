@@ -35,8 +35,8 @@ import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.icu.impl.Relation;
 import com.senzing.datamart.DataMartTestExtension;
-import com.senzing.datamart.SzEntitiesPageParameters;
 import com.senzing.datamart.DataMartTestExtension.Repository;
 import com.senzing.datamart.DataMartTestExtension.RepositoryType;
 import com.senzing.datamart.handlers.CrossMatchKey;
@@ -59,8 +59,12 @@ import com.senzing.datamart.reports.model.SzEntitySizeCount;
 import com.senzing.datamart.reports.model.SzLoadedStats;
 import com.senzing.datamart.reports.model.SzMatchCounts;
 import com.senzing.datamart.reports.model.SzRelationCounts;
+import com.senzing.datamart.reports.model.SzRelationKey;
+import com.senzing.datamart.reports.model.SzRelationType;
+import com.senzing.datamart.reports.model.SzRelationsPage;
 import com.senzing.datamart.reports.model.SzReportEntity;
 import com.senzing.datamart.reports.model.SzReportRecord;
+import com.senzing.datamart.reports.model.SzReportRelation;
 import com.senzing.datamart.reports.model.SzSourceLoadedStats;
 import com.senzing.datamart.reports.model.SzSourceSummary;
 import com.senzing.datamart.reports.model.SzSummaryStats;
@@ -541,11 +545,15 @@ public abstract class AbstractReportsTest {
     }
 
     /**
+     * Generates various entity page parameter combinations for the
+     * specified {@link RepositoryType}, using the specified 
+     * {@link Predicate} to qualify entities from the repository.
      * 
      * @param repoType The respective {@link RepositoryType}.
      * 
      * @param predicate The {@link Predicate} for qualifying loaded entities
-     *                  from the repos.
+     *                  from the repository.
+     * 
      * @return The {@link List} of {@link SzEntitiesPageParameters} to aid
      *         in testing the entities page retrieval.
      */
@@ -707,11 +715,21 @@ public abstract class AbstractReportsTest {
                         params = new SzEntitiesPageParameters();
                         params.setRepositoryType(repoType);
                         params.setBoundType(boundType);
-                        params.setEntityIdBound(String.valueOf(
-                            lastExpected == null 
+
+                        long newBound = (lastExpected == null)
                                 ? (boundType.isLower() ? minEntityId : maxEntityId)
                                 : (boundType.isLower() ? lastExpected.getPageMaximumValue() 
-                                                       : lastExpected.getPageMinimumValue())));
+                                                       : lastExpected.getPageMinimumValue());
+
+                        if (newBound < 0L) {
+                            System.err.println();
+                            System.err.println("ENTITY BOUND NEGATIVE: " 
+                                + ((lastExpected == null) ? String.valueOf(newBound) 
+                                : (lastExpected.getPageMinimumValue()
+                                   + " / " + lastExpected.getPageMaximumValue())));
+                        }
+                        
+                        params.setEntityIdBound(newBound < 0L ? null : String.valueOf(newBound));
                         params.setPageSize(pageSize);
                         params.setSampleSize(sampleSize);
             
@@ -727,6 +745,244 @@ public abstract class AbstractReportsTest {
                         result.add(params);
                         lastExpected = expected;
                         if (lastExpected.getEntities().size() == 0) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public static record RelationPair(SzResolvedEntity entity, SzRelatedEntity related) 
+    {
+        // nothing to add
+    }
+
+    /**
+     * Generates various relations page parameter combinations for the
+     * specified {@link RepositoryType}, using the specified 
+     * {@link Predicate} to qualify entities from the repository.
+     * 
+     * @param repoType The respective {@link RepositoryType}.
+     * 
+     * @param predicate The {@link Predicate} for qualifying related
+     *                  entities from the repository.
+     * 
+     * @return The {@link List} of {@link SzRelationsPageParameters}
+     *         to aid in testing the relations page retrieval.
+     */
+    public List<SzRelationsPageParameters> generateRelationsPageParameters(
+        RepositoryType          repoType,
+        Predicate<RelationPair> predicate)
+    {
+        List<SzRelationsPageParameters> result = new LinkedList<>();
+
+        Repository repo = DataMartTestExtension.getRepository(repoType);
+
+        SortedMap<Long, SzResolvedEntity> entities = repo.getLoadedEntities();
+
+        SortedMap<SzRelationKey, SzReportRelation> relations = new TreeMap<>();
+
+        SzRelationKey minRelationKey = null;
+        SzRelationKey maxRelationKey = null;
+        // loop over the entities
+        for (SzResolvedEntity entity : entities.values()) {
+            long entityId = entity.getEntityId();
+            
+            // loop over the related entities
+            for (SzRelatedEntity related : entity.getRelatedEntities().values()) {
+                // get the related entity ID
+                long relatedId = related.getEntityId();
+
+                // create the relation key
+                SzRelationKey key = new SzRelationKey(entityId, relatedId);
+                
+                RelationPair pair = new RelationPair(entity, related);
+                
+                if (predicate.test(pair)) {
+                    // track the minimum and maximum entity ID
+                    if (minRelationKey == null || key.compareTo(minRelationKey) < 0) 
+                    {
+                        minRelationKey = key;
+                    }
+                    if (maxRelationKey == null || key.compareTo(maxRelationKey) > 0)
+                    {
+                        maxRelationKey = key;
+                    }
+
+                    SzReportRelation relation = new SzReportRelation();
+                    
+                    relation.setEntity(toReportEntity(entity));
+                    relation.setRelatedEntity(toReportEntity(entities.get(relatedId)));
+                    relation.setRelationType(SzRelationType.valueOf(related.getMatchType().toString()));
+                    relation.setMatchKey(related.getMatchKey());
+                    relation.setPrinciple(related.getPrinciple());
+
+                    relations.put(key, relation);
+                }
+            }
+        }
+
+        // try using relation bound as "0:0" with null bound type and
+        // null page size and null sample size (to use default page size)
+        SzRelationsPageParameters params = new SzRelationsPageParameters();
+        params.setRepositoryType(repoType);
+        params.setBoundType(null);
+        params.setRelationBound("0:0");
+        params.setPageSize(null);
+        params.setSampleSize(null);
+        
+        SzRelationsPage expected = getRelationsPage(
+            repoType,
+            params.getRelationBound(),
+            params.getBoundType(),
+            params.getPageSize(),
+            params.getSampleSize(),
+            predicate);
+
+        params.setExpectedPage(expected);
+        result.add(params);
+
+        // try using relation bound as "max:max" with null bound type and
+        // null page size defaulting to a multiple of the sample size
+        params = new SzRelationsPageParameters();
+        params.setRepositoryType(repoType);
+        params.setBoundType(null);
+        params.setRelationBound("max:max");
+        params.setPageSize(null);
+        params.setSampleSize(100);
+        
+        expected = getRelationsPage(repoType,
+                                    params.getRelationBound(),
+                                    params.getBoundType(),
+                                    params.getPageSize(),
+                                    params.getSampleSize(),
+                                    predicate);
+
+        params.setExpectedPage(expected);
+        result.add(params);
+
+        // try using relation bound as null with a lower bound
+        params = new SzRelationsPageParameters();
+        params.setRepositoryType(repoType);
+        params.setBoundType(INCLUSIVE_LOWER);
+        params.setRelationBound(null);
+        params.setPageSize(5000);
+        params.setSampleSize(null);
+        
+        expected = getRelationsPage(repoType,
+                                   params.getRelationBound(),
+                                   params.getBoundType(),
+                                   params.getPageSize(),
+                                   params.getSampleSize(),
+                                   predicate);
+
+        params.setExpectedPage(expected);
+        result.add(params);
+
+        // try using entity ID bound as null with an upper bound
+        params = new SzRelationsPageParameters();
+        params.setRepositoryType(repoType);
+        params.setBoundType(EXCLUSIVE_UPPER);
+        params.setRelationBound(null);
+        params.setPageSize(5000);
+        params.setSampleSize(null);
+        
+        expected = getRelationsPage(repoType,
+                                    params.getRelationBound(),
+                                    params.getBoundType(),
+                                    params.getPageSize(),
+                                    params.getSampleSize(),
+                                    predicate);
+
+        params.setExpectedPage(expected);
+        result.add(params);
+
+        // setup parameters for all-in-one page
+        for (SzBoundType boundType : SzBoundType.values()) {
+            params = new SzRelationsPageParameters();
+            params.setRepositoryType(repoType);
+            params.setBoundType(boundType);
+            params.setRelationBound(boundType.isLower() ? "0:0" : "max:max");
+            params.setPageSize(5000);
+            params.setSampleSize(null);
+            
+            expected = getRelationsPage(repoType,
+                                        params.getRelationBound(),
+                                        params.getBoundType(),
+                                        params.getPageSize(),
+                                        params.getSampleSize(),
+                                        predicate);
+
+            params.setExpectedPage(expected);
+            result.add(params);
+        }
+
+        // check if we have entities on the page
+        if (relations.size() > 4) {
+            // determine a page size
+            int pageCount = 4;
+            int pageSize = relations.size() / pageCount;
+            while (pageSize < 4 && pageCount > 1) {
+                pageCount--;
+                pageSize = relations.size() / pageCount;
+            }
+            if ((pageSize * pageCount) < relations.size()) {
+                pageSize++;
+            }
+
+            Integer[] sampleSizes = new Integer[(pageSize > 4) ? 2 : 1 ];
+            sampleSizes[0] = null;
+            if (sampleSizes.length > 1) {
+                sampleSizes[1] = pageSize / 2;
+            }
+
+            for (SzBoundType boundType: SzBoundType.values()) {
+                for (Integer sampleSize : sampleSizes) {
+                    SzRelationsPage lastExpected = null;
+
+                    while (lastExpected == null 
+                           || (boundType.isLower() && maxRelationKey.compareTo(
+                                    SzRelationKey.parse(lastExpected.getPageMaximumValue())) > 0)
+                           || (boundType.isUpper() && minRelationKey.compareTo(
+                                    SzRelationKey.parse(lastExpected.getPageMinimumValue())) < 0))
+                    {
+                        params = new SzRelationsPageParameters();
+                        params.setRepositoryType(repoType);
+                        params.setBoundType(boundType);
+
+                        SzRelationKey newBound = (lastExpected == null)
+                                ? (boundType.isLower() ? minRelationKey : maxRelationKey)
+                                : SzRelationKey.parse(
+                                    (boundType.isLower() 
+                                        ? lastExpected.getPageMaximumValue()
+                                        : lastExpected.getPageMinimumValue()));
+                        if (newBound == null) {
+                            System.err.println();
+                            System.err.println("RELATION BOUND NULL: " 
+                                + ((lastExpected == null) ? "NULL" 
+                                : (lastExpected.getPageMinimumValue()
+                                   + " / " + lastExpected.getPageMaximumValue())));
+                        }
+                        params.setRelationBound(
+                            newBound == null ? null : newBound.toString());
+                        params.setPageSize(pageSize);
+                        params.setSampleSize(sampleSize);
+            
+                        expected = getRelationsPage(
+                            repoType,
+                            params.getRelationBound(),
+                            params.getBoundType(),
+                            params.getPageSize(),
+                            params.getSampleSize(),
+                            predicate);
+
+                        params.setExpectedPage(expected);
+                        result.add(params);
+                        lastExpected = expected;
+                        if (lastExpected.getRelations().size() == 0) {
                             break;
                         }
                     }
@@ -816,7 +1072,7 @@ public abstract class AbstractReportsTest {
                             "Minimum values do not match: " + testInfo);
             assertEquals(expected.getMaximumValue(), actual.getMaximumValue(),
                             "Maximum values do not match: " + testInfo);
-                            
+
         } else if (expected.getEntities().size() > 0 
                    && actual.getEntities().size() > 0) 
         {
@@ -852,6 +1108,128 @@ public abstract class AbstractReportsTest {
 
         assertEquals(0, extra.size(),
             "Some entities retrieved in were not in expected "
+            + "page: extra=[ " + extra + " ], " + testInfo);
+    }
+
+    /**
+     * Validates an entities page.
+     * 
+     * @param testInfo
+     * @param entityIdBound
+     * @param boundType
+     * @param pageSize
+     * @param sampleSize
+     * @param expected
+     * @param actual
+     */
+    public void validateRelationsPage(RepositoryType    repoType,
+                                      String            testInfo,
+                                      String            relationBound,
+                                      SzBoundType       boundType,
+                                      Integer           pageSize,
+                                      Integer           sampleSize,
+                                      SzRelationsPage   expected,
+                                      SzRelationsPage   actual)
+        throws Exception
+    {
+        if (!expected.equals(actual)) {
+            Repository repo = DataMartTestExtension.getRepository(repoType);
+
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+
+            if (sampleSize == null) {
+                List<SzReportRelation> missing = new ArrayList<>(expected.getRelations());
+                missing.removeAll(actual.getRelations());
+                if (missing.size() > 0) {
+                    pw.println();
+                    pw.println("MISSING RELATIONS:");
+                    for (SzReportRelation relation : missing) {
+                        pw.println(" - - - - - - - - - - - - - - - - ");
+                        pw.println("ENTITY ID: " + relation.getEntity().getEntityId());
+                        pw.println("RELATED ID: " + relation.getRelatedEntity().getEntityId());
+                        pw.println("--> REPORT RELATION: ");
+                        pw.println(toJsonText(
+                            parseValue(
+                                OBJECT_MAPPER.writeValueAsString(relation)), true));
+                    }
+                }
+            }
+
+            List<SzReportRelation> extra = new ArrayList<>(actual.getRelations());
+            extra.removeAll(expected.getRelations());
+            if (extra.size() > 0) {
+                pw.println();
+                pw.println("EXTRA RELATIONS:");
+                for (SzReportRelation relation : extra) {
+                    pw.println(" - - - - - - - - - - - - - - - - ");
+                    pw.println("ENTITY ID: " + relation.getEntity().getEntityId());
+                    pw.println("RELATED ID: " + relation.getRelatedEntity().getEntityId());
+                    pw.println("--> REPORT RELATION: ");
+                    pw.println(toJsonText(
+                        parseValue(
+                            OBJECT_MAPPER.writeValueAsString(relation)), true));
+                }
+            }
+            pw.flush();
+            testInfo = validateReport(expected, actual, testInfo, false) + sw.toString();
+        }
+        
+        assertEquals(expected.getBound(), actual.getBound(),
+                    "Bound does not match: " + testInfo);
+        assertEquals(expected.getBoundType(), actual.getBoundType(),
+                        "Bound type does match: " + testInfo);
+        assertEquals(expected.getPageSize(), actual.getPageSize(),
+                        "Page size does not match: " + testInfo);
+        assertEquals(expected.getSampleSize(), actual.getSampleSize(),
+                        "Sample size does not match: " + testInfo);
+        if (sampleSize == null) {
+            assertEquals(expected.getMinimumValue(), actual.getMinimumValue(),
+                            "Minimum values do not match: " + testInfo);
+            assertEquals(expected.getMaximumValue(), actual.getMaximumValue(),
+                            "Maximum values do not match: " + testInfo);
+
+        } else if (expected.getRelations().size() > 0 
+                   && actual.getRelations().size() > 0) 
+        {
+            SzRelationKey expectedMinKey = SzRelationKey.parse(expected.getMinimumValue());
+            SzRelationKey actualMinKey   = SzRelationKey.parse(actual.getMinimumValue());
+
+            assertTrue(expectedMinKey.compareTo(actualMinKey) <= 0, 
+                       "Actual minimum (" + actual.getMinimumValue() 
+                       + ") is less than expected minimum (" 
+                       + expected.getMinimumValue() + "): " + testInfo);
+            
+            SzRelationKey expectedMaxKey = SzRelationKey.parse(expected.getMaximumValue());
+            SzRelationKey actualMaxKey   = SzRelationKey.parse(actual.getMaximumValue());
+
+            assertTrue(expectedMaxKey.compareTo(actualMaxKey) >= 0, 
+                       "Actual maximum (" + actual.getMaximumValue() 
+                       + ") is greater than expected maximum (" 
+                       + expected.getMaximumValue() + "): " + testInfo);
+        }
+
+        assertEquals(expected.getPageMinimumValue(), actual.getPageMinimumValue(),
+                        "Page minimum values do not match: " + testInfo);
+        assertEquals(expected.getPageMaximumValue(), actual.getPageMaximumValue(),
+                        "Page maximum values do not match: " + testInfo);
+        assertEquals(expected.getAfterPageCount(), actual.getAfterPageCount(),
+                        "After page counts do not match: " + testInfo);
+        assertEquals(expected.getBeforePageCount(), actual.getBeforePageCount(),
+                        "Before page counts do not match: " + testInfo);
+        
+        if (sampleSize == null) {
+            List<SzReportRelation> missing = new ArrayList<>(expected.getRelations());
+            missing.removeAll(actual.getRelations());
+            assertEquals(0, missing.size(), 
+                            "Some relations expected in page were missing: missing=[ "
+                            + missing + " ], " + testInfo);
+        }
+        List<SzReportRelation> extra = new ArrayList<>(actual.getRelations());
+        extra.removeAll(expected.getRelations());
+
+        assertEquals(0, extra.size(),
+            "Some relations retrieved in were not in expected "
             + "page: extra=[ " + extra + " ], " + testInfo);
     }
 
@@ -1016,7 +1394,189 @@ public abstract class AbstractReportsTest {
 
         return page;
     }
-                                          
+
+    /**
+     * Gets an {@link SzEntitiesPage} for entities matching the specified
+     * predicate from the respective repository.
+     * 
+     * @param repoType The {@link RepositoryType} to get the expected page result.
+     * @param relationBound The bounded value for the returned relations.
+     * @param boundType     The {@link SzBoundType} describing how the entity ID
+     *                      bound value is applied in retrieving the page.
+     * @param pageSize      The optional maximum number of entity ID's to return.
+     * @param sampleSize    The optional number of results to randomly sample from
+     *                      the page, which, if specified, must be strictly
+     *                      less-than the page size.
+     * @param predicate     The {@link Predicate} to qualify entities.
+     * 
+     * @return The expected {@link SzRelationsPage} result (except containing all
+     *         relations even if a sample size is specified).
+     */
+    public SzRelationsPage getRelationsPage(
+        RepositoryType          repoType,
+        String                  relationBound,
+        SzBoundType             boundType,
+        Integer                 pageSize,
+        Integer                 sampleSize,
+        Predicate<RelationPair> predicate)
+    {
+        // default the bound type
+        if (boundType == null) {
+            boundType = ("max:max".equals(relationBound)) 
+                ? EXCLUSIVE_UPPER : EXCLUSIVE_LOWER;
+        }
+
+        SzRelationKey boundValue = null;
+        // default the bound if not specified
+        if (relationBound == null) {
+            boundValue = (boundType.isLower()) 
+                ? new SzRelationKey(0L, 0L)
+                : new SzRelationKey(Long.MAX_VALUE, Long.MAX_VALUE);
+            
+            relationBound = (boundType.isLower()) ? "0:0" : "max:max";
+
+        } else if ("max:max".equals(relationBound.trim().toLowerCase())) {
+            boundValue = new SzRelationKey(Long.MAX_VALUE, Long.MAX_VALUE);
+            relationBound = "max:max";
+
+        } else {
+            boundValue = SzRelationKey.parse(relationBound);
+        }
+
+        // normalize the page size
+        if (pageSize == null && sampleSize == null) {
+            pageSize = ReportUtilities.DEFAULT_PAGE_SIZE;
+        } else if (pageSize == null) {
+            pageSize = ReportUtilities.SAMPLE_SIZE_MULTIPLIER * sampleSize;
+        }
+
+        SzRelationsPage page = new SzRelationsPage();
+        page.setBound(relationBound);
+        page.setBoundType(boundType);
+        page.setPageSize(pageSize);
+        page.setSampleSize(sampleSize);
+
+        // get the repo
+        Repository repo = DataMartTestExtension.getRepository(repoType);
+
+        // get the entities
+        SortedMap<Long, SzResolvedEntity> entities = repo.getLoadedEntities();
+
+        List<RelationPair> relationPairs  = new LinkedList<>();
+
+        for (SzResolvedEntity entity : entities.values()) {
+            for (SzRelatedEntity related : entity.getRelatedEntities().values()) {
+                relationPairs.add(new RelationPair(entity, related));
+            }
+        }
+
+        List<SzReportRelation> reportRelations = new LinkedList<>();
+
+        // check the bound type
+        if (boundType.isUpper()) {
+            Collections.reverse(relationPairs);
+        }
+
+        // track the min and max tracking and result count
+        SzRelationKey   minRelationKey  = null;
+        SzRelationKey   maxRelationKey  = null;
+        long            afterPageCount  = 0;
+        long            beforePageCount = 0;
+        long            totalCount      = 0;
+
+        // iterate over the entities
+        for (RelationPair pair : relationPairs) {
+            // skip any entities failing the predicate
+            if (!predicate.test(pair)) {
+                continue;
+            }
+
+            // get the entity and related entity
+            SzResolvedEntity    entity  = pair.entity();
+            SzRelatedEntity     related = pair.related();
+
+            // get the entity ID
+            long entityId   = entity.getEntityId();
+            long relatedId  = related.getEntityId();
+            
+            SzRelationKey key = new SzRelationKey(entityId, relatedId);
+
+            // increment the total count of matching predicate
+            totalCount++;
+
+            // check the bound
+            if (!boundType.checkSatisfies(key, boundValue))
+            {
+                if (boundType.isUpper()) {
+                    afterPageCount++;
+                } else {
+                    beforePageCount++;
+                }
+                continue;
+            }
+
+            // check if we have filled the page
+            if (reportRelations.size() >= pageSize)
+            {
+                if (boundType.isLower()) {
+                    afterPageCount++;
+                } else {
+                    beforePageCount++;
+                }
+                continue;
+            }
+
+            // convert the entities to report entities and to a report relation
+            SzReportEntity      reportEntity    = toReportEntity(entity);
+            SzReportEntity      reportRelated   = toReportEntity(entities.get(relatedId));
+            SzReportRelation    reportRelation  = new SzReportRelation();
+            
+            reportRelation.setEntity(reportEntity);
+            reportRelation.setRelatedEntity(reportRelated);
+            reportRelation.setRelationType(SzRelationType.valueOf(related.getMatchType().toString()));
+            reportRelation.setMatchKey(related.getMatchKey());
+            reportRelation.setPrinciple(related.getPrinciple());
+
+            // add to the report entities list
+            if (boundType.isUpper()) {
+                // add at the front to reverse order if upper bound
+                reportRelations.add(0, reportRelation);
+            } else {
+                // add at the end if a lower bound
+                reportRelations.add(reportRelation);
+            }
+
+            // track the minimum and maximum entity ID
+            if (minRelationKey == null || key.compareTo(minRelationKey) < 0) 
+            {
+                minRelationKey = key;
+            }
+            if (maxRelationKey == null || key.compareTo(maxRelationKey) > 0)
+            {
+                maxRelationKey = key;
+            }
+        }
+
+        // if sampling, set the page min and max (otherwise these should
+        // automatically use the standard min and max for the page)
+        if (sampleSize != null && reportRelations.size() > sampleSize) {
+            page.setPageMinimumValue(minRelationKey != null ? minRelationKey.toString() : null);
+            page.setPageMaximumValue(maxRelationKey != null ? maxRelationKey.toString() : null);
+        }
+
+        // even if we have a sample size, we are using all entities
+        // samples are random and we cannot use equality check to 
+        // ensure correctness
+        page.setRelations(reportRelations);
+
+        // set the stats for knowing how many pages come before and after
+        page.setTotalRelationCount(totalCount);
+        page.setBeforePageCount(beforePageCount);
+        page.setAfterPageCount(afterPageCount);
+
+        return page;
+    }    
+
     /**
      * Creates an {@link SzReportEntity} from an {@link SzResolvedEntity}.
      * 
