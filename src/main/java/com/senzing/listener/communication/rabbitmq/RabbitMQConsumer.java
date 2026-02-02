@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.json.JsonObject;
 
@@ -194,6 +195,25 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
 
         } catch (Exception e) {
             throw new MessageConsumerSetupException(e);
+        }
+    }
+
+    /**
+     * Implemented to return the result from {@link Channel#messageCount(String)}
+     * while passing the result from {@link #getQueueName()} on the internal
+     * RabbitMQ channel.
+     * 
+     * <p>
+     * {@inheritDoc}
+     */
+    @Override
+    protected Long getQueueMessageCount() {
+        try {
+            return this.channel.messageCount(this.getQueueName());
+
+        } catch (Exception e) {
+            logWarning(e, "Failed to get queue message count");
+            return null;
         }
     }
 

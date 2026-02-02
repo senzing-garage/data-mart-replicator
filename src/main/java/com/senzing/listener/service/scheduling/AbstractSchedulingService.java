@@ -1340,9 +1340,6 @@ public abstract class AbstractSchedulingService implements SchedulingService {
         // set the hit flag to true
         boolean hit = true;
 
-        int prevPendingCount = -1;
-        int prevPostponedCount = -1;
-
         // wait for a task to be available
         while (this.getState().isAvailable() && (this.pendingTasks.size() == 0) && (!this.isFollowUpReadyCheckTime())
                 && (!this.isPostponedReadyCheckTime())) {

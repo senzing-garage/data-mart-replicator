@@ -76,7 +76,7 @@ public interface SQLClient {
    * 
    * @throws SQLException If a database failure occurs.
    */
-  default int getMessageCount(Connection conn) throws SQLException {
+  default long getMessageCount(Connection conn) throws SQLException {
     PreparedStatement ps = null;
     ResultSet rs = null;
     try {
@@ -88,7 +88,7 @@ public interface SQLClient {
 
       rs.next();
 
-      return rs.getInt(1);
+      return rs.getLong(1);
 
     } finally {
       rs = close(rs);

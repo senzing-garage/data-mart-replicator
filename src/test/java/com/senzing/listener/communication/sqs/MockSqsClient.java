@@ -92,7 +92,7 @@ public class MockSqsClient implements SqsClient {
     /**
      * Gets the count of messages in the queue.
      */
-    public int getMessageCount() throws SQLException {
+    public long getMessageCount() throws SQLException {
         try (Connection conn = connectionPool.acquire()) {
             return sqlClient.getMessageCount(conn);
         }

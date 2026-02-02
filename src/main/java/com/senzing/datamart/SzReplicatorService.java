@@ -10,6 +10,7 @@ import com.senzing.datamart.schema.SchemaBuilder;
 import com.senzing.listener.service.AbstractListenerService;
 import com.senzing.listener.service.exception.ServiceExecutionException;
 import com.senzing.listener.service.exception.ServiceSetupException;
+import com.senzing.listener.service.scheduling.AbstractSchedulingService;
 import com.senzing.listener.service.scheduling.Scheduler;
 import com.senzing.listener.service.scheduling.SchedulingService;
 import com.senzing.listener.service.scheduling.TaskHandler;
@@ -32,6 +33,16 @@ import static com.senzing.util.LoggingUtilities.*;
  * Extends {@link AbstractListenerService} to implement a data mart replication.
  */
 public class SzReplicatorService extends AbstractListenerService {
+    /**
+     * Constant for converting nanoseconds to milliseconds.
+     */
+    private static final long ONE_MILLION = 1000000L;
+
+    /**
+     * The number of nanoseconds to wait between checking if idle.
+     */
+    private static final long WAIT_FOR_IDLE_TIME = 5 * ONE_MILLION;
+
     /**
      * The initialization key for obtaining the {@link ConnectionProvider} from the
      * {@link ConnectionProvider#REGISTRY}. This initialization parameter is
@@ -325,6 +336,96 @@ public class SzReplicatorService extends AbstractListenerService {
             stmt = close(stmt);
             conn = close(conn);
         }
+    }
+
+    /**
+     * Gets the number of pending report updates.
+     * 
+     * @return The number of pending report updates.
+     */
+    protected int getPendingReportTaskCount() {
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            // get the connection
+            conn = this.getConnection();
+
+            // create a statement
+            stmt = conn.createStatement();
+
+            // get the pending report keys
+            rs = stmt.executeQuery("SELECT COUNT(*) FROM sz_dm_pending_report");
+            rs.next();
+            return rs.getInt(1);
+        
+        } catch (SQLException e) { 
+            throw new IllegalStateException(e);
+
+        } finally {
+            rs = close(rs);
+            stmt = close(stmt);
+            conn = close(conn);
+        }
+    }
+
+    /**
+     * Waits until the replicator service is idle.
+     * 
+     * @param maxWaitTime The maximum wait time in milliseconds.
+     * 
+     * @return <code>true</code> if idle, otherwise <code>false</code>.
+     */
+    public boolean waitUntilIdle(long maxWaitTime) {
+        long start          = System.nanoTime();
+        maxWaitTime         = maxWaitTime * ONE_MILLION;
+        int previousCount   = -1;
+        int unchangedCount  = 0;
+        do {
+            int pendingReportCount  = this.getPendingReportTaskCount();
+            logInfo("Pending report tasks: " + pendingReportCount);
+            if (pendingReportCount == 0) {
+                Map<Statistic, Number> stats = this.getStatistics();
+                Number count = stats.get(AbstractSchedulingService.Stat.handleTaskCount);
+                if (count != null) {
+                    int currentCount = count.intValue();
+                    logInfo("Handle task count: " + currentCount);
+                    if (previousCount > 0 && currentCount == previousCount) {
+                        // increment the unchanged count
+                        unchangedCount++;
+                    } else {
+                        // reset the unchanged count
+                        unchangedCount = 0;
+
+                        // update the previous count
+                        previousCount = currentCount;
+                    }
+                    // if unchanged for 10 iterations, we are done
+                    if (unchangedCount > 5) {
+                        logInfo("Idle state detected");
+                        return true;
+                    }
+                }
+
+            } else {
+                // if we see more messages on the queue reset the variables
+                previousCount = -1;
+                unchangedCount = 0;
+            }
+            
+            try {
+                long now = System.nanoTime();
+                long waitTime = ((now - start) > WAIT_FOR_IDLE_TIME)
+                    ? WAIT_FOR_IDLE_TIME : (now - start);
+                Thread.sleep(waitTime / 1000L);
+
+            } catch (InterruptedException ignore) {
+                // ignore
+            }
+            
+        } while ((System.nanoTime() - start) < maxWaitTime);
+        logInfo("Returning that we are not idle");
+        return false;
     }
 
     /**

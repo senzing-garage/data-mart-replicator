@@ -185,7 +185,7 @@ public class SzReportRelation implements Serializable {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof SzReportRelation)) {
+        if (obj == null || this.getClass() != obj.getClass()) {
             return false;
         }
         SzReportRelation other = (SzReportRelation) obj;

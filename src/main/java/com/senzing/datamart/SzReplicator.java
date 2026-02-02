@@ -897,6 +897,17 @@ public class SzReplicator extends Thread {
     }
 
     /**
+     * Waits until the replicator service is idle.
+     * 
+     * @param maxWaitTime The maximum wait time in milliseconds.
+     * 
+     * @return <code>true</code> if idle, otherwise <code>false</code>.
+     */
+    public boolean waitUntilIdle(long maxWaitTime) {
+        return this.replicatorService.waitUntilIdle(maxWaitTime);
+    }
+
+    /**
      * Gets the {@link SQLConsumer.MessageQueue} instance backing the underlying
      * {@link SQLConsumer} if database message queue is being employed rather than
      * RabbitMQ or Amazon SQS. This returns <code>null</code> if this instance is

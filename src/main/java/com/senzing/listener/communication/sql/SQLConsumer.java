@@ -1,6 +1,7 @@
 package com.senzing.listener.communication.sql;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Instant;
@@ -17,6 +18,7 @@ import com.senzing.listener.communication.exception.MessageConsumerException;
 import com.senzing.listener.communication.exception.MessageConsumerSetupException;
 import com.senzing.listener.service.MessageProcessor;
 import com.senzing.util.AccessToken;
+
 import com.senzing.naming.Registry;
 
 import static java.lang.Boolean.*;
@@ -54,7 +56,7 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
          * 
          * @throws SQLException If a database failure occurs.
          */
-        int getMessageCount() throws SQLException;
+        long getMessageCount() throws SQLException;
 
         /**
          * Enqueues a message on this {@link MessageQueue} so the associated
@@ -120,7 +122,7 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
          * backing {@link SQLClient}.
          * </p>
          */
-        public int getMessageCount() throws SQLException {
+        public long getMessageCount() throws SQLException {
             Connection conn = null;
             try {
                 conn = SQLConsumer.this.getConnection();
@@ -290,7 +292,7 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
      * The {@link MessageQueue} for this instance.
      */
     private MessageQueue messageQueue;
-
+    
     /**
      * The name for binding the {@link #messageQueue} in the
      * {@link #MESSAGE_QUEUE_REGISTRY}.
@@ -522,6 +524,24 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
      */
     public MessageQueue getMessageQueue() {
         return this.messageQueue;
+    }
+
+    /**
+     * Implemented to return the result from {@link MessageQueue#getMessageCount()}
+     * after calling {@link #getMessageQueue()}.
+     * 
+     * <p>
+     * {@inheritDoc}
+     */
+    @Override
+    protected Long getQueueMessageCount() {
+        try {
+            return this.getMessageQueue().getMessageCount();
+
+        } catch (Exception e) {
+            logWarning(e, "Failed to get queue message count");
+            return null;
+        }
     }
 
     /**

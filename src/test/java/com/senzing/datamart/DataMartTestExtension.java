@@ -44,7 +44,6 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -942,39 +941,19 @@ public class DataMartTestExtension implements BeforeAllCallback {
             logInfo("Loaded truth set.");
             if (replicator != null) {
                 logInfo("Waiting for replicator completion...");
-                int previousCount  = -1;
-                int unchangedCount = 0;
                 do {
-                    int pendingMessageCount = replicator.getDatabaseMessageQueue().getMessageCount();
+                    long pendingMessageCount = replicator.getDatabaseMessageQueue().getMessageCount();
+                    logInfo("Pending message count: " + pendingMessageCount);
                     if (pendingMessageCount == 0) {
-                        Map<Statistic, Number> stats = replicator.getStatistics();
-                        Number count = stats.get(AbstractSchedulingService.Stat.handleTaskCount);
-                        if (count != null) {
-                            int currentCount = count.intValue();
-                            if (previousCount > 0 && currentCount == previousCount) {
-                                // increment the unchanged count
-                                unchangedCount++;
-                            } else {
-                                // reset the unchanged count
-                                unchangedCount = 0;
-
-                                // update the previous count
-                                previousCount = currentCount;
-                            }
-                            // if unchanged for 10 iterations, we are done
-                            if (unchangedCount > 10) {
-                                break;
-                            }
+                        if (replicator.waitUntilIdle(2000000L)) {
+                            break;
                         }
                     } else {
-                        // if we see more messages on the queue reset the variables
-                        previousCount = -1;
-                        unchangedCount = 0;
-                    }
-                    try {
-                        Thread.sleep(1500L);
-                    } catch (InterruptedException ignore) {
-                        // ignore
+                        try {
+                            Thread.sleep(1000L);
+                        } catch (InterruptedException e) {
+                            // do nothing
+                        }
                     }
                 } while (true); 
 
@@ -1044,16 +1023,6 @@ public class DataMartTestExtension implements BeforeAllCallback {
                 // parse the entity
                 SzResolvedEntity entity = SzResolvedEntity.parse(entityJson);
 
-                // check the result from get entity
-                if (entity.getEntityId() == 91 || entity.getEntityId() == 57) {
-                    System.err.println();
-                    System.err.println("-------------------------------------------------------");
-                    System.err.println();
-                    System.err.println(toJsonText(parseJsonObject(entityJson), true));
-                    System.err.println();
-                    System.err.println("-------------------------------------------------------");
-                    System.err.println();
-                }
                 // track the entity
                 entities.put(entity.getEntityId(), entity);
 

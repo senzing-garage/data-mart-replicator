@@ -1,9 +1,11 @@
 package com.senzing.listener.communication.sqs;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.json.JsonObject;
 
+import com.rabbitmq.client.Channel;
 import com.senzing.listener.communication.AbstractMessageConsumer;
 import com.senzing.listener.communication.exception.MessageConsumerException;
 import com.senzing.listener.communication.exception.MessageConsumerSetupException;
@@ -14,11 +16,14 @@ import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
+import software.amazon.awssdk.services.sqs.model.GetQueueAttributesResponse;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 import static com.senzing.util.LoggingUtilities.*;
 import static com.senzing.listener.communication.MessageConsumer.State.*;
 import static com.senzing.listener.service.ServiceUtilities.*;
+import static software.amazon.awssdk.services.sqs.model.QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES;
 
 /**
  * A consumer for SQS.
@@ -260,6 +265,39 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
     }
 
     /**
+     * Implemented to return the {@link #APPROXIMATE_NUMBER_OF_MESSAGES} 
+     * attribute from the {@link 
+     * SqsClient#getQueueAttributes(GetQueueAttributesRequest)} method.
+     * 
+     * <p>
+     * {@inheritDoc}
+     */
+    @Override
+    protected Long getQueueMessageCount() {
+        try {
+            GetQueueAttributesRequest request = GetQueueAttributesRequest.builder()
+                .queueUrl(this.getSqsUrl())
+                .attributeNames(APPROXIMATE_NUMBER_OF_MESSAGES)
+                .build();
+            
+            GetQueueAttributesResponse response = sqsClient.getQueueAttributes(request);
+            String count = response.attributes().get(APPROXIMATE_NUMBER_OF_MESSAGES);
+
+            // check if the value was not found
+            if (count == null || count.trim().length() == 0) {
+                return null;
+            }
+
+            // parse the value as a long integer
+            return Long.parseLong(count);
+
+        } catch (Exception e) {
+            logWarning(e, "Failed to get queue message count");
+            return null;
+        }
+    }
+
+    /**
      * Sets up a SQS consumer and then receives messages from SQS and feeds to
      * service.
      * 
@@ -301,6 +339,8 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
 
                     // get the messages from the response
                     List<Message> messages = response.messages();
+
+                    // enqueue the messages
                     for (Message message : messages) {
                         // enqueue the next message for processing -- this call may wait
                         // for enough room in the queue for the messages to be enqueued

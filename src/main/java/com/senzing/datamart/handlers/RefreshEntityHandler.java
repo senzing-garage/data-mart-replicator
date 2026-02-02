@@ -772,12 +772,13 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
         try {
             ps = conn.prepareStatement("INSERT INTO sz_dm_relation AS t1 ("
-                    + " entity_id, related_id, match_type, match_key, "
+                    + " entity_id, related_id, match_type, match_key, rev_match_key, "
                     + " errule_code, relation_hash, creator_id, modifier_id) "
-                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?) "
+                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) "
                     + "ON CONFLICT (entity_id, related_id) DO UPDATE SET"
                     + " match_type = EXCLUDED.match_type,"
                     + " match_key = EXCLUDED.match_key,"
+                    + " rev_match_key = EXCLUDED.rev_match_key,"
                     + " errule_code = EXCLUDED.errule_code, "
                     + " relation_hash = EXCLUDED.relation_hash,"
                     + " prev_relation_hash = t1.relation_hash,"
@@ -794,10 +795,11 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                 ps2.setLong(2, relationship.getRelatedEntityId());
                 ps2.setString(3, relationship.getMatchType().toString());
                 ps2.setString(4, relationship.getMatchKey());
-                ps2.setString(5, relationship.getPrinciple());
-                ps2.setString(6, relationship.toHash());
-                ps2.setString(7, operationId);
+                ps2.setString(5, relationship.getReverseMatchKey());
+                ps2.setString(6, relationship.getPrinciple());
+                ps2.setString(7, relationship.toHash());
                 ps2.setString(8, operationId);
+                ps2.setString(9, operationId);
                 return -1;
             });
 

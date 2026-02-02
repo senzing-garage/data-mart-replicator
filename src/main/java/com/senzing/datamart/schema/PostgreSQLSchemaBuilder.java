@@ -139,6 +139,7 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
                 + "  related_id BIGINT NOT NULL, "
                 + "  match_type TEXT, "
                 + "  match_key TEXT, "
+                + "  rev_match_key TEXT, "
                 + "  errule_code TEXT, "
                 + "  relation_hash TEXT, "
                 + "  prev_relation_hash TEXT, "
@@ -160,10 +161,20 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
 
         String dropMatchKeyRelationIndex = "DROP INDEX IF EXISTS sz_dm_mkey_relation_ix;";
 
+        String createRevMatchKeyRelationIndex = "CREATE INDEX IF NOT EXISTS sz_dm_rev_mkey_rel_ix ON sz_dm_relation ("
+                + "rev_match_key, errule_code);";
+
+        String dropRevMatchKeyRelationIndex = "DROP INDEX IF EXISTS sz_dm_rev_mkey_rel_ix;";
+
         String createPrincipleRelationIndex = "CREATE INDEX IF NOT EXISTS sz_dm_rule_relation_ix ON sz_dm_relation ("
                 + "errule_code, match_key);";
 
         String dropPrincipleRelationIndex = "DROP INDEX IF EXISTS sz_dm_rule_relation_ix;";
+
+        String createRevPrincipleRelIndex = "CREATE INDEX IF NOT EXISTS sz_dm_rev_rule_rel_ix ON sz_dm_relation ("
+                + "errule_code, rev_match_key);";
+        
+        String dropRevPrincipleRelIndex = "DROP INDEX IF EXISTS sz_dm_rev_rule_rel_ix;";
 
         String createRelationNewIndex = "CREATE INDEX IF NOT EXISTS sz_dm_relation_new_ix ON sz_dm_relation ("
                 + "creator_id);";
@@ -287,7 +298,9 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
 
             sqlList.add(dropRelationModIndex);
             sqlList.add(dropRelationNewIndex);
+            sqlList.add(dropRevPrincipleRelIndex);
             sqlList.add(dropPrincipleRelationIndex);
+            sqlList.add(dropRevMatchKeyRelationIndex);
             sqlList.add(dropMatchKeyRelationIndex);
             sqlList.add(dropRelationIndex);
             sqlList.add(dropRelationTrigger);
@@ -333,7 +346,9 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
         sqlList.add(createRelationTrigger);
         sqlList.add(createRelationIndex);
         sqlList.add(createMatchKeyRelationIndex);
+        sqlList.add(createRevMatchKeyRelationIndex);
         sqlList.add(createPrincipleRelationIndex);
+        sqlList.add(createRevPrincipleRelIndex);
         sqlList.add(createRelationNewIndex);
         sqlList.add(createRelationModIndex);
 

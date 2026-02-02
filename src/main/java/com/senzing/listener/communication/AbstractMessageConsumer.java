@@ -12,6 +12,7 @@ import com.senzing.util.Timers;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static java.util.Collections.*;
 import static com.senzing.util.JsonUtilities.parseJsonObject;
@@ -422,6 +423,12 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     private long dequeueMissCount = 0L;
 
     /**
+     * The result from {@link System#nanoTime()} when the last message 
+     * was pulled from the queue.
+     */
+    private AtomicLong lastMessageNanoTime = new AtomicLong(-1L);
+         
+    /**
      * The processing {@link Timers}.
      */
     private final Timers timers = new Timers();
@@ -506,6 +513,52 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
      */
     protected synchronized int getPendingMessageCount() {
         return this.pendingMessages.size();
+    }
+
+    /**
+     * Override this method to return the exact or approximate
+     * number of messages still on the message queue.  This 
+     * method returns <code>null</code> if the number of messages
+     * cannot be determined.
+     * <p>
+     * The default implementation of this method simply returns
+     * <code>null</code>.
+     * 
+     * @return The exact or approximate number of messages still
+     *         on the message queue, or <code>null</code> if the
+     *         count could not be determined.
+     */
+    protected Long getQueueMessageCount() {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getLastMessageNanoTime() {
+        return this.lastMessageNanoTime.get();
+    }
+
+    /**
+     * Implemented to return a result which sums the values
+     * from {@link #getPendingMessageCount()} and {@link 
+     * #getQueueMessageCount()}.
+     * <p>
+     * If {@link #getQueueMessageCount()} returns <code>null</code>
+     * and {@link #getPendingMessageCount()} is non-zero then the
+     * result from {@link #getPendingMessageCount()} is returned.
+     * <p>
+     * If {@link #getPendingMessageCount()} returns zero then the
+     * result from {@link #getQueueMessageCount()} is returned.
+     * {@inheritDoc}
+     * 
+     */
+    public Long getMessageCount() {
+        int pending = this.getPendingMessageCount();
+        Long queued = this.getQueueMessageCount();
+        return (pending == 0) ? queued 
+            : (pending + ((queued == null) ? 0 : queued));
     }
 
     /**
@@ -1024,6 +1077,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
             // add to the queue
             synchronized (this) {
                 int totalCount = this.pendingMessages.size() + infoMessages.size();
+                this.lastMessageNanoTime.set(System.nanoTime());
                 this.pendingMessages.addAll(infoMessages);
                 this.notifyAll();
                 if (totalCount >= this.getMaximumPendingCount()) {
@@ -1268,7 +1322,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
 
         // if none ready then check if we can grab a pending message
         // NOTE: we do not get more pending messages if state is not CONSUMING
-        while (this.pendingMessages.size() > 0) {
+        if (this.pendingMessages.size() > 0) {
             // get the candidate message
             msg = this.pendingMessages.remove(0);
 
@@ -1277,7 +1331,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
             this.timerStart(activelyProcessing);
             this.updateDequeueHitRatio(hit);
 
-            // this will short-circuit the loop
+            // return the message
             return msg;
         }
 

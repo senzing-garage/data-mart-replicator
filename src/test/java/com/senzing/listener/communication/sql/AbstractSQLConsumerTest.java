@@ -133,7 +133,7 @@ abstract class AbstractSQLConsumerTest {
             conn.commit();
 
             // Verify data exists
-            int count = sqlClient.getMessageCount(conn);
+            long count = sqlClient.getMessageCount(conn);
             assertTrue(count >= 2, "Should have at least 2 messages before recreate");
 
             // Ensure schema with recreate=true
@@ -164,7 +164,7 @@ abstract class AbstractSQLConsumerTest {
             sqlClient.insertMessage(conn, "{\"test\": \"message\"}");
             conn.commit();
 
-            int countBefore = sqlClient.getMessageCount(conn);
+            long countBefore = sqlClient.getMessageCount(conn);
             assertTrue(countBefore > 0, "Should have data before ensureSchema");
 
             // Ensure schema with recreate=false - should not throw
@@ -172,7 +172,7 @@ abstract class AbstractSQLConsumerTest {
             assertDoesNotThrow(() -> sqlClient.ensureSchema(finalConn, false));
 
             // Verify data is preserved
-            int countAfter = sqlClient.getMessageCount(conn);
+            long countAfter = sqlClient.getMessageCount(conn);
             assertEquals(countBefore, countAfter, "Data should be preserved");
 
             // Verify schema still exists
@@ -205,7 +205,7 @@ abstract class AbstractSQLConsumerTest {
             conn.commit();
 
             // Verify count
-            int count = sqlClient.getMessageCount(conn);
+            long count = sqlClient.getMessageCount(conn);
             assertEquals(3, count);
 
         } finally {
@@ -436,7 +436,7 @@ abstract class AbstractSQLConsumerTest {
         sqlClient.ensureSchema(conn, false);
         sqlClient.insertMessage(conn, "{\"clean\": \"test\"}");
         conn.commit();
-        int countBefore = sqlClient.getMessageCount(conn);
+        long countBefore = sqlClient.getMessageCount(conn);
         conn.close();
 
         assertTrue(countBefore > 0, "Should have data before clean");
@@ -452,7 +452,7 @@ abstract class AbstractSQLConsumerTest {
 
         // Verify data was cleaned
         conn = connectionProvider.getConnection();
-        int countAfter = sqlClient.getMessageCount(conn);
+        long countAfter = sqlClient.getMessageCount(conn);
         conn.close();
 
         assertEquals(0, countAfter, "Data should be cleaned");
