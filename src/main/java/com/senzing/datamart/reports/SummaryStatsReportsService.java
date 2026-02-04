@@ -191,7 +191,11 @@ public interface SummaryStatsReportsService extends ReportsService {
     @Path(SUMMARY_STATS_PREFIX)
     @Path(SUMMARY_STATS_ENDPOINT)
     @ProducesJson
-    default SzSummaryStats getSummaryStats(@Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("onlyLoadedSources") @Default("true") boolean onlyLoaded) throws ReportsServiceException {
+    default SzSummaryStats getSummaryStats(
+            @Param("matchKey") @Nullable                    String  matchKey, 
+            @Param("principle") @Nullable                   String  principle, 
+            @Param("onlyLoadedSources") @Default("true")    boolean onlyLoaded) 
+        throws ReportsServiceException {
         Connection conn = null;
         try {
             conn = this.getConnection();

@@ -149,15 +149,28 @@ public interface EntitySizeReportsService extends ReportsService {
     @Path(ENTITY_SIZE_ENTITIES_ENDPOINT)
     @Path(ENTITY_SIZE_ENTITIES_ENDPOINT + "/")
     @ProducesJson
-    default SzEntitiesPage getEntitySizeEntities(@Param("entitySize") int entitySize, @Param("bound") @Nullable String entityIdBound, @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType, @Param("pageSize") @Nullable Integer pageSize, @Param("sampleSize") @Nullable Integer sampleSize) throws ReportsServiceException {
+    default SzEntitiesPage getEntitySizeEntities(
+            @Param("entitySize")                            int         entitySize,
+            @Param("bound") @Nullable                       String      entityIdBound,
+            @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType,
+            @Param("pageSize") @Nullable                    Integer     pageSize,
+            @Param("sampleSize") @Nullable                  Integer     sampleSize)
+        throws ReportsServiceException 
+    {
         Connection conn = null;
         try {
             conn = this.getConnection();
 
             Timers timers = this.getTimers();
 
-            return EntitySizeReports.getEntityIdsForEntitySize(conn, entitySize, entityIdBound, boundType, pageSize,
-                    sampleSize, timers);
+            return EntitySizeReports.getEntityIdsForEntitySize(conn, 
+                                                               entitySize,
+                                                               entityIdBound,
+                                                               boundType,
+                                                               pageSize,
+                                                               sampleSize, 
+                                                               timers);
+            
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));

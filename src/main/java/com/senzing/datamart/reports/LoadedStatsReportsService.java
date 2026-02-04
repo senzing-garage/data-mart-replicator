@@ -60,7 +60,10 @@ public interface LoadedStatsReportsService extends ReportsService {
     @Path(LOADED_STATS_PREFIX)
     @Path(LOADED_STATS_ENDPOINT)
     @ProducesJson
-    default SzLoadedStats getLoadedStatistics(@Param("onlyLoadedSources") @Default("true") boolean onlyLoaded) throws ReportsServiceException {
+    default SzLoadedStats getLoadedStatistics(
+            @Param("onlyLoadedSources") @Default("true") boolean onlyLoaded)
+        throws ReportsServiceException 
+    {
         Connection conn = null;
         try {
             conn = this.getConnection();
@@ -104,7 +107,10 @@ public interface LoadedStatsReportsService extends ReportsService {
      */
     @Get(SOURCE_LOADED_STATS_ENDPOINT)
     @ProducesJson
-    default SzSourceLoadedStats getSourceLoadedStatistics(@Param("dataSourceCode") String dataSource) throws ReportsServiceException {
+    default SzSourceLoadedStats getSourceLoadedStatistics(
+            @Param("dataSourceCode") String dataSource) 
+        throws ReportsServiceException 
+    {
         Connection conn = null;
         try {
             conn = this.getConnection();
@@ -135,8 +141,9 @@ public interface LoadedStatsReportsService extends ReportsService {
 
     /**
      * Exposes
-     * {@link LoadedStatsReports#getEntityIdsForDataSource(Connection, String, String, SzBoundType, Integer, Integer, Timers)}
-     * as a REST/JSON service at {@link #SOURCE_LOADED_ENTITIES_ENDPOINT}.
+     * {@link LoadedStatsReports#getEntityIdsForDataSource(Connection, String, 
+     * String, SzBoundType, Integer, Integer, Timers)} as a REST/JSON service 
+     * at {@link #SOURCE_LOADED_ENTITIES_ENDPOINT}.
      * 
      * @param dataSource    The data source code for for the entities being
      *                      requested.
@@ -158,7 +165,14 @@ public interface LoadedStatsReportsService extends ReportsService {
     @Path(SOURCE_LOADED_ENTITIES_ENDPOINT)
     @Path(SOURCE_LOADED_ENTITIES_ENDPOINT + "/")
     @ProducesJson
-    default SzEntitiesPage getEntityIdsForDataSource(@Param("dataSourceCode") String dataSource, @Param("bound") @Nullable String entityIdBound, @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType, @Param("pageSize") @Nullable Integer pageSize, @Param("sampleSize") @Nullable Integer sampleSize) throws ReportsServiceException {
+    default SzEntitiesPage getEntityIdsForDataSource(
+            @Param("dataSourceCode")                        String      dataSource,
+            @Param("bound") @Nullable                       String      entityIdBound,
+            @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType, 
+            @Param("pageSize") @Nullable                    Integer     pageSize, 
+            @Param("sampleSize") @Nullable                  Integer     sampleSize) 
+        throws ReportsServiceException 
+    {
         Connection conn = null;
         try {
             conn = this.getConnection();
