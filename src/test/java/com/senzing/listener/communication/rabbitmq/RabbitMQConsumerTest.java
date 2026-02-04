@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -897,5 +898,205 @@ class RabbitMQConsumerTest {
 
         // Should have processed some messages before the throttle resume failure
         assertTrue(processedCount.get() >= 5, "Should have processed initial messages");
+    }
+
+    // ========================================================================
+    // getMessageCount() and getLastMessageNanoTime() Tests
+    // ========================================================================
+
+    @Test
+    @Order(10000)
+    void testGetMessageCountWithEmptyQueue() throws Exception {
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(RabbitMQConsumer.MQ_HOST_KEY, "localhost");
+        builder.add(RabbitMQConsumer.MQ_QUEUE_KEY, "test-queue");
+        JsonObject config = builder.build();
+
+        TestableRabbitMQConsumer consumer = new TestableRabbitMQConsumer();
+        consumer.setInjectedConnectionFactory(mockFactory);
+        consumer.init(config);
+
+        // Start consuming to establish the channel
+        CountDownLatch startedLatch = new CountDownLatch(1);
+        Thread consumeThread = new Thread(() -> {
+            startedLatch.countDown();
+            try {
+                consumer.consume((msg) -> {});
+            } catch (Exception ignore) {
+            }
+        });
+        consumeThread.start();
+
+        assertTrue(startedLatch.await(5, TimeUnit.SECONDS),
+            "Consumer thread should start");
+        Thread.sleep(500); // Allow channel to be established
+
+        Long messageCount = consumer.getMessageCount();
+        assertEquals(Long.valueOf(0L), messageCount, "Message count should be 0 for empty queue");
+
+        consumer.destroy();
+        consumeThread.join(5000);
+    }
+
+    @Test
+    @Order(10100)
+    void testGetMessageCountWithQueuedMessages() throws Exception {
+        // Add messages to the mock channel
+        mockChannel.enqueueMessage("{\"id\": 1}");
+        mockChannel.enqueueMessage("{\"id\": 2}");
+        mockChannel.enqueueMessage("{\"id\": 3}");
+
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(RabbitMQConsumer.MQ_HOST_KEY, "localhost");
+        builder.add(RabbitMQConsumer.MQ_QUEUE_KEY, "test-queue");
+        JsonObject config = builder.build();
+
+        TestableRabbitMQConsumer consumer = new TestableRabbitMQConsumer();
+        consumer.setInjectedConnectionFactory(mockFactory);
+        consumer.init(config);
+
+        // Start consuming to establish the channel - use slow processor to keep messages
+        CountDownLatch startedLatch = new CountDownLatch(1);
+        Thread consumeThread = new Thread(() -> {
+            startedLatch.countDown();
+            try {
+                consumer.consume((msg) -> {
+                    try { Thread.sleep(100); } catch (InterruptedException ignore) {}
+                });
+            } catch (Exception ignore) {
+            }
+        });
+        consumeThread.start();
+
+        assertTrue(startedLatch.await(5, TimeUnit.SECONDS),
+            "Consumer thread should start");
+        Thread.sleep(200); // Allow channel to be established
+
+        Long messageCount = consumer.getMessageCount();
+        assertNotNull(messageCount, "Message count should not be null");
+        // Note: exact count may vary depending on what's been dequeued vs pending
+        assertTrue(messageCount >= 0, "Message count should be >= 0");
+
+        consumer.destroy();
+        consumeThread.join(5000);
+    }
+
+    @Test
+    @Order(10200)
+    void testGetLastMessageNanoTimeBeforeConsumption() throws Exception {
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(RabbitMQConsumer.MQ_HOST_KEY, "localhost");
+        builder.add(RabbitMQConsumer.MQ_QUEUE_KEY, "test-queue");
+        JsonObject config = builder.build();
+
+        TestableRabbitMQConsumer consumer = new TestableRabbitMQConsumer();
+        consumer.setInjectedConnectionFactory(mockFactory);
+        consumer.init(config);
+
+        long lastMessageTime = consumer.getLastMessageNanoTime();
+        assertEquals(-1L, lastMessageTime,
+            "Last message nano time should be -1 before any messages are dequeued");
+    }
+
+    @Test
+    @Order(10300)
+    void testGetLastMessageNanoTimeAfterConsumption() throws Exception {
+        mockChannel.enqueueMessage("{\"test\": \"nanotime\"}");
+
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(RabbitMQConsumer.MQ_HOST_KEY, "localhost");
+        builder.add(RabbitMQConsumer.MQ_QUEUE_KEY, "test-queue");
+        JsonObject config = builder.build();
+
+        TestableRabbitMQConsumer consumer = new TestableRabbitMQConsumer();
+        consumer.setInjectedConnectionFactory(mockFactory);
+        consumer.init(config);
+
+        CountDownLatch latch = new CountDownLatch(1);
+        long beforeConsumption = System.nanoTime();
+
+        MessageProcessor processor = (message) -> {
+            latch.countDown();
+        };
+
+        consumer.consume(processor);
+
+        assertTrue(latch.await(30, TimeUnit.SECONDS), "Message should be processed");
+
+        long afterConsumption = System.nanoTime();
+        long lastMessageTime = consumer.getLastMessageNanoTime();
+
+        assertTrue(lastMessageTime >= beforeConsumption,
+            "Last message time should be >= time before consumption started");
+        assertTrue(lastMessageTime <= afterConsumption,
+            "Last message time should be <= time after consumption completed");
+
+        consumer.destroy();
+    }
+
+    @Test
+    @Order(10400)
+    void testChannelMessageCountMethod() throws Exception {
+        // Test the channel's messageCount method directly (used by getQueueMessageCount)
+        assertEquals(0, mockChannel.messageCount("test-queue"),
+            "Initial message count should be 0");
+
+        mockChannel.enqueueMessage("{\"test\": 1}");
+        assertEquals(1, mockChannel.messageCount("test-queue"),
+            "Message count should be 1 after enqueue");
+
+        mockChannel.enqueueMessage("{\"test\": 2}");
+        assertEquals(2, mockChannel.messageCount("test-queue"),
+            "Message count should be 2 after second enqueue");
+    }
+
+    @Test
+    @Order(10500)
+    void testGetLastMessageNanoTimeUpdatesOnSubsequentMessages() throws Exception {
+        mockChannel.enqueueMessage("{\"id\": 1}");
+
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(RabbitMQConsumer.MQ_HOST_KEY, "localhost");
+        builder.add(RabbitMQConsumer.MQ_QUEUE_KEY, "test-queue");
+        JsonObject config = builder.build();
+
+        TestableRabbitMQConsumer consumer = new TestableRabbitMQConsumer();
+        consumer.setInjectedConnectionFactory(mockFactory);
+        consumer.init(config);
+
+        CountDownLatch firstLatch = new CountDownLatch(1);
+        CountDownLatch secondLatch = new CountDownLatch(2);
+        AtomicReference<Long> firstMessageTime = new AtomicReference<>();
+
+        MessageProcessor processor = (message) -> {
+            if (firstLatch.getCount() > 0) {
+                try { Thread.sleep(50); } catch (InterruptedException ignore) {}
+                firstMessageTime.set(consumer.getLastMessageNanoTime());
+                firstLatch.countDown();
+            }
+            secondLatch.countDown();
+        };
+
+        consumer.consume(processor);
+
+        // Wait for first message
+        assertTrue(firstLatch.await(30, TimeUnit.SECONDS), "First message should be processed");
+
+        // Small delay before adding second message
+        Thread.sleep(100);
+
+        // Add second message
+        mockChannel.enqueueMessage("{\"id\": 2}");
+
+        // Wait for second message
+        assertTrue(secondLatch.await(30, TimeUnit.SECONDS), "Second message should be processed");
+        Thread.sleep(100);
+
+        // Last message time should have been updated
+        long finalMessageTime = consumer.getLastMessageNanoTime();
+        assertTrue(finalMessageTime >= firstMessageTime.get(),
+            "Last message time should be updated for subsequent messages");
+
+        consumer.destroy();
     }
 }

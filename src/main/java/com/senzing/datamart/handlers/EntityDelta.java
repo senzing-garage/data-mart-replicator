@@ -947,14 +947,18 @@ public class EntityDelta {
             String matchKey = related.getMatchKey();
             String principle = related.getPrinciple();
 
-            SourceRelationKey.variants(matchType, matchKey, principle).forEach(key -> {
-                SortedSet<String> sources = result.get(key);
-                if (sources == null) {
-                    sources = new TreeSet<>();
-                    result.put(key, sources);
-                }
-                sources.addAll(related.getSourceSummary().keySet());
-            });
+            // get the reverse match key, though usually the same
+            String revMatchKey = SzRelationship.getReverseMatchKey(matchKey);
+
+            SourceRelationKey.variants(matchType, matchKey, revMatchKey, principle)
+                .forEach(key -> {
+                    SortedSet<String> sources = result.get(key);
+                    if (sources == null) {
+                        sources = new TreeSet<>();
+                        result.put(key, sources);
+                    }
+                    sources.addAll(related.getSourceSummary().keySet());
+                });
         });
         return result;
     }
@@ -1897,14 +1901,26 @@ public class EntityDelta {
         Set<String> result = new TreeSet<>();
         result.add(statistic.toString());
 
+        String reverseMatchKey = SzRelationship.getReverseMatchKey(matchKey);
+
         if (principle != null) {
             result.add(statistic.principle(principle).format());
         }
         if (matchKey != null) {
             result.add(statistic.matchKey(matchKey).format());
+
+            // handle asymmetrical match keys
+            if (!Objects.equals(matchKey, reverseMatchKey)) {
+                result.add(statistic.matchKey(reverseMatchKey).format());
+            }
         }
         if (principle != null && matchKey != null) {
             result.add(statistic.principle(principle).matchKey(matchKey).format());
+
+            // handle asymmetrical match keys
+            if (!Objects.equals(matchKey, reverseMatchKey)) {
+                result.add(statistic.principle(principle).matchKey(reverseMatchKey).format());
+            }
         }
         return result;
     }
@@ -1930,16 +1946,28 @@ public class EntityDelta {
      * @return The {@link Set} of {@link String} statistics that need to be
      *         decremented.
      */
-    private static Set<String> decrementStatVariants(SzMatchType oldMatchType, SzMatchType newMatchType, String oldPrinciple, String newPrinciple, String oldMatchKey, String newMatchKey) {
-        checkStatVariantParameters(oldMatchType, newMatchType, oldPrinciple, newPrinciple, oldMatchKey, newMatchKey);
+    private static Set<String> decrementStatVariants(SzMatchType    oldMatchType, 
+                                                     SzMatchType    newMatchType,
+                                                     String         oldPrinciple,
+                                                     String         newPrinciple,
+                                                     String         oldMatchKey, 
+                                                     String         newMatchKey) 
+    {
+        checkStatVariantParameters(
+            oldMatchType, newMatchType, oldPrinciple, newPrinciple, oldMatchKey, newMatchKey);
 
         Set<String> result = new TreeSet<>();
 
         // check if nothing to decrement
-        if (oldMatchType == null || ((oldMatchType == newMatchType) && (Objects.equals(oldPrinciple, newPrinciple))
-                && (Objects.equals(oldMatchKey, newMatchKey)))) {
+        if (oldMatchType == null || ((oldMatchType == newMatchType) 
+            && (Objects.equals(oldPrinciple, newPrinciple))
+            && (Objects.equals(oldMatchKey, newMatchKey)))) 
+        {
             return result;
         }
+
+        // get the reverse match key
+        String oldRevMatchKey = SzRelationship.getReverseMatchKey(oldMatchKey);
 
         // get the old statistic
         SzReportStatistic statistic = STATISTIC_LOOKUP.get(oldMatchType);
@@ -1953,12 +1981,20 @@ public class EntityDelta {
         if (!Objects.equals(oldPrinciple, newPrinciple)) {
             result.add(statistic.principle(oldPrinciple).format());
             result.add(statistic.principle(oldPrinciple).matchKey(oldMatchKey).format());
+            if (!Objects.equals(oldMatchKey, oldRevMatchKey)) {
+                result.add(statistic.principle(oldPrinciple).matchKey(oldRevMatchKey).format());
+            }
         }
 
         // we have the same match type so check the match key
         if (!Objects.equals(oldMatchKey, newMatchKey)) {
             result.add(statistic.matchKey(oldMatchKey).format());
             result.add(statistic.matchKey(oldMatchKey).principle(oldPrinciple).format());
+
+            if (!Objects.equals(oldMatchKey, oldRevMatchKey)) {
+                result.add(statistic.matchKey(oldRevMatchKey).format());
+                result.add(statistic.matchKey(oldRevMatchKey).principle(oldPrinciple).format());
+            }
         }
 
         // return the result
@@ -1992,13 +2028,18 @@ public class EntityDelta {
         Set<String> result = new TreeSet<>();
 
         // check if nothing to increment
-        if (newMatchType == null || ((oldMatchType == newMatchType) && (Objects.equals(oldPrinciple, newPrinciple))
-                && (Objects.equals(oldMatchKey, newMatchKey)))) {
+        if (newMatchType == null || ((oldMatchType == newMatchType) 
+                && (Objects.equals(oldPrinciple, newPrinciple))
+                && (Objects.equals(oldMatchKey, newMatchKey)))) 
+        {
             return result;
         }
 
         // get the new statistic
         SzReportStatistic statistic = STATISTIC_LOOKUP.get(newMatchType);
+
+        // get the reverse match keys
+        String newRevMatchKey = SzRelationship.getReverseMatchKey(newMatchKey);
 
         // check if incrementing based on match type -- then everything goes
         if (oldMatchType != newMatchType) {
@@ -2009,12 +2050,20 @@ public class EntityDelta {
         if (!Objects.equals(oldPrinciple, newPrinciple)) {
             result.add(statistic.principle(newPrinciple).format());
             result.add(statistic.principle(newPrinciple).matchKey(newMatchKey).format());
+            if (!Objects.equals(newMatchKey, newRevMatchKey)) {
+                result.add(statistic.principle(newPrinciple).matchKey(newRevMatchKey).format());
+            }
         }
 
         // we have the same match type so check the match key
         if (!Objects.equals(oldMatchKey, newMatchKey)) {
             result.add(statistic.matchKey(newMatchKey).format());
             result.add(statistic.matchKey(newMatchKey).principle(newPrinciple).format());
+
+            if (!Objects.equals(newMatchKey, newRevMatchKey)) {
+                result.add(statistic.matchKey(newRevMatchKey).format());
+                result.add(statistic.matchKey(newRevMatchKey).principle(newPrinciple).format());
+            }
         }
 
         // return the result
@@ -2042,8 +2091,15 @@ public class EntityDelta {
      * @return The {@link Set} of {@link String} statistics that need to be
      *         decremented.
      */
-    private static Set<String> deltaStatVariants(SzMatchType oldMatchType, SzMatchType newMatchType, String oldPrinciple, String newPrinciple, String oldMatchKey, String newMatchKey) {
-        checkStatVariantParameters(oldMatchType, newMatchType, oldPrinciple, newPrinciple, oldMatchKey, newMatchKey);
+    private static Set<String> deltaStatVariants(SzMatchType    oldMatchType, 
+                                                 SzMatchType    newMatchType, 
+                                                 String         oldPrinciple,
+                                                 String         newPrinciple,
+                                                 String         oldMatchKey, 
+                                                 String         newMatchKey) 
+    {
+        checkStatVariantParameters(oldMatchType, newMatchType, oldPrinciple, 
+                                   newPrinciple, oldMatchKey, newMatchKey);
 
         Set<String> result = new TreeSet<>();
 
@@ -2068,9 +2124,28 @@ public class EntityDelta {
             result.add(statistic.matchKey(newMatchKey).format());
         }
 
+        // get the reverse match keys
+        String oldRevMatchKey = SzRelationship.getReverseMatchKey(oldMatchKey);
+        String newRevMatchKey = SzRelationship.getReverseMatchKey(newMatchKey);
+
+        // check if the reverse match key is also the same
+        if (Objects.equals(oldRevMatchKey, newRevMatchKey)) {
+            result.add(statistic.matchKey(newRevMatchKey).format());
+        }
+
         // check if both the principle and match key are the same
-        if (Objects.equals(oldPrinciple, newPrinciple) && Objects.equals(oldMatchKey, newMatchKey)) {
+        if (Objects.equals(oldPrinciple, newPrinciple) 
+            && Objects.equals(oldMatchKey, newMatchKey)) 
+        {
             result.add(statistic.matchKey(newMatchKey).principle(newPrinciple).format());
+        }
+
+        // check if both the principle and reverse match key are the same
+        if (Objects.equals(oldPrinciple, newPrinciple) 
+            && Objects.equals(oldRevMatchKey, newRevMatchKey)) 
+        {
+            result.add(
+                statistic.matchKey(newRevMatchKey).principle(newPrinciple).format());
         }
 
         // return the result
@@ -2102,9 +2177,11 @@ public class EntityDelta {
         // check the parameters for the old relationship
         if ((oldMatchType == null || oldPrinciple == null || oldMatchKey == null)
                 && (oldMatchType != null || oldPrinciple != null || oldMatchKey != null)) {
-            throw new IllegalArgumentException("If the relationship did not previously exist then the old match type, "
+            throw new IllegalArgumentException(
+                    "If the relationship did not previously exist then the old match type, "
                     + "principle AND match key must all be null.  If it did previously exist, "
-                    + "then ALL must NOT be null.  mathType=[ " + oldMatchType + " ], principle=[ " + oldPrinciple
+                    + "then ALL must NOT be null.  mathType=[ " + oldMatchType 
+                    + " ], principle=[ " + oldPrinciple 
                     + " ], matchKey=[ " + oldMatchKey + " ]");
         }
 
@@ -2113,9 +2190,10 @@ public class EntityDelta {
                 && (newMatchType != null || newPrinciple != null || newMatchKey != null)) {
             throw new IllegalArgumentException(
                     "If the relationship no longer exists then the new match type, principle "
-                            + "AND match key must all be null.  If it does exist, then ALL must NOT "
-                            + "be null.  mathType=[ " + oldMatchType + " ], principle=[ " + oldPrinciple
-                            + " ], matchKey=[ " + oldMatchKey + " ]");
+                    + "AND match key must all be null.  If it does exist, then ALL must NOT "
+                    + "be null.  mathType=[ " + oldMatchType 
+                    + " ], principle=[ " + oldPrinciple
+                    + " ], matchKey=[ " + oldMatchKey + " ]");
         }
     }
 }

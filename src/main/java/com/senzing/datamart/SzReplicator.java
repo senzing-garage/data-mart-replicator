@@ -50,6 +50,11 @@ import static com.senzing.listener.service.scheduling.AbstractSchedulingService.
  */
 public class SzReplicator extends Thread {
     /**
+     * Constant for converting between nanoseconds and milliseconds.
+     */
+    private static final long ONE_MILLION = 1000000L;
+
+    /**
      * The maximum pool wait time.
      */
     private static final long MAX_POOL_WAIT_TIME = 40000L;
@@ -304,6 +309,7 @@ public class SzReplicator extends Thread {
                 this.monitor.notifyAll();
             }
             this.join();
+            this.connPool.shutdown();
 
         } catch (InterruptedException e) {
             logWarning(e, "Interrupted while joining against replicator during destroy()");
@@ -897,14 +903,62 @@ public class SzReplicator extends Thread {
     }
 
     /**
-     * Waits until the replicator service is idle.
+     * Checks if this replicator has been idle for at least the specified
+     * number of milliseconds, optionally waiting for the specified maximum
+     * wait tine for it to become idle.
      * 
-     * @param maxWaitTime The maximum wait time in milliseconds.
+     * @param idleTime The number of milliseconds that the replicator
+     *                 must be idle before this will return <code>true</code>.
+     * 
+     * @param maxWaitTime The maximum wait time in milliseconds to wait for
+     *                    the replicator to become idle, or zero (0) if just
+     *                    checking without waiting and a negative number to
+     *                    wait indefinitely.
      * 
      * @return <code>true</code> if idle, otherwise <code>false</code>.
      */
-    public boolean waitUntilIdle(long maxWaitTime) {
-        return this.replicatorService.waitUntilIdle(maxWaitTime);
+    public boolean waitUntilIdle(long idleTime, long maxWaitTime) {
+        long    start           = System.nanoTime();
+        long    maxWaitNanos    = maxWaitTime * ONE_MILLION;
+        boolean firstPass       = true;
+        do {
+            // check if we should sleep before checking if idle
+            if (!firstPass && maxWaitTime != 0L) {
+                long now = System.nanoTime();
+                long sleepTime = 1000L;
+                if (maxWaitTime > 0L && ((maxWaitNanos - (now - start)) / ONE_MILLION < sleepTime)) {
+                    sleepTime = (maxWaitNanos - (now - start)) / ONE_MILLION;
+                }
+                try {
+                    Thread.sleep(sleepTime);
+                } catch (InterruptedException ignore) {
+                    // do nothing
+                }
+            }
+            
+            firstPass = false; // ensure we wait on subsequent passes
+
+            long messageCount = this.messageConsumer.getMessageCount();
+            
+            // check if nothing pending
+            if (messageCount == 0L) {
+                // check the idle time
+                long nowNanos       = System.nanoTime();
+                long messageNanos   = this.messageConsumer.getLastMessageNanoTime();
+                
+                // check if the scheduler and the report updates have been idle for long enough
+                if (((nowNanos - messageNanos) / ONE_MILLION) >= idleTime)
+                {
+                    if (this.replicatorService.waitUntilIdle(idleTime, 0L)) {
+                        logInfo("SzReplicator found to be idle");
+                        return true;
+                    }
+                }
+            }
+            
+        } while (maxWaitTime < 0L || (maxWaitTime > 0L && (System.nanoTime() - start) < maxWaitNanos));
+        logInfo("SzReplicator NOT found to be idle");
+        return false;
     }
 
     /**

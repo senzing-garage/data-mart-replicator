@@ -7,6 +7,7 @@ import com.senzing.util.Quantified;
 
 import javax.json.JsonObject;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A test-friendly SchedulingService implementation that allows testing
@@ -21,6 +22,9 @@ public class TestSchedulingService implements SchedulingService {
     private int failureCount = 0;
     private boolean throwOnCommit = false;
     private RuntimeException commitException = null;
+    private Long pendingTaskCount = null;
+    private Long pendingFollowUpCount = null;
+    private AtomicLong lastTaskScheduledNanoTime = new AtomicLong(-1L);
 
     @Override
     public State getState() {
@@ -95,6 +99,41 @@ public class TestSchedulingService implements SchedulingService {
         return commitException;
     }
 
+    @Override
+    public Long getRemainingTasksCount() {
+        return this.pendingTaskCount;
+    }
+
+    @Override
+    public Long getRemainingFollowUpTasksCount() {
+        return this.pendingFollowUpCount;
+    }
+
+    @Override
+    public long getLastTaskActivityNanoTime() {
+        return this.lastTaskScheduledNanoTime.get();
+    }
+
+    public void updateLastTaskScheduledNanoTime() {
+        this.lastTaskScheduledNanoTime.set(System.nanoTime());
+    }
+
+    /**
+     * Sets the pending task count for testing purposes.
+     * @param count The count to set, or null to indicate unknown.
+     */
+    public void setPendingTaskCount(Long count) {
+        this.pendingTaskCount = count;
+    }
+
+    /**
+     * Sets the pending follow-up task count for testing purposes.
+     * @param count The count to set, or null to indicate unknown.
+     */
+    public void setPendingFollowUpCount(Long count) {
+        this.pendingFollowUpCount = count;
+    }
+
     /**
      * Test scheduler that creates real TaskBuilders.
      */
@@ -143,6 +182,7 @@ public class TestSchedulingService implements SchedulingService {
                 taskGroup.close();
                 // Now mark all tasks as scheduled (must be after close)
                 for (Task task : pendingTasks) {
+                    this.service.updateLastTaskScheduledNanoTime();
                     task.markScheduled();
                 }
                 // Note: awaitCompletion() is called by AbstractListenerService.process()

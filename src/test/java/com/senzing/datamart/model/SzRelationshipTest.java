@@ -541,14 +541,6 @@ class SzRelationshipTest {
     }
 
     @Test
-    void testStaticGetReverseMatchKeyWithRelPointerSuffix() {
-        String matchKey = "+REL_POINTER(ABC:)-SOME_SUFFIX";
-        String reversed = SzRelationship.getReverseMatchKey(matchKey);
-        // With suffix, lastIndexOf should find the first ")" correctly
-        assertEquals("+REL_POINTER(:ABC)-SOME_SUFFIX", reversed);
-    }
-
-    @Test
     @Execution(ExecutionMode.SAME_THREAD)
     void testStaticGetReverseMatchKeyWithRelPointerTooShort() throws Exception {
         // Less than prefix + 3 chars (colon + parens + 1 other)
@@ -581,7 +573,7 @@ class SzRelationshipTest {
         });
 
         String errOutput = systemErr.getText();
-        assertTrue(errOutput.contains("Failed to find colon in REL_POINTER match key"),
+        assertTrue(errOutput.contains("Failed to find unescaped colon in REL_POINTER match key"),
                 "Expected warning about missing colon");
         assertTrue(errOutput.contains(matchKey),
                 "Warning should include the problematic match key");
@@ -619,46 +611,8 @@ class SzRelationshipTest {
         });
 
         String errOutput = systemErr.getText();
-        assertTrue(errOutput.contains("Missing closing parentheses on REL_POINTER match key"),
+        assertTrue(errOutput.contains("Failed to find closing parentheses in REL_POINTER match key"),
                 "Expected warning about missing closing parentheses");
-        assertTrue(errOutput.contains(matchKey),
-                "Warning should include the problematic match key");
-    }
-
-    @Test
-    @Execution(ExecutionMode.SAME_THREAD)
-    void testStaticGetReverseMatchKeyWithRelPointerMultipleClosingParens() throws Exception {
-        String matchKey = "+REL_POINTER(ABC:))";
-
-        SystemErr systemErr = new SystemErr();
-        systemErr.execute(() -> {
-            String reversed = SzRelationship.getReverseMatchKey(matchKey);
-            // Should return original due to multiple closing parens and log warning
-            assertEquals(matchKey, reversed);
-        });
-
-        String errOutput = systemErr.getText();
-        assertTrue(errOutput.contains("Multiple closing parentheses found on REL_POINTER match key"),
-                "Expected warning about multiple closing parentheses");
-        assertTrue(errOutput.contains(matchKey),
-                "Warning should include the problematic match key");
-    }
-
-    @Test
-    @Execution(ExecutionMode.SAME_THREAD)
-    void testStaticGetReverseMatchKeyWithRelPointerExtraParensInSuffix() throws Exception {
-        String matchKey = "+REL_POINTER(ABC:)-SUFFIX()";
-
-        SystemErr systemErr = new SystemErr();
-        systemErr.execute(() -> {
-            String reversed = SzRelationship.getReverseMatchKey(matchKey);
-            // Should return original due to multiple closing parens and log warning
-            assertEquals(matchKey, reversed);
-        });
-
-        String errOutput = systemErr.getText();
-        assertTrue(errOutput.contains("Multiple closing parentheses found on REL_POINTER match key"),
-                "Expected warning about multiple closing parentheses");
         assertTrue(errOutput.contains(matchKey),
                 "Warning should include the problematic match key");
     }

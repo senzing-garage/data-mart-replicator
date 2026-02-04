@@ -16,6 +16,8 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.senzing.util.JsonUtilities.*;
 import static com.senzing.listener.service.scheduling.SchedulingService.State.*;
@@ -634,6 +636,16 @@ public abstract class AbstractSchedulingService implements SchedulingService {
     private AsyncWorkerPool<TaskResult> workerPool = null;
 
     /**
+     * The number of currently in-progress non-follow-up tasks.
+     */
+    private AtomicInteger inProgressTaskCount = new AtomicInteger(0);
+
+    /**
+     * The number of currently in-progress follow-up tasks.
+     */
+    private AtomicInteger inProgressFollowUpCount = new AtomicInteger(0);
+
+    /**
      * The number of milliseconds to sleep between checks on the locks required for
      * tasks that have been postponed due to contention. This timeout is used when
      * there are pending tasks that have been postponed due to contention.
@@ -689,6 +701,12 @@ public abstract class AbstractSchedulingService implements SchedulingService {
      * The {@link List} of follow-up tasks.
      */
     private List<ScheduledTask> followUpTasks;
+
+    /**
+     * The value from {@link System#nanoTime()} when a task was 
+     * last scheduled or handled (initialized as negative-one).
+     */
+    private AtomicLong lastTaskActivityNanoTime = new AtomicLong(-1L);
 
     /**
      * The {@link List} of follow-up tasks that are currently being worked on.
@@ -1276,6 +1294,10 @@ public abstract class AbstractSchedulingService implements SchedulingService {
             }
         }
 
+        if (tasks.size() > 0) {
+            this.lastTaskActivityNanoTime.set(System.nanoTime());
+        }
+
         // loop through the tasks
         for (Task task : tasks) {
             synchronized (this) {
@@ -1326,6 +1348,14 @@ public abstract class AbstractSchedulingService implements SchedulingService {
                 this.notifyAll();
             }
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getLastTaskActivityNanoTime() {
+        return this.lastTaskActivityNanoTime.get();
     }
 
     /**
@@ -1419,6 +1449,9 @@ public abstract class AbstractSchedulingService implements SchedulingService {
 
         // if not null then return the task
         if (task != null) {
+            // update the last-activity timestamp here
+            this.lastTaskActivityNanoTime.set(System.nanoTime());
+            
             // ensure the timers toggled correctly
             this.timerPause(waitingOnPostponed, waitingForTasks);
             this.timerStart(activelyHandling);
@@ -1585,6 +1618,42 @@ public abstract class AbstractSchedulingService implements SchedulingService {
         // if we get here without returning a message then return null
         return null;
     }
+
+    /**
+     * Implemented to return the sum of the in-progress non-follow-up
+     * tasks and the pending tasks (including postponed tasks).
+     * <p>
+     * {@inheritDoc}
+     */
+    @Override
+    public synchronized Long getRemainingTasksCount() {
+        return Long.valueOf(this.inProgressTaskCount.get() 
+                            + this.pendingTasks.size() 
+                            + this.postponedTasks.size());
+    }
+
+    /**
+     * Implemented to return the sum of the in-progress follow-up 
+     * tasks and the {@linkplain #countScheduledFollowUpTasks()
+     * scheduled follow-up tasks}.
+     */
+    @Override
+    public synchronized Long getRemainingFollowUpTasksCount() {
+        return Long.valueOf(this.inProgressFollowUpCount.get() 
+                            + this.countScheduledFollowUpTasks());
+    }
+
+    /**
+     * Implement this to count the number of scheduled follow-up tasks
+     * and return the count.  This may return <code>null</code> if the
+     * count cannot be determined or an error occurs in obtaining the
+     * count.
+     * 
+     * @return The count of the number of scheduled follow-up tasks, 
+     *         or <code>null</code> if the count cannot be determined.
+     *         
+     */
+    protected abstract Long countScheduledFollowUpTasks();
 
     /**
      * Removes any aborted backing tasks from the specified {@link ScheduledTask},
@@ -1855,7 +1924,8 @@ public abstract class AbstractSchedulingService implements SchedulingService {
 
                 // check if ready state indicates a failure
                 if (ready == null) {
-                    logWarning("****** TASK HANDLER HAS INDICATED A FAILURE PREVENTING " + "READINESS (CHECK LOGS)");
+                    logWarning("****** TASK HANDLER HAS INDICATED A FAILURE PREVENTING " 
+                               + "READINESS (CHECK LOGS)");
                     return;
                 }
 
@@ -1924,18 +1994,27 @@ public abstract class AbstractSchedulingService implements SchedulingService {
                 if (task != null) {
                     this.timerPause(betweenTasks);
                     this.timerStart(activelyHandling);
+                    if (task.isFollowUp()) {
+                        this.inProgressFollowUpCount.incrementAndGet();
+                    } else {
+                        this.inProgressTaskCount.incrementAndGet();
+                    }
 
                     // prep a task reference for the
                     final ScheduledTask currentTask = task;
                     final Timers timers = new Timers();
+                    this.lastTaskActivityNanoTime.set(System.nanoTime());
                     timers.start(waitForWorker.toString());
                     AsyncResult<TaskResult> result = this.workerPool.execute(() -> {
                         try {
+                            this.lastTaskActivityNanoTime.set(System.nanoTime());
                             // handle the task
                             timers.start(handleTask.toString());
                             currentTask.beginHandling();
-                            taskHandler.handleTask(currentTask.getAction(), currentTask.getParameters(),
-                                    currentTask.getMultiplicity(), this.createFollowUpScheduler(currentTask));
+                            taskHandler.handleTask(currentTask.getAction(), 
+                                                   currentTask.getParameters(),
+                                                   currentTask.getMultiplicity(),
+                                                   this.createFollowUpScheduler(currentTask));
                             timers.pause(handleTask.toString());
 
                             // in case of success mark it as handled
@@ -1961,12 +2040,22 @@ public abstract class AbstractSchedulingService implements SchedulingService {
                             }
 
                             // release any associated locks on the resources
-                            timers.start(releaseLocks.toString());
-                            currentTask.releaseLocks(this.getLockingService());
-                            timers.pause(releaseLocks.toString());
+                            try {
+                                timers.start(releaseLocks.toString());
+                                currentTask.releaseLocks(this.getLockingService());
+                                timers.pause(releaseLocks.toString());
 
-                            // record statistics
-                            this.recordStatistics(task, timers);
+                                // record statistics
+                                this.recordStatistics(task, timers);
+
+                            } finally {
+                                // ensure we decrement the counts
+                                if (task.isFollowUp()) {
+                                    this.inProgressFollowUpCount.decrementAndGet();
+                                } else {
+                                    this.inProgressTaskCount.decrementAndGet();
+                                }
+                            }
                         }
 
                         return new TaskResult(currentTask, timers);

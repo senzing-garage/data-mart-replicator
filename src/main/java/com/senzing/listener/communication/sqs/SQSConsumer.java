@@ -1,11 +1,9 @@
 package com.senzing.listener.communication.sqs;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 import javax.json.JsonObject;
 
-import com.rabbitmq.client.Channel;
 import com.senzing.listener.communication.AbstractMessageConsumer;
 import com.senzing.listener.communication.exception.MessageConsumerException;
 import com.senzing.listener.communication.exception.MessageConsumerSetupException;
@@ -265,7 +263,8 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
     }
 
     /**
-     * Implemented to return the {@link #APPROXIMATE_NUMBER_OF_MESSAGES} 
+     * Implemented to return the 
+     * <code>QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES</code>
      * attribute from the {@link 
      * SqsClient#getQueueAttributes(GetQueueAttributesRequest)} method.
      * 

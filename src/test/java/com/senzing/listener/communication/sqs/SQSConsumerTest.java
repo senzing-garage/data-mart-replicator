@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -676,5 +677,175 @@ class SQSConsumerTest {
         assertEquals(1, mockSqsClient.getMessageCount());
         mockSqsClient.enqueueMessage("{\"test\": 2}");
         assertEquals(2, mockSqsClient.getMessageCount());
+    }
+
+    // ========================================================================
+    // getMessageCount() and getLastMessageNanoTime() Tests
+    // ========================================================================
+
+    @Test
+    @Order(8000)
+    void testGetMessageCountWithEmptyQueue() throws Exception {
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(SQSConsumer.SQS_URL_KEY, "https://sqs.test/queue");
+        JsonObject config = builder.build();
+
+        TestableSQSConsumer consumer = new TestableSQSConsumer();
+        consumer.setInjectedClient(mockSqsClient);
+        consumer.init(config);
+
+        Long messageCount = consumer.getMessageCount();
+        assertEquals(Long.valueOf(0L), messageCount, "Message count should be 0 for empty queue");
+    }
+
+    @Test
+    @Order(8100)
+    void testGetMessageCountWithQueuedMessages() throws Exception {
+        // Add messages to the mock queue
+        mockSqsClient.enqueueMessage("{\"id\": 1}");
+        mockSqsClient.enqueueMessage("{\"id\": 2}");
+        mockSqsClient.enqueueMessage("{\"id\": 3}");
+
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(SQSConsumer.SQS_URL_KEY, "https://sqs.test/queue");
+        JsonObject config = builder.build();
+
+        TestableSQSConsumer consumer = new TestableSQSConsumer();
+        consumer.setInjectedClient(mockSqsClient);
+        consumer.init(config);
+
+        Long messageCount = consumer.getMessageCount();
+        assertEquals(Long.valueOf(3L), messageCount, "Message count should be 3");
+    }
+
+    @Test
+    @Order(8200)
+    void testGetLastMessageNanoTimeBeforeConsumption() throws Exception {
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(SQSConsumer.SQS_URL_KEY, "https://sqs.test/queue");
+        JsonObject config = builder.build();
+
+        TestableSQSConsumer consumer = new TestableSQSConsumer();
+        consumer.setInjectedClient(mockSqsClient);
+        consumer.init(config);
+
+        long lastMessageTime = consumer.getLastMessageNanoTime();
+        assertEquals(-1L, lastMessageTime,
+            "Last message nano time should be -1 before any messages are dequeued");
+    }
+
+    @Test
+    @Order(8300)
+    void testGetLastMessageNanoTimeAfterConsumption() throws Exception {
+        mockSqsClient.enqueueMessage("{\"test\": \"nanotime\"}");
+
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(SQSConsumer.SQS_URL_KEY, "https://sqs.test/queue");
+        builder.add(SQSConsumer.VISIBILITY_TIMEOUT_KEY, 30);
+        JsonObject config = builder.build();
+
+        TestableSQSConsumer consumer = new TestableSQSConsumer();
+        consumer.setInjectedClient(mockSqsClient);
+        consumer.init(config);
+
+        CountDownLatch latch = new CountDownLatch(1);
+        long beforeConsumption = System.nanoTime();
+
+        MessageProcessor processor = (message) -> {
+            latch.countDown();
+        };
+
+        Thread consumeThread = new Thread(() -> {
+            try {
+                consumer.consume(processor);
+            } catch (Exception ignore) {
+            }
+        });
+        consumeThread.start();
+
+        assertTrue(latch.await(30, TimeUnit.SECONDS), "Message should be processed");
+
+        long afterConsumption = System.nanoTime();
+        long lastMessageTime = consumer.getLastMessageNanoTime();
+
+        assertTrue(lastMessageTime >= beforeConsumption,
+            "Last message time should be >= time before consumption started");
+        assertTrue(lastMessageTime <= afterConsumption,
+            "Last message time should be <= time after consumption completed");
+
+        consumer.destroy();
+        consumeThread.join(5000);
+    }
+
+    @Test
+    @Order(8400)
+    void testGetMessageCountDuringConsumption() throws Exception {
+        // Add multiple messages
+        for (int i = 0; i < 5; i++) {
+            mockSqsClient.enqueueMessage("{\"id\": " + i + "}");
+        }
+
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(SQSConsumer.SQS_URL_KEY, "https://sqs.test/queue");
+        builder.add(SQSConsumer.VISIBILITY_TIMEOUT_KEY, 60);
+        JsonObject config = builder.build();
+
+        TestableSQSConsumer consumer = new TestableSQSConsumer();
+        consumer.setInjectedClient(mockSqsClient);
+        consumer.init(config);
+
+        CountDownLatch processingLatch = new CountDownLatch(1);
+        CountDownLatch completionLatch = new CountDownLatch(5);
+        AtomicReference<Long> countDuringProcessing = new AtomicReference<>();
+
+        MessageProcessor processor = (message) -> {
+            if (processingLatch.getCount() > 0) {
+                countDuringProcessing.set(consumer.getMessageCount());
+                processingLatch.countDown();
+            }
+            completionLatch.countDown();
+        };
+
+        Thread consumeThread = new Thread(() -> {
+            try {
+                consumer.consume(processor);
+            } catch (Exception ignore) {
+            }
+        });
+        consumeThread.start();
+
+        assertTrue(processingLatch.await(30, TimeUnit.SECONDS),
+            "Processing should start within timeout");
+        assertNotNull(countDuringProcessing.get(),
+            "Should be able to get message count during processing");
+
+        assertTrue(completionLatch.await(30, TimeUnit.SECONDS),
+            "All messages should be processed within timeout");
+        Thread.sleep(500);
+
+        consumer.destroy();
+        consumeThread.join(5000);
+    }
+
+    @Test
+    @Order(8500)
+    void testGetQueueMessageCountReturnsApproximateCount() throws Exception {
+        // Enqueue messages
+        mockSqsClient.enqueueMessage("{\"test\": 1}");
+        mockSqsClient.enqueueMessage("{\"test\": 2}");
+
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(SQSConsumer.SQS_URL_KEY, "https://sqs.test/queue");
+        JsonObject config = builder.build();
+
+        TestableSQSConsumer consumer = new TestableSQSConsumer();
+        consumer.setInjectedClient(mockSqsClient);
+        consumer.init(config);
+
+        // The getMessageCount() call goes through getQueueMessageCount()
+        // which uses getQueueAttributes with APPROXIMATE_NUMBER_OF_MESSAGES
+        Long count = consumer.getMessageCount();
+        assertEquals(Long.valueOf(2L), count,
+            "Should return approximate message count from SQS attributes");
     }
 }

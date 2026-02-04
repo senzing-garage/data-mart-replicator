@@ -1,7 +1,6 @@
 package com.senzing.listener.communication.sql;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Instant;

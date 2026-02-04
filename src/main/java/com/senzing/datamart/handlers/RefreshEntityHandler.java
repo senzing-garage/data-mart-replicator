@@ -40,10 +40,10 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
     private static final Set<SzFlag> ENTITY_FLAGS;
     static {
         EnumSet<SzFlag> enumSet = EnumSet.of(SZ_ENTITY_INCLUDE_ENTITY_NAME,
-                SZ_ENTITY_INCLUDE_RECORD_DATA,
-                SZ_ENTITY_INCLUDE_RECORD_MATCHING_INFO,
-                SZ_ENTITY_INCLUDE_RELATED_MATCHING_INFO,
-                SZ_ENTITY_INCLUDE_RELATED_RECORD_DATA);
+                                             SZ_ENTITY_INCLUDE_RECORD_DATA,
+                                             SZ_ENTITY_INCLUDE_RECORD_MATCHING_INFO,
+                                             SZ_ENTITY_INCLUDE_RELATED_MATCHING_INFO,
+                                             SZ_ENTITY_INCLUDE_RELATED_RECORD_DATA);
         enumSet.addAll(SZ_ENTITY_INCLUDE_ALL_RELATIONS);
         ENTITY_FLAGS = Collections.unmodifiableSet(enumSet);
     }
@@ -52,14 +52,15 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
      * Maps the {@link SzReportCode} to the {@link TaskAction} for updating that
      * report.
      */
-    private static final Map<SzReportCode, TaskAction> UPDATE_ACTION_MAP = Map.of(DATA_SOURCE_SUMMARY,
-            UPDATE_DATA_SOURCE_SUMMARY,
-            CROSS_SOURCE_SUMMARY,
-            UPDATE_CROSS_SOURCE_SUMMARY,
-            ENTITY_SIZE_BREAKDOWN,
-            UPDATE_ENTITY_SIZE_BREAKDOWN,
-            ENTITY_RELATION_BREAKDOWN,
-            UPDATE_ENTITY_RELATION_BREAKDOWN);
+    private static final Map<SzReportCode, TaskAction> UPDATE_ACTION_MAP 
+        = Map.of(DATA_SOURCE_SUMMARY,
+                 UPDATE_DATA_SOURCE_SUMMARY,
+                 CROSS_SOURCE_SUMMARY,
+                 UPDATE_CROSS_SOURCE_SUMMARY,
+                 ENTITY_SIZE_BREAKDOWN,
+                 UPDATE_ENTITY_SIZE_BREAKDOWN,
+                 ENTITY_RELATION_BREAKDOWN,
+                 UPDATE_ENTITY_RELATION_BREAKDOWN);
 
     /**
      * Constructs with the specified {@link SzReplicationProvider} to use to access

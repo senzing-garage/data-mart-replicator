@@ -83,19 +83,37 @@ class SzRelationsPageTest {
     }
 
     @Test
-    void testSetAndGetPageMinimumValue() {
+    void testSetAndGetPageMinimumValueWithSampleSize() {
         SzRelationsPage page = new SzRelationsPage();
+        page.setSampleSize(20);
         page.setPageMinimumValue("100:200");
 
         assertEquals("100:200", page.getPageMinimumValue());
     }
 
     @Test
-    void testSetAndGetPageMaximumValue() {
+    void testSetAndGetPageMinimumValueWithoutSampleSize() {
         SzRelationsPage page = new SzRelationsPage();
+        page.setPageMinimumValue("100:200");
+
+        assertNull(page.getPageMinimumValue(), "Page min should be null if no sample size");
+    }
+
+    @Test
+    void testSetAndGetPageMaximumValueWithSampleSize() {
+        SzRelationsPage page = new SzRelationsPage();
+        page.setSampleSize(20);
         page.setPageMaximumValue("500:600");
 
         assertEquals("500:600", page.getPageMaximumValue());
+    }
+
+    @Test
+    void testSetAndGetPageMaximumValueWithoutSampleSize() {
+        SzRelationsPage page = new SzRelationsPage();
+        page.setPageMaximumValue("500:600");
+
+        assertNull(page.getPageMaximumValue(), "Page max should be null if no sample size");
     }
 
     @Test

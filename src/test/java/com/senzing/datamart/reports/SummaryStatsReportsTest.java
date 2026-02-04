@@ -4,7 +4,6 @@ import static com.senzing.datamart.model.SzMatchType.AMBIGUOUS_MATCH;
 import static com.senzing.datamart.model.SzMatchType.DISCLOSED_RELATION;
 import static com.senzing.datamart.model.SzMatchType.POSSIBLE_MATCH;
 import static com.senzing.datamart.model.SzMatchType.POSSIBLE_RELATION;
-import static java.util.Objects.nonNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.sql.Connection;
@@ -34,6 +33,7 @@ import com.senzing.datamart.handlers.MatchPairKey;
 import com.senzing.datamart.model.SzMatchType;
 import com.senzing.datamart.model.SzRecord;
 import com.senzing.datamart.model.SzRelatedEntity;
+import com.senzing.datamart.model.SzRelationship;
 import com.senzing.datamart.model.SzResolvedEntity;
 import com.senzing.datamart.reports.model.SzBoundType;
 import com.senzing.datamart.reports.model.SzCrossSourceMatchCounts;
@@ -51,7 +51,8 @@ import com.senzing.sql.SQLUtilities;
 @TestInstance(Lifecycle.PER_CLASS)
 @ExtendWith(DataMartTestExtension.class)
 public class SummaryStatsReportsTest extends AbstractReportsTest {
-    
+    private final int SKIP_FACTOR = 1;
+
     private Map<RepositoryType, SzSummaryStats> summaryStatsMap = null;
 
     @Override
@@ -144,7 +145,7 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
             final int[] iteration = { 0 };
             // loop through the match key and principle options
             matchKeyMap.forEach((matchKey, principles) -> {
-                if (((iteration[0]++) % 2) == 0) {
+                if (((iteration[0]++) % SKIP_FACTOR) != 0) {
                     return;        
                 }
                 result.add(Arguments.of(
@@ -164,7 +165,7 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                     filter(allStats, loadedSources, allUnusedSources, matchKey, null)));
 
                 principles.forEach(principle -> {
-                    if (((iteration[0]++) % 2) == 0) {
+                    if (((iteration[0]++) % SKIP_FACTOR) != 0) {
                         return;        
                     }
                     result.add(Arguments.of(
@@ -179,7 +180,7 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
 
             // loop through the principle keys
             principleMap.keySet().forEach(principle -> {
-                if (((iteration[0]++) % 2) == 0) {
+                if (((iteration[0]++) % SKIP_FACTOR) != 0) {
                     return;        
                 }
                 result.add(Arguments.of(
@@ -236,7 +237,7 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                     // loop through the match key and principle options
                     iteration[0] = 0;
                     matchKeyMap.forEach((matchKey, principles) -> {
-                        if (((iteration[0]++) % 2) == 1) {
+                        if (((iteration[0]++) % SKIP_FACTOR) != 0) {
                             return;        
                         }
                         result.add(Arguments.of(
@@ -248,7 +249,7 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                             filter(allStats, loadedSources, extraSources, matchKey, null)));
 
                         principles.forEach(principle -> {
-                            if (((iteration[0]++) % 2) == 1) {
+                            if (((iteration[0]++) % SKIP_FACTOR) != 0) {
                                 return;        
                             }
                             result.add(Arguments.of(
@@ -259,7 +260,7 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
 
                     // loop through the principle keys
                     principleMap.keySet().forEach(principle -> {
-                        if (((iteration[0]++) % 2) == 1) {
+                        if (((iteration[0]++) % SKIP_FACTOR) != 0) {
                             return;        
                         }
                        result.add(Arguments.of(
@@ -540,7 +541,7 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                     if ((matchKey != null && !"*".equals(matchKey))
                         || (principle !=null && !"*".equals(principle)))
                     {
-                        if (skipIndex++ % 3 != 0) {
+                        if (skipIndex++ % SKIP_FACTOR != 0) {
                             continue;
                         }
                     }
@@ -584,10 +585,6 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                     return false;
                 }
                 for (SzRecord record : entity.getRecords().values()) {
-                    // check if the record has the expected data source
-                    if (!record.getDataSource().equals(vsDataSource)) {
-                        continue;
-                    }
                     // check if this record has expected match key or principle
                     if ((matchKey == null || "*".equals(matchKey) 
                         || matchKey.equals(record.getMatchKey()))
@@ -622,9 +619,12 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                         continue;
                     }
 
+                    String revMatchKey = SzRelationship.getReverseMatchKey(related.getMatchKey());
+
                     // check if the related entity has the match key and principle
                     if ((matchKey == null || "*".equals(matchKey) 
-                        || matchKey.equals(related.getMatchKey()))
+                        || matchKey.equals(related.getMatchKey()) 
+                        || matchKey.equals(revMatchKey))
                         && (principle == null || "*".equals(principle)
                             || principle.equals(related.getPrinciple())))
                     {
@@ -687,7 +687,7 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                         if ((matchKey != null && !"*".equals(matchKey))
                             || (principle !=null && !"*".equals(principle)))
                         {
-                            if (skipIndex++ % 3 != 0) {
+                            if (skipIndex++ % SKIP_FACTOR != 0) {
                                 continue;
                             }
                         }
@@ -773,9 +773,12 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                         continue;
                     }
 
+                    String revMatchKey = SzRelationship.getReverseMatchKey(related.getMatchKey());
+
                     // check if the related entity has the match key and principle
                     if ((matchKey == null || "*".equals(matchKey) 
-                        || matchKey.equals(related.getMatchKey()))
+                        || matchKey.equals(related.getMatchKey()) 
+                        || matchKey.equals(revMatchKey))
                         && (principle == null || "*".equals(principle)
                             || principle.equals(related.getPrinciple())))
                     {
@@ -1463,7 +1466,7 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                         if ((matchKey != null && !"*".equals(matchKey))
                             || (principle !=null && !"*".equals(principle)))
                         {
-                            if (skipIndex++ % 3 != 0) {
+                            if (skipIndex++ % SKIP_FACTOR != 0) {
                                 continue;
                             }
                         }
@@ -1503,11 +1506,18 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
         return this.getCrossRelationParameters(
             (relationPair, dataSource, vsDataSource, matchKey, principle) -> 
             {
-                SzResolvedEntity entity = relationPair.entity();
-                SzRelatedEntity related = relationPair.related();
+                SzResolvedEntity    entity      = relationPair.entity();
+                SzRelatedEntity     related     = relationPair.related();
+                SzResolvedEntity    resolvedRel = relationPair.resolvedRelated();
 
-                // sanity check that the related entity is related to the main entity
+                // sanity checks that the related entity is related to the main entity
                 if (!entity.getRelatedEntities().containsKey(related.getEntityId())) {
+                    return false;
+                }
+                if (related.getEntityId() != resolvedRel.getEntityId()) {
+                    return false;
+                }
+                if (!resolvedRel.getRelatedEntities().containsKey(entity.getEntityId())) {
                     return false;
                 }
 
@@ -1526,9 +1536,12 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                     return false;
                 }
                 
+                String revMatchKey = resolvedRel.getRelatedEntities().get(
+                    entity.getEntityId()).getMatchKey();
+                
                 // check if the related entity has the match key and principle
                 return ((matchKey == null || "*".equals(matchKey) 
-                    || matchKey.equals(related.getMatchKey()))
+                    || matchKey.equals(related.getMatchKey()) || matchKey.equals(revMatchKey))
                     && (principle == null || "*".equals(principle)
                         || principle.equals(related.getPrinciple())));
             });

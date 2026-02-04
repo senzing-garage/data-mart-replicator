@@ -762,7 +762,7 @@ public final class ReportUtilities {
                     // choose the reverse match key if the related entity ID 
                     // is less than the entity ID
                     relation.setMatchKey(
-                        (relRelatedId < relEntityId) ? relRevMatchKey : relMatchKey );
+                        (relRelatedId < relEntityId) ? relRevMatchKey : relMatchKey);
                 }
 
                 // get the entity to be updated

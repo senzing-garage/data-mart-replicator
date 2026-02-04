@@ -12,8 +12,6 @@ import static com.senzing.datamart.model.SzMatchType.DISCLOSED_RELATION;
 import static com.senzing.util.JsonUtilities.*;
 import static com.senzing.util.LoggingUtilities.*;
 
-//import static com.senzing.util.LoggingUtilities.formatStackTrace;
-
 /**
  * Describes a relationship between two entities as it is stored in the data
  * mart.
@@ -215,7 +213,7 @@ public class SzRelationship {
      * @return The reversed match key if the specified match key is in the
      *         expected format, otherwise the specified match key.
      */
-    static final String getReverseMatchKey(String matchKey) {
+    public static final String getReverseMatchKey(String matchKey) {
         // check if null
         if (matchKey == null) {
             return null;
@@ -236,43 +234,127 @@ public class SzRelationship {
             return matchKey;
         }
 
-        // find the first colon after the prefix
-        int colonIndex = key.indexOf(":", prefixLength);
+        // get the characters
+        char[] text = key.toCharArray();
 
-        // check if we found the first colon after the prefix
-        if (colonIndex < 0) {
-            logWarning("Failed to find colon in REL_POINTER match key: " + matchKey);
+        // find the starting index
+        int startingIndex = prefixLength;
+        for (; startingIndex < text.length; startingIndex++) {
+            if (!Character.isWhitespace(text[startingIndex])) {
+                break;
+            }
+        }
+
+        // check if all whitespace
+        if (startingIndex >= text.length) {
+            logWarning("Unexpected format for REL_POINTER match key: " + matchKey);
             return matchKey;
         }
 
-        // check if there is a second colon after the prefix
-        if (key.indexOf(":", colonIndex + 1) >= 0) {
-            logWarning("Found more than one colon in REL_POINTER match key: " 
-                       + matchKey);
+        // find the ending index
+        int endingIndex = key.length() - 1;
+        for (; endingIndex > 0; endingIndex--) {
+            // skip the whitespace
+            if (Character.isWhitespace(text[endingIndex])) {
+                continue;
+            }
+
+            // check if a closing parentheses
+            if (text[endingIndex] != ')') {
+                endingIndex = -1;
+            }
+
+            // we got a non-whitespace character, so we are done
+            break;
+        }
+
+        // check if no ending index
+        if (endingIndex == startingIndex) {
+            logWarning("Failed to find contents in REL_POINTER match key: " + matchKey);
+            return matchKey;
+        }
+        if (endingIndex < startingIndex) {
+            logWarning("Failed to find closing parentheses in REL_POINTER match key: " + matchKey);
             return matchKey;
         }
 
-        // get the closing parentheses
-        int parenIndex = key.indexOf(")", colonIndex + 1);
+        // track all the colon indexes
+        List<Integer> colonIndexes = new ArrayList<>();
 
-        // check if not found
-        if (parenIndex < 0) {
-            logWarning("Missing closing parentheses on REL_POINTER match key: "
-                       + matchKey);
-            return matchKey;
+        // find all the colon indexes and closing parentheses
+        boolean escaping = false;
+        for (int index = startingIndex; index < endingIndex; index++) {
+            if (!escaping) {
+                switch (text[index]) {
+                    case '\\':
+                        escaping = true;
+                        break;
+                    case ':':
+                        colonIndexes.add(index);
+                        break;
+                    default:
+                        // do nothing
+                }
+            } else {
+                escaping = false;
+            }
         }
-        if (key.indexOf(")", parenIndex + 1) >= 0) {
-            logWarning("Multiple closing parentheses found on REL_POINTER match key: "
-                       + matchKey);
-            return matchKey;
+
+        // check if we have a single unescaped colon
+        if (colonIndexes.size() == 0) {
+            logWarning("Failed to find unescaped colon in REL_POINTER match key: " + matchKey);
+            return matchKey;            
+        }
+        
+        // check for the common base case
+        if (colonIndexes.size() == 1) {
+            // get the parts
+            int colonIndex = colonIndexes.get(0);
+            String part1 = key.substring(prefixLength, colonIndex);
+            String part2 = key.substring(colonIndex + 1, endingIndex);
+            return REL_POINTER_PREFIX + part2 + ":" + part1 + ")";
         }
 
-        // get the substrings
-        String part1 = key.substring(prefixLength, colonIndex);
-        String part2 = key.substring(colonIndex + 1, parenIndex);
+        // handle multiple multiple colons
+        int firstColon = colonIndexes.get(0);
+        int lastColon = colonIndexes.get(colonIndexes.size() - 1);
 
-        // reconstruct the match key
-        return REL_POINTER_PREFIX + part2 + ":" + part1 + key.substring(parenIndex);
+        // check if we have a leading, but not trailing colon
+        if (firstColon == prefixLength && lastColon != endingIndex - 1) {
+            String part1 = key.substring(prefixLength + 1, lastColon);
+            String part2 = key.substring(lastColon + 1, endingIndex);
+            return REL_POINTER_PREFIX + part2 + ":" + part1 + ")";
+ 
+        }
+    
+        // check if we have a trailing, but not a leading colon
+        if (lastColon == endingIndex - 1 && firstColon != prefixLength) {
+            String part1 = key.substring(prefixLength + 1, firstColon);
+            String part2 = key.substring(firstColon + 1, endingIndex - 1);
+            return REL_POINTER_PREFIX + part2 + ":" + part1 + ")";
+        }
+        logWarning("Found more than one colon in REL_POINTER match key: " 
+                   + matchKey);
+        return matchKey;
+    }
+
+    /**
+     * Finds the index of the first non-whitespace character in 
+     * the specified text starting at the specified index (inclusive)
+     * and searching towards the end of the text.
+     * 
+     * @param text The text to search.
+     * @param startIndex The starting index to begin the search.
+     * @return The index of the first non-whitespace character,
+     *         or the length of the specified text if not found.
+     */
+    protected static int eatWhiteSpace(char[] text, int startIndex) {
+        for (int index = startIndex; index < text.length; index++) {
+            if (!Character.isWhitespace(text[index])) {
+                return index;
+            }
+        }
+        return text.length;
     }
 
     /**

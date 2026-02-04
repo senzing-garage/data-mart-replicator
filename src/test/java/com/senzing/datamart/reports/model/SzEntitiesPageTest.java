@@ -83,7 +83,7 @@ class SzEntitiesPageTest {
     }
 
     @Test
-    void testSetAndGetPageMinimumValue() {
+    void testSetAndGetPageMinimumValueWithSampleSize() {
         SzEntitiesPage page = new SzEntitiesPage();
         page.setSampleSize(10);
         page.setPageMinimumValue(100L);
@@ -92,12 +92,29 @@ class SzEntitiesPageTest {
     }
 
     @Test
-    void testSetAndGetPageMaximumValue() {
+    void testSetAndGetPageMinimumValueWithoutSampleSize() {
+        SzEntitiesPage page = new SzEntitiesPage();
+        page.setPageMinimumValue(100L);
+
+        assertNull(page.getPageMinimumValue(), "Page min should be null if no sample size");
+    }
+
+    @Test
+    void testSetAndGetPageMaximumValueWithSampleSize() {
         SzEntitiesPage page = new SzEntitiesPage();
         page.setSampleSize(10);
         page.setPageMaximumValue(200L);
 
         assertEquals(Long.valueOf(200L), page.getPageMaximumValue());
+    }
+
+
+    @Test
+    void testSetAndGetPageMaximumValueWithoutSampleSize() {
+        SzEntitiesPage page = new SzEntitiesPage();
+        page.setPageMaximumValue(200L);
+
+        assertNull(page.getPageMaximumValue(), "Page max should be null if no sample size");
     }
 
     @Test

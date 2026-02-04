@@ -27,15 +27,12 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Predicate;
 
-import javax.json.JsonObject;
-
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ibm.icu.impl.Relation;
 import com.senzing.datamart.DataMartTestExtension;
 import com.senzing.datamart.DataMartTestExtension.Repository;
 import com.senzing.datamart.DataMartTestExtension.RepositoryType;
@@ -755,7 +752,9 @@ public abstract class AbstractReportsTest {
         return result;
     }
 
-    public static record RelationPair(SzResolvedEntity entity, SzRelatedEntity related) 
+    public static record RelationPair(SzResolvedEntity  entity, 
+                                      SzRelatedEntity   related,
+                                      SzResolvedEntity  resolvedRelated)
     {
         // nothing to add
     }
@@ -799,7 +798,8 @@ public abstract class AbstractReportsTest {
                 // create the relation key
                 SzRelationKey key = new SzRelationKey(entityId, relatedId);
                 
-                RelationPair pair = new RelationPair(entity, related);
+                RelationPair pair = new RelationPair(
+                    entity, related, entities.get(related.getEntityId()));
                 
                 if (predicate.test(pair)) {
                     // track the minimum and maximum entity ID
@@ -1466,7 +1466,8 @@ public abstract class AbstractReportsTest {
 
         for (SzResolvedEntity entity : entities.values()) {
             for (SzRelatedEntity related : entity.getRelatedEntities().values()) {
-                relationPairs.add(new RelationPair(entity, related));
+                relationPairs.add(new RelationPair(
+                    entity, related, entities.get(related.getEntityId())));
             }
         }
 
@@ -1738,16 +1739,20 @@ public abstract class AbstractReportsTest {
             Set<CrossRelationKey> crossRelationKeys = new TreeSet<>();
             for (SzRelatedEntity related : entity.getRelatedEntities().values()) {
                 // get the match key and principle
-                String      matchKey    = related.getMatchKey();
-                String      principle   = related.getPrinciple();
-                SzMatchType matchType   = related.getMatchType();
+                String              matchKey    = related.getMatchKey();
+                String              principle   = related.getPrinciple();
+                SzMatchType         matchType   = related.getMatchType();
+                SzResolvedEntity    resolvedRel = loadedEntities.get(related.getEntityId());
+
+                String revMatchKey = resolvedRel.getRelatedEntities().get(
+                    entity.getEntityId()).getMatchKey();
 
                 Map<String, Integer> relatedSummary = related.getSourceSummary();
 
                 recordSummary.forEach((source1, recordCount1) -> {
                     relatedSummary.forEach((source2, relatedCount2) -> {
                         SourceRelationKey.variants(
-                            matchType, matchKey, principle).forEach(srk -> 
+                            matchType, matchKey, revMatchKey,principle).forEach(srk -> 
                         {
                             CrossRelationKey crossKey 
                                 = new CrossRelationKey(source1, 

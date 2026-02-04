@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -1096,6 +1097,313 @@ abstract class AbstractSQLConsumerTest {
              ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM sz_message_queue")) {
             assertTrue(rs.next(), "Should be able to query sz_message_queue table");
         }
+    }
+
+    // ========================================================================
+    // getMessageCount() and getLastMessageNanoTime() Tests
+    // ========================================================================
+
+    @Test
+    @Order(6000)
+    void testGetMessageCountWithEmptyQueue() throws Exception {
+        // Clean schema first
+        Connection conn = connectionProvider.getConnection();
+        conn.setAutoCommit(false);
+        sqlClient.ensureSchema(conn, true);
+        conn.close();
+
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(SQLConsumer.CONNECTION_PROVIDER_KEY, this.providerName);
+        builder.add(SQLConsumer.CLEAN_DATABASE_KEY, false);
+        JsonObject config = builder.build();
+
+        SQLConsumer consumer = new SQLConsumer();
+        consumer.init(config);
+
+        // Queue is empty, no messages pending
+        Long messageCount = consumer.getMessageCount();
+        assertEquals(Long.valueOf(0L), messageCount, "Message count should be 0 for empty queue");
+    }
+
+    @Test
+    @Order(6100)
+    void testGetMessageCountWithQueuedMessages() throws Exception {
+        // Clean schema first
+        Connection conn = connectionProvider.getConnection();
+        conn.setAutoCommit(false);
+        sqlClient.ensureSchema(conn, true);
+        conn.close();
+
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(SQLConsumer.CONNECTION_PROVIDER_KEY, this.providerName);
+        builder.add(SQLConsumer.CLEAN_DATABASE_KEY, false);
+        JsonObject config = builder.build();
+
+        SQLConsumer consumer = new SQLConsumer();
+        consumer.init(config);
+
+        SQLConsumer.MessageQueue queue = consumer.getMessageQueue();
+
+        // Enqueue some messages
+        queue.enqueueMessage("{\"id\": 1}");
+        queue.enqueueMessage("{\"id\": 2}");
+        queue.enqueueMessage("{\"id\": 3}");
+
+        // getMessageCount() should return the queue count since not consuming
+        Long messageCount = consumer.getMessageCount();
+        assertEquals(Long.valueOf(3L), messageCount, "Message count should be 3");
+    }
+
+    @Test
+    @Order(6200)
+    void testGetMessageCountDuringConsumption() throws Exception {
+        // Clean schema first
+        Connection conn = connectionProvider.getConnection();
+        conn.setAutoCommit(false);
+        sqlClient.ensureSchema(conn, true);
+        conn.close();
+
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(SQLConsumer.CONNECTION_PROVIDER_KEY, this.providerName);
+        builder.add(SQLConsumer.CLEAN_DATABASE_KEY, false);
+        builder.add(SQLConsumer.LEASE_TIME_KEY, 60);
+        builder.add(SQLConsumer.MAXIMUM_LEASE_COUNT_KEY, 10);
+        JsonObject config = builder.build();
+
+        SQLConsumer consumer = new SQLConsumer();
+        consumer.init(config);
+
+        SQLConsumer.MessageQueue queue = consumer.getMessageQueue();
+
+        // Enqueue messages
+        int messageCount = 5;
+        for (int i = 0; i < messageCount; i++) {
+            queue.enqueueMessage("{\"id\": " + i + "}");
+        }
+
+        // Track when first message is processing
+        CountDownLatch processingLatch = new CountDownLatch(1);
+        CountDownLatch completionLatch = new CountDownLatch(messageCount);
+        AtomicReference<Long> countDuringProcessing = new AtomicReference<>();
+
+        MessageProcessor processor = (message) -> {
+            if (processingLatch.getCount() > 0) {
+                // Capture message count during processing
+                countDuringProcessing.set(consumer.getMessageCount());
+                processingLatch.countDown();
+            }
+            completionLatch.countDown();
+        };
+
+        // Start consuming
+        Thread consumeThread = new Thread(() -> {
+            try {
+                consumer.consume(processor);
+            } catch (Exception ignore) {
+            }
+        });
+        consumeThread.start();
+
+        // Wait for first message to start processing
+        assertTrue(processingLatch.await(30, TimeUnit.SECONDS),
+            "Processing should start within timeout");
+
+        // The count during processing should be >= 0 (some may still be queued/pending)
+        assertNotNull(countDuringProcessing.get(),
+            "Should be able to get message count during processing");
+
+        // Wait for all messages
+        assertTrue(completionLatch.await(30, TimeUnit.SECONDS),
+            "All messages should be processed within timeout");
+
+        // Small delay for cleanup
+        Thread.sleep(500);
+
+        // After processing, count should be 0
+        Long finalCount = consumer.getMessageCount();
+        assertEquals(Long.valueOf(0L), finalCount, "Message count should be 0 after processing");
+
+        consumer.destroy();
+        consumeThread.join(5000);
+    }
+
+    @Test
+    @Order(6300)
+    void testGetLastMessageNanoTimeBeforeConsumption() throws Exception {
+        // Clean schema first
+        Connection conn = connectionProvider.getConnection();
+        conn.setAutoCommit(false);
+        sqlClient.ensureSchema(conn, true);
+        conn.close();
+
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(SQLConsumer.CONNECTION_PROVIDER_KEY, this.providerName);
+        builder.add(SQLConsumer.CLEAN_DATABASE_KEY, false);
+        JsonObject config = builder.build();
+
+        SQLConsumer consumer = new SQLConsumer();
+        consumer.init(config);
+
+        // Before any messages are dequeued, should return -1
+        long lastMessageTime = consumer.getLastMessageNanoTime();
+        assertEquals(-1L, lastMessageTime,
+            "Last message nano time should be -1 before any messages are dequeued");
+    }
+
+    @Test
+    @Order(6400)
+    void testGetLastMessageNanoTimeAfterConsumption() throws Exception {
+        // Clean schema first
+        Connection conn = connectionProvider.getConnection();
+        conn.setAutoCommit(false);
+        sqlClient.ensureSchema(conn, true);
+        conn.close();
+
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(SQLConsumer.CONNECTION_PROVIDER_KEY, this.providerName);
+        builder.add(SQLConsumer.CLEAN_DATABASE_KEY, false);
+        builder.add(SQLConsumer.LEASE_TIME_KEY, 60);
+        JsonObject config = builder.build();
+
+        SQLConsumer consumer = new SQLConsumer();
+        consumer.init(config);
+
+        SQLConsumer.MessageQueue queue = consumer.getMessageQueue();
+
+        // Enqueue a message
+        queue.enqueueMessage("{\"test\": \"nanotime\"}");
+
+        CountDownLatch latch = new CountDownLatch(1);
+        long beforeConsumption = System.nanoTime();
+
+        MessageProcessor processor = (message) -> {
+            latch.countDown();
+        };
+
+        // Start consuming
+        Thread consumeThread = new Thread(() -> {
+            try {
+                consumer.consume(processor);
+            } catch (Exception ignore) {
+            }
+        });
+        consumeThread.start();
+
+        // Wait for message to be processed
+        assertTrue(latch.await(30, TimeUnit.SECONDS), "Message should be processed");
+
+        long afterConsumption = System.nanoTime();
+
+        // Last message nano time should be between before and after
+        long lastMessageTime = consumer.getLastMessageNanoTime();
+        assertTrue(lastMessageTime >= beforeConsumption,
+            "Last message time should be >= time before consumption started");
+        assertTrue(lastMessageTime <= afterConsumption,
+            "Last message time should be <= time after consumption completed");
+
+        consumer.destroy();
+        consumeThread.join(5000);
+    }
+
+    @Test
+    @Order(6500)
+    void testGetLastMessageNanoTimeUpdatesOnSubsequentMessages() throws Exception {
+        // Clean schema first
+        Connection conn = connectionProvider.getConnection();
+        conn.setAutoCommit(false);
+        sqlClient.ensureSchema(conn, true);
+        conn.close();
+
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(SQLConsumer.CONNECTION_PROVIDER_KEY, this.providerName);
+        builder.add(SQLConsumer.CLEAN_DATABASE_KEY, false);
+        builder.add(SQLConsumer.LEASE_TIME_KEY, 60);
+        JsonObject config = builder.build();
+
+        SQLConsumer consumer = new SQLConsumer();
+        consumer.init(config);
+
+        SQLConsumer.MessageQueue queue = consumer.getMessageQueue();
+
+        CountDownLatch firstLatch = new CountDownLatch(1);
+        CountDownLatch secondLatch = new CountDownLatch(2);
+        AtomicReference<Long> firstMessageTime = new AtomicReference<>();
+
+        MessageProcessor processor = (message) -> {
+            if (firstLatch.getCount() > 0) {
+                // Small delay to ensure we can capture different timestamps
+                try { Thread.sleep(50); } catch (InterruptedException ignore) {}
+                firstMessageTime.set(consumer.getLastMessageNanoTime());
+                firstLatch.countDown();
+            }
+            secondLatch.countDown();
+        };
+
+        // Enqueue first message
+        queue.enqueueMessage("{\"id\": 1}");
+
+        // Start consuming
+        Thread consumeThread = new Thread(() -> {
+            try {
+                consumer.consume(processor);
+            } catch (Exception ignore) {
+            }
+        });
+        consumeThread.start();
+
+        // Wait for first message
+        assertTrue(firstLatch.await(30, TimeUnit.SECONDS), "First message should be processed");
+
+        // Small delay before enqueuing second message
+        Thread.sleep(100);
+
+        // Enqueue second message
+        queue.enqueueMessage("{\"id\": 2}");
+
+        // Wait for second message
+        assertTrue(secondLatch.await(30, TimeUnit.SECONDS), "Second message should be processed");
+        Thread.sleep(100);
+
+        // Last message time should have been updated (should be later than first)
+        long finalMessageTime = consumer.getLastMessageNanoTime();
+        assertTrue(finalMessageTime >= firstMessageTime.get(),
+            "Last message time should be updated for subsequent messages");
+
+        consumer.destroy();
+        consumeThread.join(5000);
+    }
+
+    @Test
+    @Order(6600)
+    void testGetQueueMessageCountDirectly() throws Exception {
+        // Clean schema first
+        Connection conn = connectionProvider.getConnection();
+        conn.setAutoCommit(false);
+        sqlClient.ensureSchema(conn, true);
+        conn.close();
+
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        builder.add(SQLConsumer.CONNECTION_PROVIDER_KEY, this.providerName);
+        builder.add(SQLConsumer.CLEAN_DATABASE_KEY, false);
+        JsonObject config = builder.build();
+
+        SQLConsumer consumer = new SQLConsumer();
+        consumer.init(config);
+
+        SQLConsumer.MessageQueue queue = consumer.getMessageQueue();
+
+        // Initially should be 0
+        assertEquals(0L, queue.getMessageCount(), "Initial queue count should be 0");
+
+        // Add messages and verify count increases
+        queue.enqueueMessage("{\"test\": 1}");
+        assertEquals(1L, queue.getMessageCount(), "Queue count should be 1");
+
+        queue.enqueueMessage("{\"test\": 2}");
+        assertEquals(2L, queue.getMessageCount(), "Queue count should be 2");
+
+        queue.enqueueMessage("{\"test\": 3}");
+        assertEquals(3L, queue.getMessageCount(), "Queue count should be 3");
     }
 
     /**

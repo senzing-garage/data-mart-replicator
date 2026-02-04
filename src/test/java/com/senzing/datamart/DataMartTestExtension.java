@@ -3,7 +3,6 @@ package com.senzing.datamart;
 import com.senzing.datamart.model.SzRecord;
 import com.senzing.datamart.model.SzRelatedEntity;
 import com.senzing.datamart.model.SzResolvedEntity;
-import com.senzing.listener.service.scheduling.AbstractSchedulingService;
 import com.senzing.sdk.SzConfig;
 import com.senzing.sdk.SzConfigManager;
 import com.senzing.sdk.SzEngine;
@@ -19,7 +18,6 @@ import com.senzing.sql.PostgreSqlConnector;
 import com.senzing.sql.SQLiteConnector;
 import com.senzing.util.SzInstallLocations;
 import com.senzing.util.SzUtilities;
-import com.senzing.util.Quantified.Statistic;
 
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres;
 
@@ -572,8 +570,11 @@ public class DataMartTestExtension implements BeforeAllCallback {
                         switch (type) {
                             case SQLITE:
                                 File file = (File) db;
-                                if (file.exists()) {
-                                    //file.delete();
+                                if (file.exists()
+                                    && (!Boolean.TRUE.toString().equals(
+                                            System.getProperty(TEST_PRESERVE_SYSTEM_PROPERTY))))
+                                {
+                                    file.delete();
                                 }
                                 break;
                             case POSTGRESQL:
@@ -717,7 +718,7 @@ public class DataMartTestExtension implements BeforeAllCallback {
             // Create the JDBC URL for the data mart
             String      dataMartJdbcUrl = "jdbc:sqlite:" + dataMartDbFile.getAbsolutePath();
             SQLiteUri   dataMartConnUri = new SQLiteUri(dataMartDbFile);
-
+            
             // create the data mart connector
             Connector dataMartConnector = new SQLiteConnector(dataMartDbFile);
 
@@ -941,21 +942,14 @@ public class DataMartTestExtension implements BeforeAllCallback {
             logInfo("Loaded truth set.");
             if (replicator != null) {
                 logInfo("Waiting for replicator completion...");
-                do {
-                    long pendingMessageCount = replicator.getDatabaseMessageQueue().getMessageCount();
-                    logInfo("Pending message count: " + pendingMessageCount);
-                    if (pendingMessageCount == 0) {
-                        if (replicator.waitUntilIdle(2000000L)) {
-                            break;
-                        }
-                    } else {
-                        try {
-                            Thread.sleep(1000L);
-                        } catch (InterruptedException e) {
-                            // do nothing
-                        }
+                if (!replicator.waitUntilIdle(2000L, 20000L)) {
+                    replicator.shutdown(); // force shutdown here
+                    if (env != null) {
+                        env.destroy();
                     }
-                } while (true); 
+                    throw new IllegalStateException(
+                        "Replicator failed to become idle after 20 seconds, aborting....");
+                }
 
                 logInfo("Replicator completed, shutting it down...");
                 // shutdown the replicator

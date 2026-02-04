@@ -3,6 +3,7 @@ package com.senzing.listener.service.scheduling;
 import com.senzing.listener.service.exception.ServiceExecutionException;
 import com.senzing.listener.service.exception.ServiceSetupException;
 import com.senzing.sql.DatabaseType;
+import com.senzing.sql.SQLUtilities;
 import com.senzing.text.TextUtilities;
 import com.senzing.sql.ConnectionProvider;
 
@@ -161,6 +162,44 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
     @Override
     protected void doDestroy() {
         // do nothing
+    }
+
+    /**
+     * Implemented to select the row count from the
+     * <code>sz_follow_up_tasks</code> table and return it.
+     * This will return <code>null</code> if a {@link SQLException}
+     * is encountered.
+     * <p>
+     * {@inheritDoc}
+     */
+    @Override
+    protected Long countScheduledFollowUpTasks() {
+        Connection          conn = null;
+        PreparedStatement   ps = null;
+        ResultSet           rs = null;
+        try {
+            // get the connection
+            conn = this.getConnection();
+
+            // prepare the statement
+            ps = conn.prepareStatement("SELECT COUNT(*) from sz_follow_up_tasks");
+
+            // execute the query
+            rs = ps.executeQuery();
+
+            // read the result
+            rs.next();
+            return rs.getLong(1);
+            
+        } catch (Exception e) {
+            logWarning(e, "Failed to get follow-up task count");
+            return null;
+
+        } finally {
+            SQLUtilities.close(rs);
+            SQLUtilities.close(ps);
+            SQLUtilities.close(conn);
+        }
     }
 
     /**

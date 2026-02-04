@@ -60,4 +60,9 @@ class MockSchedulingService extends AbstractSchedulingService {
     protected void doDestroy() {
         // No-op for mock
     }
+
+    @Override
+    protected Long countScheduledFollowUpTasks() {
+        return ((long) this.followUpQueue.size());
+    }
 }

@@ -341,7 +341,30 @@ public class MockSqsClient implements SqsClient {
 
     @Override
     public GetQueueAttributesResponse getQueueAttributes(GetQueueAttributesRequest request) {
-        throw new java.lang.UnsupportedOperationException("Not implemented in mock");
+        if (closed) {
+            throw SdkClientException.create("Client is closed");
+        }
+
+        try {
+            long count = getMessageCount();
+
+            // Build the attributes map
+            Map<QueueAttributeName, String> attributes = new java.util.HashMap<>();
+            attributes.put(QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES, String.valueOf(count));
+
+            SdkHttpResponse httpResponse = SdkHttpResponse.builder()
+                    .statusCode(200)
+                    .statusText("OK")
+                    .build();
+
+            return (GetQueueAttributesResponse) ((SdkResponse.Builder) GetQueueAttributesResponse.builder()
+                    .attributes(attributes))
+                    .sdkHttpResponse(httpResponse)
+                    .build();
+
+        } catch (SQLException e) {
+            throw SdkClientException.create("Database error: " + e.getMessage(), e);
+        }
     }
 
     @Override

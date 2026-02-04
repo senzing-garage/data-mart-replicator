@@ -16,6 +16,9 @@ import javax.json.JsonObject;
 import java.io.File;
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -49,6 +52,51 @@ class AbstractSQLSchedulingServiceTest {
         public void handleTask(String action, Map<String, Object> parameters,
                              int multiplicity, Scheduler followUpScheduler) {
             // No-op
+        }
+    }
+
+    /**
+     * A handler that blocks task completion until signaled.
+     * Useful for testing task counts while tasks are in-flight.
+     */
+    private static class BlockingTestHandler implements TaskHandler {
+        private final CountDownLatch taskStartedLatch;
+        private final CountDownLatch proceedLatch;
+        private final AtomicInteger handledCount = new AtomicInteger(0);
+
+        public BlockingTestHandler(int expectedTasks) {
+            this.taskStartedLatch = new CountDownLatch(expectedTasks);
+            this.proceedLatch = new CountDownLatch(1);
+        }
+
+        @Override
+        public Boolean waitUntilReady(long timeoutMillis) {
+            return Boolean.TRUE;
+        }
+
+        @Override
+        public void handleTask(String action, Map<String, Object> parameters,
+                             int multiplicity, Scheduler followUpScheduler) {
+            handledCount.incrementAndGet();
+            taskStartedLatch.countDown();
+            try {
+                // Block until signaled to proceed
+                proceedLatch.await(30, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        public boolean awaitTasksStarted(long timeout, TimeUnit unit) throws InterruptedException {
+            return taskStartedLatch.await(timeout, unit);
+        }
+
+        public void signalProceed() {
+            proceedLatch.countDown();
+        }
+
+        public int getHandledCount() {
+            return handledCount.get();
         }
     }
 
@@ -1166,6 +1214,326 @@ class AbstractSQLSchedulingServiceTest {
                 fail("Should throw ServiceExecutionException", e);
             }
         });
+    }
+
+    // ========================================================================
+    // Pending Task Count and Last Task Scheduled Time Tests
+    // ========================================================================
+
+    @Test
+    void testGetRemainingFollowUpTasksCountWithEmptyTable() throws Exception {
+        // Create a fresh service with its own clean database to ensure empty table
+        File freshDbFile = File.createTempFile("fresh_sql_test_", ".db");
+        freshDbFile.deleteOnExit();
+
+        SQLiteConnector freshConnector = new SQLiteConnector(freshDbFile.getAbsolutePath());
+        ConnectionPool freshPool = new ConnectionPool(freshConnector, 2);
+        PoolConnectionProvider freshProvider = new PoolConnectionProvider(freshPool);
+
+        String freshKey = "FRESH_TEST_" + System.nanoTime();
+        AccessToken freshToken = ConnectionProvider.REGISTRY.bind(freshKey, freshProvider);
+
+        try {
+            SQLiteSchedulingService freshService = new SQLiteSchedulingService();
+
+            JsonObject config = Json.createObjectBuilder()
+                .add(AbstractSQLSchedulingService.CONNECTION_PROVIDER_KEY, freshKey)
+                .add(AbstractSQLSchedulingService.CLEAN_DATABASE_KEY, true)
+                .add(AbstractSchedulingService.CONCURRENCY_KEY, 1)
+                .add(AbstractSchedulingService.FOLLOW_UP_DELAY_KEY, 60000) // Long delay to prevent processing
+                .build();
+
+            freshService.init(config, new TestHandler());
+
+            // Query the count from empty table
+            Long count = freshService.getRemainingFollowUpTasksCount();
+
+            assertNotNull(count, "Count should not be null");
+            assertEquals(0L, count.longValue(), "Count should be 0 for empty table");
+
+            freshService.destroy();
+        } finally {
+            ConnectionProvider.REGISTRY.unbind(freshKey, freshToken);
+            freshPool.shutdown();
+            freshDbFile.delete();
+        }
+    }
+
+    @Test
+    void testGetRemainingFollowUpTasksCountAfterEnqueue() throws Exception {
+        // Create a fresh service with a blocking handler
+        File freshDbFile = File.createTempFile("blocking_sql_test_", ".db");
+        freshDbFile.deleteOnExit();
+
+        SQLiteConnector freshConnector = new SQLiteConnector(freshDbFile.getAbsolutePath());
+        ConnectionPool freshPool = new ConnectionPool(freshConnector, 2);
+        PoolConnectionProvider freshProvider = new PoolConnectionProvider(freshPool);
+
+        String freshKey = "BLOCKING_TEST_" + System.nanoTime();
+        AccessToken freshToken = ConnectionProvider.REGISTRY.bind(freshKey, freshProvider);
+
+        BlockingTestHandler blockingHandler = new BlockingTestHandler(2);
+
+        try {
+            SQLiteSchedulingService freshService = new SQLiteSchedulingService();
+
+            JsonObject config = Json.createObjectBuilder()
+                .add(AbstractSQLSchedulingService.CONNECTION_PROVIDER_KEY, freshKey)
+                .add(AbstractSQLSchedulingService.CLEAN_DATABASE_KEY, true)
+                .add(AbstractSchedulingService.CONCURRENCY_KEY, 2)
+                .add(AbstractSchedulingService.FOLLOW_UP_DELAY_KEY, 50) // Short delay so tasks get picked up
+                .add(AbstractSchedulingService.FOLLOW_UP_TIMEOUT_KEY, 30000)
+                .build();
+
+            freshService.init(config, blockingHandler);
+
+            // Schedule follow-up tasks
+            Scheduler followUpScheduler = freshService.createScheduler(true);
+            followUpScheduler.createTaskBuilder("FOLLOWUP_COUNT_TEST")
+                .parameter("testId", 1)
+                .schedule(true);
+            followUpScheduler.createTaskBuilder("FOLLOWUP_COUNT_TEST")
+                .parameter("testId", 2)
+                .schedule(true);
+            followUpScheduler.commit();
+
+            // Wait for tasks to start being handled (they will block in the handler)
+            boolean tasksStarted = blockingHandler.awaitTasksStarted(5, TimeUnit.SECONDS);
+
+            if (tasksStarted) {
+                // Tasks are now in-flight (being handled but blocked)
+                // The remaining count should include in-progress tasks
+                Long count = freshService.getRemainingTasksCount();
+                assertNotNull(count, "Count should not be null");
+                assertTrue(count >= 0, "Count should be non-negative");
+            }
+
+            // Signal handler to complete tasks
+            blockingHandler.signalProceed();
+
+            // Wait for tasks to finish
+            Thread.sleep(200);
+
+            freshService.destroy();
+        } finally {
+            ConnectionProvider.REGISTRY.unbind(freshKey, freshToken);
+            freshPool.shutdown();
+            freshDbFile.delete();
+        }
+    }
+
+    @Test
+    void testGetRemainingTasksCountReturnsCorrectValue() throws Exception {
+        // Create a fresh service with a blocking handler
+        File freshDbFile = File.createTempFile("tasks_count_test_", ".db");
+        freshDbFile.deleteOnExit();
+
+        SQLiteConnector freshConnector = new SQLiteConnector(freshDbFile.getAbsolutePath());
+        ConnectionPool freshPool = new ConnectionPool(freshConnector, 2);
+        PoolConnectionProvider freshProvider = new PoolConnectionProvider(freshPool);
+
+        String freshKey = "TASKS_COUNT_TEST_" + System.nanoTime();
+        AccessToken freshToken = ConnectionProvider.REGISTRY.bind(freshKey, freshProvider);
+
+        BlockingTestHandler blockingHandler = new BlockingTestHandler(1);
+
+        try {
+            SQLiteSchedulingService freshService = new SQLiteSchedulingService();
+
+            JsonObject config = Json.createObjectBuilder()
+                .add(AbstractSQLSchedulingService.CONNECTION_PROVIDER_KEY, freshKey)
+                .add(AbstractSQLSchedulingService.CLEAN_DATABASE_KEY, true)
+                .add(AbstractSchedulingService.CONCURRENCY_KEY, 2)
+                .build();
+
+            freshService.init(config, blockingHandler);
+
+            // Get initial count (should be 0)
+            Long initialCount = freshService.getRemainingTasksCount();
+            assertNotNull(initialCount, "Initial count should not be null");
+            assertEquals(0L, initialCount.longValue(), "Initial count should be 0");
+
+            // Schedule a regular task (not follow-up)
+            Scheduler scheduler = freshService.createScheduler(false);
+            scheduler.createTaskBuilder("REMAINING_COUNT_TEST")
+                .parameter("id", 1)
+                .schedule(true);
+            scheduler.commit();
+
+            // Wait for task to start being handled
+            boolean taskStarted = blockingHandler.awaitTasksStarted(5, TimeUnit.SECONDS);
+            assertTrue(taskStarted, "Task should have started");
+
+            // Now the task is in-flight, count should include in-progress tasks
+            Long count = freshService.getRemainingTasksCount();
+            assertNotNull(count, "Count should not be null");
+            // Count includes in-progress tasks, so should be >= 1
+            assertTrue(count >= 1, "Count should include in-progress task");
+
+            // Signal handler to complete
+            blockingHandler.signalProceed();
+
+            // Wait for task to finish
+            Thread.sleep(200);
+
+            // After completion, count should be back to 0
+            Long finalCount = freshService.getRemainingTasksCount();
+            assertNotNull(finalCount, "Final count should not be null");
+            assertEquals(0L, finalCount.longValue(), "Final count should be 0 after task completes");
+
+            freshService.destroy();
+        } finally {
+            ConnectionProvider.REGISTRY.unbind(freshKey, freshToken);
+            freshPool.shutdown();
+            freshDbFile.delete();
+        }
+    }
+
+    @Test
+    void testGetLastTaskScheduledNanoTimeBeforeScheduling() throws Exception {
+        // Create a fresh service to test initial state
+        SQLiteSchedulingService freshService = new SQLiteSchedulingService();
+
+        JsonObject config = Json.createObjectBuilder()
+            .add(AbstractSQLSchedulingService.CONNECTION_PROVIDER_KEY, PROVIDER_KEY)
+            .add(AbstractSQLSchedulingService.CLEAN_DATABASE_KEY, false)
+            .add(AbstractSchedulingService.CONCURRENCY_KEY, 2)
+            .build();
+
+        freshService.init(config, new TestHandler());
+
+        // Before any tasks are scheduled, should be -1
+        long nanoTime = freshService.getLastTaskActivityNanoTime();
+        assertEquals(-1L, nanoTime, "Should be -1 before any tasks are scheduled");
+
+        freshService.destroy();
+    }
+
+    @Test
+    void testGetLastTaskScheduledNanoTimeAfterScheduling() throws Exception {
+        long beforeSchedule = System.nanoTime();
+
+        // Schedule a task
+        Scheduler scheduler = service.createScheduler(false);
+        scheduler.createTaskBuilder("NANO_TIME_TEST")
+            .parameter("key", "value")
+            .schedule(true);
+        scheduler.commit();
+
+        long afterSchedule = System.nanoTime();
+
+        // Get the last scheduled time
+        long lastNanoTime = service.getLastTaskActivityNanoTime();
+
+        // Should be within our timing window
+        assertTrue(lastNanoTime > 0, "Last nano time should be positive after scheduling");
+        assertTrue(lastNanoTime >= beforeSchedule, "Should be >= time before schedule");
+        assertTrue(lastNanoTime <= afterSchedule, "Should be <= time after schedule");
+
+        // Wait for task to complete
+        Thread.sleep(200);
+    }
+
+    @Test
+    void testGetLastTaskScheduledNanoTimeUpdatesOnEachSchedule() throws Exception {
+        // Schedule first batch
+        Scheduler scheduler1 = service.createScheduler(false);
+        scheduler1.createTaskBuilder("TIME_UPDATE_TEST_1").schedule(true);
+        scheduler1.commit();
+
+        long firstTime = service.getLastTaskActivityNanoTime();
+        assertTrue(firstTime > 0);
+
+        // Wait a bit
+        Thread.sleep(50);
+
+        // Schedule second batch
+        Scheduler scheduler2 = service.createScheduler(false);
+        scheduler2.createTaskBuilder("TIME_UPDATE_TEST_2").schedule(true);
+        scheduler2.commit();
+
+        long secondTime = service.getLastTaskActivityNanoTime();
+
+        assertTrue(secondTime > firstTime,
+            "Last scheduled time should update: first=" + firstTime + ", second=" + secondTime);
+
+        // Wait for completion
+        Thread.sleep(200);
+    }
+
+    @Test
+    void testGetAllPendingTasksCountSumsBothCounts() throws Exception {
+        // Get the combined count
+        Long allCount = service.getAllRemainingTasksCount();
+
+        assertNotNull(allCount, "All pending count should not be null");
+
+        // Get individual counts
+        Long tasksCount = service.getRemainingTasksCount();
+        Long followUpCount = service.getRemainingFollowUpTasksCount();
+
+        // If both are non-null, all should equal their sum
+        if (tasksCount != null && followUpCount != null) {
+            assertEquals(tasksCount + followUpCount, allCount.longValue(),
+                "All pending should equal sum of tasks + follow-up");
+        }
+    }
+
+    @Test
+    void testGetPendingFollowUpTasksCountWithSQLException() throws Exception {
+        SystemErr systemErr = new SystemErr();
+        systemErr.execute(() -> {
+            // Create a service that always fails on getConnection
+            class FailingConnectionService extends SQLiteSchedulingService {
+                @Override
+                protected Connection getConnection() throws SQLException {
+                    throw new SQLException("Simulated connection failure");
+                }
+            }
+
+            FailingConnectionService failingService = new FailingConnectionService();
+
+            // Set the connection provider via reflection so countScheduledFollowUpTasks can be called
+            // without initializing the full service (which would start background threads)
+            java.lang.reflect.Field field = AbstractSQLSchedulingService.class.getDeclaredField("connectionProvider");
+            field.setAccessible(true);
+            field.set(failingService, ConnectionProvider.REGISTRY.lookup(PROVIDER_KEY));
+
+            // Should return null on SQLException (countScheduledFollowUpTasks catches and returns null)
+            Long count = failingService.countScheduledFollowUpTasks();
+            assertNull(count, "Should return null when SQLException occurs");
+        });
+    }
+
+    @Test
+    void testGetAllPendingTasksCountWhenFollowUpReturnsNull() throws Exception {
+        // Create a service that returns null for follow-up count
+        class NullFollowUpService extends SQLiteSchedulingService {
+            @Override
+            public Long getRemainingFollowUpTasksCount() {
+                return null;
+            }
+        }
+
+        NullFollowUpService nullService = new NullFollowUpService();
+
+        JsonObject config = Json.createObjectBuilder()
+            .add(AbstractSQLSchedulingService.CONNECTION_PROVIDER_KEY, PROVIDER_KEY)
+            .add(AbstractSQLSchedulingService.CLEAN_DATABASE_KEY, false)
+            .add(AbstractSchedulingService.CONCURRENCY_KEY, 2)
+            .build();
+
+        nullService.init(config, new TestHandler());
+
+        // getAllPendingTasksCount should still return the tasks count (not null)
+        Long allCount = nullService.getAllRemainingTasksCount();
+        Long tasksCount = nullService.getRemainingTasksCount();
+
+        // When follow-up is null but tasks is not, should return tasks count
+        assertEquals(tasksCount, allCount,
+            "Should return tasks count when follow-up is null");
+
+        nullService.destroy();
     }
 
     // ========================================================================

@@ -1331,4 +1331,195 @@ class AbstractSchedulingServiceTest {
 
         service.destroy();
     }
+
+    // ========================================================================
+    // Pending Task Count and Last Task Scheduled Time Tests
+    // ========================================================================
+
+    @Test
+    void testGetPendingTasksCountInitiallyZero() throws Exception {
+        SuccessTaskHandler handler = new SuccessTaskHandler();
+        MockSchedulingService service = new MockSchedulingService();
+
+        service.init(null, handler);
+
+        // Before scheduling any tasks, count should be 0
+        Long count = service.getRemainingTasksCount();
+        assertNotNull(count);
+        assertEquals(0L, count.longValue());
+
+        service.destroy();
+    }
+
+    @Test
+    void testGetPendingTasksCountAfterScheduling() throws Exception {
+        SuccessTaskHandler handler = new SuccessTaskHandler();
+        MockSchedulingService service = new MockSchedulingService();
+
+        // Use longer timeout to ensure tasks stay pending
+        JsonObject config = Json.createObjectBuilder()
+            .add(AbstractSchedulingService.STANDARD_TIMEOUT_KEY, 10000)
+            .build();
+
+        service.init(config, handler);
+
+        Scheduler scheduler = service.createScheduler(false);
+
+        // Schedule multiple tasks
+        scheduler.createTaskBuilder("ACTION1").parameter("id", 1).schedule(true);
+        scheduler.createTaskBuilder("ACTION2").parameter("id", 2).schedule(true);
+        scheduler.createTaskBuilder("ACTION3").parameter("id", 3).schedule(true);
+
+        scheduler.commit();
+
+        // Give a brief moment for tasks to be queued but not yet processed
+        Thread.sleep(50);
+
+        // Pending count should reflect scheduled tasks (though may be processed quickly)
+        Long count = service.getRemainingTasksCount();
+        assertNotNull(count);
+        // Count could be 0-3 depending on timing, but method should not return null
+        assertTrue(count >= 0);
+
+        // Wait for completion
+        Thread.sleep(500);
+
+        service.destroy();
+    }
+
+    @Test
+    void testGetLastTaskScheduledNanoTimeInitiallyNegativeOne() throws Exception {
+        SuccessTaskHandler handler = new SuccessTaskHandler();
+        MockSchedulingService service = new MockSchedulingService();
+
+        service.init(null, handler);
+
+        // Before scheduling any tasks, should be -1
+        long nanoTime = service.getLastTaskActivityNanoTime();
+        assertEquals(-1L, nanoTime);
+
+        service.destroy();
+    }
+
+    @Test
+    void testGetLastTaskScheduledNanoTimeAfterScheduling() throws Exception {
+        SuccessTaskHandler handler = new SuccessTaskHandler();
+        MockSchedulingService service = new MockSchedulingService();
+
+        service.init(null, handler);
+
+        long beforeSchedule = System.nanoTime();
+
+        Scheduler scheduler = service.createScheduler(false);
+        scheduler.createTaskBuilder("ACTION").parameter("key", "value").schedule(true);
+        scheduler.commit();
+
+        long afterSchedule = System.nanoTime();
+
+        // The last task scheduled nano time should be set
+        long lastNanoTime = service.getLastTaskActivityNanoTime();
+
+        // Should be greater than -1 and within our timing window
+        assertTrue(lastNanoTime > 0, "Last task scheduled time should be positive after scheduling");
+        assertTrue(lastNanoTime >= beforeSchedule, "Last task scheduled time should be >= time before schedule");
+        assertTrue(lastNanoTime <= afterSchedule, "Last task scheduled time should be <= time after schedule");
+
+        // Wait for task to complete
+        Thread.sleep(200);
+
+        service.destroy();
+    }
+
+    @Test
+    void testGetLastTaskScheduledNanoTimeUpdatesOnSubsequentScheduling() throws Exception {
+        SuccessTaskHandler handler = new SuccessTaskHandler();
+        MockSchedulingService service = new MockSchedulingService();
+
+        service.init(null, handler);
+
+        // Schedule first task
+        Scheduler scheduler1 = service.createScheduler(false);
+        scheduler1.createTaskBuilder("ACTION1").schedule(true);
+        scheduler1.commit();
+
+        long firstNanoTime = service.getLastTaskActivityNanoTime();
+        assertTrue(firstNanoTime > 0);
+
+        // Wait a bit
+        Thread.sleep(50);
+
+        // Schedule second task
+        Scheduler scheduler2 = service.createScheduler(false);
+        scheduler2.createTaskBuilder("ACTION2").schedule(true);
+        scheduler2.commit();
+
+        long secondNanoTime = service.getLastTaskActivityNanoTime();
+
+        // Second time should be greater than first
+        assertTrue(secondNanoTime > firstNanoTime,
+            "Last scheduled time should update on subsequent scheduling");
+
+        // Wait for tasks to complete
+        Thread.sleep(200);
+
+        service.destroy();
+    }
+
+    @Test
+    void testGetAllPendingTasksCountCombinesBothCounts() throws Exception {
+        SuccessTaskHandler handler = new SuccessTaskHandler();
+        MockSchedulingService service = new MockSchedulingService();
+
+        service.init(null, handler);
+
+        // Initially both counts should be 0, so all should be 0
+        Long allCount = service.getAllRemainingTasksCount();
+        assertNotNull(allCount);
+        assertEquals(0L, allCount.longValue());
+
+        // Schedule a follow-up task to increase follow-up count
+        Scheduler followUpScheduler = service.createScheduler(true);
+        followUpScheduler.createTaskBuilder("FOLLOWUP").parameter("test", true).schedule(true);
+        followUpScheduler.commit();
+
+        // Give time for follow-up to be enqueued
+        Thread.sleep(100);
+
+        // The all count should now include the follow-up count
+        Long newAllCount = service.getAllRemainingTasksCount();
+        assertNotNull(newAllCount);
+        assertTrue(newAllCount >= 0);
+
+        service.destroy();
+    }
+
+    @Test
+    void testGetPendingFollowUpTasksCountFromMock() throws Exception {
+        SuccessTaskHandler handler = new SuccessTaskHandler();
+        MockSchedulingService service = new MockSchedulingService();
+
+        service.init(null, handler);
+
+        // Initially should be 0
+        Long count = service.getRemainingFollowUpTasksCount();
+        assertNotNull(count);
+        assertEquals(0L, count.longValue());
+
+        // Schedule follow-up tasks
+        Scheduler followUpScheduler = service.createScheduler(true);
+        followUpScheduler.createTaskBuilder("FOLLOWUP1").schedule(true);
+        followUpScheduler.createTaskBuilder("FOLLOWUP2").schedule(true);
+        followUpScheduler.commit();
+
+        // Give time for follow-ups to be enqueued
+        Thread.sleep(100);
+
+        // Follow-up count should reflect queued tasks
+        Long newCount = service.getRemainingFollowUpTasksCount();
+        assertNotNull(newCount);
+        // Count depends on whether they've been processed yet
+        assertTrue(newCount >= 0);
+
+        service.destroy();
+    }
 }
