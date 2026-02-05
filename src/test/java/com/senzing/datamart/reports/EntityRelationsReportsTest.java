@@ -54,23 +54,40 @@ public class EntityRelationsReportsTest extends AbstractReportsTest {
     @MethodSource("getBreakdownParameters")
     public void testEntityRelationsBreakdown(RepositoryType             repoType,
                                              ConnectionProvider         connProvider,
-                                             SzEntityRelationsBreakdown expected)                                
+                                             SzEntityRelationsBreakdown expected)
     {
         String testInfo = "repoType=[ " + repoType + " ]";
 
-        Connection conn = null;
         try {
-            conn = connProvider.getConnection();
-        
-            SzEntityRelationsBreakdown actual 
-                = EntityRelationsReports.getEntityRelationsBreakdown(conn, null);
+            SzEntityRelationsBreakdown actual
+                = this.getEntityRelationsBreakdown(repoType, connProvider);
 
             validateReport(expected, actual, testInfo);
-            
+
         } catch (Exception e) {
             fail("Failed test with an unexpected exception: repoType=[ "
                  + repoType + " ]", e);
+        }
+    }
 
+    /**
+     * Gets the {@link SzEntityRelationsBreakdown} for the specified repository type.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @return The {@link SzEntityRelationsBreakdown} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzEntityRelationsBreakdown getEntityRelationsBreakdown(
+        RepositoryType     repoType,
+        ConnectionProvider connProvider)
+        throws Exception
+    {
+        Connection conn = null;
+        try {
+            conn = connProvider.getConnection();
+            return EntityRelationsReports.getEntityRelationsBreakdown(conn, null);
         } finally {
             SQLUtilities.close(conn);
         }
@@ -119,14 +136,10 @@ public class EntityRelationsReportsTest extends AbstractReportsTest {
     {
         String testInfo = "repoType=[ " + repoType + " ], relationsCount=[ "
             + relationsCount + " ], expectedException=[ " + exceptionType + " ]";
-        
-        Connection conn = null;
+
         try {
-            conn = connProvider.getConnection();
-        
-            SzEntityRelationsCount actual 
-                = EntityRelationsReports.getEntityRelationsCount(
-                    conn, relationsCount, null);
+            SzEntityRelationsCount actual
+                = this.getEntityRelationsCount(repoType, connProvider, relationsCount);
 
             if (exceptionType != null) {
                 fail("Method unexpectedly succeeded.  " + testInfo);
@@ -136,12 +149,35 @@ public class EntityRelationsReportsTest extends AbstractReportsTest {
 
         } catch (Exception e) {
             if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                    fail("Unexpected exception (" + e.getClass().getName() 
-                         + ") when expecting " 
-                         + (exceptionType == null ? "none" : exceptionType.getName())
-                         + ": " + testInfo, e);
+                fail("Unexpected exception (" + e.getClass().getName()
+                     + ") when expecting "
+                     + (exceptionType == null ? "none" : exceptionType.getName())
+                     + ": " + testInfo, e);
             }
+        }
+    }
 
+    /**
+     * Gets the {@link SzEntityRelationsCount} for the specified relations count.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param relationsCount The relations count for which the entity count is being requested.
+     * @return The {@link SzEntityRelationsCount} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzEntityRelationsCount getEntityRelationsCount(
+        RepositoryType     repoType,
+        ConnectionProvider connProvider,
+        int                relationsCount)
+        throws Exception
+    {
+        Connection conn = null;
+        try {
+            conn = connProvider.getConnection();
+            return EntityRelationsReports.getEntityRelationsCount(
+                conn, relationsCount, null);
         } finally {
             SQLUtilities.close(conn);
         }
@@ -196,24 +232,21 @@ public class EntityRelationsReportsTest extends AbstractReportsTest {
                                              Integer            sampleSize,
                                              SzEntitiesPage     expected,
                                              Class<?>           exceptionType)
-    {                              
+    {
         String testInfo = "repoType=[ " + repoType + " ], relationsCount=[ "
             + relationsCount + " ], entityIdBound=[ " + entityIdBound
-            + " ], boundType=[ " + boundType + " ], pageSize=[ " 
+            + " ], boundType=[ " + boundType + " ], pageSize=[ "
             + pageSize + " ], sampleSize=[ " + sampleSize + " ]";
-        
-        Connection conn = null;
+
         try {
-            conn = connProvider.getConnection();
-        
-            SzEntitiesPage actual = EntityRelationsReports.getEntityIdsForRelationCount(
-                conn,
+            SzEntitiesPage actual = this.getEntityIdsForRelationCount(
+                repoType,
+                connProvider,
                 relationsCount,
                 entityIdBound,
                 boundType,
                 pageSize,
-                sampleSize,
-                null);
+                sampleSize);
 
             if (exceptionType != null) {
                 fail("Method unexpectedly succeeded.  " + testInfo);
@@ -225,17 +258,54 @@ public class EntityRelationsReportsTest extends AbstractReportsTest {
                                       boundType,
                                       pageSize,
                                       sampleSize,
-                                      expected, 
+                                      expected,
                                       actual);
-                    
+
         } catch (Exception e) {
             if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                    fail("Unexpected exception (" + e.getClass().getName() 
-                         + ") when expecting " 
-                         + (exceptionType == null ? "none" : exceptionType.getName())
-                         + ": " + testInfo, e);
+                fail("Unexpected exception (" + e.getClass().getName()
+                     + ") when expecting "
+                     + (exceptionType == null ? "none" : exceptionType.getName())
+                     + ": " + testInfo, e);
             }
+        }
+    }
 
+    /**
+     * Gets the {@link SzEntitiesPage} for the specified relation count.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param relationsCount The relations count for which entities are being requested.
+     * @param entityIdBound The bound value for the entity ID's.
+     * @param boundType The {@link SzBoundType} describing how to apply the bound.
+     * @param pageSize The maximum number of entity ID's to return.
+     * @param sampleSize The optional sample size.
+     * @return The {@link SzEntitiesPage} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzEntitiesPage getEntityIdsForRelationCount(
+        RepositoryType     repoType,
+        ConnectionProvider connProvider,
+        int                relationsCount,
+        String             entityIdBound,
+        SzBoundType        boundType,
+        Integer            pageSize,
+        Integer            sampleSize)
+        throws Exception
+    {
+        Connection conn = null;
+        try {
+            conn = connProvider.getConnection();
+            return EntityRelationsReports.getEntityIdsForRelationCount(
+                conn,
+                relationsCount,
+                entityIdBound,
+                boundType,
+                pageSize,
+                sampleSize,
+                null);
         } finally {
             SQLUtilities.close(conn);
         }

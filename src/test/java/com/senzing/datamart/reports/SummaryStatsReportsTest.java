@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -48,10 +49,10 @@ import com.senzing.datamart.reports.model.SzSummaryStats;
 import com.senzing.sql.ConnectionProvider;
 import com.senzing.sql.SQLUtilities;
 
+import static com.senzing.datamart.reports.DataSourceCombination.*;
 @TestInstance(Lifecycle.PER_CLASS)
 @ExtendWith(DataMartTestExtension.class)
 public class SummaryStatsReportsTest extends AbstractReportsTest {
-    private final int SKIP_FACTOR = 1;
 
     private Map<RepositoryType, SzSummaryStats> summaryStatsMap = null;
 
@@ -62,22 +63,37 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
         this.summaryStatsMap = this.getSummaryStats();
     }
 
+    protected Set<DataSourceCombination> getDataSourceCombinations() {
+        return Collections.unmodifiableSet(EnumSet.allOf(DataSourceCombination.class));
+    }
+
+    protected int getSkipFactor() {
+        return 1;
+    }
+
     public List<Arguments> getSummaryStatsParameters() {
         List<Arguments> result = new LinkedList<>();
-        
+        int skipFactor = this.getSkipFactor();
+        Set<DataSourceCombination> sourceCombinations = this.getDataSourceCombinations();
+
         this.summaryStatsMap.forEach((repoType, summaryStats) -> {
             ConnectionProvider connProvider = this.getConnectionProvider(repoType);
 
             Set<String> emptySet = Collections.emptySet();
 
-            result.add(Arguments.of(repoType, connProvider, "*", "*", null, summaryStats));
-            result.add(Arguments.of(repoType, connProvider, "*", "*", emptySet, summaryStats));
+            if (sourceCombinations.contains(LOADED)) {
+                result.add(Arguments.of(repoType, connProvider, "*", "*", LOADED, null, summaryStats));
+                result.add(Arguments.of(repoType, connProvider, "*", "*", LOADED, emptySet, summaryStats));
+            }
 
             // get the set of all loaded data sources
             Repository  repo            = DataMartTestExtension.getRepository(repoType);
             Set<String> loadedSources   = repo.getLoadedDataSources();
 
-            result.add(Arguments.of(repoType, connProvider, "*", "*", loadedSources, summaryStats));
+            if (sourceCombinations.contains(LOADED)) {        
+                result.add(Arguments.of(
+                    repoType, connProvider, "*", "*", LOADED, loadedSources, summaryStats));
+            }
 
             // figure out which data sources are configured with no loaded records
             Set<String> dataSources = repo.getConfiguredDataSources();
@@ -87,6 +103,12 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
             unusedSources.removeAll(loadedSources);
             unusedSources = Collections.unmodifiableSet(unusedSources);
 
+            // determine the basic sources
+            Set<String> basicUnused = new TreeSet<>(unusedSources);
+            basicUnused.remove("TEST");
+            basicUnused.remove("SEARCH");
+            basicUnused = Collections.unmodifiableSet(basicUnused);
+            
             // create all cross keys
             Set<CrossSourceKey> crossKeys = new TreeSet<>();
             for (String source1 : dataSources) {
@@ -135,142 +157,198 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                 }
             }
 
-            result.add(Arguments.of(repoType, connProvider, "*", "*", dataSources, allStats));
-            result.add(Arguments.of(repoType, connProvider, "*", "*", unusedSources, allStats));
-            
+            if (sourceCombinations.contains(ALL_BUT_DEFAULT)) {
+                result.add(Arguments.of(
+                    repoType, connProvider, null, null, ALL_BUT_DEFAULT, basicUnused,
+                    filter(allStats, loadedSources, basicUnused, null, null)));
+                
+                result.add(Arguments.of(
+                    repoType, connProvider, "*", "*", ALL_BUT_DEFAULT, basicUnused,
+                    filter(allStats, loadedSources, basicUnused, "*", "*")));
+            }
+
+            if (sourceCombinations.contains(ALL_WITH_DEFAULT)) {
+                result.add(Arguments.of(
+                    repoType, connProvider, "*", "*", ALL_WITH_DEFAULT, dataSources, allStats));
+                result.add(Arguments.of(
+                    repoType, connProvider, "*", "*", ALL_WITH_DEFAULT, unusedSources, allStats));
+            }
+
             Map<String, Set<String>> matchKeyMap = repo.getRelatedMatchKeys();
             Map<String, Set<String>> principleMap = repo.getRelatedPrinciples();
 
             final Set<String> allUnusedSources = unusedSources;
+            final Set<String> allBasicUnused = basicUnused;
             final int[] iteration = { 0 };
             // loop through the match key and principle options
             matchKeyMap.forEach((matchKey, principles) -> {
-                if (((iteration[0]++) % SKIP_FACTOR) != 0) {
+                if (((iteration[0]++) % skipFactor) != 0) {
                     return;        
                 }
-                result.add(Arguments.of(
-                    repoType, connProvider, matchKey, "*", null,
-                    filter(allStats, loadedSources, null, matchKey, "*")));
                 
-                result.add(Arguments.of(
-                    repoType, connProvider, matchKey, null, null,
-                    filter(allStats, loadedSources, null, matchKey, null)));
+                if (sourceCombinations.contains(LOADED)) {
+                    result.add(Arguments.of(
+                        repoType, connProvider, matchKey, "*", LOADED, null,
+                        filter(allStats, loadedSources, null, matchKey, "*")));
                 
-                result.add(Arguments.of(
-                    repoType, connProvider, matchKey, "*", allUnusedSources,
-                    filter(allStats, loadedSources, allUnusedSources, matchKey, "*")));
+                    result.add(Arguments.of(
+                        repoType, connProvider, matchKey, null, LOADED, null,
+                        filter(allStats, loadedSources, null, matchKey, null)));
+                }
+
+                if (sourceCombinations.contains(ALL_BUT_DEFAULT)) {
+                    result.add(Arguments.of(
+                        repoType, connProvider, matchKey, "*", ALL_BUT_DEFAULT, allBasicUnused,
+                        filter(allStats, loadedSources, allBasicUnused, matchKey, "*")));
                 
-                result.add(Arguments.of(
-                    repoType, connProvider, matchKey, null, allUnusedSources,
-                    filter(allStats, loadedSources, allUnusedSources, matchKey, null)));
+                    result.add(Arguments.of(
+                        repoType, connProvider, matchKey, null, ALL_BUT_DEFAULT, allBasicUnused,
+                        filter(allStats, loadedSources, allBasicUnused, matchKey, null)));
+                }
+
+                if (sourceCombinations.contains(ALL_WITH_DEFAULT)) {
+                    result.add(Arguments.of(
+                        repoType, connProvider, matchKey, "*", ALL_WITH_DEFAULT, allUnusedSources,
+                        filter(allStats, loadedSources, allUnusedSources, matchKey, "*")));
+                
+                    result.add(Arguments.of(
+                        repoType, connProvider, matchKey, null, ALL_WITH_DEFAULT, allUnusedSources,
+                        filter(allStats, loadedSources, allUnusedSources, matchKey, null)));
+                }
 
                 principles.forEach(principle -> {
-                    if (((iteration[0]++) % SKIP_FACTOR) != 0) {
+                    if (((iteration[0]++) % skipFactor) != 0) {
                         return;        
                     }
-                    result.add(Arguments.of(
-                        repoType, connProvider, matchKey, principle, null,
-                        filter(allStats, loadedSources, null, matchKey, principle)));
+                    if (sourceCombinations.contains(LOADED)) {
+                        result.add(Arguments.of(
+                            repoType, connProvider, matchKey, principle, LOADED, null,
+                            filter(allStats, loadedSources, null, matchKey, principle)));
+                    }
                     
-                    result.add(Arguments.of(
-                        repoType, connProvider, matchKey, principle, allUnusedSources,
-                        filter(allStats, loadedSources, allUnusedSources, matchKey, principle)));
+                    if (sourceCombinations.contains(ALL_BUT_DEFAULT)) {
+                        result.add(Arguments.of(
+                            repoType, connProvider, matchKey, principle, ALL_BUT_DEFAULT, allBasicUnused,
+                            filter(allStats, loadedSources, allBasicUnused, matchKey, principle)));
+                    }
+
+                    if (sourceCombinations.contains(ALL_WITH_DEFAULT)) {
+                        result.add(Arguments.of(
+                            repoType, connProvider, matchKey, principle, ALL_WITH_DEFAULT, allUnusedSources,
+                            filter(allStats, loadedSources, allUnusedSources, matchKey, principle)));
+                    }
                 });
             });
 
             // loop through the principle keys
             principleMap.keySet().forEach(principle -> {
-                if (((iteration[0]++) % SKIP_FACTOR) != 0) {
+                if (((iteration[0]++) % skipFactor) != 0) {
                     return;        
                 }
-                result.add(Arguments.of(
-                    repoType, connProvider, "*", principle, null,
-                    filter(allStats, loadedSources, null, "*", principle)));
+                if (sourceCombinations.contains(LOADED)) {
+                    result.add(Arguments.of(
+                        repoType, connProvider, "*", principle, LOADED, null,
+                        filter(allStats, loadedSources, null, "*", principle)));
                 
-                result.add(Arguments.of(
-                    repoType, connProvider, null, principle, null,
-                    filter(allStats, loadedSources, null, null, principle)));
+                    result.add(Arguments.of(
+                        repoType, connProvider, null, principle, LOADED, null,
+                        filter(allStats, loadedSources, null, null, principle)));
+                }
 
-                result.add(Arguments.of(
-                    repoType, connProvider, "*", principle, allUnusedSources,
-                    filter(allStats, loadedSources, allUnusedSources, "*", principle)));
-                
-                result.add(Arguments.of(
-                    repoType, connProvider, null, principle, allUnusedSources,
-                    filter(allStats, loadedSources, allUnusedSources, null, principle)));
+                if (sourceCombinations.contains(ALL_BUT_DEFAULT)) {
+                    result.add(Arguments.of(
+                        repoType, connProvider, "*", principle, ALL_BUT_DEFAULT, allBasicUnused,
+                        filter(allStats, loadedSources, allBasicUnused, "*", principle)));
+                    
+                    result.add(Arguments.of(
+                        repoType, connProvider, null, principle, ALL_BUT_DEFAULT, allBasicUnused,
+                        filter(allStats, loadedSources, allBasicUnused, null, principle)));
+                }
+
+                if (sourceCombinations.contains(ALL_WITH_DEFAULT)) {
+                    result.add(Arguments.of(
+                        repoType, connProvider, "*", principle, ALL_WITH_DEFAULT, allUnusedSources,
+                        filter(allStats, loadedSources, allUnusedSources, "*", principle)));
+                    
+                    result.add(Arguments.of(
+                        repoType, connProvider, null, principle, ALL_WITH_DEFAULT, allUnusedSources,
+                        filter(allStats, loadedSources, allUnusedSources, null, principle)));
+                }
             });
 
 
-            // check if we have more than one unused data source
-            if (unusedSources.size() > 1) {
-                // make smaller sets of unused sources of various sizes
-                for (int count = 1; count < unusedSources.size(); count++) {
-                    // setup the sources parameter and expected stats parameter
-                    Iterator<String>    iter    = unusedSources.iterator();
-                    Set<String>         sources = new TreeSet<>();
+            if (sourceCombinations.contains(COMPLEX)) {
+                // check if we have more than one unused data source
+                if (unusedSources.size() > 1) {
+                    // make smaller sets of unused sources of various sizes
+                    for (int count = 1; count < unusedSources.size(); count++) {
+                        // setup the sources parameter and expected stats parameter
+                        Iterator<String>    iter    = unusedSources.iterator();
+                        Set<String>         sources = new TreeSet<>();
 
-                    // now create a set of unused sources
-                    for (int index = 0; index < count && iter.hasNext(); index++) {
-                        sources.add(iter.next());
-                    }
-
-                    // make the source set unmodifiable
-                    final Set<String> extraSources = Collections.unmodifiableSet(sources);
-
-                    // add tests for all match keys and principles
-                    result.add(Arguments.of(
-                        repoType, connProvider, "*", "*", extraSources, 
-                        filter(allStats, loadedSources, extraSources, "*", "*")));
-
-                    result.add(Arguments.of(
-                        repoType, connProvider, null, "*", extraSources, 
-                        filter(allStats, loadedSources, extraSources, null, "*")));
-                    
-                    result.add(Arguments.of(
-                        repoType, connProvider, "*", null, extraSources, 
-                        filter(allStats, loadedSources, extraSources, "*", null)));
-
-                    result.add(Arguments.of(
-                        repoType, connProvider, null, null, extraSources, 
-                        filter(allStats, loadedSources, extraSources, null, null)));
-
-                    // loop through the match key and principle options
-                    iteration[0] = 0;
-                    matchKeyMap.forEach((matchKey, principles) -> {
-                        if (((iteration[0]++) % SKIP_FACTOR) != 0) {
-                            return;        
+                        // now create a set of unused sources
+                        for (int index = 0; index < count && iter.hasNext(); index++) {
+                            sources.add(iter.next());
                         }
+
+                        // make the source set unmodifiable
+                        final Set<String> extraSources = Collections.unmodifiableSet(sources);
+
+                        // add tests for all match keys and principles
                         result.add(Arguments.of(
-                            repoType, connProvider, matchKey, "*", extraSources,
-                            filter(allStats, loadedSources, extraSources, matchKey, "*")));
+                            repoType, connProvider, "*", "*", COMPLEX, extraSources, 
+                            filter(allStats, loadedSources, extraSources, "*", "*")));
+
+                        result.add(Arguments.of(
+                            repoType, connProvider, null, "*", COMPLEX, extraSources, 
+                            filter(allStats, loadedSources, extraSources, null, "*")));
                         
                         result.add(Arguments.of(
-                            repoType, connProvider, matchKey, null, extraSources,
-                            filter(allStats, loadedSources, extraSources, matchKey, null)));
+                            repoType, connProvider, "*", null, COMPLEX, extraSources, 
+                            filter(allStats, loadedSources, extraSources, "*", null)));
 
-                        principles.forEach(principle -> {
-                            if (((iteration[0]++) % SKIP_FACTOR) != 0) {
+                        result.add(Arguments.of(
+                            repoType, connProvider, null, null, COMPLEX, extraSources, 
+                            filter(allStats, loadedSources, extraSources, null, null)));
+
+                        // loop through the match key and principle options
+                        iteration[0] = 0;
+                        matchKeyMap.forEach((matchKey, principles) -> {
+                            if (((iteration[0]++) % skipFactor) != 0) {
                                 return;        
                             }
                             result.add(Arguments.of(
-                                repoType, connProvider, matchKey, principle, extraSources,
-                                filter(allStats, loadedSources, extraSources, matchKey, principle)));
-                        });
-                    });
+                                repoType, connProvider, matchKey, "*", COMPLEX, extraSources,
+                                filter(allStats, loadedSources, extraSources, matchKey, "*")));
+                            
+                            result.add(Arguments.of(
+                                repoType, connProvider, matchKey, null, COMPLEX, extraSources,
+                                filter(allStats, loadedSources, extraSources, matchKey, null)));
 
-                    // loop through the principle keys
-                    principleMap.keySet().forEach(principle -> {
-                        if (((iteration[0]++) % SKIP_FACTOR) != 0) {
-                            return;        
-                        }
-                       result.add(Arguments.of(
-                            repoType, connProvider, "*", principle, extraSources,
-                            filter(allStats, loadedSources, extraSources, "*", principle)));
-                        
+                            principles.forEach(principle -> {
+                                if (((iteration[0]++) % skipFactor) != 0) {
+                                    return;        
+                                }
+                                result.add(Arguments.of(
+                                    repoType, connProvider, matchKey, principle, COMPLEX, extraSources,
+                                    filter(allStats, loadedSources, extraSources, matchKey, principle)));
+                            });
+                        });
+
+                        // loop through the principle keys
+                        principleMap.keySet().forEach(principle -> {
+                            if (((iteration[0]++) % skipFactor) != 0) {
+                                return;        
+                            }
                         result.add(Arguments.of(
-                            repoType, connProvider, null, principle, extraSources,
-                            filter(allStats, loadedSources, extraSources, null, principle)));
-                    });
+                                repoType, connProvider, "*", principle, COMPLEX, extraSources,
+                                filter(allStats, loadedSources, extraSources, "*", principle)));
+                            
+                            result.add(Arguments.of(
+                                repoType, connProvider, null, principle, COMPLEX, extraSources,
+                                filter(allStats, loadedSources, extraSources, null, principle)));
+                        });
+                    }
                 }
             }
         });
@@ -284,18 +362,20 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
 
         List<Arguments> summaryParams = this.getSummaryStatsParameters();
         for (Arguments origParams : summaryParams) {
-            Object[]            paramArray      = origParams.get();
-            RepositoryType      repoType        = (RepositoryType) paramArray[0];
-            ConnectionProvider  connProvider    = (ConnectionProvider) paramArray[1];
-            String              matchKey        = (String) paramArray[2];
-            String              principle       = (String) paramArray[3];
-            Set<String>         extraSources    = (Set<String>) paramArray[4];
-            SzSummaryStats      summaryStats    = (SzSummaryStats) paramArray[5];
+            Object[]                paramArray      = origParams.get();
+            RepositoryType          repoType        = (RepositoryType) paramArray[0];
+            ConnectionProvider      connProvider    = (ConnectionProvider) paramArray[1];
+            String                  matchKey        = (String) paramArray[2];
+            String                  principle       = (String) paramArray[3];
+            DataSourceCombination   sourceCombo     = (DataSourceCombination) paramArray[4];
+            Set<String>             extraSources    = (Set<String>) paramArray[5];
+            SzSummaryStats          summaryStats    = (SzSummaryStats) paramArray[6];
 
             for (SzSourceSummary summary : summaryStats.getSourceSummaries()) {
                 String dataSource = summary.getDataSource();
                 result.add(Arguments.of(
-                    repoType, connProvider, dataSource, matchKey, principle, extraSources, summary));
+                    repoType, connProvider, dataSource, matchKey, principle, 
+                    sourceCombo, extraSources, summary));
             }
         }
         return result;
@@ -342,16 +422,17 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
 
     @ParameterizedTest()
     @MethodSource("getSummaryStatsParameters")
-    public void testSummaryStats(RepositoryType      repoType,
-                                 ConnectionProvider  connProvider,
-                                 String              matchKey,
-                                 String              principle,
-                                 Set<String>         dataSources,
-                                 SzSummaryStats      expected)                                
+    public void testSummaryStats(RepositoryType         repoType,
+                                 ConnectionProvider     connProvider,
+                                 String                 matchKey,
+                                 String                 principle,
+                                 DataSourceCombination  sourceCombo,
+                                 Set<String>            dataSources,
+                                 SzSummaryStats         expected)                                
     {
         String testInfo = "repoType=[ " + repoType + " ], matchKey=[ " + matchKey
-            + " ], principle=[ " + principle + " ], dataSources=[ " + dataSources
-            + " ]";
+            + " ], principle=[ " + principle + " ], dataSourceCombo[ " 
+            + sourceCombo + " ], dataSources=[ " + dataSources + " ]";
         
         Connection conn = null;
         try {
@@ -382,12 +463,14 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                                   String                dataSource,
                                   String                matchKey,
                                   String                principle,
+                                  DataSourceCombination sourceCombo,
                                   Set<String>           dataSources,
                                   SzSourceSummary       expected)                                
     {
         String testInfo = "repoType=[ " + repoType + " ], dataSource=[ " 
             + dataSource + " ], matchKey=[ " + matchKey + " ], principle=[ "
-            + principle + " ], dataSources=[ " + dataSources + " ]";
+            + principle + " ], dataSourceCombo=[ " + sourceCombo 
+            + " ]. dataSources=[ " + dataSources + " ]";
         
         Connection conn = null;
         try {
@@ -510,6 +593,7 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
 
     public List<Arguments> getSummaryEntitiesParameters(EntityQualifier qualifier) {
         List<Arguments> result = new LinkedList<>();
+        int skipFactor = this.getSkipFactor();
 
         for (RepositoryType repoType : RepositoryType.values()) {
             Repository repo = DataMartTestExtension.getRepository(repoType);
@@ -541,7 +625,7 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                     if ((matchKey != null && !"*".equals(matchKey))
                         || (principle !=null && !"*".equals(principle)))
                     {
-                        if (skipIndex++ % SKIP_FACTOR != 0) {
+                        if (skipIndex++ % skipFactor != 0) {
                             continue;
                         }
                     }
@@ -655,6 +739,7 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
 
     public List<Arguments> getCrossEntitiesParameters(EntityQualifier qualifier) {
         List<Arguments> result = new LinkedList<>();
+        int skipFactor = this.getSkipFactor();
 
         for (RepositoryType repoType : RepositoryType.values()) {
             Repository repo = DataMartTestExtension.getRepository(repoType);
@@ -687,7 +772,7 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                         if ((matchKey != null && !"*".equals(matchKey))
                             || (principle !=null && !"*".equals(principle)))
                         {
-                            if (skipIndex++ % SKIP_FACTOR != 0) {
+                            if (skipIndex++ % skipFactor != 0) {
                                 continue;
                             }
                         }
@@ -1434,6 +1519,7 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
 
     public List<Arguments> getCrossRelationParameters(RelationQualifier qualifier) {
         List<Arguments> result = new LinkedList<>();
+        int skipFactor = this.getSkipFactor();
 
         for (RepositoryType repoType : RepositoryType.values()) {
             Repository repo = DataMartTestExtension.getRepository(repoType);
@@ -1466,7 +1552,7 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                         if ((matchKey != null && !"*".equals(matchKey))
                             || (principle !=null && !"*".equals(principle)))
                         {
-                            if (skipIndex++ % SKIP_FACTOR != 0) {
+                            if (skipIndex++ % skipFactor != 0) {
                                 continue;
                             }
                         }

@@ -53,23 +53,39 @@ public class EntitySizeReportsTest extends AbstractReportsTest {
     @MethodSource("getBreakdownParameters")
     public void testEntitySizeBreakdown(RepositoryType          repoType,
                                         ConnectionProvider      connProvider,
-                                        SzEntitySizeBreakdown   expected)                                
+                                        SzEntitySizeBreakdown   expected)
     {
         String testInfo = "repoType=[ " + repoType + " ]";
 
-        Connection conn = null;
         try {
-            conn = connProvider.getConnection();
-        
-            SzEntitySizeBreakdown actual 
-                = EntitySizeReports.getEntitySizeBreakdown(conn, null);
+            SzEntitySizeBreakdown actual
+                = this.getEntitySizeBreakdown(repoType, connProvider);
 
             validateReport(expected, actual, testInfo);
-            
+
         } catch (Exception e) {
             fail("Failed test with an unexpected exception: repoType=[ "
                  + repoType + " ]", e);
+        }
+    }
 
+    /**
+     * Gets the {@link SzEntitySizeBreakdown} for the specified repository type.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @return The {@link SzEntitySizeBreakdown} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzEntitySizeBreakdown getEntitySizeBreakdown(RepositoryType     repoType,
+                                                           ConnectionProvider connProvider)
+        throws Exception
+    {
+        Connection conn = null;
+        try {
+            conn = connProvider.getConnection();
+            return EntitySizeReports.getEntitySizeBreakdown(conn, null);
         } finally {
             SQLUtilities.close(conn);
         }
@@ -116,15 +132,12 @@ public class EntitySizeReportsTest extends AbstractReportsTest {
                                     SzEntitySizeCount   expected,
                                     Class<?>            exceptionType)
     {
-        String testInfo = "repoType=[ " + repoType + " ], entitySize=[ " 
+        String testInfo = "repoType=[ " + repoType + " ], entitySize=[ "
             + entitySize + " ], expectedException=[ " + exceptionType + " ]";
-        
-        Connection conn = null;
+
         try {
-            conn = connProvider.getConnection();
-        
-            SzEntitySizeCount actual 
-                = EntitySizeReports.getEntitySizeCount(conn, entitySize, null);
+            SzEntitySizeCount actual
+                = this.getEntitySizeCount(repoType, connProvider, entitySize);
 
             if (exceptionType != null) {
                 fail("Method unexpectedly succeeded.  " + testInfo);
@@ -134,13 +147,34 @@ public class EntitySizeReportsTest extends AbstractReportsTest {
 
         } catch (Exception e) {
             if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                    fail("Unexpected exception (" + e.getClass().getName() 
-                         + ") when expecting " 
-                         + (exceptionType == null ? "none" : exceptionType.getName())
-                         + ": repoType=[ " + repoType + " ], entitySize=[ "
-                         + entitySize + " ]", e);
+                fail("Unexpected exception (" + e.getClass().getName()
+                     + ") when expecting "
+                     + (exceptionType == null ? "none" : exceptionType.getName())
+                     + ": repoType=[ " + repoType + " ], entitySize=[ "
+                     + entitySize + " ]", e);
             }
+        }
+    }
 
+    /**
+     * Gets the {@link SzEntitySizeCount} for the specified entity size.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param entitySize The entity size for which the count is being requested.
+     * @return The {@link SzEntitySizeCount} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzEntitySizeCount getEntitySizeCount(RepositoryType     repoType,
+                                                   ConnectionProvider connProvider,
+                                                   int                entitySize)
+        throws Exception
+    {
+        Connection conn = null;
+        try {
+            conn = connProvider.getConnection();
+            return EntitySizeReports.getEntitySizeCount(conn, entitySize, null);
         } finally {
             SQLUtilities.close(conn);
         }
@@ -234,24 +268,21 @@ public class EntitySizeReportsTest extends AbstractReportsTest {
                                     Integer             sampleSize,
                                     SzEntitiesPage      expected,
                                     Class<?>            exceptionType)
-    {                              
+    {
         String testInfo = "repoType=[ " + repoType + " ], entitySize=[ "
             + entitySize + " ], entityIdBound=[ " + entityIdBound
-            + " ], boundType=[ " + boundType + " ], pageSize=[ " 
+            + " ], boundType=[ " + boundType + " ], pageSize=[ "
             + pageSize + " ], sampleSize=[ " + sampleSize + " ]";
-        
-        Connection conn = null;
+
         try {
-            conn = connProvider.getConnection();
-        
-            SzEntitiesPage actual = EntitySizeReports.getEntityIdsForEntitySize(
-                conn,
+            SzEntitiesPage actual = this.getEntityIdsForEntitySize(
+                repoType,
+                connProvider,
                 entitySize,
                 entityIdBound,
                 boundType,
                 pageSize,
-                sampleSize,
-                null);
+                sampleSize);
 
             if (exceptionType != null) {
                 fail("Method unexpectedly succeeded.  " + testInfo);
@@ -263,17 +294,53 @@ public class EntitySizeReportsTest extends AbstractReportsTest {
                                       boundType,
                                       pageSize,
                                       sampleSize,
-                                      expected, 
+                                      expected,
                                       actual);
-                    
+
         } catch (Exception e) {
             if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                    fail("Unexpected exception (" + e.getClass().getName() 
-                         + ") when expecting " 
-                         + (exceptionType == null ? "none" : exceptionType.getName())
-                         + ": " + testInfo, e);
+                fail("Unexpected exception (" + e.getClass().getName()
+                     + ") when expecting "
+                     + (exceptionType == null ? "none" : exceptionType.getName())
+                     + ": " + testInfo, e);
             }
+        }
+    }
 
+    /**
+     * Gets the {@link SzEntitiesPage} for the specified entity size.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param entitySize The entity size for which entities are being requested.
+     * @param entityIdBound The bound value for the entity ID's.
+     * @param boundType The {@link SzBoundType} describing how to apply the bound.
+     * @param pageSize The maximum number of entity ID's to return.
+     * @param sampleSize The optional sample size.
+     * @return The {@link SzEntitiesPage} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzEntitiesPage getEntityIdsForEntitySize(RepositoryType     repoType,
+                                                       ConnectionProvider connProvider,
+                                                       int                entitySize,
+                                                       String             entityIdBound,
+                                                       SzBoundType        boundType,
+                                                       Integer            pageSize,
+                                                       Integer            sampleSize)
+        throws Exception
+    {
+        Connection conn = null;
+        try {
+            conn = connProvider.getConnection();
+            return EntitySizeReports.getEntityIdsForEntitySize(
+                conn,
+                entitySize,
+                entityIdBound,
+                boundType,
+                pageSize,
+                sampleSize,
+                null);
         } finally {
             SQLUtilities.close(conn);
         }
