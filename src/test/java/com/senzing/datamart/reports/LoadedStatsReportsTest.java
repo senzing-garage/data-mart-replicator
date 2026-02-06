@@ -262,28 +262,31 @@ public class LoadedStatsReportsTest extends AbstractReportsTest {
                                            String              dataSource,
                                            SzSourceLoadedStats expected,
                                            Class<?>            exceptionType)
+        throws Exception
     {
         String testInfo = "repoType=[ " + repoType + " ], dataSource=[ "
             + dataSource + " ], expectedException=[ " + exceptionType + " ]";
 
-        try {
-            SzSourceLoadedStats actual
-                = this.getSourceLoadedStatistics(repoType, connProvider, dataSource);
+        withConditionalSuppression(exceptionType != null, () -> {
+            try {
+                SzSourceLoadedStats actual
+                    = this.getSourceLoadedStatistics(repoType, connProvider, dataSource);
 
-            if (exceptionType != null) {
-                fail("Method unexpectedly succeeded. " + testInfo);
+                if (exceptionType != null) {
+                    fail("Method unexpectedly succeeded. " + testInfo);
+                }
+
+                validateReport(expected, actual, testInfo);
+
+            } catch (Exception e) {
+                if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
+                    fail("Unexpected exception (" + e.getClass().getName()
+                         + ") when expecting "
+                         + (exceptionType == null ? "none" : exceptionType.getName())
+                         + ": " + testInfo, e);
+                }
             }
-
-            validateReport(expected, actual, testInfo);
-
-        } catch (Exception e) {
-            if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                fail("Unexpected exception (" + e.getClass().getName()
-                     + ") when expecting "
-                     + (exceptionType == null ? "none" : exceptionType.getName())
-                     + ": " + testInfo, e);
-            }
-        }
+        });
     }
 
     /**
@@ -351,43 +354,46 @@ public class LoadedStatsReportsTest extends AbstractReportsTest {
                                       Integer               sampleSize,
                                       SzEntitiesPage        expected,
                                       Class<?>              exceptionType)
+        throws Exception
     {
         String testInfo = "repoType=[ " + repoType + " ], dataSource=[ "
             + dataSource + " ], entityIdBound=[ " + entityIdBound
             + " ], boundType=[ " + boundType + " ], pageSize=[ "
             + pageSize + " ], sampleSize=[ " + sampleSize + " ]";
 
-        try {
-            SzEntitiesPage actual = this.getEntityIdsForDataSource(
-                repoType,
-                connProvider,
-                dataSource,
-                entityIdBound,
-                boundType,
-                pageSize,
-                sampleSize);
+        withConditionalSuppression(exceptionType != null, () -> {
+            try {
+                SzEntitiesPage actual = this.getEntityIdsForDataSource(
+                    repoType,
+                    connProvider,
+                    dataSource,
+                    entityIdBound,
+                    boundType,
+                    pageSize,
+                    sampleSize);
 
-            if (exceptionType != null) {
-                fail("Method unexpectedly succeeded.  " + testInfo);
+                if (exceptionType != null) {
+                    fail("Method unexpectedly succeeded.  " + testInfo);
+                }
+
+                this.validateEntitiesPage(repoType,
+                                          testInfo,
+                                          entityIdBound,
+                                          boundType,
+                                          pageSize,
+                                          sampleSize,
+                                          expected,
+                                          actual);
+
+            } catch (Exception e) {
+                if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
+                    fail("Unexpected exception (" + e.getClass().getName()
+                         + ") when expecting "
+                         + (exceptionType == null ? "none" : exceptionType.getName())
+                         + ": " + testInfo, e);
+                }
             }
-
-            this.validateEntitiesPage(repoType,
-                                      testInfo,
-                                      entityIdBound,
-                                      boundType,
-                                      pageSize,
-                                      sampleSize,
-                                      expected,
-                                      actual);
-
-        } catch (Exception e) {
-            if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                fail("Unexpected exception (" + e.getClass().getName()
-                     + ") when expecting "
-                     + (exceptionType == null ? "none" : exceptionType.getName())
-                     + ": " + testInfo, e);
-            }
-        }
+        });
     }
 
     /**

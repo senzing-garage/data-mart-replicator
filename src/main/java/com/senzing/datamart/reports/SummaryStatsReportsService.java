@@ -250,7 +250,13 @@ public interface SummaryStatsReportsService extends ReportsService {
      */
     @Get(SOURCE_SUMMARY_ENDPOINT)
     @ProducesJson
-    default SzSourceSummary getSourceSummary(@Param("dataSourceCode") String dataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("onlyLoadedSources") @Default("true") boolean onlyLoaded) throws ReportsServiceException {
+    default SzSourceSummary getSourceSummary(
+            @Param("dataSourceCode")                        String  dataSource,
+            @Param("matchKey") @Nullable                    String  matchKey,
+            @Param("principle") @Nullable                   String  principle,
+            @Param("onlyLoadedSources") @Default("true")    boolean onlyLoaded)
+        throws ReportsServiceException 
+    {
         Connection conn = null;
         try {
             conn = this.getConnection();
@@ -284,13 +290,13 @@ public interface SummaryStatsReportsService extends ReportsService {
      * Exposes
      * {@link SummaryStatsReports#getCrossSourceSummary(Connection, String, String, String, String, Timers)}
      * as a REST/JSON service at {@link #CROSS_SOURCE_SUMMARY_ENDPOINT}.
-     * 
+     *
      * @param dataSource   The data source code identifying the data source for the
      *                     cross-source report being requested.
-     * 
+     *
      * @param vsDataSource The data source code identifying the "versus" data source
      *                     for which the cross-source report being requested.
-     * 
+     *
      * @param matchKey     The optional match key for retrieving statistics specific
      *                     to a match key, or asterisk (<code>"*"</code>) for all
      *                     match keys, or <code>null</code> for only retrieving
@@ -299,17 +305,20 @@ public interface SummaryStatsReportsService extends ReportsService {
      *                     to a principle, or asterisk (<code>"*"</code>) for all
      *                     principles, or <code>null</code> for only retrieving
      *                     statistics that are not specific to a principle.
-     * @param onlyLoaded   Set to <code>true</code> to only consider data sources
-     *                     that have loaded record, otherwise set this to
-     *                     <code>false</code> to consider all data sources.
-     * 
+     *
      * @return The {@link SzCrossSourceSummary} describing the report.
-     * 
+     *
      * @throws ReportsServiceException If a failure occurs.
      */
     @Get(CROSS_SOURCE_SUMMARY_ENDPOINT)
     @ProducesJson
-    default SzCrossSourceSummary getCrossSourceSummary(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("onlyLoadedSources") @Default("true") boolean onlyLoaded) throws ReportsServiceException {
+    default SzCrossSourceSummary getCrossSourceSummary(
+            @Param("dataSourceCode")        String  dataSource,
+            @Param("vsDataSourceCode")      String  vsDataSource,
+            @Param("matchKey") @Nullable    String  matchKey,
+            @Param("principle") @Nullable   String  principle)
+        throws ReportsServiceException 
+    {
         Connection conn = null;
         try {
             conn = this.getConnection();
@@ -342,7 +351,7 @@ public interface SummaryStatsReportsService extends ReportsService {
      * Exposes
      * {@link SummaryStatsReports#getCrossSourceMatchSummary( Connection, String, String, String, String, Timers)}
      * as a REST/JSON service at {@link #CROSS_SOURCE_MATCH_SUMMARY_ENDPOINT}.
-     * 
+     *
      * @param dataSource   The data source code identifying the data source for the
      *                     cross-source report being requested.
      * @param vsDataSource The data source code identifying the "versus" data source
@@ -355,19 +364,22 @@ public interface SummaryStatsReportsService extends ReportsService {
      *                     to a principle, or asterisk (<code>"*"</code>) for all
      *                     principles, or <code>null</code> for only retrieving
      *                     statistics that are not specific to a principle.
-     * @param onlyLoaded   Set to <code>true</code> to only consider data sources
-     *                     that have loaded record, otherwise set this to
-     *                     <code>false</code> to consider all data sources.
-     * 
+     *
      * @return The {@link SzCrossSourceMatchCounts} describing the report.
-     * 
+     *
      * @throws ReportsServiceException If a failure occurs.
      */
     @Get
     @Path(CROSS_SOURCE_MATCH_SUMMARY_ENDPOINT)
     @Path(CROSS_SOURCE_MATCH_SUMMARY_ENDPOINT + "/")
     @ProducesJson
-    default SzCrossSourceMatchCounts getCrossSourceMatchSummary(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("onlyLoadedSources") @Default("true") boolean onlyLoaded) throws ReportsServiceException {
+    default SzCrossSourceMatchCounts getCrossSourceMatchSummary(
+            @Param("dataSourceCode")        String  dataSource,
+            @Param("vsDataSourceCode")      String  vsDataSource,
+            @Param("matchKey") @Nullable    String  matchKey,
+            @Param("principle") @Nullable   String  principle)
+        throws ReportsServiceException
+    {
         Connection conn = null;
         try {
             conn = this.getConnection();
@@ -415,25 +427,27 @@ public interface SummaryStatsReportsService extends ReportsService {
      *                     to a principle, or asterisk (<code>"*"</code>) for all
      *                     principles, or <code>null</code> for only retrieving
      *                     statistics that are not specific to a principle.
-     * @param onlyLoaded   Set to <code>true</code> to only consider data sources
-     *                     that have loaded record, otherwise set this to
-     *                     <code>false</code> to consider all data sources.
-     * 
      * @return The {@link SzCrossSourceRelationCounts} describing the report.
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
     @Get(CROSS_SOURCE_AMBIGUOUS_MATCH_SUMMARY_ENDPOINT)
     @ProducesJson
-    default SzCrossSourceRelationCounts getCrossSourceAmbiguousMatchSummary(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("onlyLoadedSources") @Default("true") boolean onlyLoaded) throws ReportsServiceException {
+    default SzCrossSourceRelationCounts getCrossSourceAmbiguousMatchSummary(
+            @Param("dataSourceCode")        String  dataSource,
+            @Param("vsDataSourceCode")      String  vsDataSource,
+            @Param("matchKey") @Nullable    String  matchKey,
+            @Param("principle") @Nullable   String  principle)
+        throws ReportsServiceException 
+    {
         Connection conn = null;
         try {
             conn = this.getConnection();
 
             Timers timers = this.getTimers();
 
-            return SummaryStatsReports.getCrossSourceAmbiguousMatchSummary(conn, dataSource, vsDataSource, matchKey,
-                    principle, timers);
+            return SummaryStatsReports.getCrossSourceAmbiguousMatchSummary(
+                conn, dataSource, vsDataSource, matchKey, principle, timers);
 
         } catch (SQLException e) {
             System.err.println(e.getMessage());
@@ -459,10 +473,10 @@ public interface SummaryStatsReportsService extends ReportsService {
      * {@link SummaryStatsReports#getCrossSourcePossibleMatchSummary( Connection, String, String, String, String, Timers)}
      * as a REST/JSON service at
      * {@link #CROSS_SOURCE_POSSIBLE_MATCH_SUMMARY_ENDPOINT}.
-     * 
+     *
      * @param dataSource   The data source code identifying the data source for the
      *                     cross-source report being requested.
-     * 
+     *
      * @param vsDataSource The data source code identifying the "versus" data source
      *                     for which the cross-source report being requested.
      * @param matchKey     The optional match key for retrieving statistics specific
@@ -473,19 +487,22 @@ public interface SummaryStatsReportsService extends ReportsService {
      *                     to a principle, or asterisk (<code>"*"</code>) for all
      *                     principles, or <code>null</code> for only retrieving
      *                     statistics that are not specific to a principle.
-     * @param onlyLoaded   Set to <code>true</code> to only consider data sources
-     *                     that have loaded record, otherwise set this to
-     *                     <code>false</code> to consider all data sources.
-     * 
+     *
      * @return The {@link SzCrossSourceRelationCounts} describing the report.
-     * 
+     *
      * @throws ReportsServiceException If a failure occurs.
      */
     @Get
     @Path(CROSS_SOURCE_POSSIBLE_MATCH_SUMMARY_ENDPOINT)
     @Path(CROSS_SOURCE_POSSIBLE_MATCH_SUMMARY_ENDPOINT + "/")
     @ProducesJson
-    default SzCrossSourceRelationCounts getCrossSourcePossibleMatchSummary(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("onlyLoadedSources") @Default("true") boolean onlyLoaded) throws ReportsServiceException {
+    default SzCrossSourceRelationCounts getCrossSourcePossibleMatchSummary(
+            @Param("dataSourceCode")        String  dataSource,
+            @Param("vsDataSourceCode")      String  vsDataSource,
+            @Param("matchKey") @Nullable    String  matchKey,
+            @Param("principle") @Nullable   String  principle)
+        throws ReportsServiceException
+    {
         Connection conn = null;
         try {
             conn = this.getConnection();
@@ -519,10 +536,10 @@ public interface SummaryStatsReportsService extends ReportsService {
      * {@link SummaryStatsReports#getCrossSourcePossibleRelationSummary( Connection, String, String, String, String, Timers)}
      * as a REST/JSON service at
      * {@link #CROSS_SOURCE_POSSIBLE_RELATION_SUMMARY_ENDPOINT}.
-     * 
+     *
      * @param dataSource   The data source code identifying the data source for the
      *                     cross-source report being requested.
-     * 
+     *
      * @param vsDataSource The data source code identifying the "versus" data source
      *                     for which the cross-source report being requested.
      * @param matchKey     The optional match key for retrieving statistics specific
@@ -533,19 +550,22 @@ public interface SummaryStatsReportsService extends ReportsService {
      *                     to a principle, or asterisk (<code>"*"</code>) for all
      *                     principles, or <code>null</code> for only retrieving
      *                     statistics that are not specific to a principle.
-     * @param onlyLoaded   Set to <code>true</code> to only consider data sources
-     *                     that have loaded record, otherwise set this to
-     *                     <code>false</code> to consider all data sources.
-     * 
+     *
      * @return The {@link SzCrossSourceRelationCounts} describing the report.
-     * 
+     *
      * @throws ReportsServiceException If a failure occurs.
      */
     @Get
     @Path(CROSS_SOURCE_POSSIBLE_RELATION_SUMMARY_ENDPOINT)
     @Path(CROSS_SOURCE_POSSIBLE_RELATION_SUMMARY_ENDPOINT + "/")
     @ProducesJson
-    default SzCrossSourceRelationCounts getCrossSourcePossibleRelationSummary(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("onlyLoadedSources") @Default("true") boolean onlyLoaded) throws ReportsServiceException {
+    default SzCrossSourceRelationCounts getCrossSourcePossibleRelationSummary(
+            @Param("dataSourceCode")        String  dataSource,
+            @Param("vsDataSourceCode")      String  vsDataSource,
+            @Param("matchKey") @Nullable    String  matchKey,
+            @Param("principle") @Nullable   String  principle)
+        throws ReportsServiceException
+    {
         Connection conn = null;
         try {
             conn = this.getConnection();
@@ -579,10 +599,10 @@ public interface SummaryStatsReportsService extends ReportsService {
      * {@link SummaryStatsReports#getCrossSourceDisclosedRelationSummary( Connection, String, String, String, String, Timers)}
      * as a REST/JSON service at
      * {@link #CROSS_SOURCE_DISCLOSED_RELATION_SUMMARY_ENDPOINT}.
-     * 
+     *
      * @param dataSource   The data source code identifying the data source for the
      *                     cross-source report being requested.
-     * 
+     *
      * @param vsDataSource The data source code identifying the "versus" data source
      *                     for which the cross-source report being requested.
      * @param matchKey     The optional match key for retrieving statistics specific
@@ -593,19 +613,22 @@ public interface SummaryStatsReportsService extends ReportsService {
      *                     to a principle, or asterisk (<code>"*"</code>) for all
      *                     principles, or <code>null</code> for only retrieving
      *                     statistics that are not specific to a principle.
-     * @param onlyLoaded   Set to <code>true</code> to only consider data sources
-     *                     that have loaded record, otherwise set this to
-     *                     <code>false</code> to consider all data sources.
-     * 
+     *
      * @return The {@link SzCrossSourceRelationCounts} describing the report.
-     * 
+     *
      * @throws ReportsServiceException If a failure occurs.
      */
     @Get
     @Path(CROSS_SOURCE_DISCLOSED_RELATION_SUMMARY_ENDPOINT)
     @Path(CROSS_SOURCE_DISCLOSED_RELATION_SUMMARY_ENDPOINT + "/")
     @ProducesJson
-    default SzCrossSourceRelationCounts getCrossSourceDisclosedRelationSummary(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("onlyLoadedSources") @Default("true") boolean onlyLoaded) throws ReportsServiceException {
+    default SzCrossSourceRelationCounts getCrossSourceDisclosedRelationSummary(
+            @Param("dataSourceCode")        String  dataSource,
+            @Param("vsDataSourceCode")      String  vsDataSource,
+            @Param("matchKey") @Nullable    String  matchKey,
+            @Param("principle") @Nullable   String  principle)
+        throws ReportsServiceException
+    {
         Connection conn = null;
         try {
             conn = this.getConnection();

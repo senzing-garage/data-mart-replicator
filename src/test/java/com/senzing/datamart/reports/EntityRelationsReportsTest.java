@@ -133,28 +133,31 @@ public class EntityRelationsReportsTest extends AbstractReportsTest {
                                          int                    relationsCount,
                                          SzEntityRelationsCount expected,
                                          Class<?>               exceptionType)
+        throws Exception
     {
         String testInfo = "repoType=[ " + repoType + " ], relationsCount=[ "
             + relationsCount + " ], expectedException=[ " + exceptionType + " ]";
 
-        try {
-            SzEntityRelationsCount actual
-                = this.getEntityRelationsCount(repoType, connProvider, relationsCount);
+        withConditionalSuppression(exceptionType != null, () -> {
+            try {
+                SzEntityRelationsCount actual
+                    = this.getEntityRelationsCount(repoType, connProvider, relationsCount);
 
-            if (exceptionType != null) {
-                fail("Method unexpectedly succeeded.  " + testInfo);
+                if (exceptionType != null) {
+                    fail("Method unexpectedly succeeded.  " + testInfo);
+                }
+
+                validateReport(expected, actual, testInfo);
+
+            } catch (Exception e) {
+                if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
+                    fail("Unexpected exception (" + e.getClass().getName()
+                         + ") when expecting "
+                         + (exceptionType == null ? "none" : exceptionType.getName())
+                         + ": " + testInfo, e);
+                }
             }
-
-            validateReport(expected, actual, testInfo);
-
-        } catch (Exception e) {
-            if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                fail("Unexpected exception (" + e.getClass().getName()
-                     + ") when expecting "
-                     + (exceptionType == null ? "none" : exceptionType.getName())
-                     + ": " + testInfo, e);
-            }
-        }
+        });
     }
 
     /**
@@ -232,43 +235,46 @@ public class EntityRelationsReportsTest extends AbstractReportsTest {
                                              Integer            sampleSize,
                                              SzEntitiesPage     expected,
                                              Class<?>           exceptionType)
+        throws Exception
     {
         String testInfo = "repoType=[ " + repoType + " ], relationsCount=[ "
             + relationsCount + " ], entityIdBound=[ " + entityIdBound
             + " ], boundType=[ " + boundType + " ], pageSize=[ "
             + pageSize + " ], sampleSize=[ " + sampleSize + " ]";
 
-        try {
-            SzEntitiesPage actual = this.getEntityIdsForRelationCount(
-                repoType,
-                connProvider,
-                relationsCount,
-                entityIdBound,
-                boundType,
-                pageSize,
-                sampleSize);
+        withConditionalSuppression(exceptionType != null, () -> {
+            try {
+                SzEntitiesPage actual = this.getEntityIdsForRelationCount(
+                    repoType,
+                    connProvider,
+                    relationsCount,
+                    entityIdBound,
+                    boundType,
+                    pageSize,
+                    sampleSize);
 
-            if (exceptionType != null) {
-                fail("Method unexpectedly succeeded.  " + testInfo);
+                if (exceptionType != null) {
+                    fail("Method unexpectedly succeeded.  " + testInfo);
+                }
+
+                this.validateEntitiesPage(repoType,
+                                          testInfo,
+                                          entityIdBound,
+                                          boundType,
+                                          pageSize,
+                                          sampleSize,
+                                          expected,
+                                          actual);
+
+            } catch (Exception e) {
+                if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
+                    fail("Unexpected exception (" + e.getClass().getName()
+                         + ") when expecting "
+                         + (exceptionType == null ? "none" : exceptionType.getName())
+                         + ": " + testInfo, e);
+                }
             }
-
-            this.validateEntitiesPage(repoType,
-                                      testInfo,
-                                      entityIdBound,
-                                      boundType,
-                                      pageSize,
-                                      sampleSize,
-                                      expected,
-                                      actual);
-
-        } catch (Exception e) {
-            if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                fail("Unexpected exception (" + e.getClass().getName()
-                     + ") when expecting "
-                     + (exceptionType == null ? "none" : exceptionType.getName())
-                     + ": " + testInfo, e);
-            }
-        }
+        });
     }
 
     /**

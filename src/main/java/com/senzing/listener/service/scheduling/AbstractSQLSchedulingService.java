@@ -421,7 +421,11 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
 
         } finally {
             if (!success) {
-                rollback(conn);
+                try {
+                    rollback(conn);
+                } catch (Exception suppress) {
+                    // do nothing if we cannot rollback
+                }
             }
             conn = close(conn);
         }

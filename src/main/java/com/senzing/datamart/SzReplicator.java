@@ -42,6 +42,7 @@ import java.util.function.Supplier;
 import static com.senzing.cmdline.CommandLineUtilities.getJarName;
 import static com.senzing.datamart.SzReplicatorOption.*;
 import static com.senzing.datamart.SzReplicatorConstants.*;
+import static com.senzing.util.JsonUtilities.toJsonText;
 import static com.senzing.util.LoggingUtilities.*;
 import static com.senzing.listener.service.scheduling.AbstractSchedulingService.Stat.*;
 
@@ -208,7 +209,7 @@ public class SzReplicator extends Thread {
             System.err.println();
             System.err.println("Try the " + HELP.getCommandLineFlag() + " option for help.");
             System.err.println();
-            System.exit(1);
+            throw e;
 
         } catch (Exception e) {
             if (!isLastLoggedException(e)) {
@@ -217,17 +218,17 @@ public class SzReplicator extends Thread {
                 System.err.println();
                 System.err.println(formatStackTrace(e.getStackTrace()));
             }
-            System.exit(1);
+            throw e;
         }
 
         if (options.containsKey(HELP)) {
             System.out.println(usageMessage.get());
-            System.exit(0);
+            return;
         }
         if (options.containsKey(VERSION)) {
             System.out.println();
             System.out.println(versionMessage.get());
-            System.exit(0);
+            return;
         }
 
         System.out.println("os.arch        = " + System.getProperty("os.arch"));
@@ -245,13 +246,13 @@ public class SzReplicator extends Thread {
 
             if (replicator == null) {
                 System.err.println("FAILED TO INITIALIZE");
-                System.exit(0);
+                throw new IllegalStateException("FAILED TO INITIALIZE REPLICATOR");
             }
 
         } catch (Exception e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            exitOnError(e);
+            throw e;
         }
 
         logInfo("STARTING REPLICATOR...");
@@ -267,14 +268,13 @@ public class SzReplicator extends Thread {
      */
     public void run() {
         try {
-            this.startTimeNanos = System.nanoTime();
             logInfo("STARTING MESSAGE CONSUMPTION...");
             this.messageConsumer.consume(this.replicatorService);
             logInfo("MESSAGE CONSUMPTION STARTED.");
 
             synchronized (monitor) {
                 while (true) {
-                    this.monitor.wait(60000L);
+                    this.monitor.wait(5000L);
                     ListenerService.State listenerState = this.replicatorService.getState();
 
                     MessageConsumer.State consumerState = this.messageConsumer.getState();
@@ -293,8 +293,7 @@ public class SzReplicator extends Thread {
             System.err.println(formatStackTrace(e.getStackTrace()));
 
         } finally {
-            this.messageConsumer.destroy();
-            this.replicatorService.destroy();
+            this.shutdown();
         }
     }
 
@@ -308,8 +307,20 @@ public class SzReplicator extends Thread {
             synchronized (this.monitor) {
                 this.monitor.notifyAll();
             }
-            this.join();
+            if (Thread.currentThread() != this && this.isAlive()) {
+                this.join();
+            }
+            System.err.println(this.connPool.getDiagnosticLeaseInfo());
             this.connPool.shutdown();
+
+
+            if (this.connProviderToken != null) {
+                try {
+                    ConnectionProvider.REGISTRY.unbind(this.connProviderName, connProviderToken);
+                } catch (Exception e) {
+                    logWarning(e, "Failed to unbind connection provider: " + this.connProviderName);
+                }
+            }
 
         } catch (InterruptedException e) {
             logWarning(e, "Interrupted while joining against replicator during destroy()");
@@ -336,27 +347,6 @@ public class SzReplicator extends Thread {
     }
 
     /**
-     *
-     */
-    private void printStatistics() {
-        Map<Statistic, Number> stats = this.getStatistics();
-
-        long now = System.nanoTime();
-        double elapsed = ((double) (now - this.startTimeNanos)) / 1000000000.0;
-
-        Number completeCount = stats.get(taskGroupCompleteCount);
-        long completed = completeCount.longValue();
-
-        MessageConsumer consumer = this.messageConsumer;
-        SzReplicatorService service = this.replicatorService;
-
-        System.out.println();
-        System.out.println("=====================================================");
-        System.out.println("STATISTICS:");
-        printStatisticsMap(stats);
-    }
-
-    /**
      * Formats and prints the specified {@link Map} of {@link Statistic} keys to
      * {@link Number} values.
      * 
@@ -368,6 +358,26 @@ public class SzReplicator extends Thread {
             String units = key.getUnits();
             System.out.println("  " + key.getName() + ": " + value + ((units != null) ? " " + units : ""));
         });
+    }
+
+    /**
+     * Creates a {@link RabbitMQConsumer} instance. This method can be overridden
+     * in subclasses to provide alternative implementations (e.g., for testing).
+     *
+     * @return A new {@link RabbitMQConsumer} instance.
+     */
+    protected RabbitMQConsumer createRabbitMQConsumer() {
+        return new RabbitMQConsumer();
+    }
+
+    /**
+     * Creates an {@link SQSConsumer} instance. This method can be overridden
+     * in subclasses to provide alternative implementations (e.g., for testing).
+     *
+     * @return A new {@link SQSConsumer} instance.
+     */
+    protected SQSConsumer createSQSConsumer() {
+        return new SQSConsumer();
     }
 
     /**
@@ -468,35 +478,81 @@ public class SzReplicator extends Thread {
      * @param pw The {@link PrintWriter} to write the standard options usage.
      */
     protected static void printStandardOptionsUsage(PrintWriter pw) {
-        pw.println(multilineFormat("[ Standard Options ]", "   --help",
-                "        Should be the first and only option if provided.  Causes this help",
-                "        message to be displayed.",
-                "        NOTE: If this option is provided, the replicator will not start.", "", "   --version",
-                "        Should be the first and only option if provided.  Causes the version",
-                "        of the G2 REST API Server to be displayed.",
-                "        NOTE: If this option is provided, the replicator will not start.", "",
-                "   --concurrency <thread-count>",
-                "        Sets the number of threads available for performing Senzing API",
-                "        operations (i.e.: the number of engine threads).  The number of",
-                "        threads for consuming messages and handling tasks is scaled based",
-                "        on the engine concurrency.  If not specified, then this defaults to "
-                        + DEFAULT_CORE_CONCURRENCY + ".",
-                "        --> VIA ENVIRONMENT: " + CORE_CONCURRENCY.getEnvironmentVariable(), "",
-                "   --module-name <module-name>",
-                "        The module name to initialize with.  If not specified, then the module",
-                "        name defaults to \"" + DEFAULT_INSTANCE_NAME + "\".",
-                "        --> VIA ENVIRONMENT: " + CORE_INSTANCE_NAME.getEnvironmentVariable(), "",
-                "   --verbose [true|false]",
-                "        Also -verbose.  If specified then initialize in verbose mode.  The",
-                "        true/false parameter is optional, if not specified then true is assumed.",
-                "        If specified as false then it is the same as omitting the option with",
-                "        the exception that omission falls back to the environment variable",
-                "        setting whereas an explicit false overrides any environment variable.",
-                "   --init-json <json-init-text>", "        The JSON text to use for Senzing initialization.",
-                "        *** SECURITY WARNING: If the JSON text contains a password",
-                "        then it may be visible to other users via process monitoring.",
-                "        EXAMPLE: -initJson \"{\"PIPELINE\":{ ... }}\"",
-                "        --> VIA ENVIRONMENT: " + CORE_SETTINGS.getEnvironmentVariable()));
+        pw.println(multilineFormat(
+                "[ Standard Options ]",
+                "",
+                "   --help",
+                "        Displays this help message. This option can only be provided by itself",
+                "        and has no parameters.",
+                "        NOTE: If this option is provided, the replicator will not start.",
+                "",
+                "   --version",
+                "        Displays the version number of the replicator. This option can only be",
+                "        provided by itself and has no parameters.",
+                "        NOTE: If this option is provided, the replicator will not start.",
+                "",
+                "   --ignore-environment [true|false]",
+                "        Ignores environment variables when setting the values for other",
+                "        command-line options. If no parameter is specified, 'true' is assumed.",
+                "        Default: false",
+                "",
+                "   --core-instance-name <module-name>",
+                "        Specifies the module name to initialize the Senzing SDK with.",
+                "        Default: \"" + DEFAULT_INSTANCE_NAME + "\"",
+                "        --> VIA ENVIRONMENT: " + CORE_INSTANCE_NAME.getEnvironmentVariable(),
+                "",
+                "   --core-settings <file-path|json-text>",
+                "        Specifies the core settings JSON for initializing the Senzing SDK.",
+                "        The parameter can be either a JSON object string or a path to a file",
+                "        containing the settings JSON.",
+                "        EXAMPLE: --core-settings \"{\\\"PIPELINE\\\":{...}}\"",
+                "        EXAMPLE: --core-settings /path/to/settings.json",
+                "        NOTE: Requires --database-uri and one info queue option:",
+                "              --sqs-info-uri, OR",
+                "              --rabbit-info-uri + --rabbit-info-queue, OR",
+                "              --database-info-queue",
+                "        *** SECURITY WARNING: JSON text may be visible via process monitoring.",
+                "        --> VIA ENVIRONMENT: " + CORE_SETTINGS.getEnvironmentVariable(),
+                "        --> VIA ENVIRONMENT: " + CORE_SETTINGS.getEnvironmentFallbacks().get(0) + " (fallback)",
+                "",
+                "   --core-config-id <config-id>",
+                "        Forces a specific configuration ID to be used for initialization and",
+                "        prevents automatic reinitialization to pick up the latest default config.",
+                "        Used with --core-settings to lock in a specific configuration.",
+                "        --> VIA ENVIRONMENT: " + CORE_CONFIG_ID.getEnvironmentVariable(),
+                "",
+                "   --core-log-level [muted|verbose|0|1]",
+                "        Determines if the Core Senzing SDK is initialized in verbose mode.",
+                "        Options: 'muted' or '0' (no logging), 'verbose' or '1' (verbose logging)",
+                "        If no parameter is specified, 'muted' is used.",
+                "        Default: muted",
+                "        --> VIA ENVIRONMENT: " + CORE_LOG_LEVEL.getEnvironmentVariable(),
+                "",
+                "   --core-concurrency <thread-count>",
+                "        Sets the number of threads available for executing Senzing SDK functions.",
+                "        Must be a positive integer. Thread counts for message consumption and task",
+                "        handling are scaled based on this value.",
+                "        Default: " + DEFAULT_CORE_CONCURRENCY,
+                "        --> VIA ENVIRONMENT: " + CORE_CONCURRENCY.getEnvironmentVariable(),
+                "",
+                "   --refresh-config-seconds <integer>",
+                "        Specifies how often to check if the active config matches the default",
+                "        config and update if needed. Parameter interpretation:",
+                "          Positive integer: refresh interval in seconds",
+                "          Zero (0): auto-refresh disabled, only on missing config elements",
+                "          Negative: check and refresh only when manually requested",
+                "        NOTE: Ignored if using G2CONFIGFILE or --core-config-id.",
+                "        Default: " + DEFAULT_REFRESH_CONFIG_SECONDS_PARAM + " (12 hours)",
+                "        --> VIA ENVIRONMENT: " + REFRESH_CONFIG_SECONDS.getEnvironmentVariable(),
+                "",
+                "   --processing-rate <leisurely|standard|aggressive>",
+                "        Balances message consumption between staying in sync with the repository",
+                "        and conserving system resources.",
+                "          leisurely  : Longer gaps, batch processing, conserve resources",
+                "          standard   : Balanced approach (default)",
+                "          aggressive : More resources, minimal delay, stay closely in sync",
+                "        Default: standard",
+                "        --> VIA ENVIRONMENT: " + PROCESSING_RATE.getEnvironmentVariable()));
     }
 
     /**
@@ -505,27 +561,44 @@ public class SzReplicator extends Thread {
      * @param pw The {@link PrintWriter} to write the info-queue options usage.
      */
     protected static void printInfoQueueOptionsUsage(PrintWriter pw) {
-        pw.println(multilineFormat("[ Asynchronous Info Queue Options ]",
-                "   The following options pertain to configuring the message queue from which to",
-                "   receive the \"info\" messages.  Exactly one such queue must be configured.", "",
+        pw.println(multilineFormat(
+                "[ Asynchronous Info Queue Options ]",
+                "   The following options configure the message queue from which to receive",
+                "   info messages. Exactly one queue type must be configured.",
+                "",
                 "   --database-info-queue [true|false]",
-                "        Configures the data mart replicator to leverage the configured database",
-                "        to obtain the INFO messages via the sz_message_queue table.  If using a",
-                "        SQLite database you should ensure messages are not being written to the",
-                "        queue by another process at the same time they are being consumed since",
-                "        SQLite does not support concurrent writes from multiple connections",
-                "        --> VIA ENVIRONMENT: " + DATABASE_INFO_QUEUE.getEnvironmentVariable(), "",
-                "   --sqs-info-uri <uri>", "        Specifies an Amazon SQS queue URL as the info queue.",
-                "        --> VIA ENVIRONMENT: " + SQS_INFO_URI.getEnvironmentVariable(), "",
-                "   --rabbit-info-uri <rabbitmq-connection-uri>",
-                "        Used to specify the hostname for connecting to RabbitMQ as part of",
-                "        specifying a RabbitMQ info queue.",
+                "        Configures the data mart replicator to use the configured database to",
+                "        obtain INFO messages via the sz_message_queue table. If no parameter is",
+                "        specified, 'true' is assumed.",
+                "        NOTE: This option conflicts with --sqs-info-uri and RabbitMQ options.",
+                "        NOTE: If using SQLite, ensure messages are not being written by another",
+                "        process concurrently, as SQLite does not support concurrent writes from",
+                "        multiple connections.",
+                "        Default: false",
+                "        --> VIA ENVIRONMENT: " + DATABASE_INFO_QUEUE.getEnvironmentVariable(),
+                "",
+                "   --sqs-info-uri <url>",
+                "        Specifies an Amazon SQS queue URL as the info queue. The parameter is",
+                "        the SQS queue URL.",
+                "        EXAMPLE: --sqs-info-uri https://sqs.us-east-1.amazonaws.com/123456/MyQueue",
+                "        NOTE: This option conflicts with --database-info-queue and RabbitMQ options.",
+                "        --> VIA ENVIRONMENT: " + SQS_INFO_URI.getEnvironmentVariable(),
+                "",
+                "   --rabbit-info-uri <amqp-uri>",
+                "        Specifies the RabbitMQ server connection URI. The parameter is an AMQP URL",
+                "        in the format: amqp://user:password@host:port/vhost",
+                "        EXAMPLE: --rabbit-info-uri amqp://user:pass@localhost:5672/senzing",
+                "        NOTE: This option conflicts with --database-info-queue and --sqs-info-uri.",
+                "        NOTE: Requires --rabbit-info-queue to be specified.",
                 "        --> VIA ENVIRONMENT: " + RABBITMQ_URI.getEnvironmentVariable(),
-                "                             " + RABBITMQ_URI.getEnvironmentFallbacks().iterator().next()
-                        + " (fallback)",
-                "", "   --rabbit-info-queue <queue name>",
-                "        Used to specify the name of the RabbitMQ queue from which to pull the",
-                "        info messages.",
+                "        --> VIA ENVIRONMENT: " + RABBITMQ_URI.getEnvironmentFallbacks().get(0) + " (fallback)",
+                "",
+                "   --rabbit-info-queue <queue-name>",
+                "        Specifies the RabbitMQ queue name from which to consume info messages.",
+                "        This option is used with --rabbit-info-uri to configure RabbitMQ.",
+                "        EXAMPLE: --rabbit-info-queue senzing-info-queue",
+                "        NOTE: This option conflicts with --database-info-queue and --sqs-info-uri.",
+                "        NOTE: Requires --rabbit-info-uri to be specified.",
                 "        --> VIA ENVIRONMENT: " + RABBITMQ_INFO_QUEUE.getEnvironmentVariable()));
     }
 
@@ -537,13 +610,39 @@ public class SzReplicator extends Thread {
      *           connectivity options usage.
      */
     protected static void printDatabaseOptionsUsage(PrintWriter pw) {
-        pw.println(multilineFormat("[ Data Mart Database Connectivity Options ]",
-                "   The following options pertain to configuring the connection to the data-mart",
-                "   database.  Exactly one such database must be configured.", "", "   --sqlite-database-file <url>",
-                "        Specifies an SQLite database file to open (or create) to use as the",
-                "        data-mart database.  NOTE: SQLite may be used for testing, but because",
-                "        only one connection may be made, it will not scale for production use.",
-                "        --> VIA ENVIRONMENT: " + DATABASE_URI.getEnvironmentVariable(), ""));
+        pw.println(multilineFormat(
+                "[ Data Mart Database Connectivity Options ]",
+                "",
+                "   --database-uri <uri>",
+                "        Specifies the database connection for the data mart. The parameter is a",
+                "        database URI that supports multiple formats:",
+                "",
+                "        PostgreSQL Formats:",
+                "          postgresql://[user[:password]@]host[:port]/database[?schema=name]",
+                "          postgresql://[user[:password]@]host[:port]:database[?schema=name]",
+                "        EXAMPLE: --database-uri postgresql://user:pass@localhost:5432/datamart",
+                "",
+                "        SQLite Formats:",
+                "          sqlite3://na:na@<absolute-path>",
+                "          sqlite3://na:na@/<absolute-path>",
+                "          sqlite://<absolute-path>",
+                "        EXAMPLE: --database-uri sqlite3://na:na@/var/opt/senzing/datamart.db",
+                "        EXAMPLE: --database-uri sqlite:///tmp/datamart.db",
+                "",
+                "        SzCoreSettings Format (extracts from --core-settings):",
+                "          sz://core-settings/<json-path>",
+                "        EXAMPLE: --database-uri sz://core-settings/SQL/CONNECTION",
+                "        This format extracts the database connection from the Senzing core",
+                "        settings JSON using the specified JSON path.",
+                "",
+                "        *** IMPORTANT: Using SzCoreSettings format with SQLite core settings",
+                "        may cause issues because both the Senzing engine and the data mart",
+                "        would attempt to write to the same SQLite database simultaneously,",
+                "        which SQLite does not support across multiple connections. Use",
+                "        PostgreSQL or separate SQLite files for core settings and data mart.",
+                "",
+                "        Default: " + DEFAULT_CORE_SETTINGS_DATABASE_URI + " (extract from core settings)",
+                "        --> VIA ENVIRONMENT: " + DATABASE_URI.getEnvironmentVariable()));
     }
 
     /**
@@ -568,24 +667,9 @@ public class SzReplicator extends Thread {
     }
 
     /**
-     * Exits when the specified failure occurs.
-     *
-     * @param t The {@link Throwable} representing the failure.
-     */
-    private static void exitOnError(Throwable t) {
-        logError(t, "EXITING ON ERROR:");
-        System.exit(1);
-    }
-
-    /**
      * The configured concurrency.
      */
     private int concurrency;
-
-    /**
-     * The start time when the {@link #run()} method is called.
-     */
-    private long startTimeNanos = 0L;
 
     /**
      * The {@link Connector} for connecting to the data-mart database.
@@ -678,8 +762,9 @@ public class SzReplicator extends Thread {
 
     /**
      * Constructs an instance of {@link SzReplicator} with the specified
-     * {@link SzReplicatorOptions} instance. The server will be started upon
-     * construction.
+     * {@link SzReplicatorOptions} instance. The server will <b>not</b>
+     * be started upon construction and the {@link #start()} method will
+     * need to be called.
      *
      * <b>NOTE:</b> This will initialize the Senzing Core SDK via
      * {@link SzAutoCoreEnvironment} and only one active instance of
@@ -695,7 +780,7 @@ public class SzReplicator extends Thread {
      * @throws Exception             If a failure occurs.
      */
     public SzReplicator(SzReplicatorOptions options) throws Exception {
-        this(options, true);
+        this(options, false);
     }
 
     /**
@@ -789,6 +874,46 @@ public class SzReplicator extends Thread {
         // get the database URI
         ConnectionUri databaseUri = options.getDatabaseUri();
 
+        if (databaseUri instanceof SzCoreSettingsUri) {
+            // get the core settings
+            JsonObject coreSettings = options.getCoreSettings();
+            if (coreSettings == null) {
+                throw new IllegalArgumentException(
+                    "Cannot specify an " + databaseUri.getClass().getSimpleName()
+                    + " URI (" + databaseUri.toString() + ") if the core settings "
+                    + "have not been provided.");
+            }
+            SzCoreSettingsUri coreSettingsUri = (SzCoreSettingsUri) databaseUri;
+            ConnectionUri resolvedUri = coreSettingsUri.resolveUri(coreSettings);
+            if (resolvedUri == null) {
+                throw new IllegalArgumentException(
+                    "Unable to resolve " + databaseUri + " Data Mart URI using "
+                    + "the provided core settings: "
+                    + toJsonText(coreSettings, true));
+            }
+            if (resolvedUri instanceof SzCoreSettingsUri 
+                || !SUPPORTED_DATABASE_URI_TYPES.contains(resolvedUri.getClass())) 
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.append("supportedTypes=[ ");
+                for (Class<?> c : SUPPORTED_DATABASE_URI_TYPES) {
+                    String prefix = "";
+                    if (c != SzCoreSettingsUri.class) {
+                        sb.append(prefix).append(c.getSimpleName());
+                        prefix = ", ";
+                    }
+                }
+                sb.append(" ]");
+
+                throw new IllegalArgumentException(
+                    "Resolved the " + databaseUri + " Data Mart URI to a database "
+                    + "URI that is not supported. resolvedType=[ " 
+                    + resolvedUri.getClass().getSimpleName() + " ], resolvedText=[ " 
+                    + resolvedUri.toString() + " ], " + sb.toString()); 
+            }
+            databaseUri = resolvedUri;
+        }
+
         if (databaseUri instanceof SQLiteUri) {
             SQLiteUri sqliteUri = (SQLiteUri) databaseUri;
             Map<String, String> connProps = sqliteUri.getQueryOptions();
@@ -810,6 +935,11 @@ public class SzReplicator extends Thread {
                     maxPoolSize);
 
             schedulingServiceClassName = PostgreSQLSchedulingService.class.getName();
+
+        } else {
+            throw new IllegalStateException(
+                "Unhandled database URI type (" + databaseUri.getClass().getName()
+                + "): " + databaseUri);
         }
 
         this.connProvider = new PoolConnectionProvider(this.connPool, MAX_POOL_WAIT_TIME);
@@ -871,14 +1001,14 @@ public class SzReplicator extends Thread {
                 consumerJOB.add(RabbitMQConsumer.MQ_VIRTUAL_HOST_KEY, rabbitMqUri.getVirtualHost());
             }
 
-            this.messageConsumer = new RabbitMQConsumer();
+            this.messageConsumer = this.createRabbitMQConsumer();
 
         } else if (sqsUri != null) {
             consumerJOB.add(SQSConsumer.CONCURRENCY_KEY, consumerConcurrency);
 
             // build an SQS message consumer
             consumerJOB.add(SQSConsumer.SQS_URL_KEY, sqsUri.toString());
-            this.messageConsumer = new SQSConsumer();
+            this.messageConsumer = this.createSQSConsumer();
 
         } else {
             throw new IllegalStateException("Missing INFO queue option: " + options);

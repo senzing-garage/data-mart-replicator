@@ -397,7 +397,16 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
     protected void doDestroy() {
         // join to the consumption thread
         try {
-            this.consumptionThread.join();
+            Thread thread = null;
+            synchronized (this) {
+                thread = this.consumptionThread;
+            }
+            if (thread != null 
+                && Thread.currentThread() != thread
+                && thread.isAlive()) 
+            {
+                thread.join();
+            }
             synchronized (this) {
                 this.consumptionThread = null;
             }

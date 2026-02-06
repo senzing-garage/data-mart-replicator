@@ -7,6 +7,7 @@ import static com.senzing.datamart.model.SzMatchType.POSSIBLE_RELATION;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -18,6 +19,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.checkerframework.checker.units.qual.m;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -50,6 +52,7 @@ import com.senzing.sql.ConnectionProvider;
 import com.senzing.sql.SQLUtilities;
 
 import static com.senzing.datamart.reports.DataSourceCombination.*;
+import static com.senzing.datamart.reports.model.SzBoundType.EXCLUSIVE_LOWER;
 @TestInstance(Lifecycle.PER_CLASS)
 @ExtendWith(DataMartTestExtension.class)
 public class SummaryStatsReportsTest extends AbstractReportsTest {
@@ -76,14 +79,29 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
         int skipFactor = this.getSkipFactor();
         Set<DataSourceCombination> sourceCombinations = this.getDataSourceCombinations();
 
+        ThrowingConnectionProvider sqlExceptionProvider 
+            = new ThrowingConnectionProvider(SQLException.class);
+
+        ThrowingConnectionProvider nullPointerProvider
+            = new ThrowingConnectionProvider(NullPointerException.class);
+        
         this.summaryStatsMap.forEach((repoType, summaryStats) -> {
             ConnectionProvider connProvider = this.getConnectionProvider(repoType);
 
             Set<String> emptySet = Collections.emptySet();
 
             if (sourceCombinations.contains(LOADED)) {
-                result.add(Arguments.of(repoType, connProvider, "*", "*", LOADED, null, summaryStats));
-                result.add(Arguments.of(repoType, connProvider, "*", "*", LOADED, emptySet, summaryStats));
+                result.add(Arguments.of(
+                    repoType, sqlExceptionProvider, "*", "*", LOADED, null, summaryStats, 
+                    SQLException.class));
+                result.add(Arguments.of(
+                    repoType, nullPointerProvider, "*", "*", LOADED, null, summaryStats, 
+                    NullPointerException.class));
+
+                result.add(Arguments.of(
+                    repoType, connProvider, "*", "*", LOADED, null, summaryStats, null));
+                result.add(Arguments.of(
+                    repoType, connProvider, "*", "*", LOADED, emptySet, summaryStats, null));
             }
 
             // get the set of all loaded data sources
@@ -92,7 +110,7 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
 
             if (sourceCombinations.contains(LOADED)) {        
                 result.add(Arguments.of(
-                    repoType, connProvider, "*", "*", LOADED, loadedSources, summaryStats));
+                    repoType, connProvider, "*", "*", LOADED, loadedSources, summaryStats, null));
             }
 
             // figure out which data sources are configured with no loaded records
@@ -160,18 +178,20 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
             if (sourceCombinations.contains(ALL_BUT_DEFAULT)) {
                 result.add(Arguments.of(
                     repoType, connProvider, null, null, ALL_BUT_DEFAULT, basicUnused,
-                    filter(allStats, loadedSources, basicUnused, null, null)));
+                    filter(allStats, loadedSources, basicUnused, null, null),
+                    null));
                 
                 result.add(Arguments.of(
                     repoType, connProvider, "*", "*", ALL_BUT_DEFAULT, basicUnused,
-                    filter(allStats, loadedSources, basicUnused, "*", "*")));
+                    filter(allStats, loadedSources, basicUnused, "*", "*"),
+                    null));
             }
 
             if (sourceCombinations.contains(ALL_WITH_DEFAULT)) {
                 result.add(Arguments.of(
-                    repoType, connProvider, "*", "*", ALL_WITH_DEFAULT, dataSources, allStats));
+                    repoType, connProvider, "*", "*", ALL_WITH_DEFAULT, dataSources, allStats, null));
                 result.add(Arguments.of(
-                    repoType, connProvider, "*", "*", ALL_WITH_DEFAULT, unusedSources, allStats));
+                    repoType, connProvider, "*", "*", ALL_WITH_DEFAULT, unusedSources, allStats, null));
             }
 
             Map<String, Set<String>> matchKeyMap = repo.getRelatedMatchKeys();
@@ -189,31 +209,37 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                 if (sourceCombinations.contains(LOADED)) {
                     result.add(Arguments.of(
                         repoType, connProvider, matchKey, "*", LOADED, null,
-                        filter(allStats, loadedSources, null, matchKey, "*")));
+                        filter(allStats, loadedSources, null, matchKey, "*"),
+                        null));
                 
                     result.add(Arguments.of(
                         repoType, connProvider, matchKey, null, LOADED, null,
-                        filter(allStats, loadedSources, null, matchKey, null)));
+                        filter(allStats, loadedSources, null, matchKey, null),
+                        null));
                 }
 
                 if (sourceCombinations.contains(ALL_BUT_DEFAULT)) {
                     result.add(Arguments.of(
                         repoType, connProvider, matchKey, "*", ALL_BUT_DEFAULT, allBasicUnused,
-                        filter(allStats, loadedSources, allBasicUnused, matchKey, "*")));
+                        filter(allStats, loadedSources, allBasicUnused, matchKey, "*"),
+                        null));
                 
                     result.add(Arguments.of(
                         repoType, connProvider, matchKey, null, ALL_BUT_DEFAULT, allBasicUnused,
-                        filter(allStats, loadedSources, allBasicUnused, matchKey, null)));
+                        filter(allStats, loadedSources, allBasicUnused, matchKey, null),
+                        null));
                 }
 
                 if (sourceCombinations.contains(ALL_WITH_DEFAULT)) {
                     result.add(Arguments.of(
                         repoType, connProvider, matchKey, "*", ALL_WITH_DEFAULT, allUnusedSources,
-                        filter(allStats, loadedSources, allUnusedSources, matchKey, "*")));
+                        filter(allStats, loadedSources, allUnusedSources, matchKey, "*"),
+                        null));
                 
                     result.add(Arguments.of(
                         repoType, connProvider, matchKey, null, ALL_WITH_DEFAULT, allUnusedSources,
-                        filter(allStats, loadedSources, allUnusedSources, matchKey, null)));
+                        filter(allStats, loadedSources, allUnusedSources, matchKey, null),
+                        null));
                 }
 
                 principles.forEach(principle -> {
@@ -223,19 +249,22 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                     if (sourceCombinations.contains(LOADED)) {
                         result.add(Arguments.of(
                             repoType, connProvider, matchKey, principle, LOADED, null,
-                            filter(allStats, loadedSources, null, matchKey, principle)));
+                            filter(allStats, loadedSources, null, matchKey, principle),
+                            null));
                     }
                     
                     if (sourceCombinations.contains(ALL_BUT_DEFAULT)) {
                         result.add(Arguments.of(
                             repoType, connProvider, matchKey, principle, ALL_BUT_DEFAULT, allBasicUnused,
-                            filter(allStats, loadedSources, allBasicUnused, matchKey, principle)));
+                            filter(allStats, loadedSources, allBasicUnused, matchKey, principle),
+                            null));
                     }
 
                     if (sourceCombinations.contains(ALL_WITH_DEFAULT)) {
                         result.add(Arguments.of(
                             repoType, connProvider, matchKey, principle, ALL_WITH_DEFAULT, allUnusedSources,
-                            filter(allStats, loadedSources, allUnusedSources, matchKey, principle)));
+                            filter(allStats, loadedSources, allUnusedSources, matchKey, principle),
+                            null));
                     }
                 });
             });
@@ -248,31 +277,37 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                 if (sourceCombinations.contains(LOADED)) {
                     result.add(Arguments.of(
                         repoType, connProvider, "*", principle, LOADED, null,
-                        filter(allStats, loadedSources, null, "*", principle)));
+                        filter(allStats, loadedSources, null, "*", principle),
+                        null));
                 
                     result.add(Arguments.of(
                         repoType, connProvider, null, principle, LOADED, null,
-                        filter(allStats, loadedSources, null, null, principle)));
+                        filter(allStats, loadedSources, null, null, principle),
+                        null));
                 }
 
                 if (sourceCombinations.contains(ALL_BUT_DEFAULT)) {
                     result.add(Arguments.of(
                         repoType, connProvider, "*", principle, ALL_BUT_DEFAULT, allBasicUnused,
-                        filter(allStats, loadedSources, allBasicUnused, "*", principle)));
+                        filter(allStats, loadedSources, allBasicUnused, "*", principle),
+                        null));
                     
                     result.add(Arguments.of(
                         repoType, connProvider, null, principle, ALL_BUT_DEFAULT, allBasicUnused,
-                        filter(allStats, loadedSources, allBasicUnused, null, principle)));
+                        filter(allStats, loadedSources, allBasicUnused, null, principle),
+                        null));
                 }
 
                 if (sourceCombinations.contains(ALL_WITH_DEFAULT)) {
                     result.add(Arguments.of(
                         repoType, connProvider, "*", principle, ALL_WITH_DEFAULT, allUnusedSources,
-                        filter(allStats, loadedSources, allUnusedSources, "*", principle)));
+                        filter(allStats, loadedSources, allUnusedSources, "*", principle),
+                        null));
                     
                     result.add(Arguments.of(
                         repoType, connProvider, null, principle, ALL_WITH_DEFAULT, allUnusedSources,
-                        filter(allStats, loadedSources, allUnusedSources, null, principle)));
+                        filter(allStats, loadedSources, allUnusedSources, null, principle),
+                        null));
                 }
             });
 
@@ -297,19 +332,23 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                         // add tests for all match keys and principles
                         result.add(Arguments.of(
                             repoType, connProvider, "*", "*", COMPLEX, extraSources, 
-                            filter(allStats, loadedSources, extraSources, "*", "*")));
+                            filter(allStats, loadedSources, extraSources, "*", "*"),
+                            null));
 
                         result.add(Arguments.of(
                             repoType, connProvider, null, "*", COMPLEX, extraSources, 
-                            filter(allStats, loadedSources, extraSources, null, "*")));
+                            filter(allStats, loadedSources, extraSources, null, "*"),
+                            null));
                         
                         result.add(Arguments.of(
                             repoType, connProvider, "*", null, COMPLEX, extraSources, 
-                            filter(allStats, loadedSources, extraSources, "*", null)));
+                            filter(allStats, loadedSources, extraSources, "*", null),
+                            null));
 
                         result.add(Arguments.of(
                             repoType, connProvider, null, null, COMPLEX, extraSources, 
-                            filter(allStats, loadedSources, extraSources, null, null)));
+                            filter(allStats, loadedSources, extraSources, null, null),
+                            null));
 
                         // loop through the match key and principle options
                         iteration[0] = 0;
@@ -319,11 +358,13 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                             }
                             result.add(Arguments.of(
                                 repoType, connProvider, matchKey, "*", COMPLEX, extraSources,
-                                filter(allStats, loadedSources, extraSources, matchKey, "*")));
+                                filter(allStats, loadedSources, extraSources, matchKey, "*"),
+                                null));
                             
                             result.add(Arguments.of(
                                 repoType, connProvider, matchKey, null, COMPLEX, extraSources,
-                                filter(allStats, loadedSources, extraSources, matchKey, null)));
+                                filter(allStats, loadedSources, extraSources, matchKey, null),
+                                null));
 
                             principles.forEach(principle -> {
                                 if (((iteration[0]++) % skipFactor) != 0) {
@@ -331,7 +372,8 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                                 }
                                 result.add(Arguments.of(
                                     repoType, connProvider, matchKey, principle, COMPLEX, extraSources,
-                                    filter(allStats, loadedSources, extraSources, matchKey, principle)));
+                                    filter(allStats, loadedSources, extraSources, matchKey, principle),
+                                null));
                             });
                         });
 
@@ -342,11 +384,13 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                             }
                         result.add(Arguments.of(
                                 repoType, connProvider, "*", principle, COMPLEX, extraSources,
-                                filter(allStats, loadedSources, extraSources, "*", principle)));
+                                filter(allStats, loadedSources, extraSources, "*", principle),
+                                null));
                             
                             result.add(Arguments.of(
                                 repoType, connProvider, null, principle, COMPLEX, extraSources,
-                                filter(allStats, loadedSources, extraSources, null, principle)));
+                                filter(allStats, loadedSources, extraSources, null, principle),
+                                null));
                         });
                     }
                 }
@@ -360,6 +404,12 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
     public List<Arguments> getSourceSummaryParameters() {
         List<Arguments> result = new LinkedList<>();
 
+        for (RepositoryType repoType : RepositoryType.values()) {
+            result.add(Arguments.of(
+                repoType, getConnectionProvider(repoType), null, null, null,
+                LOADED, null, null, NullPointerException.class));
+        }
+
         List<Arguments> summaryParams = this.getSummaryStatsParameters();
         for (Arguments origParams : summaryParams) {
             Object[]                paramArray      = origParams.get();
@@ -370,12 +420,13 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
             DataSourceCombination   sourceCombo     = (DataSourceCombination) paramArray[4];
             Set<String>             extraSources    = (Set<String>) paramArray[5];
             SzSummaryStats          summaryStats    = (SzSummaryStats) paramArray[6];
+            Class<?>                exceptionType   = (Class<?>) paramArray[7];
 
             for (SzSourceSummary summary : summaryStats.getSourceSummaries()) {
                 String dataSource = summary.getDataSource();
                 result.add(Arguments.of(
                     repoType, connProvider, dataSource, matchKey, principle, 
-                    sourceCombo, extraSources, summary));
+                    sourceCombo, extraSources, summary, exceptionType));
             }
         }
         return result;
@@ -383,6 +434,22 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
 
     public List<Arguments> getCrossSummaryParameters() {
         List<Arguments> result = new LinkedList<>();
+
+        for (RepositoryType repoType : RepositoryType.values()) {
+            ConnectionProvider connProvider = getConnectionProvider(repoType);
+
+            result.add(Arguments.of(
+                    repoType, connProvider, null, null, 
+                    null, null, null, NullPointerException.class));
+
+            result.add(Arguments.of(
+                    repoType, connProvider, "TEST", null, 
+                    null, null, null, NullPointerException.class));
+
+            result.add(Arguments.of(
+                    repoType, connProvider, null, "TEST", 
+                    null, null, null, NullPointerException.class));
+        }
 
         List<Arguments> summaryParams = this.getSourceSummaryParameters();
         Set<List<?>>  accountedFor  = new HashSet<>();
@@ -394,7 +461,15 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
             String              dataSource      = (String) paramArray[2];
             String              matchKey        = (String) paramArray[3];
             String              principle       = (String) paramArray[4];
-            SzSourceSummary     sourceSummary   = (SzSourceSummary) paramArray[6];
+            // skip index 5 (DataSourceCombination), index 6 (Set<String> of data sources)
+            SzSourceSummary     sourceSummary   = (SzSourceSummary) paramArray[7];
+            Class<?>            exceptionType   = (Class<?>) paramArray[8];
+
+            // skip those with a null source summary -- these are error conditions
+            // and we handle those above
+            if (sourceSummary == null) {
+                continue;
+            }
 
             List<Object> params = new ArrayList<>(5);
             params.add(repoType);
@@ -414,7 +489,8 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                 accountedFor.add(new ArrayList<>(params));
 
                 result.add(Arguments.of(
-                    repoType, connProvider, dataSource, vsDataSource, matchKey, principle, cross));
+                    repoType, connProvider, dataSource, vsDataSource, 
+                    matchKey, principle, cross, exceptionType));
             }
         }
         return result;
@@ -428,29 +504,60 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                                  String                 principle,
                                  DataSourceCombination  sourceCombo,
                                  Set<String>            dataSources,
-                                 SzSummaryStats         expected)                                
+                                 SzSummaryStats         expected,
+                                 Class<?>               exceptionType)
+        throws Exception
     {
         String testInfo = "repoType=[ " + repoType + " ], matchKey=[ " + matchKey
-            + " ], principle=[ " + principle + " ], dataSourceCombo[ " 
+            + " ], principle=[ " + principle + " ], dataSourceCombo[ "
             + sourceCombo + " ], dataSources=[ " + dataSources + " ]";
-        
+
+        withConditionalSuppression(exceptionType != null, () -> {
+            try {
+                SzSummaryStats actual = this.getSummaryStatistics(
+                    repoType, connProvider, matchKey, principle, sourceCombo, dataSources);
+                
+                if (exceptionType != null) {
+                    fail("Unexpectedly succeeded when expecting an exception (" 
+                        + exceptionType + "): " + testInfo);
+                }
+                validateReport(expected, actual, testInfo);
+
+            } catch (Exception e) {
+                validateException(testInfo, e, exceptionType);
+            }
+        });
+    }
+    
+    /**
+     * Gets the {@link SzSummaryStats} for the specified parameters.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param matchKey The match key filter, or {@code null} for none.
+     * @param principle The principle filter, or {@code null} for none.
+     * @param sourceCombo The {@link DataSourceCombination} for the test.
+     * @param dataSources The set of data sources to include.
+     * @return The {@link SzSummaryStats} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzSummaryStats getSummaryStatistics(RepositoryType         repoType,
+                                                  ConnectionProvider     connProvider,
+                                                  String                 matchKey,
+                                                  String                 principle,
+                                                  DataSourceCombination  sourceCombo,
+                                                  Set<String>            dataSources)
+        throws Exception
+    {
         Connection conn = null;
         try {
             conn = connProvider.getConnection();
-        
-            SzSummaryStats actual 
-                = SummaryStatsReports.getSummaryStatistics(conn, 
+            return SummaryStatsReports.getSummaryStatistics(conn,
                                                            matchKey,
                                                            principle,
                                                            dataSources,
                                                            null);
-
-            validateReport(expected, actual, testInfo);
-
-        } catch (Exception e) {
-            fail("Failed test with an unexpected exception: repoType=[ "
-                 + repoType + " ]", e);
-
         } finally {
             SQLUtilities.close(conn);
         }
@@ -465,31 +572,64 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                                   String                principle,
                                   DataSourceCombination sourceCombo,
                                   Set<String>           dataSources,
-                                  SzSourceSummary       expected)                                
+                                  SzSourceSummary       expected,
+                                  Class<?>              exceptionType)
+        throws Exception
     {
-        String testInfo = "repoType=[ " + repoType + " ], dataSource=[ " 
+        String testInfo = "repoType=[ " + repoType + " ], dataSource=[ "
             + dataSource + " ], matchKey=[ " + matchKey + " ], principle=[ "
-            + principle + " ], dataSourceCombo=[ " + sourceCombo 
+            + principle + " ], dataSourceCombo=[ " + sourceCombo
             + " ]. dataSources=[ " + dataSources + " ]";
-        
+
+        withConditionalSuppression(exceptionType != null, () -> {
+            try {
+                SzSourceSummary actual = this.getSourceSummary(
+                    repoType, connProvider, dataSource, matchKey, principle, sourceCombo, dataSources);
+
+                if (exceptionType != null) {
+                    fail("Unexpectedly succeeded when expecting an exception (" 
+                        + exceptionType + "): " + testInfo);
+                }
+                validateReport(expected, actual, testInfo);
+
+            } catch (Exception e) {
+                validateException(testInfo, e, exceptionType);
+            }
+        });
+    }
+
+    /**
+     * Gets the {@link SzSourceSummary} for the specified data source.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param dataSource The data source to get the summary for.
+     * @param matchKey The match key filter, or {@code null} for none.
+     * @param principle The principle filter, or {@code null} for none.
+     * @param sourceCombo The {@link DataSourceCombination} for the test.
+     * @param dataSources The set of data sources to include.
+     * @return The {@link SzSourceSummary} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzSourceSummary getSourceSummary(RepositoryType        repoType,
+                                               ConnectionProvider    connProvider,
+                                               String                dataSource,
+                                               String                matchKey,
+                                               String                principle,
+                                               DataSourceCombination sourceCombo,
+                                               Set<String>           dataSources)
+        throws Exception
+    {
         Connection conn = null;
         try {
             conn = connProvider.getConnection();
-        
-            SzSourceSummary actual 
-                = SummaryStatsReports.getSourceSummary(conn, 
+            return SummaryStatsReports.getSourceSummary(conn,
                                                        dataSource,
                                                        matchKey,
                                                        principle,
                                                        dataSources,
                                                        null);
-
-            validateReport(expected, actual, testInfo);
-
-        } catch (Exception e) {
-            fail("Failed test with an unexpected exception: repoType=[ "
-                 + repoType + " ]", e);
-
         } finally {
             SQLUtilities.close(conn);
         }
@@ -503,73 +643,316 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                                  String                vsDataSource,
                                  String                matchKey,
                                  String                principle,
-                                 SzCrossSourceSummary  expected)                                
+                                 SzCrossSourceSummary  expected,
+                                 Class<?>              exceptionType)
+        throws Exception
     {
-        String testInfo = "repoType=[ " + repoType + " ], dataSource=[ " 
-            + dataSource + " ], vsDataSource=[ " + vsDataSource 
+        String testInfo = "repoType=[ " + repoType + " ], dataSource=[ "
+            + dataSource + " ], vsDataSource=[ " + vsDataSource
             + " ], matchKey=[ " + matchKey + " ], principle=[ "
             + principle + " ]";
-        
+
+        withConditionalSuppression(exceptionType != null, () -> {
+            SzCrossSourceMatchCounts matchCounts = null;
+            SzCrossSourceRelationCounts relationCounts = null;            
+            try {
+                SzCrossSourceSummary actual = this.getCrossSourceSummary(
+                    repoType, connProvider, dataSource, vsDataSource, matchKey, principle);
+                
+                if (exceptionType != null) {
+                    fail("Unexpectedly succeeded when expecting an exception (" 
+                        + exceptionType + "): " + testInfo);
+                }
+
+                validateReport(expected, actual, testInfo);
+
+            } catch (Exception e) {
+                validateException(testInfo, e, exceptionType);
+            }
+
+            try {
+                matchCounts = this.getCrossSourceMatchSummary(
+                    repoType, connProvider, dataSource, vsDataSource, matchKey, principle);
+
+                if (exceptionType != null) {
+                    fail("Unexpectedly succeeded when expecting an exception (" 
+                        + exceptionType + "): " + testInfo);
+                }
+
+                validateReport(expected.getMatches(),
+                            matchCounts.getCounts(),
+                            "CrossSourceMatchSummary",
+                            testInfo);
+
+            } catch (Exception e) {
+                validateException(testInfo, e, exceptionType);
+            }
+
+            try {
+                relationCounts = this.getCrossSourceAmbiguousMatchSummary(
+                    repoType, connProvider, dataSource, vsDataSource, matchKey, principle);
+
+                if (exceptionType != null) {
+                    fail("Unexpectedly succeeded when expecting an exception (" 
+                        + exceptionType + "): " + testInfo);
+                }
+
+                validateReport(expected.getAmbiguousMatches(),
+                            relationCounts.getCounts(),
+                            "CrossSourceAmbiguousMatchSummary",
+                            testInfo);
+
+
+            } catch (Exception e) {
+                validateException(testInfo, e, exceptionType);
+            }
+
+            try {
+                relationCounts = this.getCrossSourcePossibleMatchSummary(
+                    repoType, connProvider, dataSource, vsDataSource, matchKey, principle);
+
+                if (exceptionType != null) {
+                    fail("Unexpectedly succeeded when expecting an exception (" 
+                        + exceptionType + "): " + testInfo);
+                }
+
+                validateReport(expected.getPossibleMatches(),
+                            relationCounts.getCounts(),
+                            "CrossSourcePossibleMatchSummary",
+                            testInfo);
+
+
+            } catch (Exception e) {
+                validateException(testInfo, e, exceptionType);
+            }
+
+            try {
+                relationCounts = this.getCrossSourcePossibleRelationSummary(
+                    repoType, connProvider, dataSource, vsDataSource, matchKey, principle);
+
+                if (exceptionType != null) {
+                    fail("Unexpectedly succeeded when expecting an exception (" 
+                        + exceptionType + "): " + testInfo);
+                }
+
+                validateReport(expected.getPossibleRelations(),
+                            relationCounts.getCounts(),
+                            "CrossSourcePossibleRelationSummary",
+                            testInfo);
+
+            } catch (Exception e) {
+                validateException(testInfo, e, exceptionType);
+            }
+
+            try {
+                relationCounts = this.getCrossSourceDisclosedRelationSummary(
+                    repoType, connProvider, dataSource, vsDataSource, matchKey, principle);
+
+                if (exceptionType != null) {
+                    fail("Unexpectedly succeeded when expecting an exception (" 
+                        + exceptionType + "): " + testInfo);
+                }
+
+                validateReport(expected.getDisclosedRelations(),
+                            relationCounts.getCounts(),
+                            "CrossSourceDisclosedRelationSummary",
+                            testInfo);
+
+            } catch (Exception e) {
+                validateException(testInfo, e, exceptionType);
+            }
+        });
+    }
+
+    /**
+     * Gets the {@link SzCrossSourceSummary} for the specified data sources.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param dataSource The primary data source.
+     * @param vsDataSource The versus data source.
+     * @param matchKey The match key filter, or {@code null} for none.
+     * @param principle The principle filter, or {@code null} for none.
+     * @return The {@link SzCrossSourceSummary} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzCrossSourceSummary getCrossSourceSummary(RepositoryType     repoType,
+                                                         ConnectionProvider connProvider,
+                                                         String             dataSource,
+                                                         String             vsDataSource,
+                                                         String             matchKey,
+                                                         String             principle)
+        throws Exception
+    {
         Connection conn = null;
         try {
             conn = connProvider.getConnection();
-        
-            SzCrossSourceSummary actual 
-                = SummaryStatsReports.getCrossSourceSummary(conn, 
+            return SummaryStatsReports.getCrossSourceSummary(conn,
                                                             dataSource,
                                                             vsDataSource,
                                                             matchKey,
                                                             principle,
                                                             null);
+        } finally {
+            SQLUtilities.close(conn);
+        }
+    }
 
-            validateReport(expected, actual, testInfo);
+    /**
+     * Gets the {@link SzCrossSourceMatchCounts} for the specified data sources.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param dataSource The primary data source.
+     * @param vsDataSource The versus data source.
+     * @param matchKey The match key filter, or {@code null} for none.
+     * @param principle The principle filter, or {@code null} for none.
+     * @return The {@link SzCrossSourceMatchCounts} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzCrossSourceMatchCounts getCrossSourceMatchSummary(RepositoryType     repoType,
+                                                                  ConnectionProvider connProvider,
+                                                                  String             dataSource,
+                                                                  String             vsDataSource,
+                                                                  String             matchKey,
+                                                                  String             principle)
+        throws Exception
+    {
+        Connection conn = null;
+        try {
+            conn = connProvider.getConnection();
+            return SummaryStatsReports.getCrossSourceMatchSummary(
+                conn, dataSource, vsDataSource, matchKey, principle, null);
+        } finally {
+            SQLUtilities.close(conn);
+        }
+    }
 
-            SzCrossSourceMatchCounts matchCounts
-                = SummaryStatsReports.getCrossSourceMatchSummary(
-                    conn, dataSource, vsDataSource, matchKey, principle, null);
+    /**
+     * Gets the {@link SzCrossSourceRelationCounts} for ambiguous matches.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param dataSource The primary data source.
+     * @param vsDataSource The versus data source.
+     * @param matchKey The match key filter, or {@code null} for none.
+     * @param principle The principle filter, or {@code null} for none.
+     * @return The {@link SzCrossSourceRelationCounts} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzCrossSourceRelationCounts getCrossSourceAmbiguousMatchSummary(
+        RepositoryType     repoType,
+        ConnectionProvider connProvider,
+        String             dataSource,
+        String             vsDataSource,
+        String             matchKey,
+        String             principle)
+        throws Exception
+    {
+        Connection conn = null;
+        try {
+            conn = connProvider.getConnection();
+            return SummaryStatsReports.getCrossSourceAmbiguousMatchSummary(
+                conn, dataSource, vsDataSource, matchKey, principle, null);
+        } finally {
+            SQLUtilities.close(conn);
+        }
+    }
 
-            validateReport(expected.getMatches(), 
-                           matchCounts.getCounts(),
-                           "CrossSourceMatchSummary",
-                           testInfo);
+    /**
+     * Gets the {@link SzCrossSourceRelationCounts} for possible matches.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param dataSource The primary data source.
+     * @param vsDataSource The versus data source.
+     * @param matchKey The match key filter, or {@code null} for none.
+     * @param principle The principle filter, or {@code null} for none.
+     * @return The {@link SzCrossSourceRelationCounts} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzCrossSourceRelationCounts getCrossSourcePossibleMatchSummary(
+        RepositoryType     repoType,
+        ConnectionProvider connProvider,
+        String             dataSource,
+        String             vsDataSource,
+        String             matchKey,
+        String             principle)
+        throws Exception
+    {
+        Connection conn = null;
+        try {
+            conn = connProvider.getConnection();
+            return SummaryStatsReports.getCrossSourcePossibleMatchSummary(
+                conn, dataSource, vsDataSource, matchKey, principle, null);
+        } finally {
+            SQLUtilities.close(conn);
+        }
+    }
 
-            SzCrossSourceRelationCounts relationCounts
-                = SummaryStatsReports.getCrossSourceAmbiguousMatchSummary(
-                    conn, dataSource, vsDataSource, matchKey, principle, null);
+    /**
+     * Gets the {@link SzCrossSourceRelationCounts} for possible relations.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param dataSource The primary data source.
+     * @param vsDataSource The versus data source.
+     * @param matchKey The match key filter, or {@code null} for none.
+     * @param principle The principle filter, or {@code null} for none.
+     * @return The {@link SzCrossSourceRelationCounts} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzCrossSourceRelationCounts getCrossSourcePossibleRelationSummary(
+        RepositoryType     repoType,
+        ConnectionProvider connProvider,
+        String             dataSource,
+        String             vsDataSource,
+        String             matchKey,
+        String             principle)
+        throws Exception
+    {
+        Connection conn = null;
+        try {
+            conn = connProvider.getConnection();
+            return SummaryStatsReports.getCrossSourcePossibleRelationSummary(
+                conn, dataSource, vsDataSource, matchKey, principle, null);
+        } finally {
+            SQLUtilities.close(conn);
+        }
+    }
 
-            validateReport(expected.getAmbiguousMatches(), 
-                           relationCounts.getCounts(), 
-                           "CrossSourceAmbiguousMatchSummary",
-                           testInfo);
-            
-            relationCounts = SummaryStatsReports.getCrossSourcePossibleMatchSummary(
-                    conn, dataSource, vsDataSource, matchKey, principle, null);
-
-            validateReport(expected.getPossibleMatches(), 
-                           relationCounts.getCounts(),
-                           "CrossSourcePossibleMatchSummary",
-                           testInfo);
-            
-            relationCounts = SummaryStatsReports.getCrossSourcePossibleRelationSummary(
-                    conn, dataSource, vsDataSource, matchKey, principle, null);
-
-            validateReport(expected.getPossibleRelations(), 
-                           relationCounts.getCounts(),
-                           "CrossSourcePossibleRelationSummary",
-                           testInfo);
-
-            relationCounts = SummaryStatsReports.getCrossSourceDisclosedRelationSummary(
-                    conn, dataSource, vsDataSource, matchKey, principle, null);
-
-            validateReport(expected.getDisclosedRelations(), 
-                           relationCounts.getCounts(),
-                           "CrossSourceDisclosedRelationSummary",
-                           testInfo);
-
-        } catch (Exception e) {
-            fail("Failed test with an unexpected exception: repoType=[ "
-                 + repoType + " ]", e);
-
+    /**
+     * Gets the {@link SzCrossSourceRelationCounts} for disclosed relations.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param dataSource The primary data source.
+     * @param vsDataSource The versus data source.
+     * @param matchKey The match key filter, or {@code null} for none.
+     * @param principle The principle filter, or {@code null} for none.
+     * @return The {@link SzCrossSourceRelationCounts} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzCrossSourceRelationCounts getCrossSourceDisclosedRelationSummary(
+        RepositoryType     repoType,
+        ConnectionProvider connProvider,
+        String             dataSource,
+        String             vsDataSource,
+        String             matchKey,
+        String             principle)
+        throws Exception
+    {
+        Connection conn = null;
+        try {
+            conn = connProvider.getConnection();
+            return SummaryStatsReports.getCrossSourceDisclosedRelationSummary(
+                conn, dataSource, vsDataSource, matchKey, principle, null);
         } finally {
             SQLUtilities.close(conn);
         }
@@ -595,8 +978,35 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
         List<Arguments> result = new LinkedList<>();
         int skipFactor = this.getSkipFactor();
 
+        ThrowingConnectionProvider sqlExceptionProvider 
+            = new ThrowingConnectionProvider(SQLException.class);
+
         for (RepositoryType repoType : RepositoryType.values()) {
             Repository repo = DataMartTestExtension.getRepository(repoType);
+
+            result.add(Arguments.of(repoType,
+                                    sqlExceptionProvider,
+                                    "TEST",
+                                    null,
+                                    null,
+                                    null,
+                                    EXCLUSIVE_LOWER,
+                                    100,
+                                    null,
+                                    null,
+                                    SQLException.class));
+
+            result.add(Arguments.of(repoType,
+                                    this.getConnectionProvider(repoType),
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    EXCLUSIVE_LOWER,
+                                    100,
+                                    null,
+                                    null,
+                                    NullPointerException.class));
 
             Map<String, Set<String>> matchKeyMap = repo.getRelatedMatchKeys();
             Map<String, Set<String>> principleMap = repo.getRelatedPrinciples();
@@ -741,9 +1151,51 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
         List<Arguments> result = new LinkedList<>();
         int skipFactor = this.getSkipFactor();
 
+        ThrowingConnectionProvider sqlExceptionProvider 
+            = new ThrowingConnectionProvider(SQLException.class);
+
         for (RepositoryType repoType : RepositoryType.values()) {
             Repository repo = DataMartTestExtension.getRepository(repoType);
 
+            result.add(Arguments.of(repoType,
+                                    sqlExceptionProvider,
+                                    "TEST",
+                                    "TEST",
+                                    null,
+                                    null,
+                                    null,
+                                    EXCLUSIVE_LOWER,
+                                    100,
+                                    null,
+                                    null,
+                                    SQLException.class));
+    
+            result.add(Arguments.of(repoType,
+                                    this.getConnectionProvider(repoType),
+                                    null,
+                                    "TEST",
+                                    null,
+                                    null,
+                                    null,
+                                    EXCLUSIVE_LOWER,
+                                    100,
+                                    null,
+                                    null,
+                                    NullPointerException.class));
+            
+            result.add(Arguments.of(repoType,
+                                    this.getConnectionProvider(repoType),
+                                    null,
+                                    null,
+                                    "TEST",
+                                    null,
+                                    null,
+                                    EXCLUSIVE_LOWER,
+                                    100,
+                                    null,
+                                    null,
+                                    NullPointerException.class));
+            
             Map<String, Set<String>> matchKeyMap = repo.getRelatedMatchKeys();
             Map<String, Set<String>> principleMap = repo.getRelatedPrinciples();
             Set<MatchPairKey> matchPairs = new TreeSet<>();
@@ -905,18 +1357,77 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                                          Integer            sampleSize,
                                          SzEntitiesPage     expected,
                                          Class<?>           exceptionType)
-    {                              
+        throws Exception
+    {
         String testInfo = "repoType=[ " + repoType + " ], dataSource=[ "
             + dataSource + " ], matchKey=[ " + matchKey + " ], principle=[ "
             + principle + " ], entityIdBound=[ " + entityIdBound
-            + " ], boundType=[ " + boundType + " ], pageSize=[ " 
+            + " ], boundType=[ " + boundType + " ], pageSize=[ "
             + pageSize + " ], sampleSize=[ " + sampleSize + " ]";
-        
+
+        withConditionalSuppression(exceptionType != null, () -> {
+            try {
+                SzEntitiesPage actual = this.getSummaryMatchEntityIds(
+                    repoType,
+                    connProvider,
+                    dataSource,
+                    matchKey,
+                    principle,
+                    entityIdBound,
+                    boundType,
+                    pageSize,
+                    sampleSize);
+
+                if (exceptionType != null) {
+                    fail("Method unexpectedly succeeded.  " + testInfo);
+                }
+
+                this.validateEntitiesPage(repoType,
+                                          testInfo,
+                                          entityIdBound,
+                                          boundType,
+                                          pageSize,
+                                          sampleSize,
+                                          expected,
+                                          actual);
+
+            } catch (Exception e) {
+                validateException(testInfo, e, exceptionType);
+            }
+        });
+    }
+
+    /**
+     * Gets the {@link SzEntitiesPage} of match entity IDs for the specified summary parameters.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param dataSource The data source filter, or {@code null} for all data sources.
+     * @param matchKey The match key filter, or {@code null} for none.
+     * @param principle The principle filter, or {@code null} for none.
+     * @param entityIdBound The entity ID boundary value for pagination, or {@code null} for none.
+     * @param boundType The {@link SzBoundType} for the boundary.
+     * @param pageSize The maximum page size, or {@code null} for no limit.
+     * @param sampleSize The sample size for random sampling, or {@code null} for no sampling.
+     * @return The {@link SzEntitiesPage} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzEntitiesPage getSummaryMatchEntityIds(RepositoryType     repoType,
+                                                      ConnectionProvider connProvider,
+                                                      String             dataSource,
+                                                      String             matchKey,
+                                                      String             principle,
+                                                      String             entityIdBound,
+                                                      SzBoundType        boundType,
+                                                      Integer            pageSize,
+                                                      Integer            sampleSize)
+        throws Exception
+    {
         Connection conn = null;
         try {
             conn = connProvider.getConnection();
-        
-            SzEntitiesPage actual = SummaryStatsReports.getSummaryMatchEntityIds(
+            return SummaryStatsReports.getSummaryMatchEntityIds(
                 conn,
                 dataSource,
                 matchKey,
@@ -926,28 +1437,6 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                 pageSize,
                 sampleSize,
                 null);
-
-            if (exceptionType != null) {
-                fail("Method unexpectedly succeeded.  " + testInfo);
-            }
-
-            this.validateEntitiesPage(repoType,
-                                      testInfo,
-                                      entityIdBound,
-                                      boundType,
-                                      pageSize,
-                                      sampleSize,
-                                      expected, 
-                                      actual);
-                    
-        } catch (Exception e) {
-            if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                    fail("Unexpected exception (" + e.getClass().getName() 
-                         + ") when expecting " 
-                         + (exceptionType == null ? "none" : exceptionType.getName())
-                         + ": " + testInfo, e);
-            }
-
         } finally {
             SQLUtilities.close(conn);
         }
@@ -966,18 +1455,77 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                                                   Integer            sampleSize,
                                                   SzEntitiesPage     expected,
                                                   Class<?>           exceptionType)
-    {                              
+        throws Exception
+    {
         String testInfo = "repoType=[ " + repoType + " ], dataSource=[ "
             + dataSource + " ], matchKey=[ " + matchKey + " ], principle=[ "
             + principle + " ], entityIdBound=[ " + entityIdBound
-            + " ], boundType=[ " + boundType + " ], pageSize=[ " 
+            + " ], boundType=[ " + boundType + " ], pageSize=[ "
             + pageSize + " ], sampleSize=[ " + sampleSize + " ]";
-        
+
+        withConditionalSuppression(exceptionType != null, () -> {
+            try {
+                SzEntitiesPage actual = this.getSummaryAmbiguousMatchEntityIds(
+                    repoType,
+                    connProvider,
+                    dataSource,
+                    matchKey,
+                    principle,
+                    entityIdBound,
+                    boundType,
+                    pageSize,
+                    sampleSize);
+
+                if (exceptionType != null) {
+                    fail("Method unexpectedly succeeded.  " + testInfo);
+                }
+
+                this.validateEntitiesPage(repoType,
+                                          testInfo,
+                                          entityIdBound,
+                                          boundType,
+                                          pageSize,
+                                          sampleSize,
+                                          expected,
+                                          actual);
+
+            } catch (Exception e) {
+                validateException(testInfo, e, exceptionType);
+            }
+        });
+    }
+
+    /**
+     * Gets the {@link SzEntitiesPage} of ambiguous match entity IDs for the specified summary parameters.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param dataSource The data source filter, or {@code null} for all data sources.
+     * @param matchKey The match key filter, or {@code null} for none.
+     * @param principle The principle filter, or {@code null} for none.
+     * @param entityIdBound The entity ID boundary value for pagination, or {@code null} for none.
+     * @param boundType The {@link SzBoundType} for the boundary.
+     * @param pageSize The maximum page size, or {@code null} for no limit.
+     * @param sampleSize The sample size for random sampling, or {@code null} for no sampling.
+     * @return The {@link SzEntitiesPage} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzEntitiesPage getSummaryAmbiguousMatchEntityIds(RepositoryType     repoType,
+                                                               ConnectionProvider connProvider,
+                                                               String             dataSource,
+                                                               String             matchKey,
+                                                               String             principle,
+                                                               String             entityIdBound,
+                                                               SzBoundType        boundType,
+                                                               Integer            pageSize,
+                                                               Integer            sampleSize)
+        throws Exception
+    {
         Connection conn = null;
         try {
             conn = connProvider.getConnection();
-        
-            SzEntitiesPage actual = SummaryStatsReports.getSummaryAmbiguousMatchEntityIds(
+            return SummaryStatsReports.getSummaryAmbiguousMatchEntityIds(
                 conn,
                 dataSource,
                 matchKey,
@@ -987,28 +1535,6 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                 pageSize,
                 sampleSize,
                 null);
-
-            if (exceptionType != null) {
-                fail("Method unexpectedly succeeded.  " + testInfo);
-            }
-
-            this.validateEntitiesPage(repoType,
-                                      testInfo,
-                                      entityIdBound,
-                                      boundType,
-                                      pageSize,
-                                      sampleSize,
-                                      expected, 
-                                      actual);
-                    
-        } catch (Exception e) {
-            if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                    fail("Unexpected exception (" + e.getClass().getName() 
-                         + ") when expecting " 
-                         + (exceptionType == null ? "none" : exceptionType.getName())
-                         + ": " + testInfo, e);
-            }
-
         } finally {
             SQLUtilities.close(conn);
         }
@@ -1027,18 +1553,77 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                                                  Integer            sampleSize,
                                                  SzEntitiesPage     expected,
                                                  Class<?>           exceptionType)
-    {                              
+        throws Exception
+    {
         String testInfo = "repoType=[ " + repoType + " ], dataSource=[ "
             + dataSource + " ], matchKey=[ " + matchKey + " ], principle=[ "
             + principle + " ], entityIdBound=[ " + entityIdBound
-            + " ], boundType=[ " + boundType + " ], pageSize=[ " 
+            + " ], boundType=[ " + boundType + " ], pageSize=[ "
             + pageSize + " ], sampleSize=[ " + sampleSize + " ]";
-        
+
+        withConditionalSuppression(exceptionType != null, () -> {
+            try {
+                SzEntitiesPage actual = this.getSummaryPossibleMatchEntityIds(
+                    repoType,
+                    connProvider,
+                    dataSource,
+                    matchKey,
+                    principle,
+                    entityIdBound,
+                    boundType,
+                    pageSize,
+                    sampleSize);
+
+                if (exceptionType != null) {
+                    fail("Method unexpectedly succeeded.  " + testInfo);
+                }
+
+                this.validateEntitiesPage(repoType,
+                                          testInfo,
+                                          entityIdBound,
+                                          boundType,
+                                          pageSize,
+                                          sampleSize,
+                                          expected,
+                                          actual);
+
+            } catch (Exception e) {
+                validateException(testInfo, e, exceptionType);
+            }
+        });
+    }
+
+    /**
+     * Gets the {@link SzEntitiesPage} of possible match entity IDs for the specified summary parameters.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param dataSource The data source filter, or {@code null} for all data sources.
+     * @param matchKey The match key filter, or {@code null} for none.
+     * @param principle The principle filter, or {@code null} for none.
+     * @param entityIdBound The entity ID boundary value for pagination, or {@code null} for none.
+     * @param boundType The {@link SzBoundType} for the boundary.
+     * @param pageSize The maximum page size, or {@code null} for no limit.
+     * @param sampleSize The sample size for random sampling, or {@code null} for no sampling.
+     * @return The {@link SzEntitiesPage} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzEntitiesPage getSummaryPossibleMatchEntityIds(RepositoryType     repoType,
+                                                              ConnectionProvider connProvider,
+                                                              String             dataSource,
+                                                              String             matchKey,
+                                                              String             principle,
+                                                              String             entityIdBound,
+                                                              SzBoundType        boundType,
+                                                              Integer            pageSize,
+                                                              Integer            sampleSize)
+        throws Exception
+    {
         Connection conn = null;
         try {
             conn = connProvider.getConnection();
-        
-            SzEntitiesPage actual = SummaryStatsReports.getSummaryPossibleMatchEntityIds(
+            return SummaryStatsReports.getSummaryPossibleMatchEntityIds(
                 conn,
                 dataSource,
                 matchKey,
@@ -1048,28 +1633,6 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                 pageSize,
                 sampleSize,
                 null);
-
-            if (exceptionType != null) {
-                fail("Method unexpectedly succeeded.  " + testInfo);
-            }
-
-            this.validateEntitiesPage(repoType,
-                                      testInfo,
-                                      entityIdBound,
-                                      boundType,
-                                      pageSize,
-                                      sampleSize,
-                                      expected, 
-                                      actual);
-                    
-        } catch (Exception e) {
-            if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                    fail("Unexpected exception (" + e.getClass().getName() 
-                         + ") when expecting " 
-                         + (exceptionType == null ? "none" : exceptionType.getName())
-                         + ": " + testInfo, e);
-            }
-
         } finally {
             SQLUtilities.close(conn);
         }
@@ -1088,18 +1651,77 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                                                     Integer            sampleSize,
                                                     SzEntitiesPage     expected,
                                                     Class<?>           exceptionType)
-    {                              
+        throws Exception
+    {
         String testInfo = "repoType=[ " + repoType + " ], dataSource=[ "
             + dataSource + " ], matchKey=[ " + matchKey + " ], principle=[ "
             + principle + " ], entityIdBound=[ " + entityIdBound
-            + " ], boundType=[ " + boundType + " ], pageSize=[ " 
+            + " ], boundType=[ " + boundType + " ], pageSize=[ "
             + pageSize + " ], sampleSize=[ " + sampleSize + " ]";
-        
+
+        withConditionalSuppression(exceptionType != null, () -> {
+            try {
+                SzEntitiesPage actual = this.getSummaryPossibleRelationEntityIds(
+                    repoType,
+                    connProvider,
+                    dataSource,
+                    matchKey,
+                    principle,
+                    entityIdBound,
+                    boundType,
+                    pageSize,
+                    sampleSize);
+
+                if (exceptionType != null) {
+                    fail("Method unexpectedly succeeded.  " + testInfo);
+                }
+
+                this.validateEntitiesPage(repoType,
+                                          testInfo,
+                                          entityIdBound,
+                                          boundType,
+                                          pageSize,
+                                          sampleSize,
+                                          expected,
+                                          actual);
+
+            } catch (Exception e) {
+                validateException(testInfo, e, exceptionType);
+            }
+        });
+    }
+
+    /**
+     * Gets the {@link SzEntitiesPage} of possible relation entity IDs for the specified summary parameters.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param dataSource The data source filter, or {@code null} for all data sources.
+     * @param matchKey The match key filter, or {@code null} for none.
+     * @param principle The principle filter, or {@code null} for none.
+     * @param entityIdBound The entity ID boundary value for pagination, or {@code null} for none.
+     * @param boundType The {@link SzBoundType} for the boundary.
+     * @param pageSize The maximum page size, or {@code null} for no limit.
+     * @param sampleSize The sample size for random sampling, or {@code null} for no sampling.
+     * @return The {@link SzEntitiesPage} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzEntitiesPage getSummaryPossibleRelationEntityIds(RepositoryType     repoType,
+                                                                 ConnectionProvider connProvider,
+                                                                 String             dataSource,
+                                                                 String             matchKey,
+                                                                 String             principle,
+                                                                 String             entityIdBound,
+                                                                 SzBoundType        boundType,
+                                                                 Integer            pageSize,
+                                                                 Integer            sampleSize)
+        throws Exception
+    {
         Connection conn = null;
         try {
             conn = connProvider.getConnection();
-        
-            SzEntitiesPage actual = SummaryStatsReports.getSummaryPossibleRelationEntityIds(
+            return SummaryStatsReports.getSummaryPossibleRelationEntityIds(
                 conn,
                 dataSource,
                 matchKey,
@@ -1109,28 +1731,6 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                 pageSize,
                 sampleSize,
                 null);
-
-            if (exceptionType != null) {
-                fail("Method unexpectedly succeeded.  " + testInfo);
-            }
-
-            this.validateEntitiesPage(repoType,
-                                      testInfo,
-                                      entityIdBound,
-                                      boundType,
-                                      pageSize,
-                                      sampleSize,
-                                      expected, 
-                                      actual);
-                    
-        } catch (Exception e) {
-            if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                    fail("Unexpected exception (" + e.getClass().getName() 
-                         + ") when expecting " 
-                         + (exceptionType == null ? "none" : exceptionType.getName())
-                         + ": " + testInfo, e);
-            }
-
         } finally {
             SQLUtilities.close(conn);
         }
@@ -1149,18 +1749,77 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                                                     Integer            sampleSize,
                                                     SzEntitiesPage     expected,
                                                     Class<?>           exceptionType)
-    {                              
+        throws Exception
+    {
         String testInfo = "repoType=[ " + repoType + " ], dataSource=[ "
             + dataSource + " ], matchKey=[ " + matchKey + " ], principle=[ "
             + principle + " ], entityIdBound=[ " + entityIdBound
-            + " ], boundType=[ " + boundType + " ], pageSize=[ " 
+            + " ], boundType=[ " + boundType + " ], pageSize=[ "
             + pageSize + " ], sampleSize=[ " + sampleSize + " ]";
-        
+
+        withConditionalSuppression(exceptionType != null, () -> {
+            try {
+                SzEntitiesPage actual = this.getSummaryDisclosedRelationEntityIds(
+                    repoType,
+                    connProvider,
+                    dataSource,
+                    matchKey,
+                    principle,
+                    entityIdBound,
+                    boundType,
+                    pageSize,
+                    sampleSize);
+
+                if (exceptionType != null) {
+                    fail("Method unexpectedly succeeded.  " + testInfo);
+                }
+
+                this.validateEntitiesPage(repoType,
+                                          testInfo,
+                                          entityIdBound,
+                                          boundType,
+                                          pageSize,
+                                          sampleSize,
+                                          expected,
+                                          actual);
+
+            } catch (Exception e) {
+                validateException(testInfo, e, exceptionType);
+            }
+        });
+    }
+
+    /**
+     * Gets the {@link SzEntitiesPage} of disclosed relation entity IDs for the specified summary parameters.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param dataSource The data source filter, or {@code null} for all data sources.
+     * @param matchKey The match key filter, or {@code null} for none.
+     * @param principle The principle filter, or {@code null} for none.
+     * @param entityIdBound The entity ID boundary value for pagination, or {@code null} for none.
+     * @param boundType The {@link SzBoundType} for the boundary.
+     * @param pageSize The maximum page size, or {@code null} for no limit.
+     * @param sampleSize The sample size for random sampling, or {@code null} for no sampling.
+     * @return The {@link SzEntitiesPage} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzEntitiesPage getSummaryDisclosedRelationEntityIds(RepositoryType     repoType,
+                                                                  ConnectionProvider connProvider,
+                                                                  String             dataSource,
+                                                                  String             matchKey,
+                                                                  String             principle,
+                                                                  String             entityIdBound,
+                                                                  SzBoundType        boundType,
+                                                                  Integer            pageSize,
+                                                                  Integer            sampleSize)
+        throws Exception
+    {
         Connection conn = null;
         try {
             conn = connProvider.getConnection();
-        
-            SzEntitiesPage actual = SummaryStatsReports.getSummaryDisclosedRelationEntityIds(
+            return SummaryStatsReports.getSummaryDisclosedRelationEntityIds(
                 conn,
                 dataSource,
                 matchKey,
@@ -1170,28 +1829,6 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                 pageSize,
                 sampleSize,
                 null);
-
-            if (exceptionType != null) {
-                fail("Method unexpectedly succeeded.  " + testInfo);
-            }
-
-            this.validateEntitiesPage(repoType,
-                                      testInfo,
-                                      entityIdBound,
-                                      boundType,
-                                      pageSize,
-                                      sampleSize,
-                                      expected, 
-                                      actual);
-                    
-        } catch (Exception e) {
-            if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                    fail("Unexpected exception (" + e.getClass().getName() 
-                         + ") when expecting " 
-                         + (exceptionType == null ? "none" : exceptionType.getName())
-                         + ": " + testInfo, e);
-            }
-
         } finally {
             SQLUtilities.close(conn);
         }
@@ -1211,19 +1848,81 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                                        Integer              sampleSize,
                                        SzEntitiesPage       expected,
                                        Class<?>             exceptionType)
-    {                              
+        throws Exception
+    {
         String testInfo = "repoType=[ " + repoType + " ], dataSource=[ "
-            + dataSource + " ], vsDataSource=[ " + vsDataSource 
+            + dataSource + " ], vsDataSource=[ " + vsDataSource
             + " ], matchKey=[ " + matchKey + " ], principle=[ "
             + principle + " ], entityIdBound=[ " + entityIdBound
-            + " ], boundType=[ " + boundType + " ], pageSize=[ " 
+            + " ], boundType=[ " + boundType + " ], pageSize=[ "
             + pageSize + " ], sampleSize=[ " + sampleSize + " ]";
-        
+
+        withConditionalSuppression(exceptionType != null, () -> {
+            try {
+                SzEntitiesPage actual = this.getCrossMatchEntityIds(
+                    repoType,
+                    connProvider,
+                    dataSource,
+                    vsDataSource,
+                    matchKey,
+                    principle,
+                    entityIdBound,
+                    boundType,
+                    pageSize,
+                    sampleSize);
+
+                if (exceptionType != null) {
+                    fail("Method unexpectedly succeeded.  " + testInfo);
+                }
+
+                this.validateEntitiesPage(repoType,
+                                          testInfo,
+                                          entityIdBound,
+                                          boundType,
+                                          pageSize,
+                                          sampleSize,
+                                          expected,
+                                          actual);
+
+            } catch (Exception e) {
+                validateException(testInfo, e, exceptionType);
+            }
+        });
+    }
+
+    /**
+     * Gets the {@link SzEntitiesPage} of match entity IDs for the specified cross-source parameters.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param dataSource The primary data source.
+     * @param vsDataSource The versus data source.
+     * @param matchKey The match key filter, or {@code null} for none.
+     * @param principle The principle filter, or {@code null} for none.
+     * @param entityIdBound The entity ID boundary value for pagination, or {@code null} for none.
+     * @param boundType The {@link SzBoundType} for the boundary.
+     * @param pageSize The maximum page size, or {@code null} for no limit.
+     * @param sampleSize The sample size for random sampling, or {@code null} for no sampling.
+     * @return The {@link SzEntitiesPage} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzEntitiesPage getCrossMatchEntityIds(RepositoryType       repoType,
+                                                    ConnectionProvider   connProvider,
+                                                    String               dataSource,
+                                                    String               vsDataSource,
+                                                    String               matchKey,
+                                                    String               principle,
+                                                    String               entityIdBound,
+                                                    SzBoundType          boundType,
+                                                    Integer              pageSize,
+                                                    Integer              sampleSize)
+        throws Exception
+    {
         Connection conn = null;
         try {
             conn = connProvider.getConnection();
-        
-            SzEntitiesPage actual = SummaryStatsReports.getCrossMatchEntityIds(
+            return SummaryStatsReports.getCrossMatchEntityIds(
                 conn,
                 dataSource,
                 vsDataSource,
@@ -1234,28 +1933,6 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                 pageSize,
                 sampleSize,
                 null);
-
-            if (exceptionType != null) {
-                fail("Method unexpectedly succeeded.  " + testInfo);
-            }
-
-            this.validateEntitiesPage(repoType,
-                                      testInfo,
-                                      entityIdBound,
-                                      boundType,
-                                      pageSize,
-                                      sampleSize,
-                                      expected, 
-                                      actual);
-                    
-        } catch (Exception e) {
-            if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                    fail("Unexpected exception (" + e.getClass().getName() 
-                         + ") when expecting " 
-                         + (exceptionType == null ? "none" : exceptionType.getName())
-                         + ": " + testInfo, e);
-            }
-
         } finally {
             SQLUtilities.close(conn);
         }
@@ -1275,19 +1952,81 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                                                 Integer             sampleSize,
                                                 SzEntitiesPage      expected,
                                                 Class<?>            exceptionType)
-    {                              
+        throws Exception
+    {
         String testInfo = "repoType=[ " + repoType + " ], dataSource=[ "
-            + dataSource + " ], vsDataSource=[ " + vsDataSource 
+            + dataSource + " ], vsDataSource=[ " + vsDataSource
             + " ], matchKey=[ " + matchKey + " ], principle=[ "
             + principle + " ], entityIdBound=[ " + entityIdBound
-            + " ], boundType=[ " + boundType + " ], pageSize=[ " 
+            + " ], boundType=[ " + boundType + " ], pageSize=[ "
             + pageSize + " ], sampleSize=[ " + sampleSize + " ]";
-        
+
+        withConditionalSuppression(exceptionType != null, () -> {
+            try {
+                SzEntitiesPage actual = this.getCrossAmbiguousMatchEntityIds(
+                    repoType,
+                    connProvider,
+                    dataSource,
+                    vsDataSource,
+                    matchKey,
+                    principle,
+                    entityIdBound,
+                    boundType,
+                    pageSize,
+                    sampleSize);
+
+                if (exceptionType != null) {
+                    fail("Method unexpectedly succeeded.  " + testInfo);
+                }
+
+                this.validateEntitiesPage(repoType,
+                                          testInfo,
+                                          entityIdBound,
+                                          boundType,
+                                          pageSize,
+                                          sampleSize,
+                                          expected,
+                                          actual);
+
+            } catch (Exception e) {
+                validateException(testInfo, e, exceptionType);
+            }
+        });
+    }
+
+    /**
+     * Gets the {@link SzEntitiesPage} of ambiguous match entity IDs for the specified cross-source parameters.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param dataSource The primary data source.
+     * @param vsDataSource The versus data source.
+     * @param matchKey The match key filter, or {@code null} for none.
+     * @param principle The principle filter, or {@code null} for none.
+     * @param entityIdBound The entity ID boundary value for pagination, or {@code null} for none.
+     * @param boundType The {@link SzBoundType} for the boundary.
+     * @param pageSize The maximum page size, or {@code null} for no limit.
+     * @param sampleSize The sample size for random sampling, or {@code null} for no sampling.
+     * @return The {@link SzEntitiesPage} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzEntitiesPage getCrossAmbiguousMatchEntityIds(RepositoryType      repoType,
+                                                             ConnectionProvider  connProvider,
+                                                             String              dataSource,
+                                                             String              vsDataSource,
+                                                             String              matchKey,
+                                                             String              principle,
+                                                             String              entityIdBound,
+                                                             SzBoundType         boundType,
+                                                             Integer             pageSize,
+                                                             Integer             sampleSize)
+        throws Exception
+    {
         Connection conn = null;
         try {
             conn = connProvider.getConnection();
-        
-            SzEntitiesPage actual = SummaryStatsReports.getCrossAmbiguousMatchEntityIds(
+            return SummaryStatsReports.getCrossAmbiguousMatchEntityIds(
                 conn,
                 dataSource,
                 vsDataSource,
@@ -1298,28 +2037,6 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                 pageSize,
                 sampleSize,
                 null);
-
-            if (exceptionType != null) {
-                fail("Method unexpectedly succeeded.  " + testInfo);
-            }
-
-            this.validateEntitiesPage(repoType,
-                                      testInfo,
-                                      entityIdBound,
-                                      boundType,
-                                      pageSize,
-                                      sampleSize,
-                                      expected, 
-                                      actual);
-                    
-        } catch (Exception e) {
-            if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                    fail("Unexpected exception (" + e.getClass().getName() 
-                         + ") when expecting " 
-                         + (exceptionType == null ? "none" : exceptionType.getName())
-                         + ": " + testInfo, e);
-            }
-
         } finally {
             SQLUtilities.close(conn);
         }
@@ -1339,19 +2056,81 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                                                Integer              sampleSize,
                                                SzEntitiesPage       expected,
                                                Class<?>             exceptionType)
-    {                              
+        throws Exception
+    {
         String testInfo = "repoType=[ " + repoType + " ], dataSource=[ "
-            + dataSource + " ], vsDataSource=[ " + vsDataSource 
+            + dataSource + " ], vsDataSource=[ " + vsDataSource
             + " ], matchKey=[ " + matchKey + " ], principle=[ "
             + principle + " ], entityIdBound=[ " + entityIdBound
-            + " ], boundType=[ " + boundType + " ], pageSize=[ " 
+            + " ], boundType=[ " + boundType + " ], pageSize=[ "
             + pageSize + " ], sampleSize=[ " + sampleSize + " ]";
-        
+
+        withConditionalSuppression(exceptionType != null, () -> {
+            try {
+                SzEntitiesPage actual = this.getCrossPossibleMatchEntityIds(
+                    repoType,
+                    connProvider,
+                    dataSource,
+                    vsDataSource,
+                    matchKey,
+                    principle,
+                    entityIdBound,
+                    boundType,
+                    pageSize,
+                    sampleSize);
+
+                if (exceptionType != null) {
+                    fail("Method unexpectedly succeeded.  " + testInfo);
+                }
+
+                this.validateEntitiesPage(repoType,
+                                          testInfo,
+                                          entityIdBound,
+                                          boundType,
+                                          pageSize,
+                                          sampleSize,
+                                          expected,
+                                          actual);
+
+            } catch (Exception e) {
+                validateException(testInfo, e, exceptionType);
+            }
+        });
+    }
+
+    /**
+     * Gets the {@link SzEntitiesPage} of possible match entity IDs for the specified cross-source parameters.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param dataSource The primary data source.
+     * @param vsDataSource The versus data source.
+     * @param matchKey The match key filter, or {@code null} for none.
+     * @param principle The principle filter, or {@code null} for none.
+     * @param entityIdBound The entity ID boundary value for pagination, or {@code null} for none.
+     * @param boundType The {@link SzBoundType} for the boundary.
+     * @param pageSize The maximum page size, or {@code null} for no limit.
+     * @param sampleSize The sample size for random sampling, or {@code null} for no sampling.
+     * @return The {@link SzEntitiesPage} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzEntitiesPage getCrossPossibleMatchEntityIds(RepositoryType       repoType,
+                                                            ConnectionProvider   connProvider,
+                                                            String               dataSource,
+                                                            String               vsDataSource,
+                                                            String               matchKey,
+                                                            String               principle,
+                                                            String               entityIdBound,
+                                                            SzBoundType          boundType,
+                                                            Integer              pageSize,
+                                                            Integer              sampleSize)
+        throws Exception
+    {
         Connection conn = null;
         try {
             conn = connProvider.getConnection();
-        
-            SzEntitiesPage actual = SummaryStatsReports.getCrossPossibleMatchEntityIds(
+            return SummaryStatsReports.getCrossPossibleMatchEntityIds(
                 conn,
                 dataSource,
                 vsDataSource,
@@ -1362,28 +2141,6 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                 pageSize,
                 sampleSize,
                 null);
-
-            if (exceptionType != null) {
-                fail("Method unexpectedly succeeded.  " + testInfo);
-            }
-
-            this.validateEntitiesPage(repoType,
-                                      testInfo,
-                                      entityIdBound,
-                                      boundType,
-                                      pageSize,
-                                      sampleSize,
-                                      expected, 
-                                      actual);
-                    
-        } catch (Exception e) {
-            if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                    fail("Unexpected exception (" + e.getClass().getName() 
-                         + ") when expecting " 
-                         + (exceptionType == null ? "none" : exceptionType.getName())
-                         + ": " + testInfo, e);
-            }
-
         } finally {
             SQLUtilities.close(conn);
         }
@@ -1403,19 +2160,81 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                                                   Integer               sampleSize,
                                                   SzEntitiesPage        expected,
                                                   Class<?>              exceptionType)
+        throws Exception
     {
         String testInfo = "repoType=[ " + repoType + " ], dataSource=[ "
-            + dataSource + " ], vsDataSource=[ " + vsDataSource 
+            + dataSource + " ], vsDataSource=[ " + vsDataSource
             + " ], matchKey=[ " + matchKey + " ], principle=[ "
             + principle + " ], entityIdBound=[ " + entityIdBound
-            + " ], boundType=[ " + boundType + " ], pageSize=[ " 
+            + " ], boundType=[ " + boundType + " ], pageSize=[ "
             + pageSize + " ], sampleSize=[ " + sampleSize + " ]";
-        
+
+        withConditionalSuppression(exceptionType != null, () -> {
+            try {
+                SzEntitiesPage actual = this.getCrossPossibleRelationEntityIds(
+                    repoType,
+                    connProvider,
+                    dataSource,
+                    vsDataSource,
+                    matchKey,
+                    principle,
+                    entityIdBound,
+                    boundType,
+                    pageSize,
+                    sampleSize);
+
+                if (exceptionType != null) {
+                    fail("Method unexpectedly succeeded.  " + testInfo);
+                }
+
+                this.validateEntitiesPage(repoType,
+                                          testInfo,
+                                          entityIdBound,
+                                          boundType,
+                                          pageSize,
+                                          sampleSize,
+                                          expected,
+                                          actual);
+
+            } catch (Exception e) {
+                validateException(testInfo, e, exceptionType);
+            }
+        });
+    }
+
+    /**
+     * Gets the {@link SzEntitiesPage} of possible relation entity IDs for the specified cross-source parameters.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param dataSource The primary data source.
+     * @param vsDataSource The versus data source.
+     * @param matchKey The match key filter, or {@code null} for none.
+     * @param principle The principle filter, or {@code null} for none.
+     * @param entityIdBound The entity ID boundary value for pagination, or {@code null} for none.
+     * @param boundType The {@link SzBoundType} for the boundary.
+     * @param pageSize The maximum page size, or {@code null} for no limit.
+     * @param sampleSize The sample size for random sampling, or {@code null} for no sampling.
+     * @return The {@link SzEntitiesPage} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzEntitiesPage getCrossPossibleRelationEntityIds(RepositoryType        repoType,
+                                                               ConnectionProvider    connProvider,
+                                                               String                dataSource,
+                                                               String                vsDataSource,
+                                                               String                matchKey,
+                                                               String                principle,
+                                                               String                entityIdBound,
+                                                               SzBoundType           boundType,
+                                                               Integer               pageSize,
+                                                               Integer               sampleSize)
+        throws Exception
+    {
         Connection conn = null;
         try {
             conn = connProvider.getConnection();
-        
-            SzEntitiesPage actual = SummaryStatsReports.getCrossPossibleRelationEntityIds(
+            return SummaryStatsReports.getCrossPossibleRelationEntityIds(
                 conn,
                 dataSource,
                 vsDataSource,
@@ -1426,28 +2245,6 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                 pageSize,
                 sampleSize,
                 null);
-
-            if (exceptionType != null) {
-                fail("Method unexpectedly succeeded.  " + testInfo);
-            }
-
-            this.validateEntitiesPage(repoType,
-                                      testInfo,
-                                      entityIdBound,
-                                      boundType,
-                                      pageSize,
-                                      sampleSize,
-                                      expected, 
-                                      actual);
-                    
-        } catch (Exception e) {
-            if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                    fail("Unexpected exception (" + e.getClass().getName() 
-                         + ") when expecting " 
-                         + (exceptionType == null ? "none" : exceptionType.getName())
-                         + ": " + testInfo, e);
-            }
-
         } finally {
             SQLUtilities.close(conn);
         }
@@ -1467,19 +2264,81 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                                                    Integer              sampleSize,
                                                    SzEntitiesPage       expected,
                                                    Class<?>             exceptionType)
+        throws Exception
     {
         String testInfo = "repoType=[ " + repoType + " ], dataSource=[ "
-            + dataSource + " ], vsDataSource=[ " + vsDataSource 
+            + dataSource + " ], vsDataSource=[ " + vsDataSource
             + " ], matchKey=[ " + matchKey + " ], principle=[ "
             + principle + " ], entityIdBound=[ " + entityIdBound
-            + " ], boundType=[ " + boundType + " ], pageSize=[ " 
+            + " ], boundType=[ " + boundType + " ], pageSize=[ "
             + pageSize + " ], sampleSize=[ " + sampleSize + " ]";
-        
+
+        withConditionalSuppression(exceptionType != null, () -> {
+            try {
+                SzEntitiesPage actual = this.getCrossDisclosedRelationEntityIds(
+                    repoType,
+                    connProvider,
+                    dataSource,
+                    vsDataSource,
+                    matchKey,
+                    principle,
+                    entityIdBound,
+                    boundType,
+                    pageSize,
+                    sampleSize);
+
+                if (exceptionType != null) {
+                    fail("Method unexpectedly succeeded.  " + testInfo);
+                }
+
+                this.validateEntitiesPage(repoType,
+                                          testInfo,
+                                          entityIdBound,
+                                          boundType,
+                                          pageSize,
+                                          sampleSize,
+                                          expected,
+                                          actual);
+
+            } catch (Exception e) {
+                validateException(testInfo, e, exceptionType);
+            }
+        });
+    }
+
+    /**
+     * Gets the {@link SzEntitiesPage} of disclosed relation entity IDs for the specified cross-source parameters.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param dataSource The primary data source.
+     * @param vsDataSource The versus data source.
+     * @param matchKey The match key filter, or {@code null} for none.
+     * @param principle The principle filter, or {@code null} for none.
+     * @param entityIdBound The entity ID boundary value for pagination, or {@code null} for none.
+     * @param boundType The {@link SzBoundType} for the boundary.
+     * @param pageSize The maximum page size, or {@code null} for no limit.
+     * @param sampleSize The sample size for random sampling, or {@code null} for no sampling.
+     * @return The {@link SzEntitiesPage} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzEntitiesPage getCrossDisclosedRelationEntityIds(RepositoryType       repoType,
+                                                                ConnectionProvider   connProvider,
+                                                                String               dataSource,
+                                                                String               vsDataSource,
+                                                                String               matchKey,
+                                                                String               principle,
+                                                                String               entityIdBound,
+                                                                SzBoundType          boundType,
+                                                                Integer              pageSize,
+                                                                Integer              sampleSize)
+        throws Exception
+    {
         Connection conn = null;
         try {
             conn = connProvider.getConnection();
-        
-            SzEntitiesPage actual = SummaryStatsReports.getCrossDisclosedRelationEntityIds(
+            return SummaryStatsReports.getCrossDisclosedRelationEntityIds(
                 conn,
                 dataSource,
                 vsDataSource,
@@ -1490,28 +2349,6 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                 pageSize,
                 sampleSize,
                 null);
-
-            if (exceptionType != null) {
-                fail("Method unexpectedly succeeded.  " + testInfo);
-            }
-
-            this.validateEntitiesPage(repoType,
-                                      testInfo,
-                                      entityIdBound,
-                                      boundType,
-                                      pageSize,
-                                      sampleSize,
-                                      expected, 
-                                      actual);
-                    
-        } catch (Exception e) {
-            if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                    fail("Unexpected exception (" + e.getClass().getName() 
-                         + ") when expecting " 
-                         + (exceptionType == null ? "none" : exceptionType.getName())
-                         + ": " + testInfo, e);
-            }
-
         } finally {
             SQLUtilities.close(conn);
         }
@@ -1521,8 +2358,50 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
         List<Arguments> result = new LinkedList<>();
         int skipFactor = this.getSkipFactor();
 
+        ThrowingConnectionProvider sqlExceptionProvider 
+            = new ThrowingConnectionProvider(SQLException.class);
+        
         for (RepositoryType repoType : RepositoryType.values()) {
             Repository repo = DataMartTestExtension.getRepository(repoType);
+
+            result.add(Arguments.of(repoType,
+                                    sqlExceptionProvider,
+                                    "TEST",
+                                    "TEST",
+                                    null,
+                                    null,
+                                    null,
+                                    EXCLUSIVE_LOWER,
+                                    100,
+                                    null,
+                                    null,
+                                    SQLException.class));
+
+            result.add(Arguments.of(repoType,
+                                    this.getConnectionProvider(repoType),
+                                    null,
+                                    "TEST",
+                                    null,
+                                    null,
+                                    null,
+                                    EXCLUSIVE_LOWER,
+                                    100,
+                                    null,
+                                    null,
+                                    NullPointerException.class));
+
+            result.add(Arguments.of(repoType,
+                                    this.getConnectionProvider(repoType),
+                                    "TEST",
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    EXCLUSIVE_LOWER,
+                                    100,
+                                    null,
+                                    null,
+                                    NullPointerException.class));
 
             Map<String, Set<String>> matchKeyMap = repo.getRelatedMatchKeys();
             Map<String, Set<String>> principleMap = repo.getRelatedPrinciples();
@@ -1663,19 +2542,81 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                                           Integer               sampleSize,
                                           SzRelationsPage       expected,
                                           Class<?>              exceptionType)
-    {                              
+        throws Exception
+    {
         String testInfo = "repoType=[ " + repoType + " ], dataSource=[ "
-            + dataSource + " ], vsDataSource=[ " + vsDataSource 
+            + dataSource + " ], vsDataSource=[ " + vsDataSource
             + " ], matchKey=[ " + matchKey + " ], principle=[ "
             + principle + " ], relationBound=[ " + relationBound
-            + " ], boundType=[ " + boundType + " ], pageSize=[ " 
+            + " ], boundType=[ " + boundType + " ], pageSize=[ "
             + pageSize + " ], sampleSize=[ " + sampleSize + " ]";
-        
+
+        withConditionalSuppression(exceptionType != null, () -> {
+            try {
+                SzRelationsPage actual = this.getSummaryAmbiguousMatches(
+                    repoType,
+                    connProvider,
+                    dataSource,
+                    vsDataSource,
+                    matchKey,
+                    principle,
+                    relationBound,
+                    boundType,
+                    pageSize,
+                    sampleSize);
+
+                if (exceptionType != null) {
+                    fail("Method unexpectedly succeeded.  " + testInfo);
+                }
+
+                this.validateRelationsPage(repoType,
+                                           testInfo,
+                                           relationBound,
+                                           boundType,
+                                           pageSize,
+                                           sampleSize,
+                                           expected,
+                                           actual);
+
+            } catch (Exception e) {
+                validateException(testInfo, e, exceptionType);
+            }
+        });
+    }
+
+    /**
+     * Gets the {@link SzRelationsPage} of ambiguous matches for the specified cross-source parameters.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param dataSource The primary data source.
+     * @param vsDataSource The versus data source.
+     * @param matchKey The match key filter, or {@code null} for none.
+     * @param principle The principle filter, or {@code null} for none.
+     * @param relationBound The relation boundary value for pagination, or {@code null} for none.
+     * @param boundType The {@link SzBoundType} for the boundary.
+     * @param pageSize The maximum page size, or {@code null} for no limit.
+     * @param sampleSize The sample size for random sampling, or {@code null} for no sampling.
+     * @return The {@link SzRelationsPage} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzRelationsPage getSummaryAmbiguousMatches(RepositoryType        repoType,
+                                                         ConnectionProvider    connProvider,
+                                                         String                dataSource,
+                                                         String                vsDataSource,
+                                                         String                matchKey,
+                                                         String                principle,
+                                                         String                relationBound,
+                                                         SzBoundType           boundType,
+                                                         Integer               pageSize,
+                                                         Integer               sampleSize)
+        throws Exception
+    {
         Connection conn = null;
         try {
             conn = connProvider.getConnection();
-        
-            SzRelationsPage actual = SummaryStatsReports.getSummaryAmbiguousMatches(
+            return SummaryStatsReports.getSummaryAmbiguousMatches(
                 conn,
                 dataSource,
                 vsDataSource,
@@ -1686,28 +2627,6 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                 pageSize,
                 sampleSize,
                 null);
-
-            if (exceptionType != null) {
-                fail("Method unexpectedly succeeded.  " + testInfo);
-            }
-
-            this.validateRelationsPage(repoType,
-                                       testInfo,
-                                       relationBound,
-                                       boundType,
-                                       pageSize,
-                                       sampleSize,
-                                       expected, 
-                                       actual);
-                    
-        } catch (Exception e) {
-            if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                    fail("Unexpected exception (" + e.getClass().getName() 
-                         + ") when expecting " 
-                         + (exceptionType == null ? "none" : exceptionType.getName())
-                         + ": " + testInfo, e);
-            }
-
         } finally {
             SQLUtilities.close(conn);
         }
@@ -1728,19 +2647,81 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                                          Integer            sampleSize,
                                          SzRelationsPage    expected,
                                          Class<?>           exceptionType)
-    {                              
+        throws Exception
+    {
         String testInfo = "repoType=[ " + repoType + " ], dataSource=[ "
-            + dataSource + " ], vsDataSource=[ " + vsDataSource 
+            + dataSource + " ], vsDataSource=[ " + vsDataSource
             + " ], matchKey=[ " + matchKey + " ], principle=[ "
             + principle + " ], relationBound=[ " + relationBound
-            + " ], boundType=[ " + boundType + " ], pageSize=[ " 
+            + " ], boundType=[ " + boundType + " ], pageSize=[ "
             + pageSize + " ], sampleSize=[ " + sampleSize + " ]";
-        
+
+        withConditionalSuppression(exceptionType != null, () -> {
+            try {
+                SzRelationsPage actual = this.getSummaryPossibleMatches(
+                    repoType,
+                    connProvider,
+                    dataSource,
+                    vsDataSource,
+                    matchKey,
+                    principle,
+                    relationBound,
+                    boundType,
+                    pageSize,
+                    sampleSize);
+
+                if (exceptionType != null) {
+                    fail("Method unexpectedly succeeded.  " + testInfo);
+                }
+
+                this.validateRelationsPage(repoType,
+                                           testInfo,
+                                           relationBound,
+                                           boundType,
+                                           pageSize,
+                                           sampleSize,
+                                           expected,
+                                           actual);
+
+            } catch (Exception e) {
+                validateException(testInfo, e, exceptionType);
+            }
+        });
+    }
+
+    /**
+     * Gets the {@link SzRelationsPage} of possible matches for the specified cross-source parameters.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param dataSource The primary data source.
+     * @param vsDataSource The versus data source.
+     * @param matchKey The match key filter, or {@code null} for none.
+     * @param principle The principle filter, or {@code null} for none.
+     * @param relationBound The relation boundary value for pagination, or {@code null} for none.
+     * @param boundType The {@link SzBoundType} for the boundary.
+     * @param pageSize The maximum page size, or {@code null} for no limit.
+     * @param sampleSize The sample size for random sampling, or {@code null} for no sampling.
+     * @return The {@link SzRelationsPage} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzRelationsPage getSummaryPossibleMatches(RepositoryType     repoType,
+                                                        ConnectionProvider connProvider,
+                                                        String             dataSource,
+                                                        String             vsDataSource,
+                                                        String             matchKey,
+                                                        String             principle,
+                                                        String             relationBound,
+                                                        SzBoundType        boundType,
+                                                        Integer            pageSize,
+                                                        Integer            sampleSize)
+        throws Exception
+    {
         Connection conn = null;
         try {
             conn = connProvider.getConnection();
-        
-            SzRelationsPage actual = SummaryStatsReports.getSummaryPossibleMatches(
+            return SummaryStatsReports.getSummaryPossibleMatches(
                 conn,
                 dataSource,
                 vsDataSource,
@@ -1751,28 +2732,6 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                 pageSize,
                 sampleSize,
                 null);
-
-            if (exceptionType != null) {
-                fail("Method unexpectedly succeeded.  " + testInfo);
-            }
-
-            this.validateRelationsPage(repoType,
-                                       testInfo,
-                                       relationBound,
-                                       boundType,
-                                       pageSize,
-                                       sampleSize,
-                                       expected, 
-                                       actual);
-                    
-        } catch (Exception e) {
-            if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                    fail("Unexpected exception (" + e.getClass().getName() 
-                         + ") when expecting " 
-                         + (exceptionType == null ? "none" : exceptionType.getName())
-                         + ": " + testInfo, e);
-            }
-
         } finally {
             SQLUtilities.close(conn);
         }
@@ -1792,19 +2751,81 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                                            Integer              sampleSize,
                                            SzRelationsPage      expected,
                                            Class<?>             exceptionType)
-    {                              
+        throws Exception
+    {
         String testInfo = "repoType=[ " + repoType + " ], dataSource=[ "
-            + dataSource + " ], vsDataSource=[ " + vsDataSource 
+            + dataSource + " ], vsDataSource=[ " + vsDataSource
             + " ], matchKey=[ " + matchKey + " ], principle=[ "
             + principle + " ], relationBound=[ " + relationBound
-            + " ], boundType=[ " + boundType + " ], pageSize=[ " 
+            + " ], boundType=[ " + boundType + " ], pageSize=[ "
             + pageSize + " ], sampleSize=[ " + sampleSize + " ]";
-        
+
+        withConditionalSuppression(exceptionType != null, () -> {
+            try {
+                SzRelationsPage actual = this.getSummaryPossibleRelations(
+                    repoType,
+                    connProvider,
+                    dataSource,
+                    vsDataSource,
+                    matchKey,
+                    principle,
+                    relationBound,
+                    boundType,
+                    pageSize,
+                    sampleSize);
+
+                if (exceptionType != null) {
+                    fail("Method unexpectedly succeeded.  " + testInfo);
+                }
+
+                this.validateRelationsPage(repoType,
+                                           testInfo,
+                                           relationBound,
+                                           boundType,
+                                           pageSize,
+                                           sampleSize,
+                                           expected,
+                                           actual);
+
+            } catch (Exception e) {
+                validateException(testInfo, e, exceptionType);
+            }
+        });
+    }
+
+    /**
+     * Gets the {@link SzRelationsPage} of possible relations for the specified cross-source parameters.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param dataSource The primary data source.
+     * @param vsDataSource The versus data source.
+     * @param matchKey The match key filter, or {@code null} for none.
+     * @param principle The principle filter, or {@code null} for none.
+     * @param relationBound The relation boundary value for pagination, or {@code null} for none.
+     * @param boundType The {@link SzBoundType} for the boundary.
+     * @param pageSize The maximum page size, or {@code null} for no limit.
+     * @param sampleSize The sample size for random sampling, or {@code null} for no sampling.
+     * @return The {@link SzRelationsPage} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzRelationsPage getSummaryPossibleRelations(RepositoryType       repoType,
+                                                          ConnectionProvider   connProvider,
+                                                          String               dataSource,
+                                                          String               vsDataSource,
+                                                          String               matchKey,
+                                                          String               principle,
+                                                          String               relationBound,
+                                                          SzBoundType          boundType,
+                                                          Integer              pageSize,
+                                                          Integer              sampleSize)
+        throws Exception
+    {
         Connection conn = null;
         try {
             conn = connProvider.getConnection();
-        
-            SzRelationsPage actual = SummaryStatsReports.getSummaryPossibleRelations(
+            return SummaryStatsReports.getSummaryPossibleRelations(
                 conn,
                 dataSource,
                 vsDataSource,
@@ -1815,28 +2836,6 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                 pageSize,
                 sampleSize,
                 null);
-
-            if (exceptionType != null) {
-                fail("Method unexpectedly succeeded.  " + testInfo);
-            }
-
-            this.validateRelationsPage(repoType,
-                                       testInfo,
-                                       relationBound,
-                                       boundType,
-                                       pageSize,
-                                       sampleSize,
-                                       expected, 
-                                       actual);
-                    
-        } catch (Exception e) {
-            if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                    fail("Unexpected exception (" + e.getClass().getName() 
-                         + ") when expecting " 
-                         + (exceptionType == null ? "none" : exceptionType.getName())
-                         + ": " + testInfo, e);
-            }
-
         } finally {
             SQLUtilities.close(conn);
         }
@@ -1856,19 +2855,81 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                                             Integer             sampleSize,
                                             SzRelationsPage     expected,
                                             Class<?>            exceptionType)
-    {                              
+        throws Exception
+    {
         String testInfo = "repoType=[ " + repoType + " ], dataSource=[ "
-            + dataSource + " ], vsDataSource=[ " + vsDataSource 
+            + dataSource + " ], vsDataSource=[ " + vsDataSource
             + " ], matchKey=[ " + matchKey + " ], principle=[ "
             + principle + " ], relationBound=[ " + relationBound
-            + " ], boundType=[ " + boundType + " ], pageSize=[ " 
+            + " ], boundType=[ " + boundType + " ], pageSize=[ "
             + pageSize + " ], sampleSize=[ " + sampleSize + " ]";
-        
+
+        withConditionalSuppression(exceptionType != null, () -> {
+            try {
+                SzRelationsPage actual = this.getSummaryDisclosedRelations(
+                    repoType,
+                    connProvider,
+                    dataSource,
+                    vsDataSource,
+                    matchKey,
+                    principle,
+                    relationBound,
+                    boundType,
+                    pageSize,
+                    sampleSize);
+
+                if (exceptionType != null) {
+                    fail("Method unexpectedly succeeded.  " + testInfo);
+                }
+
+                this.validateRelationsPage(repoType,
+                                           testInfo,
+                                           relationBound,
+                                           boundType,
+                                           pageSize,
+                                           sampleSize,
+                                           expected,
+                                           actual);
+
+            } catch (Exception e) {
+                validateException(testInfo, e, exceptionType);
+            }
+        });
+    }
+
+    /**
+     * Gets the {@link SzRelationsPage} of disclosed relations for the specified cross-source parameters.
+     * This method can be overridden by subclasses to obtain the result differently.
+     *
+     * @param repoType The {@link RepositoryType} for the test.
+     * @param connProvider The {@link ConnectionProvider} to use.
+     * @param dataSource The primary data source.
+     * @param vsDataSource The versus data source.
+     * @param matchKey The match key filter, or {@code null} for none.
+     * @param principle The principle filter, or {@code null} for none.
+     * @param relationBound The relation boundary value for pagination, or {@code null} for none.
+     * @param boundType The {@link SzBoundType} for the boundary.
+     * @param pageSize The maximum page size, or {@code null} for no limit.
+     * @param sampleSize The sample size for random sampling, or {@code null} for no sampling.
+     * @return The {@link SzRelationsPage} result.
+     * @throws Exception If an error occurs.
+     */
+    protected SzRelationsPage getSummaryDisclosedRelations(RepositoryType      repoType,
+                                                           ConnectionProvider  connProvider,
+                                                           String              dataSource,
+                                                           String              vsDataSource,
+                                                           String              matchKey,
+                                                           String              principle,
+                                                           String              relationBound,
+                                                           SzBoundType         boundType,
+                                                           Integer             pageSize,
+                                                           Integer             sampleSize)
+        throws Exception
+    {
         Connection conn = null;
         try {
             conn = connProvider.getConnection();
-        
-            SzRelationsPage actual = SummaryStatsReports.getSummaryDisclosedRelations(
+            return SummaryStatsReports.getSummaryDisclosedRelations(
                 conn,
                 dataSource,
                 vsDataSource,
@@ -1879,28 +2940,6 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                 pageSize,
                 sampleSize,
                 null);
-
-            if (exceptionType != null) {
-                fail("Method unexpectedly succeeded.  " + testInfo);
-            }
-
-            this.validateRelationsPage(repoType,
-                                       testInfo,
-                                       relationBound,
-                                       boundType,
-                                       pageSize,
-                                       sampleSize,
-                                       expected, 
-                                       actual);
-                    
-        } catch (Exception e) {
-            if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                    fail("Unexpected exception (" + e.getClass().getName() 
-                         + ") when expecting " 
-                         + (exceptionType == null ? "none" : exceptionType.getName())
-                         + ": " + testInfo, e);
-            }
-
         } finally {
             SQLUtilities.close(conn);
         }

@@ -69,6 +69,7 @@ import com.senzing.sql.ConnectionPool;
 import com.senzing.sql.ConnectionProvider;
 import com.senzing.sql.Connector;
 import com.senzing.sql.PoolConnectionProvider;
+import uk.org.webcompere.systemstubs.stream.SystemErrAndOut;
 
 import static com.senzing.util.JsonUtilities.*;
 
@@ -159,6 +160,44 @@ public abstract class AbstractReportsTest {
     protected ConnectionProvider getConnectionProvider(RepositoryType repoType) {
         Objects.requireNonNull(repoType, "Repository type cannot be null");
         return this.connProviderMap.get(repoType);
+    }
+
+    /**
+     * Functional interface for code that can throw exceptions.
+     * Used with {@link #withConditionalSuppression(boolean, ThrowingRunnable)}.
+     */
+    @FunctionalInterface
+    protected interface ThrowingRunnable {
+        /**
+         * Runs the code that may throw an exception.
+         *
+         * @throws Exception If an error occurs.
+         */
+        void run() throws Exception;
+    }
+
+    /**
+     * Executes the specified runnable, conditionally suppressing System.err
+     * and System.out if the condition is true. This is useful for parameterized
+     * tests where some test cases expect exceptions (which produce console output)
+     * while others expect normal execution.
+     *
+     * @param suppress Whether to suppress console output.
+     * @param runnable The code to execute.
+     * @throws Exception If an error occurs during execution.
+     */
+    protected void withConditionalSuppression(boolean suppress,
+                                              ThrowingRunnable runnable)
+        throws Exception
+    {
+        if (suppress) {
+            new SystemErrAndOut().execute(() -> {
+                runnable.run();
+                return null;
+            });
+        } else {
+            runnable.run();
+        }
     }
 
     /**
@@ -1990,5 +2029,44 @@ public abstract class AbstractReportsTest {
             }
         }    
         return null;        
+    }
+
+    /**
+     * Validates the specified {@link Throwable} was expected and 
+     * is of the expected type (or its cause is of the expected type).
+     * 
+     * @param testInfo The test info for logging.
+     * @param t The {@link Throwable} to validate.
+     * @param exceptionType The expected exception type or <code>null</code>
+     *                      if none expected.
+     */
+    public static void validateException(String testInfo, Throwable t, Class<?> exceptionType) {
+        if ((exceptionType == null) || !checkExceptionChain(t, exceptionType)) {
+            fail("Unexpected exception (" + t.getClass().getName()
+                 + ") when expecting "
+                 + (exceptionType == null ? "none" : exceptionType.getName())
+                 + ": " + testInfo, t);
+        }
+    }
+
+    /**
+     * Checks the exception recursively to see if one cause in its chain matches
+     * the specified type.
+     * 
+     * @param t The {@link Throwable} to check.
+     * @param exceptionType The non-null exception type
+     * 
+     * @return <code>true</code> if expected, and <code>false</code> if not.
+     */
+    public static boolean checkExceptionChain(Throwable t, Class<?> exceptionType) {
+        while (t != null) {
+            if (exceptionType.isInstance(t)) {
+                return true;
+            }
+            t = t.getCause();
+        }
+
+        // if we get here return false
+        return false;
     }
 }

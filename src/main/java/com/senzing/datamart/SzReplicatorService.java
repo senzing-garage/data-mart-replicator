@@ -237,7 +237,8 @@ public class SzReplicatorService extends AbstractListenerService {
 
             while (!this.isShutdown()) {
                 synchronized (this) {
-                    Scheduler scheduler = scheduling.createScheduler(true);
+                    Scheduler scheduler = (this.reportKeyMap.size() > 0)
+                        ? scheduling.createScheduler(true) : null;
                     this.reportKeyMap.forEach((reportKey, action) -> {
                         replicator.lastReportActivityNanoTime.set(System.nanoTime());
                         scheduler.createTaskBuilder(action)
@@ -245,9 +246,11 @@ public class SzReplicatorService extends AbstractListenerService {
                                 .parameter("reportKey", reportKey.toString()).schedule();
                     });
                     try {
-                        scheduler.commit();
-                        this.reportKeyMap.clear();
-
+                        if (scheduler != null) {
+                            scheduler.commit();
+                            this.reportKeyMap.clear();
+                        }
+                        
                     } catch (ServiceExecutionException e) {
                         logWarning(e, "FAILED TO SCHEDULE PERIODIC REPORT UPDATE: ");
                     }
@@ -476,7 +479,9 @@ public class SzReplicatorService extends AbstractListenerService {
      * {@inheritDoc}
      */
     @Override
-    protected void doInit(JsonObject config) throws ServiceSetupException {
+    protected synchronized void doInit(JsonObject config) 
+        throws ServiceSetupException 
+    {
         try {
             // set up the connection provider
             String providerName = getConfigString(config, CONNECTION_PROVIDER_KEY, true);
@@ -510,9 +515,26 @@ public class SzReplicatorService extends AbstractListenerService {
      */
     @Override
     protected void doDestroy() {
-        this.reportUpdater.shutdown();
+        ReportUpdater updater = null;
+        synchronized (this) {
+            updater = this.reportUpdater;
+        }
+        if (updater != null) {
+            updater.shutdown();
+        }
+
         try {
-            this.reportUpdater.join();
+            if (updater != Thread.currentThread() && updater.isAlive())
+            {
+                updater.join();
+            }
+
+            synchronized (this) {
+                if (updater == this.reportUpdater) {
+                    this.reportUpdater = null;
+                }
+            }
+
         } catch (InterruptedException ignore) {
             // ignore
         }

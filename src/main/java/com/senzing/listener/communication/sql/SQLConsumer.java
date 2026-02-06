@@ -238,16 +238,18 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
     public static final String MAXIMUM_SLEEP_TIME_KEY = "maximumSleepTime";
 
     /**
-     * The default number of times to retry failed SQS requests before aborting
-     * consumption. The default value is {@value}. A different value can be set via
-     * the {#link #MAXIMUM_RETRIES_KEY} initialization parameter.
+     * The default number of times to retry failed reading from the database
+     * queue before aborting consumption. The default value is {@value}. A 
+     * different value can be set via the {#link #MAXIMUM_RETRIES_KEY} 
+     * initialization parameter.
      */
     public static final int DEFAULT_MAXIMUM_RETRIES = 0;
 
     /**
-     * The default number of milliseconds to wait before retrying the SQS request if
-     * the previous request failed. The default value is {@value}. A different value
-     * can be set via the {@link #RETRY_WAIT_TIME_KEY} initialization parameter.
+     * The default number of milliseconds to wait before retrying reading from
+     * the database queue if the previous attempt failed. The default value is 
+     * {@value}. A different value can be set via the {@link #RETRY_WAIT_TIME_KEY}
+     * initialization parameter.
      */
     public static final long DEFAULT_RETRY_WAIT_TIME = 1000L;
 
@@ -320,14 +322,14 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
     private Thread joiningThread = null;
 
     /**
-     * The maximum number of times to retry failed SQS requests before aborting
-     * consumption.
+     * The maximum number of times to retry reading from the database
+     * queue before aborting consumption.
      */
     private int maximumRetries = DEFAULT_MAXIMUM_RETRIES;
 
     /**
-     * The number of milliseconds to wait before retrying the SQS request if the
-     * previous request failed.
+     * The number of milliseconds to wait before we retry reading from
+     * the database queue if the previous attempt failed.
      */
     private long retryWaitTime = DEFAULT_RETRY_WAIT_TIME;
 

@@ -204,7 +204,7 @@ public enum ProcessingRate {
             : Json.createObjectBuilder(options);
 
         this.schedulingOptions.forEach((key, value) -> {
-            if (overwrite || !options.containsKey(key)) {
+            if (overwrite || options == null || !options.containsKey(key)) {
                 job.add(key, value);
             }
         });
@@ -276,7 +276,7 @@ public enum ProcessingRate {
             : Json.createObjectBuilder(options);
 
         this.replicatorOptions.forEach((key, value) -> {
-            if (overwrite || !options.containsKey(key)) {
+            if (overwrite || options == null || !options.containsKey(key)) {
                 job.add(key, value);
             }
         });

@@ -1311,8 +1311,7 @@ public abstract class AbstractSchedulingService implements SchedulingService {
                     // enqueue the follow-up task for later retrieval
                     this.enqueueFollowUpTask(task);
 
-                    // notify all that a new follow-up task was enqueued
-                    this.notifyAll();
+                    // continue on
                     continue;
                 }
 
@@ -1343,8 +1342,12 @@ public abstract class AbstractSchedulingService implements SchedulingService {
                     ScheduledTask scheduledTask = new ScheduledTask(task);
                     this.pendingTasks.add(scheduledTask);
                 }
+            }
+        }
 
-                // for good measure notify all that a new task was scheduled
+        // ensure we notify all if new tasks were scheduled
+        if (tasks.size() > 0) {
+            synchronized (this) {
                 this.notifyAll();
             }
         }
@@ -1436,6 +1439,8 @@ public abstract class AbstractSchedulingService implements SchedulingService {
                 try {
                     task = this.getReadyFollowUpTask();
                 } catch (ServiceExecutionException e) {
+                    // we don't want to check again right away if we got an error
+                    this.followUpNanoTime = System.nanoTime();
                     logWarning(e, "FAILED TO OBTAIN A FOLLOW-UP TASK, " + "DEFERRING FOLLOW-UP TASKS FOR NOW");
                 } finally {
                     this.timerPause(checkFollowUp);
@@ -1895,52 +1900,77 @@ public abstract class AbstractSchedulingService implements SchedulingService {
             // set the handling tasks flag
             this.handlingTasks = true;
 
-            // verify the handling thread is null
-            if (this.taskHandlingThread != null) {
-                throw new IllegalStateException("Task handling thread seems to already exist.");
-            }
+            try {
+                // verify the handling thread is null
+                if (this.taskHandlingThread != null) {
+                    throw new IllegalStateException("Task handling thread seems to already exist.");
+                }
 
-            // create the thread
-            this.taskHandlingThread = new Thread(() -> {
-                TaskHandler taskHandler = this.getTaskHandler();
-                Boolean ready = null;
-                int count = 0;
+                // create the thread
+                this.taskHandlingThread = new Thread(() -> {
+                    boolean success = false;
+                    TaskHandler taskHandler = this.getTaskHandler();
+                    Boolean ready = null;
+                    int count = 0;
 
-                try {
-                    do {
-                        if (count > 0) {
-                            logInfo("****** STILL WAITING ON TASK HANDLER READINESS");
+                    try {
+                        try {
+                            do {
+                                if (count > 0) {
+                                    logInfo("****** STILL WAITING ON TASK HANDLER READINESS");
+                                }
+                                count++;
+                                ready = taskHandler.waitUntilReady(READY_TIMEOUT);
+                            } while (FALSE.equals(ready));
+
+                        } catch (InterruptedException e) {
+                            logWarning("****** INTERRUPTED WHILE WAITING ON TASK HANDLER " + "READINESS");
+                            System.err.println(e.getMessage());
+                            System.err.println(formatStackTrace(e.getStackTrace()));
+                            return;
                         }
-                        count++;
-                        ready = taskHandler.waitUntilReady(READY_TIMEOUT);
-                    } while (FALSE.equals(ready));
 
-                } catch (InterruptedException e) {
-                    logWarning("****** INTERRUPTED WHILE WAITING ON TASK HANDLER " + "READINESS");
-                    System.err.println(e.getMessage());
-                    System.err.println(formatStackTrace(e.getStackTrace()));
-                    return;
+                        // check if ready state indicates a failure
+                        if (ready == null) {
+                            logWarning("****** TASK HANDLER HAS INDICATED A FAILURE PREVENTING " 
+                                    + "READINESS (CHECK LOGS)");
+                            return;
+                        }
+
+                        // check if ready state is false (should not get here)
+                        if (FALSE.equals(ready)) {
+                            logWarning("****** TASK HANDLER NEVER BECAME READY TO HANDLE TASKS");
+                            return;
+                        }
+
+                        SUPPRESS_HANDLING_CHECK.set(true);
+                        success = true;
+                        this.handleTasks();
+
+                    } finally {
+                        if (!success) {
+                            synchronized (this) {
+                                this.handlingTasks = false;
+                                this.notifyAll();
+                            }
+                        }
+                    }
+                });
+
+                // start the thread
+                this.taskHandlingThread.start();
+
+            } finally {
+                // check if we never got the thread going
+                if (this.taskHandlingThread == null
+                    || this.taskHandlingThread.getState() == Thread.State.NEW)
+                {
+                    synchronized (this) {
+                        this.handlingTasks = false;
+                        this.notifyAll();
+                    }
                 }
-
-                // check if ready state indicates a failure
-                if (ready == null) {
-                    logWarning("****** TASK HANDLER HAS INDICATED A FAILURE PREVENTING " 
-                               + "READINESS (CHECK LOGS)");
-                    return;
-                }
-
-                // check if ready state is false (should not get here)
-                if (FALSE.equals(ready)) {
-                    logWarning("****** TASK HANDLER NEVER BECAME READY TO HANDLE TASKS");
-                    return;
-                }
-
-                SUPPRESS_HANDLING_CHECK.set(true);
-                this.handleTasks();
-            });
-
-            // start the thread
-            this.taskHandlingThread.start();
+            }
         }
     }
 
@@ -2066,14 +2096,21 @@ public abstract class AbstractSchedulingService implements SchedulingService {
                 this.timerStart(betweenTasks);
             }
 
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
+
+        } finally {
             // when done, close out the worker pool
             try {
-                // if we get here then all postponed tasks have been handled and we
-                // are no longer scheduling tasks -- time to wait for completion of
-                // in-flight tasks so they can be disposed
-                List<AsyncResult<TaskResult>> results = this.workerPool.close();
-                for (AsyncResult<TaskResult> result : results) {
-                    this.handleAsyncResult(result);
+                if (this.workerPool != null) {
+                    // if we get here then all postponed tasks have been handled and we
+                    // are no longer scheduling tasks -- time to wait for completion of
+                    // in-flight tasks so they can be disposed
+                    List<AsyncResult<TaskResult>> results = this.workerPool.close();
+                    for (AsyncResult<TaskResult> result : results) {
+                        this.handleAsyncResult(result);
+                    }
                 }
             } finally {
                 this.timerPause(taskHandling, activelyHandling, waitingForTasks, waitingOnPostponed);
@@ -2084,10 +2121,6 @@ public abstract class AbstractSchedulingService implements SchedulingService {
                     this.notifyAll();
                 }
             }
-
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-            System.err.println(formatStackTrace(e.getStackTrace()));
         }
     }
 
@@ -2469,9 +2502,23 @@ public abstract class AbstractSchedulingService implements SchedulingService {
         }
 
         // join against the scheduler thread
+        Thread taskThread = null;
+        synchronized (this) {
+            taskThread = this.taskHandlingThread;
+        }
         try {
-            this.taskHandlingThread.join();
+            if (taskThread != null
+                && Thread.currentThread() != taskThread
+                && taskThread.isAlive()) 
+            {
+                taskThread.join();
+            }
 
+            synchronized (this) {
+                if (this.taskHandlingThread == taskThread) {
+                    this.taskHandlingThread = null;
+                }
+            }
         } catch (InterruptedException ignore) {
             // ignore the exception
         }

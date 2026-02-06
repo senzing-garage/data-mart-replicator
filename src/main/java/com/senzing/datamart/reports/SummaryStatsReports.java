@@ -406,6 +406,8 @@ public final class SummaryStatsReports {
         throws NullPointerException, SQLException
     {
         Objects.requireNonNull(conn, "The connection cannot be null");
+        Objects.requireNonNull(dataSource, "The data source cannot be null");
+        Objects.requireNonNull(vsDataSource, "The versus data source cannot be null");
         
         // normalize the match key and principle
         if (requestedMatchKey != null) {

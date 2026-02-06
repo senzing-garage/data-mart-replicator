@@ -10,7 +10,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -588,13 +587,16 @@ public class SzReplicatorOptions {
     public SzReplicatorOptions setDatabaseUri(ConnectionUri uri) 
     {
         if ((uri != null) && (!(uri instanceof PostgreSqlUri))
-            && (!(uri instanceof SQLiteUri))) 
+            && (!(uri instanceof SQLiteUri))
+            && (!(uri instanceof SzCoreSettingsUri)))
         {
             throw new IllegalArgumentException(
                 "Unsupported database connection URL type: " + uri);
         }
 
         this.databaseUri = uri;
+
+        // return this
         return this;
     }
 
@@ -647,15 +649,12 @@ public class SzReplicatorOptions {
             Object value = null;
             try {
                 value = getter.invoke(this);
-            } catch (IllegalAccessException e) {
-                throw new IllegalStateException(e);
-
-            } catch (InvocationTargetException e) {
-                Throwable cause = e.getCause();
+            } catch (ReflectiveOperationException e) {
+                Throwable cause = e.getCause() == null ? e : e.getCause();
                 if (cause instanceof RuntimeException) {
                     throw (RuntimeException) cause;
                 }
-                throw new RuntimeException(e);
+                throw new RuntimeException(cause);
             }
 
             // add the value if not null
@@ -677,8 +676,22 @@ public class SzReplicatorOptions {
      * @return The {@link SzReplicatorOptions} created from the specified JSON text.
      */
     public static SzReplicatorOptions parse(String jsonText) {
+        return parse(null, jsonText);
+    }
+
+    /**
+     * Parses the specified JSON text into the specified target instance, or creates
+     * a new instance if the target is {@code null}.
+     *
+     * @param target The {@link SzReplicatorOptions} instance to populate, or
+     *               {@code null} to create a new instance.
+     * @param jsonText The JSON text describing the {@link SzReplicatorOptions}.
+     *
+     * @return The {@link SzReplicatorOptions} instance (either the target or a new instance).
+     */
+    public static SzReplicatorOptions parse(SzReplicatorOptions target, String jsonText) {
         JsonObject jsonObject = JsonUtilities.parseJsonObject(jsonText);
-        return parse(jsonObject);
+        return parse(target, jsonObject);
     }
 
     /**
@@ -691,10 +704,25 @@ public class SzReplicatorOptions {
      * @return The {@link SzReplicatorOptions} created from the specified
      *         {@link JsonObject}.
      */
-    public static SzReplicatorOptions parse(JsonObject jsonObject) 
+    public static SzReplicatorOptions parse(JsonObject jsonObject) {
+        return parse(null, jsonObject);
+    }
+
+    /**
+     * Parses the specified {@link JsonObject} into the specified target instance,
+     * or creates a new instance if the target is {@code null}.
+     *
+     * @param target The {@link SzReplicatorOptions} instance to populate, or
+     *               {@code null} to create a new instance.
+     * @param jsonObject The {@link JsonObject} describing the
+     *                   {@link SzReplicatorOptions}.
+     *
+     * @return The {@link SzReplicatorOptions} instance (either the target or a new instance).
+     */
+    public static SzReplicatorOptions parse(SzReplicatorOptions target, JsonObject jsonObject)
     {
         final JsonObject obj = jsonObject;
-        SzReplicatorOptions opts = new SzReplicatorOptions();
+        SzReplicatorOptions opts = (target != null) ? target : new SzReplicatorOptions();
 
         SETTERS_BY_NAME.forEach((propertyName, setter) -> {
             // skip any property that is missing a value
@@ -708,15 +736,12 @@ public class SzReplicatorOptions {
             try {
                 setter.invoke(opts, value);
 
-            } catch (IllegalAccessException e) {
-                throw new IllegalStateException(e);
-
-            } catch (InvocationTargetException e) {
-                Throwable cause = e.getCause();
+            } catch (ReflectiveOperationException e) {
+                Throwable cause = e.getCause() == null ? e : e.getCause();
                 if (cause instanceof RuntimeException) {
                     throw (RuntimeException) cause;
                 }
-                throw new RuntimeException(e);
+                throw new RuntimeException(cause);
             }
         });
         return opts;
@@ -737,11 +762,8 @@ public class SzReplicatorOptions {
             try {
                 put(map, option, method.invoke(this));
 
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-
-            } catch (InvocationTargetException e) {
-                Throwable cause = e.getCause();
+            } catch (ReflectiveOperationException e) {
+                Throwable cause = e.getCause() == null ? e : e.getCause();
                 if (cause instanceof RuntimeException) {
                     throw (RuntimeException) cause;
                 }
@@ -769,17 +791,17 @@ public class SzReplicatorOptions {
             Method method = SETTER_METHODS.get(option);
             if (method != null) {
                 try {
+                    // value = coerceValue(value, method.getParameterTypes()[0]);
+                    
                     method.invoke(options, value);
 
-                } catch (IllegalAccessException e) {
-                    throw new RuntimeException(e);
-
-                } catch (InvocationTargetException e) {
-                    Throwable cause = e.getCause();
-                    if (cause instanceof RuntimeException) {
-                        throw (RuntimeException) cause;
-                    }
-                    throw new RuntimeException(cause);
+                } catch (Exception e) {
+                    Throwable cause = e.getCause() == null ? e : e.getCause();
+                    //if (cause instanceof RuntimeException) {
+                    //    throw (RuntimeException) cause;
+                    //}
+                    throw new RuntimeException("Failed to call " + method + " with "
+                        + value.getClass().getName() + " value: " + value, cause);
                 }
             }
         });
@@ -855,6 +877,74 @@ public class SzReplicatorOptions {
         }
         GETTERS_BY_NAME = Collections.unmodifiableMap(getByName);
         SETTERS_BY_NAME = Collections.unmodifiableMap(setByName);
+    }
+
+    /**
+     * Checks if this instance is equal to the specified object.
+     * Two {@link SzReplicatorOptions} instances are considered equal if all their
+     * properties are equal.
+     *
+     * @param obj The object to compare with this instance.
+     * @return {@code true} if the specified object is equal to this instance,
+     *         {@code false} otherwise.
+     */
+    @Override
+    public boolean equals(Object obj) {
+        // Check for same reference
+        if (this == obj) {
+            return true;
+        }
+
+        // Check for null
+        if (obj == null) {
+            return false;
+        }
+
+        // Check for same class
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+
+        // Cast to SzReplicatorOptions
+        SzReplicatorOptions that = (SzReplicatorOptions) obj;
+
+        // Compare all properties using getter methods
+        return this.getCoreLogLevel() == that.getCoreLogLevel()
+            && this.getCoreConcurrency() == that.getCoreConcurrency()
+            && this.isUsingDatabaseQueue() == that.isUsingDatabaseQueue()
+            && this.getRefreshConfigSeconds() == that.getRefreshConfigSeconds()
+            && Objects.equals(this.getCoreInstanceName(), that.getCoreInstanceName())
+            && Objects.equals(this.getCoreSettings(), that.getCoreSettings())
+            && Objects.equals(this.getCoreConfigurationId(), that.getCoreConfigurationId())
+            && Objects.equals(this.getDatabaseUri(), that.getDatabaseUri())
+            && Objects.equals(this.getSQSInfoUri(), that.getSQSInfoUri())
+            && Objects.equals(this.getRabbitMqUri(), that.getRabbitMqUri())
+            && Objects.equals(this.getRabbitMqInfoQueue(), that.getRabbitMqInfoQueue())
+            && Objects.equals(this.getProcessingRate(), that.getProcessingRate());
+    }
+
+    /**
+     * Returns a hash code value for this instance.
+     * The hash code is computed based on all properties of this instance.
+     *
+     * @return A hash code value for this instance.
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+            this.getCoreInstanceName(),
+            this.getCoreSettings(),
+            this.getCoreConfigurationId(),
+            this.getCoreLogLevel(),
+            this.getCoreConcurrency(),
+            this.getDatabaseUri(),
+            this.getSQSInfoUri(),
+            this.isUsingDatabaseQueue(),
+            this.getRabbitMqUri(),
+            this.getRabbitMqInfoQueue(),
+            this.getRefreshConfigSeconds(),
+            this.getProcessingRate()
+        );
     }
 
 }

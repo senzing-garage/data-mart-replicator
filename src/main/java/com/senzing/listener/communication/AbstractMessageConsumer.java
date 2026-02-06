@@ -802,15 +802,26 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
         }
 
         // join against the processing thread
+        Thread thread = null;
+        synchronized (this) {
+            thread = this.processingThread;
+        }
+
         try {
-            if (Thread.currentThread() != this.processingThread) {
-                this.processingThread.join();
+            if (thread != null 
+                && Thread.currentThread() != thread
+                && thread.isAlive()) 
+            {
+                thread.join();
+            }
+
+            synchronized (this) {
+                if (this.processingThread == thread) {
+                    this.processingThread = null;
+                }
             }
         } catch (InterruptedException ignore) {
             // ignore the exception
-        }
-        synchronized (this) {
-            this.processingThread = null;
         }
 
         try {
