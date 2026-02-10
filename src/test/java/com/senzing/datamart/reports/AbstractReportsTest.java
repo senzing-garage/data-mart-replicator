@@ -13,6 +13,7 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -65,6 +66,7 @@ import com.senzing.datamart.reports.model.SzReportRelation;
 import com.senzing.datamart.reports.model.SzSourceLoadedStats;
 import com.senzing.datamart.reports.model.SzSourceSummary;
 import com.senzing.datamart.reports.model.SzSummaryStats;
+import com.senzing.sdk.SzException;
 import com.senzing.sql.ConnectionPool;
 import com.senzing.sql.ConnectionProvider;
 import com.senzing.sql.Connector;
@@ -78,6 +80,16 @@ import static com.senzing.util.JsonUtilities.*;
  */
 @Execution(ExecutionMode.SAME_THREAD)
 public abstract class AbstractReportsTest {
+
+    /**
+     * A list of {@link ThrowingConnectionProvider} instances to test with.
+     * 
+     */
+    public static final List<ThrowingConnectionProvider> FAILING_CONNECTION_PROVIDERS
+        = List.of(new ThrowingConnectionProvider(SQLException.class),
+                  new ThrowingConnectionProvider(NullPointerException.class),
+                  new ThrowingConnectionProvider(SzException.class));
+
     /**
      * The {@link ObjectMapper} to use for JSON serialization of reports.
      */

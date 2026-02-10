@@ -6,7 +6,7 @@ import java.util.Objects;
  * The key for a cross-match report statistic comprising two data sources, an
  * optional principle and an optional match key.
  */
-public class CrossMatchKey implements Comparable<CrossMatchKey> {
+public final class CrossMatchKey implements Comparable<CrossMatchKey> {
     /**
      * The first data source.
      */
@@ -208,7 +208,7 @@ public class CrossMatchKey implements Comparable<CrossMatchKey> {
      */
     @Override
     public String toString() {
-        return this.getSource1() + ":" + this.getSource2() + "[" + ":" 
+        return this.getSource1() + ":" + this.getSource2() + "[" 
             + this.getPrinciple() + ":" + this.getMatchKey() + "]";
     }
 }

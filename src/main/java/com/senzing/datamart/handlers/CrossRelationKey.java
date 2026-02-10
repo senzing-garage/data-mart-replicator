@@ -7,7 +7,7 @@ import com.senzing.datamart.model.SzMatchType;
  * The key for a cross-relation report statistic comprising two data sources, a
  * match type, an optional principle and an optional match key.
  */
-public class CrossRelationKey implements Comparable<CrossRelationKey> {
+public final class CrossRelationKey implements Comparable<CrossRelationKey> {
     /**
      * The first data source.
      */
@@ -198,12 +198,6 @@ public class CrossRelationKey implements Comparable<CrossRelationKey> {
         SzMatchType matchType1 = this.getMatchType();
         SzMatchType matchType2 = key.getMatchType();
         if (matchType1 != matchType2) {
-            if (matchType1 == null) {
-                return -1;
-            }
-            if (matchType2 == null) {
-                return 1;
-            }
             return matchType1.compareTo(matchType2);
         }
 

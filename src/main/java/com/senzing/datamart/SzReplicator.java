@@ -44,7 +44,6 @@ import static com.senzing.datamart.SzReplicatorOption.*;
 import static com.senzing.datamart.SzReplicatorConstants.*;
 import static com.senzing.util.JsonUtilities.toJsonText;
 import static com.senzing.util.LoggingUtilities.*;
-import static com.senzing.listener.service.scheduling.AbstractSchedulingService.Stat.*;
 
 /**
  * The data mart replicator command-line class.
@@ -310,13 +309,30 @@ public class SzReplicator extends Thread {
             if (Thread.currentThread() != this && this.isAlive()) {
                 this.join();
             }
-            System.err.println(this.connPool.getDiagnosticLeaseInfo());
-            this.connPool.shutdown();
+            
+            // cleanup the connection pool and clear it out
+            ConnectionPool pool = null;
+            synchronized (this) {
+                pool = this.connPool;
+            }
+            if (pool != null) {
+                pool.shutdown();
+            }
+            synchronized (this) {
+                if (pool == this.connPool) {
+                    this.connPool = null;
+                }
+            }
 
-
-            if (this.connProviderToken != null) {
+            // unbind the connection provider
+            AccessToken token = null;
+            synchronized (this) {
+                token = this.connProviderToken;
+                this.connProviderToken = null;
+            }
+            if (token != null) {
                 try {
-                    ConnectionProvider.REGISTRY.unbind(this.connProviderName, connProviderToken);
+                    ConnectionProvider.REGISTRY.unbind(this.connProviderName, token);
                 } catch (Exception e) {
                     logWarning(e, "Failed to unbind connection provider: " + this.connProviderName);
                 }
@@ -848,178 +864,187 @@ public class SzReplicator extends Thread {
     protected SzReplicator(SzEnvironment environment, boolean manageEnv, SzReplicatorOptions options, boolean startProcessing)
         throws Exception
     {
-        // get the concurrency
-        if (environment instanceof SzAutoEnvironment) {
-            SzAutoEnvironment autoEnv = (SzAutoEnvironment) environment;
-            this.concurrency = autoEnv.getConcurrency();
-        } else {
-            this.concurrency = options.getCoreConcurrency();
-        }
-
-        final int consumerConcurrency = this.concurrency * 2;
-        final int scheduleConcurrency = this.concurrency * 2;
-        final int poolSize = this.concurrency;
-        final int maxPoolSize = poolSize * 3;
-
-        // set the environment
-        this.environment = environment;
-        this.manageEnv = manageEnv;
-
-        // proxy the environment
-        this.proxyEnvironment = (SzEnvironment) ReflectionUtilities.restrictedProxy(this.environment, DESTROY_METHOD);
-
-        // declare the scheduling service class (determine based on database type)
-        String schedulingServiceClassName = null;
-
-        // get the database URI
-        ConnectionUri databaseUri = options.getDatabaseUri();
-
-        if (databaseUri instanceof SzCoreSettingsUri) {
-            // get the core settings
-            JsonObject coreSettings = options.getCoreSettings();
-            if (coreSettings == null) {
-                throw new IllegalArgumentException(
-                    "Cannot specify an " + databaseUri.getClass().getSimpleName()
-                    + " URI (" + databaseUri.toString() + ") if the core settings "
-                    + "have not been provided.");
+        boolean success = false;
+        try {
+            // get the concurrency
+            if (environment instanceof SzAutoEnvironment) {
+                SzAutoEnvironment autoEnv = (SzAutoEnvironment) environment;
+                this.concurrency = autoEnv.getConcurrency();
+            } else {
+                this.concurrency = options.getCoreConcurrency();
             }
-            SzCoreSettingsUri coreSettingsUri = (SzCoreSettingsUri) databaseUri;
-            ConnectionUri resolvedUri = coreSettingsUri.resolveUri(coreSettings);
-            if (resolvedUri == null) {
-                throw new IllegalArgumentException(
-                    "Unable to resolve " + databaseUri + " Data Mart URI using "
-                    + "the provided core settings: "
-                    + toJsonText(coreSettings, true));
-            }
-            if (resolvedUri instanceof SzCoreSettingsUri 
-                || !SUPPORTED_DATABASE_URI_TYPES.contains(resolvedUri.getClass())) 
-            {
-                StringBuilder sb = new StringBuilder();
-                sb.append("supportedTypes=[ ");
-                for (Class<?> c : SUPPORTED_DATABASE_URI_TYPES) {
-                    String prefix = "";
-                    if (c != SzCoreSettingsUri.class) {
-                        sb.append(prefix).append(c.getSimpleName());
-                        prefix = ", ";
-                    }
+
+            final int consumerConcurrency = this.concurrency * 2;
+            final int scheduleConcurrency = this.concurrency * 2;
+            final int poolSize = this.concurrency;
+            final int maxPoolSize = poolSize * 3;
+
+            // set the environment
+            this.environment = environment;
+            this.manageEnv = manageEnv;
+
+            // proxy the environment
+            this.proxyEnvironment = (SzEnvironment) ReflectionUtilities.restrictedProxy(this.environment, DESTROY_METHOD);
+
+            // declare the scheduling service class (determine based on database type)
+            String schedulingServiceClassName = null;
+
+            // get the database URI
+            ConnectionUri databaseUri = options.getDatabaseUri();
+
+            if (databaseUri instanceof SzCoreSettingsUri) {
+                // get the core settings
+                JsonObject coreSettings = options.getCoreSettings();
+                if (coreSettings == null) {
+                    throw new IllegalArgumentException(
+                        "Cannot specify an " + databaseUri.getClass().getSimpleName()
+                        + " URI (" + databaseUri.toString() + ") if the core settings "
+                        + "have not been provided.");
                 }
-                sb.append(" ]");
+                SzCoreSettingsUri coreSettingsUri = (SzCoreSettingsUri) databaseUri;
+                ConnectionUri resolvedUri = coreSettingsUri.resolveUri(coreSettings);
+                if (resolvedUri == null) {
+                    throw new IllegalArgumentException(
+                        "Unable to resolve " + databaseUri + " Data Mart URI using "
+                        + "the provided core settings: "
+                        + toJsonText(coreSettings, true));
+                }
+                if (resolvedUri instanceof SzCoreSettingsUri 
+                    || !SUPPORTED_DATABASE_URI_TYPES.contains(resolvedUri.getClass())) 
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("supportedTypes=[ ");
+                    for (Class<?> c : SUPPORTED_DATABASE_URI_TYPES) {
+                        String prefix = "";
+                        if (c != SzCoreSettingsUri.class) {
+                            sb.append(prefix).append(c.getSimpleName());
+                            prefix = ", ";
+                        }
+                    }
+                    sb.append(" ]");
 
-                throw new IllegalArgumentException(
-                    "Resolved the " + databaseUri + " Data Mart URI to a database "
-                    + "URI that is not supported. resolvedType=[ " 
-                    + resolvedUri.getClass().getSimpleName() + " ], resolvedText=[ " 
-                    + resolvedUri.toString() + " ], " + sb.toString()); 
-            }
-            databaseUri = resolvedUri;
-        }
-
-        if (databaseUri instanceof SQLiteUri) {
-            SQLiteUri sqliteUri = (SQLiteUri) databaseUri;
-            Map<String, String> connProps = sqliteUri.getQueryOptions();
-
-            this.connector = (sqliteUri.isMemory()) ? new SQLiteConnector(sqliteUri.getInMemoryIdentifier(), connProps)
-                    : new SQLiteConnector(sqliteUri.getFile(), connProps);
-
-            this.connPool = new ConnectionPool(this.connector, poolSize, maxPoolSize);
-
-            schedulingServiceClassName = SQLiteSchedulingService.class.getName();
-
-        } else if (databaseUri instanceof PostgreSqlUri) {
-            PostgreSqlUri postgreSqlUri = (PostgreSqlUri) databaseUri;
-
-            this.connector = new PostgreSqlConnector(postgreSqlUri.getHost(), postgreSqlUri.getPort(),
-                    postgreSqlUri.getDatabase(), postgreSqlUri.getUser(), postgreSqlUri.getPassword());
-
-            this.connPool = new ConnectionPool(this.connector, TransactionIsolation.READ_COMMITTED, poolSize,
-                    maxPoolSize);
-
-            schedulingServiceClassName = PostgreSQLSchedulingService.class.getName();
-
-        } else {
-            throw new IllegalStateException(
-                "Unhandled database URI type (" + databaseUri.getClass().getName()
-                + "): " + databaseUri);
-        }
-
-        this.connProvider = new PoolConnectionProvider(this.connPool, MAX_POOL_WAIT_TIME);
-
-        this.connProviderName = TextUtilities.randomAlphanumericText(30);
-
-        this.connProviderToken = ConnectionProvider.REGISTRY.bind(this.connProviderName, this.connProvider);
-
-        // get the processing rate
-        ProcessingRate processingRate = options.getProcessingRate();
-
-        // handle the scheduling service config
-        JsonObjectBuilder schedulingJOB = processingRate.addSchedulingServiceOptions(null);
-        schedulingJOB.add(AbstractSchedulingService.CONCURRENCY_KEY, scheduleConcurrency);
-        schedulingJOB.add(AbstractSQLSchedulingService.CONNECTION_PROVIDER_KEY, this.connProviderName);
-
-        // handle the replicator config
-        JsonObjectBuilder replicatorJOB = processingRate.addReplicatorServiceOptions(null);
-        replicatorJOB.add(SzReplicatorService.SCHEDULING_SERVICE_CLASS_KEY, schedulingServiceClassName);
-
-        replicatorJOB.add(SzReplicatorService.SCHEDULING_SERVICE_CONFIG_KEY, schedulingJOB);
-
-        replicatorJOB.add(SzReplicatorService.CONNECTION_PROVIDER_KEY, this.connProviderName);
-
-        this.replicatorService = new SzReplicatorService(this.proxyEnvironment);
-        this.replicatorService.init(replicatorJOB.build());
-
-        // build the message consumer
-        RabbitMqUri rabbitMqUri = options.getRabbitMqUri();
-        SQSUri sqsUri = options.getSQSInfoUri();
-        Boolean databaseQueue = options.isUsingDatabaseQueue();
-
-        JsonObjectBuilder consumerJOB = Json.createObjectBuilder();
-        if (Boolean.TRUE.equals(databaseQueue)) {
-            this.queueRegistryName = TextUtilities.randomAlphanumericText(25);
-            consumerJOB.add(SQLConsumer.CONNECTION_PROVIDER_KEY, this.connProviderName);
-            consumerJOB.add(SQLConsumer.QUEUE_REGISTRY_NAME_KEY, this.queueRegistryName);
-            this.messageConsumer = new SQLConsumer();
-
-        } else if (rabbitMqUri != null) {
-            String queueName = options.getRabbitMqInfoQueue();
-            if (queueName == null) {
-                throw new IllegalArgumentException(
-                        "The RabbitMQ MQ must be specified if the RabbitMQ URI is provided.");
-            }
-            consumerJOB.add(RabbitMQConsumer.CONCURRENCY_KEY, consumerConcurrency);
-            consumerJOB.add(RabbitMQConsumer.MQ_HOST_KEY, rabbitMqUri.getHost());
-            consumerJOB.add(RabbitMQConsumer.MQ_USER_KEY, rabbitMqUri.getUser());
-            consumerJOB.add(RabbitMQConsumer.MQ_PASSWORD_KEY, rabbitMqUri.getPassword());
-            consumerJOB.add(RabbitMQConsumer.MQ_QUEUE_KEY, queueName);
-
-            // check if we have the port parameter
-            if (rabbitMqUri.hasPort()) {
-                consumerJOB.add(RabbitMQConsumer.MQ_PORT_KEY, rabbitMqUri.getPort());
+                    throw new IllegalArgumentException(
+                        "Resolved the " + databaseUri + " Data Mart URI to a database "
+                        + "URI that is not supported. resolvedType=[ " 
+                        + resolvedUri.getClass().getSimpleName() + " ], resolvedText=[ " 
+                        + resolvedUri.toString() + " ], " + sb.toString()); 
+                }
+                databaseUri = resolvedUri;
             }
 
-            // check if we have the virtual host parameter
-            if (rabbitMqUri.getVirtualHost() != null) {
-                consumerJOB.add(RabbitMQConsumer.MQ_VIRTUAL_HOST_KEY, rabbitMqUri.getVirtualHost());
+            if (databaseUri instanceof SQLiteUri) {
+                SQLiteUri sqliteUri = (SQLiteUri) databaseUri;
+                Map<String, String> connProps = sqliteUri.getQueryOptions();
+
+                this.connector = (sqliteUri.isMemory()) ? new SQLiteConnector(sqliteUri.getInMemoryIdentifier(), connProps)
+                        : new SQLiteConnector(sqliteUri.getFile(), connProps);
+
+                this.connPool = new ConnectionPool(this.connector, poolSize, maxPoolSize);
+
+                schedulingServiceClassName = SQLiteSchedulingService.class.getName();
+
+            } else if (databaseUri instanceof PostgreSqlUri) {
+                PostgreSqlUri postgreSqlUri = (PostgreSqlUri) databaseUri;
+
+                this.connector = new PostgreSqlConnector(postgreSqlUri.getHost(), postgreSqlUri.getPort(),
+                        postgreSqlUri.getDatabase(), postgreSqlUri.getUser(), postgreSqlUri.getPassword());
+
+                this.connPool = new ConnectionPool(this.connector, TransactionIsolation.READ_COMMITTED, poolSize,
+                        maxPoolSize);
+
+                schedulingServiceClassName = PostgreSQLSchedulingService.class.getName();
+
+            } else {
+                throw new IllegalStateException(
+                    "Unhandled database URI type (" + databaseUri.getClass().getName()
+                    + "): " + databaseUri);
             }
 
-            this.messageConsumer = this.createRabbitMQConsumer();
+            this.connProvider = new PoolConnectionProvider(this.connPool, MAX_POOL_WAIT_TIME);
 
-        } else if (sqsUri != null) {
-            consumerJOB.add(SQSConsumer.CONCURRENCY_KEY, consumerConcurrency);
+            this.connProviderName = TextUtilities.randomAlphanumericText(30);
 
-            // build an SQS message consumer
-            consumerJOB.add(SQSConsumer.SQS_URL_KEY, sqsUri.toString());
-            this.messageConsumer = this.createSQSConsumer();
+            this.connProviderToken = ConnectionProvider.REGISTRY.bind(this.connProviderName, this.connProvider);
 
-        } else {
-            throw new IllegalStateException("Missing INFO queue option: " + options);
-        }
-        this.messageConsumer.init(consumerJOB.build());
-        if (this.queueRegistryName != null) {
-            this.sqlMessageQueue = SQLConsumer.MESSAGE_QUEUE_REGISTRY.lookup(this.queueRegistryName);
-        }
+            // get the processing rate
+            ProcessingRate processingRate = options.getProcessingRate();
 
-        if (startProcessing) {
-            this.start();
+            // handle the scheduling service config
+            JsonObjectBuilder schedulingJOB = processingRate.addSchedulingServiceOptions(null);
+            schedulingJOB.add(AbstractSchedulingService.CONCURRENCY_KEY, scheduleConcurrency);
+            schedulingJOB.add(AbstractSQLSchedulingService.CONNECTION_PROVIDER_KEY, this.connProviderName);
+
+            // handle the replicator config
+            JsonObjectBuilder replicatorJOB = processingRate.addReplicatorServiceOptions(null);
+            replicatorJOB.add(SzReplicatorService.SCHEDULING_SERVICE_CLASS_KEY, schedulingServiceClassName);
+
+            replicatorJOB.add(SzReplicatorService.SCHEDULING_SERVICE_CONFIG_KEY, schedulingJOB);
+
+            replicatorJOB.add(SzReplicatorService.CONNECTION_PROVIDER_KEY, this.connProviderName);
+
+            this.replicatorService = new SzReplicatorService(this.proxyEnvironment);
+            this.replicatorService.init(replicatorJOB.build());
+
+            // build the message consumer
+            RabbitMqUri rabbitMqUri = options.getRabbitMqUri();
+            SQSUri sqsUri = options.getSQSInfoUri();
+            Boolean databaseQueue = options.isUsingDatabaseQueue();
+
+            JsonObjectBuilder consumerJOB = Json.createObjectBuilder();
+            if (Boolean.TRUE.equals(databaseQueue)) {
+                this.queueRegistryName = TextUtilities.randomAlphanumericText(25);
+                consumerJOB.add(SQLConsumer.CONNECTION_PROVIDER_KEY, this.connProviderName);
+                consumerJOB.add(SQLConsumer.QUEUE_REGISTRY_NAME_KEY, this.queueRegistryName);
+                this.messageConsumer = new SQLConsumer();
+
+            } else if (rabbitMqUri != null) {
+                String queueName = options.getRabbitMqInfoQueue();
+                if (queueName == null) {
+                    throw new IllegalArgumentException(
+                            "The RabbitMQ MQ must be specified if the RabbitMQ URI is provided.");
+                }
+                consumerJOB.add(RabbitMQConsumer.CONCURRENCY_KEY, consumerConcurrency);
+                consumerJOB.add(RabbitMQConsumer.MQ_HOST_KEY, rabbitMqUri.getHost());
+                consumerJOB.add(RabbitMQConsumer.MQ_USER_KEY, rabbitMqUri.getUser());
+                consumerJOB.add(RabbitMQConsumer.MQ_PASSWORD_KEY, rabbitMqUri.getPassword());
+                consumerJOB.add(RabbitMQConsumer.MQ_QUEUE_KEY, queueName);
+
+                // check if we have the port parameter
+                if (rabbitMqUri.hasPort()) {
+                    consumerJOB.add(RabbitMQConsumer.MQ_PORT_KEY, rabbitMqUri.getPort());
+                }
+
+                // check if we have the virtual host parameter
+                if (rabbitMqUri.getVirtualHost() != null) {
+                    consumerJOB.add(RabbitMQConsumer.MQ_VIRTUAL_HOST_KEY, rabbitMqUri.getVirtualHost());
+                }
+
+                this.messageConsumer = this.createRabbitMQConsumer();
+
+            } else if (sqsUri != null) {
+                consumerJOB.add(SQSConsumer.CONCURRENCY_KEY, consumerConcurrency);
+
+                // build an SQS message consumer
+                consumerJOB.add(SQSConsumer.SQS_URL_KEY, sqsUri.toString());
+                this.messageConsumer = this.createSQSConsumer();
+
+            } else {
+                throw new IllegalStateException("Missing INFO queue option: " + options);
+            }
+            this.messageConsumer.init(consumerJOB.build());
+            if (this.queueRegistryName != null) {
+                this.sqlMessageQueue = SQLConsumer.MESSAGE_QUEUE_REGISTRY.lookup(this.queueRegistryName);
+            }
+
+            if (startProcessing) {
+                this.start();
+            }
+            success = true;
+
+        } finally {
+            if (!success && manageEnv && this.environment != null) {
+                this.environment.destroy();
+            }
         }
     }
 

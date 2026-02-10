@@ -13,6 +13,7 @@ import java.sql.*;
 import java.util.*;
 
 import com.senzing.sdk.SzFlag;
+import com.senzing.sdk.SzNotFoundException;
 
 import static com.senzing.datamart.SzReplicationProvider.TaskAction.*;
 import static com.senzing.datamart.model.SzReportStatistic.*;
@@ -52,11 +53,11 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
      * directly from the record table where the entity ID is set to zero (0).
      */
     @Override
-    protected int overrideRecordDelta(Connection conn,
-            SzReportKey reportKey,
-            List<SzReportUpdate> updates,
-            int computedSum,
-            Scheduler followUpScheduler)
+    protected int overrideRecordDelta(Connection            conn,
+                                      SzReportKey           reportKey,
+                                      List<SzReportUpdate>  updates,
+                                      int                   computedSum,
+                                      Scheduler             followUpScheduler)
         throws SQLException, SzException
     {
         // check if not ENTITY_COUNT statistic
@@ -124,6 +125,9 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
                 try {
                     jsonText = engine.getEntity(recordKey.toKey(), ENTITY_FLAGS);
 
+                } catch (SzNotFoundException e) {
+                    // do nothing and fall through
+                
                 } catch (SzException e) {
                     logWarning(e, "FAILED TO CHECK IF RECORD STILL EXISTS: " + recordKey);
                     continue;

@@ -141,26 +141,32 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
             // hashes should have been the same before we got here
             if (Objects.equals(oldEntity, newEntity)) {
                 logWarning("Entity hashes were different, but no delta was found.",
-                        "ENTITY ID : " + entityId,
-                        "NEW HASH  : " + newEntity.toHash(),
-                        "OLD HASH  : " + entityHash);
+                           "ENTITY ID : " + entityId,
+                           "NEW HASH  : " + newEntity.toHash(),
+                           "OLD HASH  : " + entityHash);
                 return;
             }
 
             // find the entity deltas
             EntityDelta entityDelta = new EntityDelta(oldEntity, newEntity);
 
+            logDebug("ENTITY " + entityId + " ADDED RECORDS: ",
+                     entityDelta.getAddedRecords());
+
+            logDebug("ENTITY " + entityId + " CHANGED RECORDS: ",
+                     entityDelta.getChangedRecords());
+
+            logDebug("ENTITY " + entityId + " REMOVED RECORDS: ",
+                     entityDelta.getRemovedRecords());
+
             logDebug("ENTITY " + entityId + " ADDED RELATIONS: ",
-                    entityDelta.getAddedRelations());
+                     entityDelta.getAddedRelations());
 
             logDebug("ENTITY " + entityId + " CHANGED RELATIONS: ",
-                    entityDelta.getChangedRelations());
+                     entityDelta.getChangedRelations());
 
             logDebug("ENTITY " + entityId + " REMOVED RELATIONS: ",
-                    entityDelta.getRemovedRelations());
-
-            logDebug("ENTITY " + entityId + " CHANGED RELATIONS: ",
-                    entityDelta.getChangedRecords());
+                     entityDelta.getRemovedRelations());
             
             // first enroll any subordinate resource locking rows into the transaction
             // to ensure mutual exclusion while avoiding deadlocks -- this will ensure
@@ -461,6 +467,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                 // get normalized match key and principle
                 String matchKey = record.getMatchKey();
                 String principle = record.getPrinciple();
+                logDebug("ADDING RECORD: " + record);
 
                 ps2.setString(1, record.getDataSource());
                 ps2.setString(2, record.getRecordId());
@@ -551,6 +558,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                             + "WHERE data_source = ? AND record_id = ? AND entity_id = ?");
 
             List<Integer> rowCounts = this.batchUpdate(ps, removedRecords.values(), (ps2, record) -> {
+                logDebug("ORPHANING RECORD: " + record);
+                
                 ps2.setString(1, operationId);
                 ps2.setString(2, record.getDataSource());
                 ps2.setString(3, record.getRecordId());
@@ -633,6 +642,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                     + "WHERE data_source = ? AND record_id = ? AND entity_id = ?");
                     
             List<Integer> rowCounts = this.batchUpdate(ps, changedRecords.values(), (ps2, record) -> {
+                logDebug("UPDATING RECORD: " + record);
+                
                 // get normalized match key and principle
                 String matchKey = record.getMatchKey();
                 String principle = record.getPrinciple();
@@ -1102,7 +1113,12 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
      *
      * @throws SQLException If a JDBC failure occurs.
      */
-    protected void ensureRelationIntegrity(Connection conn, EntityDelta entityDelta, Scheduler followUpScheduler, Set<Long> followUpSet) throws SQLException {
+    protected void ensureRelationIntegrity(Connection   conn, 
+                                           EntityDelta  entityDelta, 
+                                           Scheduler    followUpScheduler, 
+                                           Set<Long>    followUpSet) 
+        throws SQLException 
+    {
         Set<Long> knownRelations = new LinkedHashSet<>();
 
         knownRelations.addAll(entityDelta.getOldRelatedEntities().keySet());

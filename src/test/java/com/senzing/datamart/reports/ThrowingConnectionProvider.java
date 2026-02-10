@@ -130,6 +130,17 @@ public class ThrowingConnectionProvider implements ConnectionProvider {
     }
 
     /**
+     * Gets the {@link Class} for the type of exception that is thrown by 
+     * {@link Connection} instances created by this instance.
+     * 
+     * @return The {@link Class} for the type of exception that is thrown by 
+     *         {@link Connection} instances created by this instance.
+     */
+    public Class<? extends Throwable> getThrowType() {
+        return this.throwType;
+    }
+
+    /**
      * Returns a proxy {@link Connection} that throws the configured exception
      * type for all method calls except {@link Connection#close()}.
      *

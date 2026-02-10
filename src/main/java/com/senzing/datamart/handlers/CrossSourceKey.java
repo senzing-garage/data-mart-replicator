@@ -5,7 +5,7 @@ import java.util.Objects;
 /**
  * The key for a cross-source report statistic comprising two data sources.
  */
-public class CrossSourceKey implements Comparable<CrossSourceKey> {
+public final class CrossSourceKey implements Comparable<CrossSourceKey> {
     /**
      * The first data source.
      */
@@ -101,10 +101,9 @@ public class CrossSourceKey implements Comparable<CrossSourceKey> {
     }
 
     /**
-     * Implemented to handle comparing such that we sort first on the associated
-     * data sources, then on principles and then on match keys with
-     * <code>null</code> values sorting less-than non-null values. If the specified
-     * parameter is <code>null</code> then this returns one (1).
+     * Implemented to handle comparing such that we sort on the first
+     * and then the second data source.   If the specified parameter 
+     * is <code>null</code> then this returns one (1).
      * 
      * @param key The {@link CrossSourceKey} to compare with.
      * 

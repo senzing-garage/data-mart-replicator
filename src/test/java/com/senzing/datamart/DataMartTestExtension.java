@@ -42,6 +42,7 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -50,8 +51,10 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static com.senzing.sdk.SzFlag.*;
@@ -880,17 +883,12 @@ public class DataMartTestExtension implements BeforeAllCallback {
     {
         logInfo("Loading truth set...");
         
-        Class<DataMartTestExtension> c = DataMartTestExtension.class;
-
         SzEnvironment       env         = null;
         SzReplicatorOptions options     = new SzReplicatorOptions();
         SzReplicator        replicator  = null;
         Set<SzRecordKey>    recordKeys  = new LinkedHashSet<>();
 
-        try (InputStream is = c.getResourceAsStream(TRUTH_SET_RESOURCE_NAME);
-             InputStreamReader isr = new InputStreamReader(is, UTF_8);
-             BufferedReader br = new BufferedReader(isr))
-        {    
+        try {
             // build the SzEnvironment
             env = SzAutoCoreEnvironment.newAutoBuilder()
                 .instanceName("DataMartTestLoad")
@@ -908,32 +906,10 @@ public class DataMartTestExtension implements BeforeAllCallback {
             options.setDatabaseUri(dataMartUri);
             replicator = new SzReplicator(env, options, true);
             
-            for (String record = br.readLine(); record != null; record = br.readLine()) 
-            {
-                // trim whitespace
-                record = record.trim();
-
-                // skip any blank lines
-                if (record.length() == 0) {
-                    continue;
-                }
-                // skip commented-out lines
-                if (record.startsWith("#")) {
-                    continue;
-                }
-
-                // parse the record as JSON
-                JsonObject  jsonObj     = parseJsonObject(record);
-
-                // get the data source and record ID
-                String      dataSource  = getString(jsonObj, "DATA_SOURCE");
-                String      recordId    = getString(jsonObj, "RECORD_ID");
-                SzRecordKey recordKey   = SzRecordKey.of(dataSource, recordId);
-
-                recordKeys.add(recordKey);
-                String info = engine.addRecord(recordKey, record, SZ_WITH_INFO_FLAGS);
-                replicator.getDatabaseMessageQueue().enqueueMessage(info);
-            }
+            // load, delete and reload to exercise the data mart fully
+            loadRecords(recordKeys, engine, replicator);
+            deleteRecords(recordKeys, engine, replicator);
+            loadRecords(recordKeys, engine, replicator);
 
             // return the record keys
             return recordKeys;
@@ -963,7 +939,185 @@ public class DataMartTestExtension implements BeforeAllCallback {
         }
     }
 
+    /**
+     * Loads the records from the truth set and adds the record keys
+     * from the specified {@link Set}.
+     * 
+     * @param recordKeys The {@link Set} of {@link SzRecordKey} that
+     *                   tracks loaded records.
+     * @param engine The {@link SzEngine} to use.
+     * @param replicator The {@link SzReplicator} to use for posting the INFO.
+     * 
+     * @throws IOException If an I/O failure occurs.
+     * @throws SzException If a Senzing failure occurs.
+     * @throws SQLException If a JDBC failure occurs.
+     */
+    protected static void loadRecords(Set<SzRecordKey> recordKeys,
+                                      SzEngine         engine,
+                                      SzReplicator     replicator) 
+        throws IOException, SzException, SQLException
+    {
+        Class<DataMartTestExtension> c = DataMartTestExtension.class;
 
+        Map<SzRecordKey, String> fixTweaksMap = new LinkedHashMap<>();
+        try (InputStream is = c.getResourceAsStream(TRUTH_SET_RESOURCE_NAME);
+             InputStreamReader isr = new InputStreamReader(is, UTF_8);
+             BufferedReader br = new BufferedReader(isr))
+        {
+            for (String record = br.readLine(); record != null; record = br.readLine()) 
+            {
+                // trim whitespace
+                record = record.trim();
+
+                // skip any blank lines
+                if (record.length() == 0) {
+                    continue;
+                }
+                // skip commented-out lines
+                if (record.startsWith("#")) {
+                    continue;
+                }
+
+                // parse the record as JSON
+                JsonObject  jsonObj     = parseJsonObject(record);
+
+                // get the data source and record ID
+                String      dataSource  = getString(jsonObj, "DATA_SOURCE");
+                String      recordId    = getString(jsonObj, "RECORD_ID");
+                SzRecordKey recordKey   = SzRecordKey.of(dataSource, recordId);
+
+                String tweaked = tweakRecord(record);
+                if (!tweaked.equals(record)) {
+                    fixTweaksMap.put(recordKey, record);
+                    record = tweaked;
+                }
+
+                recordKeys.add(recordKey);
+                String info = engine.addRecord(recordKey, record, SZ_WITH_INFO_FLAGS);
+                replicator.getDatabaseMessageQueue().enqueueMessage(info);
+            }
+
+            // loop through the previously tweaked records and fix them
+            for (Map.Entry<SzRecordKey, String> entry : fixTweaksMap.entrySet()) {
+                SzRecordKey recordKey = entry.getKey();
+                String record = entry.getValue();
+                String info = engine.addRecord(recordKey, record, SZ_WITH_INFO_FLAGS);
+                replicator.getDatabaseMessageQueue().enqueueMessage(info);
+            }
+        }
+    }
+
+    /**
+     * Private map used for tweaking record values.
+     */
+    private static final Map<String, Integer> TWEAK_MAP = Map.of(
+        "REL_POINTER_ROLE", 0,
+        "DRIVERS_LICENSE_NUMBER", 11,
+        "SSN_NUMBER", 9,
+        "PHONE_NUMBER", 10);
+    
+    /**
+     * Conditionally tweaks the record so that it can be loaded once one way
+     * and then later updated with its correct data.  This will exercise the
+     * data mart replication code that handles changed relationships and changed
+     * match keys.
+     * 
+     * @param record The record to conditionally tweaked.
+     * @return The tweaked record or the specified record if the record was not
+     *         tweaked.
+     */
+    protected static String tweakRecord(String record) {
+        boolean tweak = false;
+        for (String key : TWEAK_MAP.keySet()) {
+            if (record.indexOf(key) >= 0) {
+                tweak = true;
+                break;
+            }
+        }
+        if (!tweak) {
+            return record;
+        }
+
+        int changeIndex = 0;
+
+        // parse the record
+        JsonObject jsonObject = parseJsonObject(record);
+        JsonObjectBuilder job = Json.createObjectBuilder(jsonObject);
+
+        for (Map.Entry<String,Integer> entry : TWEAK_MAP.entrySet()) {
+            String key = entry.getKey();
+            int length = entry.getValue();
+
+            if (jsonObject.containsKey(key)) {
+                if (length == 0) {
+                    String value = ((changeIndex++)%2 == 0) ? "FOO" : "BAR";
+                    job.add(key, value);
+                } else {
+                    StringBuilder sb = new StringBuilder();
+                    for (int index = 0; index < length; index++) {
+                        sb.append("" + (1 + ((changeIndex++)/3)));
+                    }
+                    job.add(key, sb.toString());
+                }
+            }
+        }
+
+        return toJsonText(job);
+    }
+
+    /**
+     * Deletes the records from the truth set and removes the record keys
+     * from the specified {@link Set}.
+     * 
+     * @param recordKeys The {@link Set} of {@link SzRecordKey} that
+     *                   tracks loaded records.
+     * @param engine The {@link SzEngine} to use.
+     * @param replicator The {@link SzReplicator} to use for posting the INFO.
+     * 
+     * @throws IOException If an I/O failure occurs.
+     * @throws SzException If a Senzing failure occurs.
+     * @throws SQLException If a JDBC failure occurs.
+     */
+    protected static void deleteRecords(Set<SzRecordKey>    recordKeys,
+                                        SzEngine            engine,
+                                        SzReplicator        replicator) 
+        throws IOException, SzException, SQLException
+    {
+        Class<DataMartTestExtension> c = DataMartTestExtension.class;
+
+        try (InputStream is = c.getResourceAsStream(TRUTH_SET_RESOURCE_NAME);
+             InputStreamReader isr = new InputStreamReader(is, UTF_8);
+             BufferedReader br = new BufferedReader(isr))
+        {
+            for (String record = br.readLine(); record != null; record = br.readLine()) 
+            {
+                // trim whitespace
+                record = record.trim();
+
+                // skip any blank lines
+                if (record.length() == 0) {
+                    continue;
+                }
+                // skip commented-out lines
+                if (record.startsWith("#")) {
+                    continue;
+                }
+
+                // parse the record as JSON
+                JsonObject  jsonObj     = parseJsonObject(record);
+
+                // get the data source and record ID
+                String      dataSource  = getString(jsonObj, "DATA_SOURCE");
+                String      recordId    = getString(jsonObj, "RECORD_ID");
+                SzRecordKey recordKey   = SzRecordKey.of(dataSource, recordId);
+
+                recordKeys.remove(recordKey);
+                String info = engine.deleteRecord(recordKey, SZ_WITH_INFO_FLAGS);
+                replicator.getDatabaseMessageQueue().enqueueMessage(info);
+            }
+        }
+    }
+    
     /**
      * Retrieves all entities for the records identified in the specified
      * {@link Set} of {@link SzRecordKey} instances.

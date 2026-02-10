@@ -68,14 +68,10 @@ public interface EntitySizeReportsService extends ReportsService {
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
+            throw e;
 
         } finally {
             conn = close(conn);
@@ -109,14 +105,10 @@ public interface EntitySizeReportsService extends ReportsService {
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
+            throw e;
 
         } finally {
             conn = close(conn);
@@ -176,14 +168,10 @@ public interface EntitySizeReportsService extends ReportsService {
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
+            throw e;
 
         } finally {
             conn = close(conn);

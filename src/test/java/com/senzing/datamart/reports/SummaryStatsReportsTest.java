@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.checkerframework.checker.units.qual.m;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -79,24 +78,16 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
         int skipFactor = this.getSkipFactor();
         Set<DataSourceCombination> sourceCombinations = this.getDataSourceCombinations();
 
-        ThrowingConnectionProvider sqlExceptionProvider 
-            = new ThrowingConnectionProvider(SQLException.class);
-
-        ThrowingConnectionProvider nullPointerProvider
-            = new ThrowingConnectionProvider(NullPointerException.class);
-        
         this.summaryStatsMap.forEach((repoType, summaryStats) -> {
             ConnectionProvider connProvider = this.getConnectionProvider(repoType);
 
             Set<String> emptySet = Collections.emptySet();
 
             if (sourceCombinations.contains(LOADED)) {
-                result.add(Arguments.of(
-                    repoType, sqlExceptionProvider, "*", "*", LOADED, null, summaryStats, 
-                    SQLException.class));
-                result.add(Arguments.of(
-                    repoType, nullPointerProvider, "*", "*", LOADED, null, summaryStats, 
-                    NullPointerException.class));
+                FAILING_CONNECTION_PROVIDERS.forEach(connProv -> {
+                    result.add(Arguments.of(
+                        repoType, connProv, "*", "*", LOADED, null, summaryStats, connProv.getThrowType()));
+                });
 
                 result.add(Arguments.of(
                     repoType, connProvider, "*", "*", LOADED, null, summaryStats, null));
@@ -978,23 +969,22 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
         List<Arguments> result = new LinkedList<>();
         int skipFactor = this.getSkipFactor();
 
-        ThrowingConnectionProvider sqlExceptionProvider 
-            = new ThrowingConnectionProvider(SQLException.class);
-
         for (RepositoryType repoType : RepositoryType.values()) {
             Repository repo = DataMartTestExtension.getRepository(repoType);
 
-            result.add(Arguments.of(repoType,
-                                    sqlExceptionProvider,
-                                    "TEST",
-                                    null,
-                                    null,
-                                    null,
-                                    EXCLUSIVE_LOWER,
-                                    100,
-                                    null,
-                                    null,
-                                    SQLException.class));
+            FAILING_CONNECTION_PROVIDERS.forEach(connProv -> {
+                result.add(Arguments.of(repoType,
+                                        connProv,
+                                        "TEST",
+                                        null,
+                                        null,
+                                        null,
+                                        EXCLUSIVE_LOWER,
+                                        100,
+                                        null,
+                                        null,
+                                        connProv.getThrowType()));
+            });
 
             result.add(Arguments.of(repoType,
                                     this.getConnectionProvider(repoType),
@@ -1151,24 +1141,23 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
         List<Arguments> result = new LinkedList<>();
         int skipFactor = this.getSkipFactor();
 
-        ThrowingConnectionProvider sqlExceptionProvider 
-            = new ThrowingConnectionProvider(SQLException.class);
-
         for (RepositoryType repoType : RepositoryType.values()) {
             Repository repo = DataMartTestExtension.getRepository(repoType);
 
-            result.add(Arguments.of(repoType,
-                                    sqlExceptionProvider,
-                                    "TEST",
-                                    "TEST",
-                                    null,
-                                    null,
-                                    null,
-                                    EXCLUSIVE_LOWER,
-                                    100,
-                                    null,
-                                    null,
-                                    SQLException.class));
+            FAILING_CONNECTION_PROVIDERS.forEach(connProv -> {
+                result.add(Arguments.of(repoType,
+                                        connProv,
+                                        "TEST",
+                                        "TEST",
+                                        null,
+                                        null,
+                                        null,
+                                        EXCLUSIVE_LOWER,
+                                        100,
+                                        null,
+                                        null,
+                                        connProv.getThrowType()));
+            });
     
             result.add(Arguments.of(repoType,
                                     this.getConnectionProvider(repoType),
@@ -2358,24 +2347,23 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
         List<Arguments> result = new LinkedList<>();
         int skipFactor = this.getSkipFactor();
 
-        ThrowingConnectionProvider sqlExceptionProvider 
-            = new ThrowingConnectionProvider(SQLException.class);
-        
         for (RepositoryType repoType : RepositoryType.values()) {
             Repository repo = DataMartTestExtension.getRepository(repoType);
 
-            result.add(Arguments.of(repoType,
-                                    sqlExceptionProvider,
-                                    "TEST",
-                                    "TEST",
-                                    null,
-                                    null,
-                                    null,
-                                    EXCLUSIVE_LOWER,
-                                    100,
-                                    null,
-                                    null,
-                                    SQLException.class));
+            FAILING_CONNECTION_PROVIDERS.forEach(connProv -> {
+                result.add(Arguments.of(repoType,
+                                        connProv,
+                                        "TEST",
+                                        "TEST",
+                                        null,
+                                        null,
+                                        null,
+                                        EXCLUSIVE_LOWER,
+                                        100,
+                                        null,
+                                        null,
+                                        connProv.getThrowType()));
+            });
 
             result.add(Arguments.of(repoType,
                                     this.getConnectionProvider(repoType),

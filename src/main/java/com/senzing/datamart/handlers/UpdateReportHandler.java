@@ -504,12 +504,15 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
             int updateCount = sum(rowCounts);
             if (updateCount != deltaSumMap.size()) {
                 throw new IllegalStateException(
-                        "Inserted/updated an unexpected number of detail rows.  " + "expected=[ " + deltaSumMap.size()
-                                + " ], actual=[ " + updateCount + " ], reportKey=[ " + reportKey + " ]");
+                        "Inserted/updated an unexpected number of detail rows.  " 
+                        + "expected=[ " + deltaSumMap.size()
+                        + " ], actual=[ " + updateCount 
+                        + " ], reportKey=[ " + reportKey + " ]");
             }
 
             // now delete any rows that dropped to a zero (0) count
-            ps = conn.prepareStatement("DELETE FROM sz_dm_report_detail " + "WHERE report_key = ? AND modifier_id = ? "
+            ps = conn.prepareStatement("DELETE FROM sz_dm_report_detail " 
+                    + "WHERE report_key = ? AND modifier_id = ? "
                     + "AND stat_count = 0");
 
             ps.setString(1, reportKey.toString());

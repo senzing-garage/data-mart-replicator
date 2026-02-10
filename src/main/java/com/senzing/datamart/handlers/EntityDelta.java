@@ -1488,6 +1488,7 @@ public class EntityDelta {
 
             // handle entity count and unmatched count when no principle or match key
             if (matchKey == null && principle == null) {
+                logDebug("Decrementing ENTITY_COUNT for " + source1 + " for entity " + entityId);
                 reportUpdates.add(
                         builder(DATA_SOURCE_SUMMARY, ENTITY_COUNT, source1, source2, entityId).entities(-1).build());
             }
@@ -1498,6 +1499,7 @@ public class EntityDelta {
                 // create the statistic
                 String statistic = MATCHED_COUNT.matchKey(matchKey).principle(principle).toString();
 
+                logDebug("Untracking entity " + entityId + " for " + source1 + " DSS:" + statistic);
                 reportUpdates.add(builder(DATA_SOURCE_SUMMARY, statistic, source1, source2, entityId).entities(-1)
                         .records(-1 * recordCount).build());
             }
@@ -1519,6 +1521,8 @@ public class EntityDelta {
 
             // handle entity count when no principle or match key
             if (matchKey == null && principle == null) {
+                logDebug("Incrementing ENTITY_COUNT for " + source1 + " for entity " + entityId);
+                 
                 reportUpdates.add(
                         builder(DATA_SOURCE_SUMMARY, ENTITY_COUNT, source1, source2, entityId).entities(1).build());
             }
@@ -1528,6 +1532,8 @@ public class EntityDelta {
                 // handle the match count with the record count is greater than 1
                 // create the statistic
                 String statistic = MATCHED_COUNT.matchKey(matchKey).principle(principle).toString();
+
+                logDebug("Tracking entity " + entityId + " for " + source1 + " DSS:" + statistic);
 
                 reportUpdates.add(builder(DATA_SOURCE_SUMMARY, statistic, source1, source2, entityId).entities(1)
                         .records(recordCount).build());
@@ -1540,6 +1546,7 @@ public class EntityDelta {
         {
             String source = oldSourceSummary.keySet().iterator().next();
 
+            logDebug("Untracking UNMATCHED_COUNT entity " + entityId + " for " + source + " DSS");
             // it was PREVIOUSLY an unmatched record, but now it is matched or deleted
             reportUpdates.add(builder(DATA_SOURCE_SUMMARY, UNMATCHED_COUNT, source, source, entityId)
                     .entities(-1).records(-1).build());
@@ -1551,6 +1558,7 @@ public class EntityDelta {
         {
             String source = newSourceSummary.keySet().iterator().next();
 
+            logDebug("Tracking UNMATCHED_COUNT entity " + entityId + " for " + source + " DSS");
             // it was previously a "matched record" or did not exist, but now it is an "unmatched record"
             reportUpdates.add(builder(DATA_SOURCE_SUMMARY, UNMATCHED_COUNT, source, source, entityId)
                     .entities(1).records(1).build());
@@ -1579,18 +1587,21 @@ public class EntityDelta {
                     .principle(crossMatchKey.getPrinciple()).toString();
 
             if (oldCount == 1 && newCount > 1) {
-                // one more matched records now in the entity -- need to increment
+                logDebug("Tracking entity " + entityId + " for " + source1 + " DSS:" + statistic);
+                // one or more matched records now in the entity -- need to increment
                 // the matched entity count and the record count by new count
                 reportUpdates.add(builder(DATA_SOURCE_SUMMARY, statistic, source1, source2, entityId).entities(1)
                         .records(newCount).build());
 
             } else if (oldCount > 1 && newCount == 1) {
+                logDebug("Untracking entity " + entityId + " for " + source1 + " DSS:" + statistic);
                 // it is NOW an unmatched record
                 // one less matched record entity -- decrement the old record count
                 reportUpdates.add(builder(DATA_SOURCE_SUMMARY, statistic, source1, source2, entityId).entities(-1)
                         .records(-1 * oldCount).build());
 
             } else {
+                logDebug("Tracking record count difference for " + entityId + " " + source1 + " DSS:" + statistic);
                 // it was and is still counted in the MATCHED records, but size differs
                 reportUpdates
                         .add(builder(DATA_SOURCE_SUMMARY, statistic, source1, source2, entityId).records(diff).build());
@@ -1763,17 +1774,25 @@ public class EntityDelta {
             return result;
         }
 
+        // add the null/null pair always
+        result.add(new MatchPairKey(null, null));
+
         // iterate over the records
         entity.getRecords().values().forEach(record -> {
             String matchKey = record.getMatchKey();
             String principle = record.getPrinciple();
+            // add the pair for a match key and any principle
             if (matchKey != null) {
                 result.add(new MatchPairKey(matchKey, null));
             }
+            // add the pair for a principle and any match key
             if (principle != null) {
                 result.add(new MatchPairKey(null, principle));
             }
-            result.add(new MatchPairKey(matchKey, principle));
+            // add the pair for both non-null values
+            if (matchKey != null && principle != null) {
+                result.add(new MatchPairKey(matchKey, principle));
+            }
         });
         return result;
     }
@@ -1815,47 +1834,6 @@ public class EntityDelta {
         });
 
         // return the result
-        return result;
-    }
-
-    /**
-     * Determines the delta counts between the old and the new maps.
-     *
-     * @param oldCrossSource The {@link Map} of cross-source pair keys to the old
-     *                       counts as {@Integer} values.
-     * @param newCrossSource The {@link Map} of cross-source pair keys to the new
-     *                       counts as {@link Integer} values.
-     * @return The {@link Map} of cross-source pair keys to {@link Integer} delta
-     *         values.
-     */
-    private static Map<List<String>, Integer> diffCrossSourceSummaries(Map<List<String>, Integer> oldCrossSource, Map<List<String>, Integer> newCrossSource) {
-        Map<List<String>, Integer> result = new LinkedHashMap<>();
-
-        oldCrossSource.forEach((sourcePair, oldCount) -> {
-            // get the new count
-            Integer newCount = newCrossSource.get(sourcePair);
-
-            // if no new count, then default to zero
-            if (newCount == null) {
-                newCount = 0;
-            }
-
-            // put the difference in the map
-            result.put(sourcePair, newCount - oldCount);
-        });
-        newCrossSource.forEach((sourcePair, newCount) -> {
-            // get the old count
-            Integer oldCount = oldCrossSource.get(sourcePair);
-
-            // check if already handled
-            if (oldCount != null) {
-                return;
-            }
-
-            // put the difference in the map
-            result.put(sourcePair, newCount);
-        });
-
         return result;
     }
 

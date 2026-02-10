@@ -1,5 +1,6 @@
 package com.senzing.datamart;
 
+import com.senzing.cmdline.CommandLineException;
 import com.senzing.listener.communication.rabbitmq.RabbitMQConsumer;
 import com.senzing.listener.communication.rabbitmq.TestableRabbitMQConsumer;
 import com.senzing.listener.communication.sqs.SQSConsumer;
@@ -10,6 +11,7 @@ import com.senzing.sdk.SzEnvironment;
 import com.senzing.sdk.SzException;
 import com.senzing.sdk.core.SzCoreEnvironment;
 import com.senzing.util.JsonUtilities;
+import com.senzing.util.LoggingUtilities;
 import com.senzing.util.Quantified.Statistic;
 import com.senzing.util.SzInstallLocations;
 import com.senzing.util.SzUtilities;
@@ -38,12 +40,15 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.*;
+import static com.senzing.datamart.SzReplicatorOption.*;
 
 /**
  * Unit tests for {@link SzReplicator}.
@@ -822,6 +827,318 @@ public class SzReplicatorTest {
                 }
             }
         }
+    }
+
+    // ========================================================================
+    // Constructor Error Handling Tests
+    // ========================================================================
+
+    /**
+     * Test that SzReplicator properly cleans up SzCoreEnvironment when construction fails.
+     */
+    @Test
+    public void testConstructorFailureCleanup() throws Exception {
+        // Create options with invalid core settings (missing SQL/CONNECTION path)
+        SzReplicatorOptions options = new SzReplicatorOptions();
+
+        // Set invalid core settings
+        JsonObject invalidSettings = JsonUtilities.parseJsonObject("{\"PIPELINE\":{}}");
+        options.setCoreSettings(invalidSettings);
+
+        // Set database URI to extract from core settings (will fail)
+        ConnectionUri coreSettingsUri = SzReplicatorOption.parseDatabaseUri(
+            "sz://core-settings/SQL/CONNECTION");
+        options.setDatabaseUri(coreSettingsUri);
+
+        // Set database queue
+        options.setUsingDatabaseQueue(true);
+
+        // Attempt to construct - should fail
+        IllegalArgumentException caughtException = null;
+        try {
+            new SzReplicator(options);
+            fail("Expected IllegalArgumentException for invalid core settings");
+
+        } catch (IllegalArgumentException e) {
+            caughtException = e;
+        }
+
+        // Verify exception was thrown
+        assertNotNull(caughtException,
+            "Should have thrown IllegalArgumentException");
+
+        // Check if SzCoreEnvironment was left active (leaked)
+        SzEnvironment activeEnv = SzCoreEnvironment.getActiveInstance();
+
+        if (activeEnv != null) {
+            // Clean up the leaked environment
+            try {
+                activeEnv.destroy();
+            } catch (Exception e) {
+                // Ignore cleanup errors
+            }
+
+            // Fail the test - SzReplicator didn't clean up after itself
+            fail("SzReplicator failed to cleanup SzAutoCoreEnvironment after construction failure. " +
+                 "Active instance was left: " + activeEnv);
+        }
+
+        // If we get here, cleanup was successful
+        assertNull(activeEnv,
+            "SzCoreEnvironment should be null after failed construction (proper cleanup)");
+    }
+
+    /**
+     * Test SzReplicator constructor error handling when SzCoreSettingsUri is used
+     * without providing core settings. This should trigger the error block on lines
+     * 898-902 of SzReplicator.java.
+     */
+    @Test
+    public void testConstructorWithCoreSettingsUriButNoCoreSettings() {
+        // Create a mock SzEnvironment that returns simple default values
+        SzEnvironment mockEnv = new SzEnvironment() {
+            @Override public long getActiveConfigId() { return 0L; }
+            @Override public SzConfigManager getConfigManager() { return null; }
+            @Override public com.senzing.sdk.SzProduct getProduct() { return null; }
+            @Override public com.senzing.sdk.SzEngine getEngine() { return null; }
+            @Override public com.senzing.sdk.SzDiagnostic getDiagnostic() { return null; }
+            @Override public void reinitialize(long configId) {}
+            @Override public void destroy() {}
+            @Override public boolean isDestroyed() { return false; }
+        };
+
+        // Create options with NO core settings but WITH an SzCoreSettingsUri
+        SzReplicatorOptions options = new SzReplicatorOptions();
+
+        // Do NOT set core settings - this is the error condition we're testing
+        // options.setCoreSettings(...) -- intentionally omitted
+
+        // Set database URI to an SzCoreSettingsUri
+        ConnectionUri coreSettingsUri = new SzCoreSettingsUri("SQL/CONNECTION");
+        options.setDatabaseUri(coreSettingsUri);
+
+        // Set concurrency to avoid null issues
+        options.setCoreConcurrency(1);
+
+        // Attempt to construct - should fail with IllegalArgumentException
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> new SzReplicator(mockEnv, options, false),
+            "Should throw IllegalArgumentException when SzCoreSettingsUri is used without core settings"
+        );
+
+        // Verify the exception message contains the expected text
+        String message = exception.getMessage();
+        assertNotNull(message, "Exception message should not be null");
+        assertTrue(message.contains("Cannot specify an SzCoreSettingsUri URI"),
+            "Exception message should contain 'Cannot specify an SzCoreSettingsUri URI', but was: " + message);
+        assertTrue(message.contains("if the core settings have not been provided"),
+            "Exception message should contain 'if the core settings have not been provided', but was: " + message);
+    }
+
+    /**
+     * Test SzReplicator constructor error handling when SzCoreSettingsUri resolves
+     * to an unsupported URI type (RabbitMqUri). This should trigger the error block
+     * on lines 915-930 of SzReplicator.java.
+     */
+    @Test
+    public void testConstructorWithCoreSettingsUriResolvingToUnsupportedType() {
+        // Create a mock SzEnvironment
+        SzEnvironment mockEnv = new SzEnvironment() {
+            @Override public long getActiveConfigId() { return 0L; }
+            @Override public SzConfigManager getConfigManager() { return null; }
+            @Override public com.senzing.sdk.SzProduct getProduct() { return null; }
+            @Override public com.senzing.sdk.SzEngine getEngine() { return null; }
+            @Override public com.senzing.sdk.SzDiagnostic getDiagnostic() { return null; }
+            @Override public void reinitialize(long configId) {}
+            @Override public void destroy() {}
+            @Override public boolean isDestroyed() { return false; }
+        };
+
+        // Create options with core settings that resolve to a RabbitMQ URI
+        SzReplicatorOptions options = new SzReplicatorOptions();
+
+        // Create core settings JSON with SQL/CONNECTION pointing to a RabbitMQ URI
+        // Format: amqp://user:password@host:port/virtualHost
+        String rabbitMqUriString = "amqp://guest:guest@localhost:5672/test";
+        JsonObject coreSettings = JsonUtilities.parseJsonObject(
+            "{\"SQL\":{\"CONNECTION\":\"" + rabbitMqUriString + "\"}}"
+        );
+        options.setCoreSettings(coreSettings);
+
+        // Set database URI to SzCoreSettingsUri pointing to /SQL/CONNECTION
+        ConnectionUri coreSettingsUri = new SzCoreSettingsUri("SQL/CONNECTION");
+        options.setDatabaseUri(coreSettingsUri);
+
+        // Set concurrency
+        options.setCoreConcurrency(1);
+
+        // Attempt to construct - should fail with IllegalArgumentException
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> new SzReplicator(mockEnv, options, false),
+            "Should throw IllegalArgumentException when SzCoreSettingsUri resolves to unsupported type"
+        );
+
+        // Verify the exception message contains the expected text
+        String message = exception.getMessage();
+        assertNotNull(message, "Exception message should not be null");
+        assertTrue(message.contains("Resolved the"),
+            "Exception message should contain 'Resolved the', but was: " + message);
+        assertTrue(message.contains("Data Mart URI"),
+            "Exception message should contain 'Data Mart URI', but was: " + message);
+        assertTrue(message.contains("is not supported"),
+            "Exception message should contain 'is not supported', but was: " + message);
+
+        // Additionally verify it mentions RabbitMqUri as the resolved type
+        assertTrue(message.contains("RabbitMqUri"),
+            "Exception message should mention RabbitMqUri as the unsupported type, but was: " + message);
+    }
+
+    // ========================================================================
+    // Command-Line Error Handling Tests
+    // ========================================================================
+
+    /**
+     * Provides test parameters for invalid command-line argument combinations.
+     */
+    public List<Arguments> getInvalidCommandLineParameters() {
+        List<Arguments> result = new LinkedList<>();
+
+        // Test 1: Conflicting options - SQS + RabbitMQ
+        Map<SzReplicatorOption, List<String>> args1 = new LinkedHashMap<>();
+        args1.put(SQS_INFO_URI, List.of("https://sqs.us-east-1.amazonaws.com/123/queue"));
+        args1.put(RABBITMQ_URI, List.of("amqp://user:pass@localhost:5672/vhost"));
+        result.add(Arguments.of("Conflicting options - SQS + RabbitMQ",
+            Collections.unmodifiableMap(args1), CommandLineException.class));
+
+        // Test 2: Conflicting options - SQS + DATABASE_INFO_QUEUE
+        Map<SzReplicatorOption, List<String>> args2 = new LinkedHashMap<>();
+        args2.put(SQS_INFO_URI, List.of("https://sqs.us-east-1.amazonaws.com/123/queue"));
+        args2.put(DATABASE_INFO_QUEUE, DATABASE_INFO_QUEUE.getDefaultParameters());
+        result.add(Arguments.of("Conflicting options - SQS + DATABASE_INFO_QUEUE",
+            Collections.unmodifiableMap(args2), CommandLineException.class));
+
+        // Test 3: Conflicting options - RabbitMQ + DATABASE_INFO_QUEUE
+        Map<SzReplicatorOption, List<String>> args3 = new LinkedHashMap<>();
+        args3.put(RABBITMQ_URI, List.of("amqp://user:pass@localhost:5672/vhost"));
+        args3.put(RABBITMQ_INFO_QUEUE, List.of("test-queue"));
+        args3.put(DATABASE_INFO_QUEUE, DATABASE_INFO_QUEUE.getDefaultParameters());
+        result.add(Arguments.of("Conflicting options - RabbitMQ + DATABASE_INFO_QUEUE",
+            Collections.unmodifiableMap(args3), CommandLineException.class));
+
+        // Test 4: Conflicting options - HELP + other options
+        Map<SzReplicatorOption, List<String>> args4 = new LinkedHashMap<>();
+        args4.put(HELP, Collections.emptyList());
+        args4.put(CORE_CONCURRENCY, List.of("8"));
+        result.add(Arguments.of("Conflicting options - HELP + other options",
+            Collections.unmodifiableMap(args4), CommandLineException.class));
+
+        // Test 5: Conflicting options - VERSION + other options
+        Map<SzReplicatorOption, List<String>> args5 = new LinkedHashMap<>();
+        args5.put(VERSION, Collections.emptyList());
+        args5.put(CORE_INSTANCE_NAME, List.of("test"));
+        result.add(Arguments.of("Conflicting options - VERSION + other options",
+            Collections.unmodifiableMap(args5), CommandLineException.class));
+
+        // NOTE: Test for "CORE_SETTINGS without DATABASE_URI" is not included because
+        // DATABASE_URI has a default value (sz://core-settings/SQL/CONNECTION) that
+        // automatically satisfies the dependency. The exception occurs later during
+        // construction when trying to extract the URI from core settings.
+
+        // NOTE: Test for "CORE_SETTINGS without info queue" is not included because
+        // it attempts to connect to the database and fails with PSQLException, not
+        // a command-line validation error. Missing info queue should be caught earlier.
+
+        // Test 8: Missing dependencies - RABBITMQ_INFO_QUEUE without RABBITMQ_URI
+        Map<SzReplicatorOption, List<String>> args8 = new LinkedHashMap<>();
+        args8.put(RABBITMQ_INFO_QUEUE, List.of("test-queue"));
+        args8.put(DATABASE_URI, List.of("sqlite:///tmp/test.db"));
+        // Missing RABBITMQ_URI
+        result.add(Arguments.of("Missing dependencies - RABBITMQ_INFO_QUEUE without RABBITMQ_URI",
+            Collections.unmodifiableMap(args8), CommandLineException.class));
+
+        return result;
+    }
+
+    /**
+     * Test main() with invalid command-line arguments.
+     */
+    @ParameterizedTest
+    @MethodSource("getInvalidCommandLineParameters")
+    public void testMainWithInvalidArguments(
+        String description,
+        Map<SzReplicatorOption, List<String>> optionsMap,
+        Class<? extends Exception> expectedExceptionType) throws Exception
+    {
+        // Convert map to String[] args
+        List<String> argsList = new LinkedList<>();
+        optionsMap.forEach((option, params) -> {
+            argsList.add(option.getCommandLineFlag());
+            argsList.addAll(params);
+        });
+        String[] args = argsList.toArray(new String[0]);
+
+        // Capture console output
+        SystemOut systemOut = new SystemOut();
+        SystemErr systemErr = new SystemErr();
+
+        Exception caughtException = null;
+        try {
+            systemOut.execute(() -> {
+                systemErr.execute(() -> {
+                    SzReplicator.main(args);
+                });
+            });
+
+            // If we get here, no exception was thrown - test should fail
+            fail(description + ": Expected " + expectedExceptionType.getSimpleName() +
+                 " but main() returned normally. Arguments: " + optionsMap);
+
+        } catch (Exception e) {
+            caughtException = e;
+        }
+
+        String stdoutOutput = systemOut.getText();
+        String stderrOutput = systemErr.getText();
+        String combinedOutput = stdoutOutput + stderrOutput;
+
+        // Verify exception was thrown
+        assertNotNull(caughtException,
+            description + ": Should have thrown an exception for invalid arguments. Arguments: " + optionsMap);
+
+        // Verify it's the expected exception type
+        assertTrue(expectedExceptionType.isInstance(caughtException),
+            description + ": Expected " + expectedExceptionType.getSimpleName() +
+            " but got " + caughtException.getClass().getSimpleName() +
+            ". Arguments: " + optionsMap +
+            "\nException: " + caughtException.toString());
+
+        // Verify exception occurred BEFORE SzReplicator constructor
+        // (not during/after initialization)
+        StackTraceElement[] stackTrace = caughtException.getStackTrace();
+        boolean foundConstructor = false;
+        for (StackTraceElement element : stackTrace) {
+            if (element.getClassName().equals("com.senzing.datamart.SzReplicator") &&
+                element.getMethodName().equals("<init>")) {
+                foundConstructor = true;
+                break;
+            }
+        }
+
+        assertFalse(foundConstructor,
+            description + ": Exception should occur before SzReplicator constructor, not during/after. " +
+            "Arguments: " + optionsMap +
+            "\nException: " + caughtException.toString() +
+            "\nStack trace:\n" + LoggingUtilities.formatStackTrace(stackTrace));
+
+        // Verify console output mentions command-line error
+        assertTrue(combinedOutput.toLowerCase().contains("option") ||
+                   combinedOutput.toLowerCase().contains("argument") ||
+                   combinedOutput.toLowerCase().contains("conflict") ||
+                   combinedOutput.toLowerCase().contains("missing") ||
+                   combinedOutput.toLowerCase().contains("required"),
+            "Console output should mention command-line parameter issue");
     }
 
     // ========================================================================

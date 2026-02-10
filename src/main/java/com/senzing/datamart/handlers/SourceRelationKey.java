@@ -9,7 +9,7 @@ import java.util.TreeSet;
  * The key for categorizing relations from an entity to another entity or a data
  * source from which the related entities contain records.
  */
-public class SourceRelationKey implements Comparable<SourceRelationKey> {
+public final class SourceRelationKey implements Comparable<SourceRelationKey> {
     /**
      * The {@link SzMatchType} describing the associated match type.
      */
@@ -135,12 +135,6 @@ public class SourceRelationKey implements Comparable<SourceRelationKey> {
         SzMatchType mt1 = this.getMatchType();
         SzMatchType mt2 = key.getMatchType();
         if (!Objects.equals(mt1, mt2)) {
-            if (mt1 == null) {
-                return -1;
-            }
-            if (mt2 == null) {
-                return 1;
-            }
             int diff = mt1.compareTo(mt2);
             if (diff != 0) {
                 return diff;

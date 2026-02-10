@@ -43,7 +43,10 @@ public class EntitySizeReportsTest extends AbstractReportsTest {
         List<Arguments> result = new ArrayList<>(this.breakdownMap.size());
         
         this.breakdownMap.forEach((repoType, breakdown) -> {
-            result.add(Arguments.of(repoType, this.getConnectionProvider(repoType), breakdown));
+            FAILING_CONNECTION_PROVIDERS.forEach(connProv -> {
+                result.add(Arguments.of(repoType, connProv, null, connProv.getThrowType()));
+            });
+            result.add(Arguments.of(repoType, this.getConnectionProvider(repoType), breakdown, null));
         });
 
         return result;
@@ -53,19 +56,25 @@ public class EntitySizeReportsTest extends AbstractReportsTest {
     @MethodSource("getBreakdownParameters")
     public void testEntitySizeBreakdown(RepositoryType          repoType,
                                         ConnectionProvider      connProvider,
-                                        SzEntitySizeBreakdown   expected)
+                                        SzEntitySizeBreakdown   expected,
+                                        Class<?>                exceptionType)
     {
         String testInfo = "repoType=[ " + repoType + " ]";
 
         try {
-            SzEntitySizeBreakdown actual
-                = this.getEntitySizeBreakdown(repoType, connProvider);
+            this.withConditionalSuppression((exceptionType != null), () -> {
+                SzEntitySizeBreakdown actual
+                    = this.getEntitySizeBreakdown(repoType, connProvider);
 
-            validateReport(expected, actual, testInfo);
+                if (exceptionType != null) {
+                    fail("Method unexpectedly succeeded.  " + testInfo);
+                }
+
+                validateReport(expected, actual, testInfo);
+            });
 
         } catch (Exception e) {
-            fail("Failed test with an unexpected exception: repoType=[ "
-                 + repoType + " ]", e);
+            validateException(testInfo, e, exceptionType);
         }
     }
 
@@ -95,6 +104,11 @@ public class EntitySizeReportsTest extends AbstractReportsTest {
         List<Arguments> result = new LinkedList<>();
         
         this.breakdownMap.forEach((repoType, breakdown) -> {
+            FAILING_CONNECTION_PROVIDERS.forEach(connProv -> {
+                result.add(Arguments.of(
+                    repoType, connProv, 1, null, connProv.getThrowType()));
+            });
+
             int greatestSize = breakdown.getEntitySizeCounts().get(0).getEntitySize();
 
             breakdown.getEntitySizeCounts().forEach((sizeCount) -> {
@@ -148,13 +162,7 @@ public class EntitySizeReportsTest extends AbstractReportsTest {
                 validateReport(expected, actual, testInfo);
 
             } catch (Exception e) {
-                if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                    fail("Unexpected exception (" + e.getClass().getName()
-                         + ") when expecting "
-                         + (exceptionType == null ? "none" : exceptionType.getName())
-                         + ": repoType=[ " + repoType + " ], entitySize=[ "
-                         + entitySize + " ]", e);
-                }
+                validateException(testInfo, e, exceptionType);
             }
         });
     }
@@ -187,6 +195,18 @@ public class EntitySizeReportsTest extends AbstractReportsTest {
         List<Arguments> result = new LinkedList<>();
 
         this.breakdownMap.forEach((repoType, breakdown) -> {
+            FAILING_CONNECTION_PROVIDERS.forEach(connProv -> {
+                result.add(Arguments.of(repoType, 
+                                        connProv,
+                                        1,
+                                        "0",
+                                        INCLUSIVE_LOWER,
+                                        5000,
+                                        null,
+                                        null,
+                                        connProv.getThrowType()));
+            });
+
             result.add(Arguments.of(repoType, 
                                     this.getConnectionProvider(repoType),
                                     -1,
@@ -303,12 +323,7 @@ public class EntitySizeReportsTest extends AbstractReportsTest {
                                           actual);
 
             } catch (Exception e) {
-                if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                    fail("Unexpected exception (" + e.getClass().getName()
-                         + ") when expecting "
-                         + (exceptionType == null ? "none" : exceptionType.getName())
-                         + ": " + testInfo, e);
-                }
+                validateException(testInfo, e, exceptionType);
             }
         });
     }

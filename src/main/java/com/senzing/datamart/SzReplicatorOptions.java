@@ -795,11 +795,11 @@ public class SzReplicatorOptions {
                     
                     method.invoke(options, value);
 
-                } catch (Exception e) {
+                } catch (ReflectiveOperationException e) {
                     Throwable cause = e.getCause() == null ? e : e.getCause();
-                    //if (cause instanceof RuntimeException) {
-                    //    throw (RuntimeException) cause;
-                    //}
+                    if (cause instanceof RuntimeException) {
+                        throw (RuntimeException) cause;
+                    }
                     throw new RuntimeException("Failed to call " + method + " with "
                         + value.getClass().getName() + " value: " + value, cause);
                 }

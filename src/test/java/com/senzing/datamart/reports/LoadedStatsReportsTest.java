@@ -3,6 +3,7 @@ package com.senzing.datamart.reports;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -33,6 +34,7 @@ import com.senzing.sql.ConnectionProvider;
 import com.senzing.sql.SQLUtilities;
 
 import static com.senzing.datamart.reports.DataSourceCombination.*;
+import static com.senzing.datamart.reports.model.SzBoundType.EXCLUSIVE_LOWER;
 
 @TestInstance(Lifecycle.PER_CLASS)
 @ExtendWith(DataMartTestExtension.class)
@@ -61,8 +63,13 @@ public class LoadedStatsReportsTest extends AbstractReportsTest {
             Set<String> emptySet = Collections.emptySet();
 
             if (dataSourceCombinations.contains(LOADED)) {
-                result.add(Arguments.of(repoType, connProvider, LOADED, null, loadedStats));
-                result.add(Arguments.of(repoType, connProvider, LOADED, emptySet, loadedStats));
+                FAILING_CONNECTION_PROVIDERS.forEach(connProv -> {
+                    result.add(Arguments.of(
+                        repoType, connProv, LOADED, null, null, connProv.getThrowType()));
+                });
+                
+                result.add(Arguments.of(repoType, connProvider, LOADED, null, loadedStats, null));
+                result.add(Arguments.of(repoType, connProvider, LOADED, emptySet, loadedStats, null));
             }
 
             // get the set of all loaded data sources
@@ -70,7 +77,7 @@ public class LoadedStatsReportsTest extends AbstractReportsTest {
             Set<String> loadedSources   = repo.getLoadedDataSources();
 
             if (dataSourceCombinations.contains(DataSourceCombination.LOADED)) {
-                result.add(Arguments.of(repoType, connProvider, LOADED, loadedSources, loadedStats));
+                result.add(Arguments.of(repoType, connProvider, LOADED, loadedSources, loadedStats, null));
             }
 
             // figure out which data sources are configured with no loaded records
@@ -100,7 +107,7 @@ public class LoadedStatsReportsTest extends AbstractReportsTest {
                 allStats.addDataSourceCount(stats);
             }
 
-            if (dataSourceCombinations.contains(ALL_BUT_DEFAULT)) {
+            if (dataSourceCombinations.contains(ALL_BUT_DEFAULT)) {                
                 // check if we have more than one unused data source
                 if (basicUnused.size() > 0) {
                     SzLoadedStats stats = clone(loadedStats);
@@ -113,13 +120,16 @@ public class LoadedStatsReportsTest extends AbstractReportsTest {
                     }
 
                     // add the test parameters to the list
-                    result.add(Arguments.of(repoType, connProvider, ALL_BUT_DEFAULT, basicUnused, stats));            
+                    result.add(
+                        Arguments.of(repoType, connProvider, ALL_BUT_DEFAULT, basicUnused, stats, null));            
                 }
             }
 
             if (dataSourceCombinations.contains(ALL_WITH_DEFAULT)) {
-                result.add(Arguments.of(repoType, connProvider, ALL_WITH_DEFAULT, dataSources, allStats));
-                result.add(Arguments.of(repoType, connProvider, ALL_WITH_DEFAULT, unusedSources, allStats));
+                result.add(Arguments.of(
+                    repoType, connProvider, ALL_WITH_DEFAULT, dataSources, allStats, null));
+                result.add(Arguments.of(
+                    repoType, connProvider, ALL_WITH_DEFAULT, unusedSources, allStats, null));
             }
             
             if (dataSourceCombinations.contains(COMPLEX)) {
@@ -145,7 +155,7 @@ public class LoadedStatsReportsTest extends AbstractReportsTest {
                         sources = Collections.unmodifiableSet(sources);
 
                         // add the test parameters to the list
-                        result.add(Arguments.of(repoType, connProvider, COMPLEX, sources, stats));            
+                        result.add(Arguments.of(repoType, connProvider, COMPLEX, sources, stats, null));            
                     }
                 }
             }
@@ -160,20 +170,26 @@ public class LoadedStatsReportsTest extends AbstractReportsTest {
                                 ConnectionProvider      connProvider,
                                 DataSourceCombination   sourceCombination,
                                 Set<String>             dataSources,
-                                SzLoadedStats           expected)
+                                SzLoadedStats           expected,
+                                Class<?>                exceptionType)
     {
         String testInfo = "repoType=[ " + repoType + " ], dataSourceCombo=[ "
             + sourceCombination + " ], dataSources=[ " + dataSources + " ]";
 
         try {
-            SzLoadedStats actual
-                = this.getLoadedStatistics(repoType, connProvider, sourceCombination, dataSources);
+            this.withConditionalSuppression((exceptionType != null), () -> {
+                SzLoadedStats actual = this.getLoadedStatistics(
+                    repoType, connProvider, sourceCombination, dataSources);
 
-            validateReport(expected, actual, testInfo);
+                if (exceptionType != null) {
+                    fail("Method unexpectedly succeeded.  " + testInfo);
+                }
+
+                validateReport(expected, actual, testInfo);
+            });
 
         } catch (Exception e) {
-            fail("Failed test with an unexpected exception: repoType=[ "
-                 + repoType + " ]", e);
+            validateException(testInfo, e, exceptionType);
         }
     }
 
@@ -244,12 +260,13 @@ public class LoadedStatsReportsTest extends AbstractReportsTest {
                                         null));
             });
 
+            FAILING_CONNECTION_PROVIDERS.forEach(connProv -> {
+                // create a test for sql exception
+                result.add(Arguments.of(repoType, connProv, "TEST", null, connProv.getThrowType()));
+            });
+
             // create a test for a null data source
-            result.add(Arguments.of(repoType,
-                                    connProvider,
-                                    null,
-                                    null,
-                                    NullPointerException.class));
+            result.add(Arguments.of(repoType, connProvider, null, null, NullPointerException.class));
         });
 
         return result;
@@ -279,12 +296,7 @@ public class LoadedStatsReportsTest extends AbstractReportsTest {
                 validateReport(expected, actual, testInfo);
 
             } catch (Exception e) {
-                if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                    fail("Unexpected exception (" + e.getClass().getName()
-                         + ") when expecting "
-                         + (exceptionType == null ? "none" : exceptionType.getName())
-                         + ": " + testInfo, e);
-                }
+                validateException(testInfo, e, exceptionType);
             }
         });
     }
@@ -318,6 +330,28 @@ public class LoadedStatsReportsTest extends AbstractReportsTest {
         List<Arguments> result = new LinkedList<>();
 
         this.loadedStatsMap.forEach((repoType, loadedStats) -> {
+            FAILING_CONNECTION_PROVIDERS.forEach(connProv -> {
+                result.add(Arguments.of(repoType,
+                                        connProv,
+                                        "TEST",
+                                        null,
+                                        EXCLUSIVE_LOWER,
+                                        100,
+                                        null,
+                                        null,
+                                        connProv.getThrowType()));
+            });
+
+            result.add(Arguments.of(repoType,
+                                    this.getConnectionProvider(repoType),
+                                    null,
+                                    null,
+                                    EXCLUSIVE_LOWER,
+                                    100,
+                                    null,
+                                    null,
+                                    NullPointerException.class));
+
             Repository repo = DataMartTestExtension.getRepository(repoType);
 
             Set<String> dataSources = repo.getConfiguredDataSources();
@@ -386,12 +420,7 @@ public class LoadedStatsReportsTest extends AbstractReportsTest {
                                           actual);
 
             } catch (Exception e) {
-                if ((exceptionType == null) || (!exceptionType.isInstance(e))) {
-                    fail("Unexpected exception (" + e.getClass().getName()
-                         + ") when expecting "
-                         + (exceptionType == null ? "none" : exceptionType.getName())
-                         + ": " + testInfo, e);
-                }
+                validateException(testInfo, e, exceptionType);
             }
         });
     }

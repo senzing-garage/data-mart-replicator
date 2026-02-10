@@ -35,7 +35,7 @@ public class SzCoreSettingsUri extends ConnectionUri {
 
     /**
      * Supported format for a Senzing Core Settings URI using a JSON path.
-     * The value of this constant is <code>{value}</code>.
+     * The value of this constant is <code>{@value}</code>.
      */
     public static final String SUPPORTED_FORMAT
         = "sz://core-settings/[json-path]";
