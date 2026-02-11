@@ -650,11 +650,19 @@ class AbstractSQLSchedulingServiceTest {
         try {
             // insertNewFollowUpTask is protected - directly accessible in same package
             service.insertNewFollowUpTask(conn, task);
-            conn.commit();
 
-            // Verify task was inserted
-            int count = getFollowUpTaskCount();
-            assertTrue(count > 0, "Task should have been inserted");
+            // Verify task was inserted by querying on the SAME connection (sees uncommitted data)
+            // This prevents the background thread from consuming the task before we verify it
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT COUNT(*) FROM sz_follow_up_tasks WHERE signature = ?")) {
+                ps.setString(1, task.getSignature());
+                try (ResultSet rs = ps.executeQuery()) {
+                    assertTrue(rs.next() && rs.getInt(1) > 0,
+                        "Task should have been inserted");
+                }
+            }
+
+            conn.commit();
 
         } finally {
             conn.close();

@@ -16,6 +16,7 @@ import com.senzing.sql.Connector;
 import com.senzing.sql.DatabaseType;
 import com.senzing.sql.PostgreSqlConnector;
 import com.senzing.sql.SQLiteConnector;
+import com.senzing.text.TextUtilities;
 import com.senzing.util.SzInstallLocations;
 import com.senzing.util.SzUtilities;
 
@@ -46,6 +47,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -79,6 +81,62 @@ public class DataMartTestExtension implements BeforeAllCallback {
      */
     public static final String TEST_PRESERVE_SYSTEM_PROPERTY 
         = "com.senzing.datamart.test.preserve";
+
+    /**
+     * System property to randomize/shuffle the order of loading, deleting
+     * and updating records.  Its value is <code>{@value}</code>.
+     */
+    public static final String TEST_SHUFFLE_SYSTEM_PROPERTY 
+        = "com.senzing.datamart.test.shuffle";
+
+    /**
+     * Boolean flag indicating if test databases should be preserved if possible.
+     */
+    private static final boolean PRESERVE_TEST_DATABASES
+        = Boolean.TRUE.toString().equalsIgnoreCase(
+            System.getProperty(TEST_PRESERVE_SYSTEM_PROPERTY));
+
+    /**
+     * Boolean flag indicating if test records should be shuffled.
+     */
+    private static final boolean SHUFFLE_TEST_RECORDS
+        = (!Boolean.FALSE.toString().equalsIgnoreCase(
+            System.getProperty(TEST_SHUFFLE_SYSTEM_PROPERTY,
+                               Boolean.FALSE.toString())));    
+    /**
+     * The random number generator to use for shuffling.
+     */
+    private static final Random SHUFFLE_PRNG;
+    
+    static {
+        String shuffleProp = System.getProperty(
+            TEST_SHUFFLE_SYSTEM_PROPERTY, 
+            Boolean.FALSE.toString()).toLowerCase();
+
+        Boolean shuffleBool = null;
+        if (Boolean.TRUE.toString().equalsIgnoreCase(shuffleProp)) {
+            shuffleBool = Boolean.TRUE;
+        }
+        if (Boolean.FALSE.toString().equalsIgnoreCase(shuffleProp)) {
+            shuffleBool = Boolean.FALSE;
+        }
+
+        String seedText = (shuffleBool == null)
+            ? System.getProperty(TEST_SHUFFLE_SYSTEM_PROPERTY)
+            : String.valueOf(System.currentTimeMillis());
+        
+        long seed;
+        try {
+            seed = Long.parseLong(seedText);
+        } catch (Exception e) {
+            seed = (long) seedText.hashCode();
+        }
+        
+        SHUFFLE_PRNG = new Random(seed);
+        if (SHUFFLE_TEST_RECORDS) {
+            logInfo("INITIALIZED RANDOM SEED: " + seed);
+        }
+    }
 
     /**
      * The resource file name for the truth set.
@@ -573,9 +631,7 @@ public class DataMartTestExtension implements BeforeAllCallback {
                         switch (type) {
                             case SQLITE:
                                 File file = (File) db;
-                                if (file.exists()
-                                    && (!Boolean.TRUE.toString().equals(
-                                            System.getProperty(TEST_PRESERVE_SYSTEM_PROPERTY))))
+                                if (file.exists() && (!PRESERVE_TEST_DATABASES))
                                 {
                                     file.delete();
                                 }
@@ -702,7 +758,7 @@ public class DataMartTestExtension implements BeforeAllCallback {
         File senzingDbFile = File.createTempFile("senzing_test_", ".db");
         File dataMartDbFile = File.createTempFile("datamart_test_", ".db");
 
-        if (!Boolean.TRUE.toString().equals(System.getProperty(TEST_PRESERVE_SYSTEM_PROPERTY))) {
+        if (!PRESERVE_TEST_DATABASES) {
             senzingDbFile.deleteOnExit();
             dataMartDbFile.deleteOnExit();
         } else {
@@ -757,7 +813,7 @@ public class DataMartTestExtension implements BeforeAllCallback {
             );
 
         } catch (Exception e) {
-            if (!Boolean.TRUE.toString().equals(System.getProperty(TEST_PRESERVE_SYSTEM_PROPERTY))) {
+            if (!PRESERVE_TEST_DATABASES) {
                 // delete the senzing DB file if created
                 if (senzingDbFile != null) {
                     senzingDbFile.delete();
@@ -907,10 +963,14 @@ public class DataMartTestExtension implements BeforeAllCallback {
             replicator = new SzReplicator(env, options, true);
             
             // load, delete and reload to exercise the data mart fully
-            loadRecords(recordKeys, engine, replicator);
-            deleteRecords(recordKeys, engine, replicator);
-            loadRecords(recordKeys, engine, replicator);
-
+            List<JsonObject> records = readRecords();
+            loadRecords(recordKeys, records, engine, replicator);
+            processRedos(engine, replicator);
+            deleteRecords(recordKeys, records, engine, replicator);
+            processRedos(engine, replicator);
+            loadRecords(recordKeys, records, engine, replicator);
+            processRedos(engine, replicator);
+            
             // return the record keys
             return recordKeys;
 
@@ -940,28 +1000,37 @@ public class DataMartTestExtension implements BeforeAllCallback {
     }
 
     /**
-     * Loads the records from the truth set and adds the record keys
-     * from the specified {@link Set}.
+     * Reads the records from the truth set file and returns them as a
+     * {@link List} of {@link JsonObject} elements.
      * 
-     * @param recordKeys The {@link Set} of {@link SzRecordKey} that
-     *                   tracks loaded records.
-     * @param engine The {@link SzEngine} to use.
-     * @param replicator The {@link SzReplicator} to use for posting the INFO.
+     * @return The {@link List} of {@link JsonObject} records to load.
      * 
      * @throws IOException If an I/O failure occurs.
-     * @throws SzException If a Senzing failure occurs.
-     * @throws SQLException If a JDBC failure occurs.
      */
-    protected static void loadRecords(Set<SzRecordKey> recordKeys,
-                                      SzEngine         engine,
-                                      SzReplicator     replicator) 
-        throws IOException, SzException, SQLException
-    {
+    protected static List<JsonObject> readRecords() throws IOException {
         Class<DataMartTestExtension> c = DataMartTestExtension.class;
 
-        Map<SzRecordKey, String> fixTweaksMap = new LinkedHashMap<>();
-        try (InputStream is = c.getResourceAsStream(TRUTH_SET_RESOURCE_NAME);
-             InputStreamReader isr = new InputStreamReader(is, UTF_8);
+        try (InputStream is = c.getResourceAsStream(TRUTH_SET_RESOURCE_NAME)) {
+            return readRecords(is);
+        }
+    }
+    
+    /**
+     * Reads the records from the truth set file and returns them as a
+     * {@link List} of {@link JsonObject} elements.
+     * 
+     * @param is The {@link InputStream} from which to read the records.
+     * 
+     * @return The {@link List} of {@link JsonObject} records to load.
+     * 
+     * @throws IOException If an I/O failure occurs.
+     */
+    protected static List<JsonObject> readRecords(InputStream is) 
+        throws IOException 
+    {
+        List<JsonObject> result = new ArrayList<>(500);
+
+        try (InputStreamReader isr = new InputStreamReader(is, UTF_8);
              BufferedReader br = new BufferedReader(isr))
         {
             for (String record = br.readLine(); record != null; record = br.readLine()) 
@@ -979,31 +1048,90 @@ public class DataMartTestExtension implements BeforeAllCallback {
                 }
 
                 // parse the record as JSON
-                JsonObject  jsonObj     = parseJsonObject(record);
+                JsonObject jsonObj = parseJsonObject(record);
 
-                // get the data source and record ID
-                String      dataSource  = getString(jsonObj, "DATA_SOURCE");
-                String      recordId    = getString(jsonObj, "RECORD_ID");
-                SzRecordKey recordKey   = SzRecordKey.of(dataSource, recordId);
+                // add the json object to the list
+                result.add(jsonObj);
+            }
+        }
 
-                String tweaked = tweakRecord(record);
-                if (!tweaked.equals(record)) {
-                    fixTweaksMap.put(recordKey, record);
-                    record = tweaked;
-                }
+        // return the result
+        return result;
+    }
 
-                recordKeys.add(recordKey);
-                String info = engine.addRecord(recordKey, record, SZ_WITH_INFO_FLAGS);
-                replicator.getDatabaseMessageQueue().enqueueMessage(info);
+    /**
+     * Loads the records from the truth set and adds the record keys
+     * from the specified {@link Set}.
+     * 
+     * @param recordKeys The {@link Set} of {@link SzRecordKey} that
+     *                   tracks loaded records.
+     * @param records The {@link List} of {@link JsonObject} records.
+     * @param engine The {@link SzEngine} to use.
+     * @param replicator The {@link SzReplicator} to use for posting the INFO.
+     * 
+     * @throws SzException If a Senzing failure occurs.
+     * @throws SQLException If a JDBC failure occurs.
+     */
+    protected static void loadRecords(Set<SzRecordKey> recordKeys,
+                                      List<JsonObject> records,
+                                      SzEngine         engine,
+                                      SzReplicator     replicator) 
+        throws SzException, SQLException
+    {
+        if (SHUFFLE_TEST_RECORDS) {
+            logInfo("Shuffling test record load order");
+            Collections.shuffle(records, SHUFFLE_PRNG);
+        }
+
+        Map<SzRecordKey, JsonObject> fixTweaksMap = new LinkedHashMap<>();
+        for (JsonObject jsonObj : records) {
+            // get the data source and record ID
+            String      dataSource  = getString(jsonObj, "DATA_SOURCE");
+            String      recordId    = getString(jsonObj, "RECORD_ID");
+            SzRecordKey recordKey   = SzRecordKey.of(dataSource, recordId);
+
+            JsonObject tweaked = tweakRecord(jsonObj);
+            if (!tweaked.equals(jsonObj)) {
+                fixTweaksMap.put(recordKey, jsonObj);
+                jsonObj = tweaked;
             }
 
-            // loop through the previously tweaked records and fix them
-            for (Map.Entry<SzRecordKey, String> entry : fixTweaksMap.entrySet()) {
-                SzRecordKey recordKey = entry.getKey();
-                String record = entry.getValue();
-                String info = engine.addRecord(recordKey, record, SZ_WITH_INFO_FLAGS);
-                replicator.getDatabaseMessageQueue().enqueueMessage(info);
-            }
+            String record = toJsonText(jsonObj);
+
+            recordKeys.add(recordKey);
+            String info = engine.addRecord(recordKey, record, SZ_WITH_INFO_FLAGS);
+            replicator.getDatabaseMessageQueue().enqueueMessage(info);
+        }
+
+        // loop through the previously tweaked records and fix them
+        for (Map.Entry<SzRecordKey, JsonObject> entry : fixTweaksMap.entrySet()) {
+            SzRecordKey recordKey = entry.getKey();
+            JsonObject jsonObj = entry.getValue();
+            String record = toJsonText(jsonObj);
+            String info = engine.addRecord(recordKey, record, SZ_WITH_INFO_FLAGS);
+            replicator.getDatabaseMessageQueue().enqueueMessage(info);
+        }
+    }
+
+    /**
+     * Processes the pending redo records for the specified {@link SzEngine}
+     * and sends the INFO messages to the specified {@link Replicator}.
+     * 
+     * @param engine The {@link SzEngine} to use.
+     * @param replicator The {@link SzReplicator} to use for posting the INFO.
+     * 
+     * @throws SzException If a Senzing failure occurs.
+     * @throws SQLException If a JDBC failure occurs.
+     */
+    protected static void processRedos(SzEngine engine, SzReplicator replicator) 
+        throws SQLException, SzException
+    {
+        for (String redo = engine.getRedoRecord(); 
+                redo != null; 
+                redo = engine.getRedoRecord()) 
+        {
+            String info = engine.processRedoRecord(redo, SZ_WITH_INFO_FLAGS);
+            replicator.getDatabaseMessageQueue().enqueueMessage(info);
         }
     }
 
@@ -1026,10 +1154,11 @@ public class DataMartTestExtension implements BeforeAllCallback {
      * @return The tweaked record or the specified record if the record was not
      *         tweaked.
      */
-    protected static String tweakRecord(String record) {
+    protected static JsonObject tweakRecord(JsonObject record) {
         boolean tweak = false;
         for (String key : TWEAK_MAP.keySet()) {
-            if (record.indexOf(key) >= 0) {
+
+            if (record.containsKey(key)) {
                 tweak = true;
                 break;
             }
@@ -1041,14 +1170,13 @@ public class DataMartTestExtension implements BeforeAllCallback {
         int changeIndex = 0;
 
         // parse the record
-        JsonObject jsonObject = parseJsonObject(record);
-        JsonObjectBuilder job = Json.createObjectBuilder(jsonObject);
+        JsonObjectBuilder job = Json.createObjectBuilder(record);
 
         for (Map.Entry<String,Integer> entry : TWEAK_MAP.entrySet()) {
             String key = entry.getKey();
             int length = entry.getValue();
 
-            if (jsonObject.containsKey(key)) {
+            if (record.containsKey(key)) {
                 if (length == 0) {
                     String value = ((changeIndex++)%2 == 0) ? "FOO" : "BAR";
                     job.add(key, value);
@@ -1062,7 +1190,7 @@ public class DataMartTestExtension implements BeforeAllCallback {
             }
         }
 
-        return toJsonText(job);
+        return job.build();
     }
 
     /**
@@ -1071,6 +1199,8 @@ public class DataMartTestExtension implements BeforeAllCallback {
      * 
      * @param recordKeys The {@link Set} of {@link SzRecordKey} that
      *                   tracks loaded records.
+     * @param records The {@link List} of {@link JsonObject} instances
+     *                describing the records.
      * @param engine The {@link SzEngine} to use.
      * @param replicator The {@link SzReplicator} to use for posting the INFO.
      * 
@@ -1079,42 +1209,25 @@ public class DataMartTestExtension implements BeforeAllCallback {
      * @throws SQLException If a JDBC failure occurs.
      */
     protected static void deleteRecords(Set<SzRecordKey>    recordKeys,
+                                        List<JsonObject>    records,
                                         SzEngine            engine,
                                         SzReplicator        replicator) 
         throws IOException, SzException, SQLException
     {
-        Class<DataMartTestExtension> c = DataMartTestExtension.class;
+        if (SHUFFLE_TEST_RECORDS) {
+            logInfo("Shuffling test record deletion order");
+            Collections.shuffle(records, SHUFFLE_PRNG);
+        }
 
-        try (InputStream is = c.getResourceAsStream(TRUTH_SET_RESOURCE_NAME);
-             InputStreamReader isr = new InputStreamReader(is, UTF_8);
-             BufferedReader br = new BufferedReader(isr))
-        {
-            for (String record = br.readLine(); record != null; record = br.readLine()) 
-            {
-                // trim whitespace
-                record = record.trim();
+        for (JsonObject jsonObj : records) {
+            // get the data source and record ID
+            String      dataSource  = getString(jsonObj, "DATA_SOURCE");
+            String      recordId    = getString(jsonObj, "RECORD_ID");
+            SzRecordKey recordKey   = SzRecordKey.of(dataSource, recordId);
 
-                // skip any blank lines
-                if (record.length() == 0) {
-                    continue;
-                }
-                // skip commented-out lines
-                if (record.startsWith("#")) {
-                    continue;
-                }
-
-                // parse the record as JSON
-                JsonObject  jsonObj     = parseJsonObject(record);
-
-                // get the data source and record ID
-                String      dataSource  = getString(jsonObj, "DATA_SOURCE");
-                String      recordId    = getString(jsonObj, "RECORD_ID");
-                SzRecordKey recordKey   = SzRecordKey.of(dataSource, recordId);
-
-                recordKeys.remove(recordKey);
-                String info = engine.deleteRecord(recordKey, SZ_WITH_INFO_FLAGS);
-                replicator.getDatabaseMessageQueue().enqueueMessage(info);
-            }
+            recordKeys.remove(recordKey);
+            String info = engine.deleteRecord(recordKey, SZ_WITH_INFO_FLAGS);
+            replicator.getDatabaseMessageQueue().enqueueMessage(info);
         }
     }
     
@@ -1138,7 +1251,7 @@ public class DataMartTestExtension implements BeforeAllCallback {
             Set<SzRecordKey> recordKeys)
         throws Exception
     {
-        logInfo("Retriving entities...");
+        logInfo("Retrieving entities...");
         SzEnvironment env = null;
 
         try {    

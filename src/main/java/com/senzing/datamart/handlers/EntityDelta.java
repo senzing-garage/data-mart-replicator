@@ -456,11 +456,15 @@ public class EntityDelta {
      *                                  created.
      */
     public void createdRecord(SzRecord record) {
-        logDebug("RECORD CREATED BY ENTITY " + this.getEntityId() + ": " + record);
+        logDebug("ENTITY " + this.getEntityId() + " RECORD CREATED: " + record);
         Objects.requireNonNull(record, "The record cannot be null");
-        if (!this.getAddedRecords().containsKey(record.getRecordKey())) {
-            throw new IllegalArgumentException("The specified record is not one of the added records.  record=[ "
-                    + record + " ], allowed=[ " + this.getAddedRecords() + " ]");
+        if (!this.getAddedRecords().containsKey(record.getRecordKey())
+            && !this.getChangedRecords().containsKey(record.getRecordKey()))
+        {
+            throw new IllegalArgumentException(
+                "The specified record is not one of the added OR changed records.  "
+                + "record=[ " + record + " ], added=[ " + this.getAddedRecords() 
+                + " ], changed=[ " + this.getChangedRecords() + " ]");
         }
         if (this.createdRecords.containsKey(record.getRecordKey())) {
             throw new IllegalArgumentException(
@@ -510,7 +514,7 @@ public class EntityDelta {
      *                                  created.
      */
     public void orphanedRecord(SzRecord record) {
-        logDebug("RECORD ORPHANED BY ENTITY " + this.getEntityId() + ": " + record);
+        logDebug("ENTITY " + this.getEntityId() + " RECORD ORPHANED: " + record);
         Objects.requireNonNull(record, "The record cannot be null");
         if (!this.getRemovedRecords().containsKey(record.getRecordKey())) {
             throw new IllegalArgumentException("The specified record is not one of the removed records.  record=[ "
@@ -561,46 +565,75 @@ public class EntityDelta {
      * in the database. The relationship may have been created or updated or found
      * to already exist.
      *
-     * @param entityId          The entity ID of the first entity in the
-     *                          relationship.
-     * @param relatedId         The entity ID of the second entity in the
-     *                          relationship.
-     * @param oldMatchType      The previous {@link SzMatchType} stored in the data
-     *                          mart database, or <code>null</code> if not
-     *                          previously stored.
-     * @param oldMatchKey       The previous match key stored in the data mart
-     *                          database for the relationship, or <code>null</code>
-     *                          if not previously stored.
-     * @param oldPrinciple      The previous principle (entity resolution rule code)
-     *                          stored in the data mart database, or
-     *                          <code>null</code> if not previously stored.
-     * @param oldSourceSummary  The {@link Map} of {@link String} data source keys
-     *                          to {@link Integer} values providing the data source
-     *                          record summary of the entity identified by
-     *                          <code>entityId</code> previously associated with the
-     *                          relationship, or <code>null</code> (or empty) if the
-     *                          relationship was newly created.
-     * @param oldRelatedSummary The {@link Map} of {@link String} data source keys
-     *                          to {@link Integer} values providing the data source
-     *                          record summary of the entity identified by
-     *                          <code>relatedId</code> previously associated with
-     *                          the relationship, or <code>null</code> (or empty) if
-     *                          the relationship was newly created.
-     * @throws IllegalArgumentException If the specified entity ID's are not
-     *                                  different or neither matches the entity ID
-     *                                  for this instance.
+     * @param newRelationship The new {@link SzRelationship} to track.
+     * 
+     * @return The {@link SzRelationship} describing how the relationship was
+     *         previously defined, or <code>null</code> if no such relationship
+     *         previously existed.
+     * 
+     * @throws IllegalArgumentException If the {@link SzRelationship} has neither an
+     *                                  entity ID or related entity ID that matches
+     *                                  the entity ID for this instance.
      */
-    public void trackStoredRelationship(long                    entityId, 
-                                        long                    relatedId, 
-                                        SzMatchType             oldMatchType,
-                                        String                  oldMatchKey,
-                                        String                  oldPrinciple,
-                                        Map<String, Integer>    oldSourceSummary,
-                                        Map<String, Integer>    oldRelatedSummary) 
+    public SzRelationship trackStoredRelationship(SzRelationship newRelationship)  
     {
-        // get our entity ID
+        // get the entity ID and related entity ID
         long myEntityId = this.getEntityId();
 
+        // check that our entity ID is one of the specified entity ID's
+        if (newRelationship.getEntityId() != myEntityId 
+            && newRelationship.getRelatedEntityId() != myEntityId) 
+        {
+            throw new IllegalArgumentException(
+                    "Neither of the entity ID's for the specified relationship "
+                    + "match the entity ID for this instance.  entityId=[ "
+                    + newRelationship.getEntityId() + " ], relatedId=[ " 
+                    + newRelationship.getRelatedEntityId() 
+                    + " ], expectedId=[ " + myEntityId + " ]");
+        }
+
+        // get the related entity ID
+        long myRelatedId = (myEntityId == newRelationship.getEntityId())
+                ? newRelationship.getRelatedEntityId()
+                : newRelationship.getEntityId();
+        
+        // get the old entity
+        SzResolvedEntity oldEntity = this.getOldEntity();
+
+        // get the old related entity
+        SzRelatedEntity oldRelated = this.getOldRelatedEntities().get(myRelatedId);
+
+        // check how the relationship was previously defined
+        SzRelationship oldRelation = (oldRelated == null) 
+            ? null
+            : new SzRelationship(oldEntity, oldRelated);
+
+        SzMatchType oldMatchType = (oldRelation == null)
+                ? null
+                : oldRelation.getMatchType();
+
+        String oldMatchKey = (oldRelation == null)
+                ? null
+                : ((myEntityId == newRelationship.getEntityId()) 
+                    ? oldRelation.getMatchKey()
+                    : oldRelation.getReverseMatchKey());
+
+        String oldPrinciple = (oldRelation == null)
+                ? null
+                : oldRelation.getPrinciple();
+
+        Map<String, Integer> oldSourceSummary = (oldRelation == null)
+                ? null
+                : ((myEntityId == newRelationship.getEntityId()) 
+                    ? oldRelation.getSourceSummary()
+                    : oldRelation.getRelatedSourceSummary());
+
+        Map<String, Integer> oldRelatedSummary = (oldRelation == null)
+                ? null
+                : ((myEntityId == newRelationship.getEntityId()) 
+                    ? oldRelation.getRelatedSourceSummary()
+                    : oldRelation.getSourceSummary());
+        
         // normalize possibly-null arguments
         if (oldSourceSummary == null) {
             oldSourceSummary = Collections.emptyMap();
@@ -609,73 +642,57 @@ public class EntityDelta {
             oldRelatedSummary = Collections.emptyMap();
         }
 
-        // check that our entity ID is one of the specified entity ID's
-        if (entityId != myEntityId && relatedId != myEntityId) {
-            throw new IllegalArgumentException(
-                    "Neither of the specified entity ID's match the entity ID for this " + "instance.  entityId=[ "
-                            + entityId + " ], relatedId=[ " + relatedId + " ], expectedId=[ " + myEntityId + " ]");
-        }
-        // check both entity ID's are not equal
-        if (entityId == relatedId) {
-            throw new IllegalArgumentException(
-                    "Both the entity ID and the related entity ID cannot be the same: " + entityId);
-        }
-
-        // normalize everything with respect to this entity's perspective
-        if (myEntityId == relatedId) {
-            relatedId = entityId;
-            entityId = myEntityId;
-            Map<String, Integer> temp = oldSourceSummary;
-            oldSourceSummary = oldRelatedSummary;
-            oldRelatedSummary = temp;
-        }
-
         // now check that the related entity ID is related to the entity
-        if (!this.getAddedRelations().containsKey(relatedId) && !this.getChangedRelations().containsKey(relatedId)) {
-            throw new IllegalArgumentException("Cannot store the relationship to an entity for which the "
-                    + "relationship was not added or changed.  relatedId=[ " + relatedId + " ], added=[ "
-                    + this.getAddedRelations().keySet() + " ], changed=[ " + this.getChangedRelations().keySet()
-                    + " ]");
+        if (!this.getAddedRelations().containsKey(myRelatedId) 
+            && !this.getChangedRelations().containsKey(myRelatedId)) {
+            throw new IllegalArgumentException(
+                    "Cannot store the relationship to an entity for which the "
+                    + "relationship was not added or changed.  relatedId=[ " 
+                    + myRelatedId + " ], added=[ " + this.getAddedRelations().keySet() 
+                    + " ], changed=[ " + this.getChangedRelations().keySet() + " ]");
         }
 
-        logDebug("ENTITY " + entityId + " OLD SOURCE SUMMARY TO ENTITY " + relatedId + ": ", oldSourceSummary,
-                oldRelatedSummary);
+        logDebug("ENTITY " + myEntityId + " OLD SOURCE SUMMARY TO ENTITY " + myRelatedId + ": ", 
+                 oldSourceSummary, oldRelatedSummary);
 
         // determine the previous cross-source pairs
-        Map<CrossSourceKey, RelationshipCounts> oldRelCounts = countRelationships(oldSourceSummary, oldRelatedSummary);
+        Map<CrossSourceKey, RelationshipCounts> oldRelCounts 
+            = countRelationships(oldSourceSummary, oldRelatedSummary);
 
-        logDebug("ENTITY " + entityId + " OLD REL COUNTS TO ENTITY " + relatedId + ": ", oldRelCounts);
+        logDebug("ENTITY " + myEntityId + " OLD REL COUNTS TO ENTITY " + myRelatedId + ": ", 
+                 oldRelCounts);
 
         // get the related entities
         Map<Long, SzRelatedEntity> relatedEntityMap = this.getNewRelatedEntities();
-        SzRelatedEntity related = relatedEntityMap.get(relatedId);
+        SzRelatedEntity related = relatedEntityMap.get(myRelatedId);
 
         // get the data source summary
         Map<String, Integer> newSourceSummary = this.getNewSourceSummary();
         Map<String, Integer> newRelatedSummary = related.getSourceSummary();
 
         // determine the new cross-source pairs
-        Map<CrossSourceKey, RelationshipCounts> newRelCounts = countRelationships(newSourceSummary, newRelatedSummary);
+        Map<CrossSourceKey, RelationshipCounts> newRelCounts 
+            = countRelationships(newSourceSummary, newRelatedSummary);
 
         // get the current match type
-        SzMatchType matchType = related.getMatchType();
-        String principle = related.getPrinciple();
-        String matchKey = related.getMatchKey();
+        SzMatchType matchType   = related.getMatchType();
+        String      principle   = related.getPrinciple();
+        String      matchKey    = related.getMatchKey();
 
         // create final ID's to use in lambda expression
-        final long fromId = entityId;
-        final long toId = relatedId;
+        final long fromId = myEntityId;
+        final long toId = myRelatedId;
 
         logDebug("ENTITY " + fromId + " CHECKING RELATION TO " + toId + " WITH: matchType=[ " + matchType
                 + " ] AND oldMatchType=[ " + oldMatchType + " ]");
 
         // check if we need to decrement counts for an old match type, principle
         // and/or match key
-        Set<String> decrementStats = decrementStatVariants(oldMatchType, matchType, oldPrinciple, principle,
-                oldMatchKey, matchKey);
+        Set<String> decrementStats = decrementStatVariants(
+                oldMatchType, matchType, oldPrinciple, principle, oldMatchKey, matchKey);
 
         decrementStats.forEach(statistic -> {
-            logDebug("ENTITY " + fromId + " HANDLING RELATION TO " + toId + " WITH: " + oldRelCounts);
+            logDebug("ENTITY " + fromId + " HANDLING RELATION TO " + toId + " WITH: ", oldRelCounts);
 
             // handle decrementing the counts accordingly
             oldRelCounts.forEach((crossSourceKey, counts) -> {
@@ -686,18 +703,20 @@ public class EntityDelta {
 
                 SzReportCode reportCode = (sameSource) ? DATA_SOURCE_SUMMARY : CROSS_SOURCE_SUMMARY;
 
-                logDebug("A) ENTITY " + fromId + ": UNTRACKING RELATION TO " + toId + " for " + reportCode + ":["
-                        + statistic + "]:" + source1 + ":" + source2);
+                logDebug("A) ENTITY " + fromId + ": UNTRACKING RELATION TO " + toId + " for " 
+                         + reportCode + ":[" + statistic + "]:" + source1 + ":" + source2);
 
                 // decrement the relationship count for this relationship for each stat
-                reportUpdates.add(builder(reportCode, statistic, source1, source2, fromId, toId).relations(-1).build());
+                reportUpdates.add(
+                    builder(reportCode, statistic, source1, source2, fromId, toId)
+                    .relations(-1).build());
             });
         });
 
         // check if we need to increment counts for the new match type,
         // principle and/or match key
-        Set<String> incrementStats = incrementStatVariants(oldMatchType, matchType, oldPrinciple, principle,
-                oldMatchKey, matchKey);
+        Set<String> incrementStats = incrementStatVariants(
+                oldMatchType, matchType, oldPrinciple, principle, oldMatchKey, matchKey);
 
         incrementStats.forEach(statistic -> {
             // handle incrementing the counts accordingly
@@ -708,17 +727,19 @@ public class EntityDelta {
 
                 SzReportCode reportCode = (sameSource) ? DATA_SOURCE_SUMMARY : CROSS_SOURCE_SUMMARY;
 
-                logDebug("B) ENTITY " + fromId + ": TRACKING RELATION TO " + toId + " for " + reportCode + ":["
-                        + statistic + "]:" + source1 + ":" + source2);
+                logDebug("B) ENTITY " + fromId + ": TRACKING RELATION TO " + toId + " for " 
+                        + reportCode + ":[" + statistic + "]:" + source1 + ":" + source2);
 
                 // increment the relationship count for this relationship for each stat
-                reportUpdates.add(builder(reportCode, statistic, source1, source2, fromId, toId).relations(1).build());
+                reportUpdates.add(
+                    builder(reportCode, statistic, source1, source2, fromId, toId)
+                    .relations(1).build());
             });
         });
 
         // find the stats for which we need to compute the deltas
-        Set<String> deltaStats = deltaStatVariants(oldMatchType, matchType, oldPrinciple, principle, oldMatchKey,
-                matchKey);
+        Set<String> deltaStats = deltaStatVariants(
+                oldMatchType, matchType, oldPrinciple, principle, oldMatchKey, matchKey);
 
         // iterate over the statistics
         deltaStats.forEach(statistic -> {
@@ -739,25 +760,30 @@ public class EntityDelta {
 
                 // check if an old relationship no longer exists
                 if (oldCounts != null && newCounts == null) {
-                    logDebug("C) ENTITY " + fromId + ": UNTRACKING RELATION TO " + toId + " for " + reportCode + ":["
-                            + statistic + "]:" + source1 + ":" + source2);
+                    logDebug("C) ENTITY " + fromId + ": UNTRACKING RELATION TO " + toId + " for " 
+                             + reportCode + ":[" + statistic + "]:" + source1 + ":" + source2);
 
                     // decrement the relationship count for this relationship
-                    reportUpdates
-                            .add(builder(reportCode, statistic, source1, source2, fromId, toId).relations(-1).build());
+                    reportUpdates.add(
+                        builder(reportCode, statistic, source1, source2, fromId, toId)
+                        .relations(-1).build());
                 }
 
                 // check if a new relationship exists that previously did not
                 if (oldCounts == null && newCounts != null) {
-                    logDebug("D) ENTITY " + fromId + ": TRACKING RELATION TO " + toId + " for " + reportCode + ":["
-                            + statistic + "]:" + source1 + ":" + source2);
+                    logDebug("D) ENTITY " + fromId + ": TRACKING RELATION TO " + toId + " for "
+                            + reportCode + ":[" + statistic + "]:" + source1 + ":" + source2);
 
                     // increment the relationship count for this relationship
-                    reportUpdates
-                            .add(builder(reportCode, statistic, source1, source2, fromId, toId).relations(1).build());
+                    reportUpdates.add(
+                        builder(reportCode, statistic, source1, source2, fromId, toId)
+                        .relations(1).build());
                 }
             });
         });
+
+        // return the old relationship
+        return oldRelation;
     }
 
     /**
@@ -778,88 +804,109 @@ public class EntityDelta {
      * or found to be already deleted from the database. The relationship must have
      * previously existed.
      *
-     * @param entityId          The entity ID of the first entity in the
-     *                          relationship.
-     * @param relatedId         The entity ID of the second entity in the
-     *                          relationship.
-     * @param oldMatchType      The non-null previous {@link SzMatchType} stored in
-     *                          the data mart database.
-     * @param oldMatchKey       The previous match key stored in the data mart
-     *                          database for the relationship, or <code>null</code>
-     *                          if not previously stored.
-     * @param oldPrinciple      The previous principle (entity resolution rule code)
-     *                          stored in the data mart database, or
-     *                          <code>null</code> if not previously stored.
-     * @param oldSourceSummary  The non-null {@link Map} of {@link String} data
-     *                          source keys to {@link Integer} values providing the
-     *                          data source record summary of the entity identified
-     *                          by <code>entityId</code> previously associated with
-     *                          the relationship.
-     * @param oldRelatedSummary The non-null {@link Map} of {@link String} data
-     *                          source keys to {@link Integer} values providing the
-     *                          data source record summary of the entity identified
-     *                          by <code>relatedId</code> previously associated with
-     *                          the relationship.
-     * @throws NullPointerException     If a parameter is unexpectedly
-     *                                  <code>null</code>.
-     * @throws IllegalArgumentException If the specified entity ID's are not
-     *                                  different or neither matches the entity ID
-     *                                  for this instance.
+     * @param oldRelationship The previously existing relationship that no longer
+     *                        exists.
+     * 
+     * @throws NullPointerException     If the specified parameter is <code>null</code>.
+     * @throws IllegalArgumentException If neither of the entity ID's for the specified 
+     *                                  relationship matches the entity ID for this instance.
      */
-    public void trackDeletedRelationship(long                   entityId, 
-                                         long                   relatedId, 
-                                         SzMatchType            oldMatchType,
-                                         String                 oldMatchKey,
-                                         String                 oldPrinciple,
-                                         Map<String, Integer>   oldSourceSummary,
-                                         Map<String, Integer>   oldRelatedSummary) 
+    public void trackDeletedRelationship(SzRelationship oldRelationship) 
         throws NullPointerException, IllegalArgumentException 
     {
-        // get our entity ID
+        Objects.requireNonNull(oldRelationship, "Relationship cannot be null");
+    
+        // get the entity ID and related entity ID
         long myEntityId = this.getEntityId();
 
-        Objects.requireNonNull(oldSourceSummary, "Previous source summary cannot be null if deleted.  " + "entityId=[ "
-                + entityId + " ], relatedId=[ " + relatedId + " ]");
-
-        Objects.requireNonNull(oldRelatedSummary, "Previous related source summary cannot be null if deleted.  "
-                + "entityId=[ " + entityId + " ], relatedId=[ " + relatedId + " ]");
-
         // check that our entity ID is one of the specified entity ID's
-        if (entityId != myEntityId && relatedId != myEntityId) {
+        if (oldRelationship.getEntityId() != myEntityId 
+            && oldRelationship.getRelatedEntityId() != myEntityId) 
+        {
             throw new IllegalArgumentException(
-                    "Neither of the specified entity ID's match the entity ID for this " + "instance.  entityId=[ "
-                            + entityId + " ], relatedId=[ " + relatedId + " ], expectedId=[ " + myEntityId + " ]");
+                    "Neither of the entity ID's for the specified relationship "
+                    + "match the entity ID for this instance.  entityId=[ "
+                    + oldRelationship.getEntityId() + " ], relatedId=[ " 
+                    + oldRelationship.getRelatedEntityId() 
+                    + " ], expectedId=[ " + myEntityId + " ]");
         }
 
-        Objects.requireNonNull(oldMatchType, "Previous match type cannot be null if deleted.  entityId=[ " + entityId
-                + " ], relatedId=[ " + relatedId + " ]");
+        // get the related entity ID
+        long myRelatedId = (myEntityId == oldRelationship.getEntityId())
+                ? oldRelationship.getRelatedEntityId()
+                : oldRelationship.getEntityId();
+        
+        // get the old entity
+        SzResolvedEntity oldEntity = this.getOldEntity();
 
-        Objects.requireNonNull(oldMatchKey, "Previous match key cannot be null if deleted.  entityId=[ " + entityId
-                + " ], relatedId=[ " + relatedId + " ]");
+        // get the old related entity
+        SzRelatedEntity oldRelated = this.getOldRelatedEntities().get(myRelatedId);
 
-        Objects.requireNonNull(oldPrinciple, "Previous principle cannot be null if deleted.  entityId=[ " + entityId
-                + " ], relatedId=[ " + relatedId + " ]");
+        // check how the relationship was previously defined
+        SzRelationship oldRelation = (oldRelated == null) 
+            ? null
+            : new SzRelationship(oldEntity, oldRelated);
 
-        // check both entity ID's are not equal
-        if (entityId == relatedId) {
+        // these two relationships should be equal
+        if (!oldRelationship.equals(oldRelation)) {
             throw new IllegalArgumentException(
-                    "Both the entity ID and the related entity ID cannot be the same: " + entityId);
+                "The specified old relationship does not match this entity "
+                + "delta.  specified=[ " + oldRelationship 
+                + " ], expected=[ " + oldRelation + " ]");
         }
 
-        // normalize everything with respect to this entity's perspective
-        if (myEntityId == relatedId) {
-            relatedId = entityId;
-            entityId = myEntityId;
-            Map<String, Integer> temp = oldSourceSummary;
-            oldSourceSummary = oldRelatedSummary;
-            oldRelatedSummary = temp;
-        }
+        SzMatchType oldMatchType = (oldRelation == null)
+                ? null
+                : oldRelation.getMatchType();
+
+        String oldMatchKey = (oldRelation == null)
+                ? null
+                : ((myEntityId == oldRelationship.getEntityId()) 
+                    ? oldRelation.getMatchKey()
+                    : oldRelation.getReverseMatchKey());
+
+        String oldPrinciple = (oldRelation == null)
+                ? null
+                : oldRelation.getPrinciple();
+
+        Map<String, Integer> oldSourceSummary = (oldRelation == null)
+                ? null
+                : ((myEntityId == oldRelationship.getEntityId()) 
+                    ? oldRelation.getSourceSummary()
+                    : oldRelation.getRelatedSourceSummary());
+
+        Map<String, Integer> oldRelatedSummary = (oldRelation == null)
+                ? null
+                : ((myEntityId == oldRelationship.getEntityId()) 
+                    ? oldRelation.getRelatedSourceSummary()
+                    : oldRelation.getSourceSummary());
+        
+        Objects.requireNonNull(oldSourceSummary, 
+            "Previous source summary cannot be null if deleted.  " 
+            + "entityId=[ " + myEntityId + " ], relatedId=[ " + myRelatedId + " ]");
+
+        Objects.requireNonNull(oldRelatedSummary, 
+            "Previous related source summary cannot be null if deleted.  "
+            + "entityId=[ " + myEntityId + " ], relatedId=[ " + myRelatedId + " ]");
+
+        Objects.requireNonNull(oldMatchType, 
+            "Previous match type cannot be null if deleted.  entityId=[ " + myEntityId
+            + " ], relatedId=[ " + myRelatedId + " ]");
+
+        Objects.requireNonNull(oldMatchKey,
+            "Previous match key cannot be null if deleted.  entityId=[ " + myEntityId
+            + " ], relatedId=[ " + myRelatedId + " ]");
+
+        Objects.requireNonNull(oldPrinciple, 
+            "Previous principle cannot be null if deleted.  entityId=[ " + myEntityId
+            + " ], relatedId=[ " + myRelatedId + " ]");
 
         // now check that the related entity ID is related to the entity
-        if (!this.getRemovedRelations().containsKey(relatedId)) {
-            throw new IllegalArgumentException("Cannot delete the relationship to an entity for which the "
-                    + "relationship was not removed.  relatedId=[ " + relatedId + " ], removed=[ "
-                    + this.getRemovedRelations().keySet() + " ]");
+        if (!this.getRemovedRelations().containsKey(myRelatedId)) {
+            throw new IllegalArgumentException(
+                "Cannot delete the relationship to an entity for which the "
+                + "relationship was not removed.  relatedId=[ " + myRelatedId 
+                + " ], removed=[ " + this.getRemovedRelations().keySet() + " ]");
         }
 
         // determine the previous cross-source pairs
@@ -870,8 +917,8 @@ public class EntityDelta {
         SzReportStatistic statistic = STATISTIC_LOOKUP.get(oldMatchType);
 
         // create final ID's to use in lambda expression
-        final long fromId = entityId;
-        final long toId = relatedId;
+        final long fromId = myEntityId;
+        final long toId = myRelatedId;
 
         // handle decrementing the counts accordingly
         oldRelCounts.forEach((crossSourceKey, counts) -> {
@@ -884,8 +931,8 @@ public class EntityDelta {
 
             statisticVariants(statistic, oldPrinciple, oldMatchKey).forEach(stat -> {
 
-                logDebug("E) ENTITY " + fromId + ": UNTRACKING RELATION TO " + toId + " for " + reportCode + ":" + stat
-                        + ":" + source1 + ":" + source2);
+                logDebug("E) ENTITY " + fromId + ": UNTRACKING RELATION TO " + toId + " for " 
+                         + reportCode + ":" + stat + ":" + source1 + ":" + source2);
 
                 // decrement the relationship count for this relationship
                 reportUpdates.add(builder(reportCode, stat, source1, source2, fromId, toId).relations(-1).build());
@@ -1488,7 +1535,7 @@ public class EntityDelta {
 
             // handle entity count and unmatched count when no principle or match key
             if (matchKey == null && principle == null) {
-                logDebug("Decrementing ENTITY_COUNT for " + source1 + " for entity " + entityId);
+                logDebug("Decrementing ENTITY_COUNT for " + source1 + " for ENTITY " + entityId);
                 reportUpdates.add(
                         builder(DATA_SOURCE_SUMMARY, ENTITY_COUNT, source1, source2, entityId).entities(-1).build());
             }
@@ -1499,7 +1546,7 @@ public class EntityDelta {
                 // create the statistic
                 String statistic = MATCHED_COUNT.matchKey(matchKey).principle(principle).toString();
 
-                logDebug("Untracking entity " + entityId + " for " + source1 + " DSS:" + statistic);
+                logDebug("Untracking ENTITY " + entityId + " for " + source1 + " DSS:" + statistic);
                 reportUpdates.add(builder(DATA_SOURCE_SUMMARY, statistic, source1, source2, entityId).entities(-1)
                         .records(-1 * recordCount).build());
             }
@@ -1521,7 +1568,7 @@ public class EntityDelta {
 
             // handle entity count when no principle or match key
             if (matchKey == null && principle == null) {
-                logDebug("Incrementing ENTITY_COUNT for " + source1 + " for entity " + entityId);
+                logDebug("Incrementing ENTITY_COUNT for " + source1 + " for ENTITY " + entityId);
                  
                 reportUpdates.add(
                         builder(DATA_SOURCE_SUMMARY, ENTITY_COUNT, source1, source2, entityId).entities(1).build());
@@ -1533,7 +1580,7 @@ public class EntityDelta {
                 // create the statistic
                 String statistic = MATCHED_COUNT.matchKey(matchKey).principle(principle).toString();
 
-                logDebug("Tracking entity " + entityId + " for " + source1 + " DSS:" + statistic);
+                logDebug("Tracking ENTITY " + entityId + " for " + source1 + " DSS:" + statistic);
 
                 reportUpdates.add(builder(DATA_SOURCE_SUMMARY, statistic, source1, source2, entityId).entities(1)
                         .records(recordCount).build());
@@ -1546,7 +1593,7 @@ public class EntityDelta {
         {
             String source = oldSourceSummary.keySet().iterator().next();
 
-            logDebug("Untracking UNMATCHED_COUNT entity " + entityId + " for " + source + " DSS");
+            logDebug("ENTITY " + entityId + " untracking UNMATCHED_COUNT for " + source + " DSS");
             // it was PREVIOUSLY an unmatched record, but now it is matched or deleted
             reportUpdates.add(builder(DATA_SOURCE_SUMMARY, UNMATCHED_COUNT, source, source, entityId)
                     .entities(-1).records(-1).build());
@@ -1558,7 +1605,7 @@ public class EntityDelta {
         {
             String source = newSourceSummary.keySet().iterator().next();
 
-            logDebug("Tracking UNMATCHED_COUNT entity " + entityId + " for " + source + " DSS");
+            logDebug("ENTITY " + entityId + " tracking UNMATCHED_COUNT for " + source + " DSS");
             // it was previously a "matched record" or did not exist, but now it is an "unmatched record"
             reportUpdates.add(builder(DATA_SOURCE_SUMMARY, UNMATCHED_COUNT, source, source, entityId)
                     .entities(1).records(1).build());
@@ -1587,21 +1634,21 @@ public class EntityDelta {
                     .principle(crossMatchKey.getPrinciple()).toString();
 
             if (oldCount == 1 && newCount > 1) {
-                logDebug("Tracking entity " + entityId + " for " + source1 + " DSS:" + statistic);
+                logDebug("ENTITY " + entityId + " tracking for " + source1 + " DSS:" + statistic);
                 // one or more matched records now in the entity -- need to increment
                 // the matched entity count and the record count by new count
                 reportUpdates.add(builder(DATA_SOURCE_SUMMARY, statistic, source1, source2, entityId).entities(1)
                         .records(newCount).build());
 
             } else if (oldCount > 1 && newCount == 1) {
-                logDebug("Untracking entity " + entityId + " for " + source1 + " DSS:" + statistic);
+                logDebug("ENTITY " + entityId + " untracking for " + source1 + " DSS:" + statistic);
                 // it is NOW an unmatched record
                 // one less matched record entity -- decrement the old record count
                 reportUpdates.add(builder(DATA_SOURCE_SUMMARY, statistic, source1, source2, entityId).entities(-1)
                         .records(-1 * oldCount).build());
 
             } else {
-                logDebug("Tracking record count difference for " + entityId + " " + source1 + " DSS:" + statistic);
+                logDebug("ENTITY " + entityId + " tracking record count difference for " + source1 + " DSS:" + statistic);
                 // it was and is still counted in the MATCHED records, but size differs
                 reportUpdates
                         .add(builder(DATA_SOURCE_SUMMARY, statistic, source1, source2, entityId).records(diff).build());

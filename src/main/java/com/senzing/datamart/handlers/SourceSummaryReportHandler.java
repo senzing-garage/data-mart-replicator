@@ -34,6 +34,26 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
     private static final Set<SzFlag> ENTITY_FLAGS = SZ_NO_FLAGS;
 
     /**
+     * The error code when a record is encountered by Senzing SDK but it has no resolved
+     * entity.  This is likely an indication of a race condition where the record no 
+     * longer exists -- treat it as such.
+     */
+    private static final int SZ_ERR_RECORD_HAS_NO_RESOLVED_ENTITY = 38;
+
+    /**
+     * The error code when a record is encountered by Senzing SDK but it has no obs ent.
+     * This is likely an indication of a race condition where the record no longer exists
+     * -- treat it as such.
+     */
+    private static final int SZ_ERR_NO_OBSERVED_ENTITY_FOR_DSRC_ENTITY_KEY = 39;
+    
+    /**
+     * The Senzing SDK error codes to treat as an {@link SzNotFoundException}.
+     */
+    private static final Set<Integer> NOT_FOUND_ERROR_CODES
+        = Set.of(SZ_ERR_RECORD_HAS_NO_RESOLVED_ENTITY, 
+                 SZ_ERR_NO_OBSERVED_ENTITY_FOR_DSRC_ENTITY_KEY);
+    /**
      * Constructs with the specified {@link SzReplicationProvider}. This
      * constructs the super class with {@link
      * com.senzing.datamart.SzReplicationProvider.TaskAction#UPDATE_CROSS_SOURCE_SUMMARY} as the supported action.
@@ -129,8 +149,10 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
                     // do nothing and fall through
                 
                 } catch (SzException e) {
-                    logWarning(e, "FAILED TO CHECK IF RECORD STILL EXISTS: " + recordKey);
-                    continue;
+                    if (!NOT_FOUND_ERROR_CODES.contains(e.getErrorCode())) {
+                        logWarning(e, "FAILED TO CHECK IF RECORD STILL EXISTS: " + recordKey);
+                        continue;
+                    }
                 }
 
                 if (jsonText != null) {
