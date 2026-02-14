@@ -467,10 +467,19 @@ public class SzReplicatorService extends AbstractListenerService {
 
             TaskHandler handler = this.handlerMap.get(taskAction);
 
+            if (handler == null) {
+                throw new ServiceExecutionException(
+                    "The specified action (" + action + ") is not recognized: " 
+                    + this.handlerMap);
+            }
             handler.handleTask(action, parameters, multiplicity, followUpScheduler);
 
+        } catch (ServiceExecutionException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
-            throw new ServiceExecutionException("The specified action is not recognized: " + action);
+            throw new ServiceExecutionException(e);
         }
 
     }

@@ -1,5 +1,6 @@
 package com.senzing.datamart;
 
+import com.senzing.datamart.handlers.RefreshEntityHandler;
 import com.senzing.datamart.model.SzRecord;
 import com.senzing.datamart.model.SzRelatedEntity;
 import com.senzing.datamart.model.SzResolvedEntity;
@@ -9,6 +10,7 @@ import com.senzing.sdk.SzEngine;
 import com.senzing.sdk.SzEnvironment;
 import com.senzing.sdk.SzException;
 import com.senzing.sdk.SzFlag;
+import com.senzing.sdk.SzNotFoundException;
 import com.senzing.sdk.SzRecordKey;
 import com.senzing.sdk.core.SzCoreEnvironment;
 import com.senzing.sdk.core.auto.SzAutoCoreEnvironment;
@@ -33,6 +35,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -719,6 +722,24 @@ public class DataMartTestExtension implements BeforeAllCallback {
             // load the truth set and handle the data mart
             Set<SzRecordKey> recordKeys = loadTruthSet(coreSettings, connectionUri);
 
+            // Preserve the PostgreSQL database if requested
+            if (PRESERVE_TEST_DATABASES) {
+                try {
+                    File dumpFile = File.createTempFile("senzing_pg_test_", ".sql");
+
+                    dumpPostgreSqlDatabase(jdbcUrl, dumpFile);
+
+                    System.err.println();
+                    System.err.println("- - - - - - - - - - - - - - - - - - ");
+                    System.err.println("POSTGRESQL DUMP: " + dumpFile.getAbsolutePath());
+                    System.err.println("Restore with: psql -d dbname < " + dumpFile.getAbsolutePath());
+                    System.err.println();
+                } catch (Exception e) {
+                    logError("Failed to dump PostgreSQL database: " + e.getMessage());
+                    // Don't fail the test setup, just log the error
+                }
+            }
+
             SortedMap<Long, SzResolvedEntity> entities = getEntities(coreSettings, recordKeys);
 
             // return the repository
@@ -827,6 +848,199 @@ public class DataMartTestExtension implements BeforeAllCallback {
 
             // rethrow
             throw e;
+        }
+    }
+
+    /**
+     * Dumps the PostgreSQL database to a SQL file for preservation/analysis.
+     * Uses JDBC to generate SQL statements, avoiding dependency on pg_dump binary.
+     *
+     * @param jdbcUrl The JDBC URL for the database.
+     * @param dumpFile The {@link File} where the dump should be written.
+     *
+     * @throws Exception If the dump fails.
+     */
+    private static void dumpPostgreSqlDatabase(String jdbcUrl, File dumpFile)
+        throws Exception
+    {
+        try (Connection conn = DriverManager.getConnection(jdbcUrl);
+             Statement stmt = conn.createStatement();
+             java.io.FileWriter writer = new java.io.FileWriter(dumpFile))
+        {
+            // Write header
+            writer.write("-- PostgreSQL Database Dump\n");
+            writer.write("-- Generated: " + new java.util.Date() + "\n\n");
+
+            // Get list of tables (excluding system tables)
+            java.sql.ResultSet tables = conn.getMetaData().getTables(
+                null, "public", "%", new String[]{"TABLE"});
+
+            java.util.List<String> tableNames = new java.util.ArrayList<>();
+            while (tables.next()) {
+                tableNames.add(tables.getString("TABLE_NAME"));
+            }
+            tables.close();
+
+            // Get list of views
+            java.sql.ResultSet views = conn.getMetaData().getTables(
+                null, "public", "%", new String[]{"VIEW"});
+
+            java.util.List<String> viewNames = new java.util.ArrayList<>();
+            while (views.next()) {
+                viewNames.add(views.getString("TABLE_NAME"));
+            }
+            views.close();
+
+            // Generate DDL and DML for each table
+            for (String tableName : tableNames) {
+                writer.write("\n-- Table: " + tableName + "\n");
+
+                // Generate CREATE TABLE statement
+                writer.write("CREATE TABLE " + tableName + " (\n");
+
+                java.sql.ResultSet columns = conn.getMetaData().getColumns(
+                    null, "public", tableName, "%");
+
+                boolean firstColumn = true;
+                while (columns.next()) {
+                    if (!firstColumn) {
+                        writer.write(",\n");
+                    }
+                    firstColumn = false;
+
+                    String columnName = columns.getString("COLUMN_NAME");
+                    String columnType = columns.getString("TYPE_NAME");
+                    int columnSize = columns.getInt("COLUMN_SIZE");
+                    String isNullable = columns.getString("IS_NULLABLE");
+
+                    writer.write("    " + columnName + " " + columnType);
+
+                    // Add size for variable length types
+                    if (columnType.equalsIgnoreCase("VARCHAR") ||
+                        columnType.equalsIgnoreCase("CHAR")) {
+                        writer.write("(" + columnSize + ")");
+                    }
+
+                    if ("NO".equals(isNullable)) {
+                        writer.write(" NOT NULL");
+                    }
+                }
+                columns.close();
+
+                // Add primary key constraint
+                java.sql.ResultSet primaryKeys = conn.getMetaData().getPrimaryKeys(
+                    null, "public", tableName);
+                java.util.List<String> pkColumns = new java.util.ArrayList<>();
+                while (primaryKeys.next()) {
+                    pkColumns.add(primaryKeys.getString("COLUMN_NAME"));
+                }
+                primaryKeys.close();
+
+                if (!pkColumns.isEmpty()) {
+                    writer.write(",\n    PRIMARY KEY (");
+                    writer.write(String.join(", ", pkColumns));
+                    writer.write(")");
+                }
+
+                writer.write("\n);\n\n");
+
+                // Generate INSERT statements for table data
+                try (java.sql.ResultSet rs = stmt.executeQuery(
+                    "SELECT * FROM " + tableName)) {
+
+                    java.sql.ResultSetMetaData meta = rs.getMetaData();
+                    int columnCount = meta.getColumnCount();
+
+                    while (rs.next()) {
+                        StringBuilder insert = new StringBuilder();
+                        insert.append("INSERT INTO ").append(tableName).append(" VALUES (");
+
+                        for (int i = 1; i <= columnCount; i++) {
+                            if (i > 1) insert.append(", ");
+
+                            Object value = rs.getObject(i);
+                            if (value == null) {
+                                insert.append("NULL");
+                            } else if (value instanceof String) {
+                                insert.append("'").append(value.toString().replace("'", "''")).append("'");
+                            } else if (value instanceof java.sql.Timestamp || value instanceof java.sql.Date) {
+                                insert.append("'").append(value).append("'");
+                            } else {
+                                insert.append(value);
+                            }
+                        }
+                        insert.append(");\n");
+                        writer.write(insert.toString());
+                    }
+                }
+
+                writer.write("\n");
+            }
+
+            // Generate CREATE INDEX statements for all indexes (excluding primary keys)
+            writer.write("\n-- Indexes\n");
+            for (String tableName : tableNames) {
+                java.sql.ResultSet indexes = conn.getMetaData().getIndexInfo(
+                    null, "public", tableName, false, false);
+
+                java.util.Map<String, java.util.List<String>> indexMap = new java.util.LinkedHashMap<>();
+                while (indexes.next()) {
+                    String indexName = indexes.getString("INDEX_NAME");
+                    String columnName = indexes.getString("COLUMN_NAME");
+
+                    // Skip primary key indexes (they're already in CREATE TABLE)
+                    if (indexName == null || indexName.endsWith("_pkey")) {
+                        continue;
+                    }
+
+                    indexMap.computeIfAbsent(indexName, k -> new java.util.ArrayList<>()).add(columnName);
+                }
+                indexes.close();
+
+                for (java.util.Map.Entry<String, java.util.List<String>> entry : indexMap.entrySet()) {
+                    writer.write("CREATE INDEX " + entry.getKey() + " ON " + tableName + " (");
+                    writer.write(String.join(", ", entry.getValue()));
+                    writer.write(");\n");
+                }
+            }
+
+            // Generate triggers
+            writer.write("\n-- Triggers\n");
+            for (String tableName : tableNames) {
+                try (java.sql.ResultSet triggers = stmt.executeQuery(
+                    "SELECT tgname, pg_get_triggerdef(oid) as triggerdef " +
+                    "FROM pg_trigger " +
+                    "WHERE tgrelid = '" + tableName + "'::regclass " +
+                    "AND NOT tgisinternal")) {
+
+                    while (triggers.next()) {
+                        String triggerDef = triggers.getString("triggerdef");
+                        writer.write(triggerDef + ";\n");
+                    }
+                } catch (Exception e) {
+                    // Log but don't fail if trigger extraction fails
+                    writer.write("-- Failed to export triggers for table " + tableName + ": " + e.getMessage() + "\n");
+                }
+            }
+
+            // Generate views
+            writer.write("\n-- Views\n");
+            for (String viewName : viewNames) {
+                try (java.sql.ResultSet viewDef = stmt.executeQuery(
+                    "SELECT pg_get_viewdef('" + viewName + "'::regclass, true) as definition")) {
+
+                    if (viewDef.next()) {
+                        String definition = viewDef.getString("definition");
+                        writer.write("\nCREATE VIEW " + viewName + " AS\n");
+                        writer.write(definition + ";\n");
+                    }
+                } catch (Exception e) {
+                    // Log but don't fail if view extraction fails
+                    writer.write("-- Failed to export view " + viewName + ": " + e.getMessage() + "\n");
+                }
+            }
+
+            writer.flush();
         }
     }
 
@@ -1131,6 +1345,11 @@ public class DataMartTestExtension implements BeforeAllCallback {
                 redo = engine.getRedoRecord()) 
         {
             String info = engine.processRedoRecord(redo, SZ_WITH_INFO_FLAGS);
+            if (info.indexOf("319") >= 0) {
+                logInfo("GOT REDO INCLUDING 319: ",
+                        toJsonText(parseJsonObject(info), true),
+                        "");
+            }
             replicator.getDatabaseMessageQueue().enqueueMessage(info);
         }
     }
@@ -1286,6 +1505,13 @@ public class DataMartTestExtension implements BeforeAllCallback {
 
                 // track the entity
                 entities.put(entity.getEntityId(), entity);
+
+                if (entity.getEntityId() == 31 || entity.getEntityId() == 34) {
+                    logInfo("",
+                            "ENTITY " + entity.getEntityId() + " AFTER REPLICATION:",
+                            toJsonText(parseJsonObject(entityJson), true),
+                            "");
+                }
 
                 // track the records already found
                 Map<com.senzing.datamart.model.SzRecordKey, SzRecord> records = entity.getRecords();

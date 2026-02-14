@@ -597,6 +597,16 @@ public class EntityDelta {
                 ? newRelationship.getRelatedEntityId()
                 : newRelationship.getEntityId();
         
+        // now check that the related entity ID is related to the entity
+        if (!this.getAddedRelations().containsKey(myRelatedId) 
+            && !this.getChangedRelations().containsKey(myRelatedId)) {
+            throw new IllegalArgumentException(
+                    "Cannot store the relationship to an entity for which the "
+                    + "relationship was not added or changed.  relatedId=[ " 
+                    + myRelatedId + " ], added=[ " + this.getAddedRelations().keySet() 
+                    + " ], changed=[ " + this.getChangedRelations().keySet() + " ]");
+        }
+        
         // get the old entity
         SzResolvedEntity oldEntity = this.getOldEntity();
 
@@ -640,16 +650,6 @@ public class EntityDelta {
         }
         if (oldRelatedSummary == null) {
             oldRelatedSummary = Collections.emptyMap();
-        }
-
-        // now check that the related entity ID is related to the entity
-        if (!this.getAddedRelations().containsKey(myRelatedId) 
-            && !this.getChangedRelations().containsKey(myRelatedId)) {
-            throw new IllegalArgumentException(
-                    "Cannot store the relationship to an entity for which the "
-                    + "relationship was not added or changed.  relatedId=[ " 
-                    + myRelatedId + " ], added=[ " + this.getAddedRelations().keySet() 
-                    + " ], changed=[ " + this.getChangedRelations().keySet() + " ]");
         }
 
         logDebug("ENTITY " + myEntityId + " OLD SOURCE SUMMARY TO ENTITY " + myRelatedId + ": ", 

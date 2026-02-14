@@ -96,6 +96,7 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
                 + "  entity_id BIGINT NOT NULL, "
                 + "  match_key TEXT, "
                 + "  errule_code TEXT, "
+                + "  prev_entity_id BIGINT, "
                 + "  creator_id TEXT NOT NULL, "
                 + "  modifier_id TEXT NOT NULL, "
                 + "  adopter_id TEXT NULL, "

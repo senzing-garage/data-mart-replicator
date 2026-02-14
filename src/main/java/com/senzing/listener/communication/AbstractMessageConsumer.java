@@ -1234,6 +1234,9 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
                             timers.pause(markProcessed.toString());
 
                         } catch (Exception e) {
+                            System.err.println(e.getMessage());
+                             System.err.println(formatStackTrace(e.getStackTrace()));
+
                             // in case of exception mark it as processed and non-disposable
                             timers.start(markProcessed.toString());
                             infoMsg.markProcessed(false);

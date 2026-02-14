@@ -78,6 +78,7 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
                 + "  entity_id INTEGER NOT NULL, "
                 + "  match_key TEXT, "
                 + "  errule_code TEXT, "
+                + "  prev_entity_id INTEGER, "
                 + "  creator_id TEXT NOT NULL, "
                 + "  modifier_id TEXT NOT NULL, "
                 + "  adopter_id TEXT NULL, "

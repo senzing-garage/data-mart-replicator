@@ -21,6 +21,11 @@ public interface SzReplicationProvider {
      */
     enum TaskAction {
         /**
+         * Schedules an entity refresh for a record.
+         */
+        HANDLE_RECORD, 
+
+        /**
          * Refresh an entity.
          */
         REFRESH_ENTITY, 
