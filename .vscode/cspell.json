@@ -50,6 +50,7 @@
     "jaxb",
     "jdbc",
     "joda",
+    "kernelsam",
     "kqueue",
     "linecorp",
     "madrapps",
