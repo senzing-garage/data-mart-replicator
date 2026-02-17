@@ -500,10 +500,18 @@ public class SzRelationship {
     public void buildJson(JsonObjectBuilder builder) {
         builder.add("entityId", this.getEntityId());
         builder.add("relatedId", this.getRelatedEntityId());
-        builder.add("matchType", this.getMatchType().toString());
-        builder.add("matchKey", this.getMatchKey());
-        builder.add("reverseMatchKey", this.getReverseMatchKey());
-        builder.add("principle", this.getPrinciple());
+        if (this.getMatchType() != null) {
+            builder.add("matchType", this.getMatchType().toString());
+        }
+        if (this.getMatchKey() != null) {
+            builder.add("matchKey", this.getMatchKey());
+        }
+        if (this.getReverseMatchKey() != null) {
+            builder.add("reverseMatchKey", this.getReverseMatchKey());
+        }
+        if (this.getPrinciple() != null) {
+            builder.add("principle", this.getPrinciple());
+        }
         SortedMap<String, Integer> sortedSummary = new TreeMap<>(this.getSourceSummary());
         addProperty(builder, "sourceSummary", sortedSummary);
         SortedMap<String, Integer> sortedRelatedSummary = new TreeMap<>(this.getRelatedSourceSummary());

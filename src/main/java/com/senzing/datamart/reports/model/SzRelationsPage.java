@@ -481,8 +481,8 @@ public class SzRelationsPage implements Serializable {
         SzRelationsPage other = (SzRelationsPage) obj;
         return Objects.equals(bound, other.bound) && boundType == other.boundType && pageSize == other.pageSize
                 && Objects.equals(sampleSize, other.sampleSize)
-                && Objects.equals(pageMinimumValue, other.pageMinimumValue)
-                && Objects.equals(pageMaximumValue, other.pageMaximumValue)
+                && Objects.equals(getPageMinimumValue(), other.getPageMinimumValue())
+                && Objects.equals(getPageMaximumValue(), other.getPageMaximumValue())
                 && totalRelationCount == other.totalRelationCount && beforePageCount == other.beforePageCount
                 && afterPageCount == other.afterPageCount && Objects.equals(relations, other.relations);
     }

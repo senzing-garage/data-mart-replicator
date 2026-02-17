@@ -105,9 +105,15 @@ public class SzRelatedEntity extends SzEntity {
      */
     public void buildJson(JsonObjectBuilder builder) {
         super.buildJson(builder);
-        builder.add("matchType", this.getMatchType().getCode());
-        builder.add("matchKey", this.getMatchKey());
-        builder.add("principle", this.getPrinciple());
+        if (this.getMatchType() != null) {
+            builder.add("matchType", this.getMatchType().getCode());
+        }
+        if (this.getMatchKey() != null) {
+	    builder.add("matchKey", this.getMatchKey());
+        }
+        if (this.getPrinciple() != null) {
+            builder.add("principle", this.getPrinciple());
+        }
     }
 
     /**
@@ -149,6 +155,8 @@ public class SzRelatedEntity extends SzEntity {
             logError("","---------------------",
                     "Encountered empty match key (" + matchKey + ") for relationship: ", 
                      JsonUtilities.toJsonText(jsonObject, true), 
+                     "","---------------------", "",
+                     formatStackTrace((new IllegalArgumentException()).getStackTrace()),
                      "","---------------------", "");
         }
         entity.setMatchKey(matchKey);

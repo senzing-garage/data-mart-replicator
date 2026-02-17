@@ -110,8 +110,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
             JsonObject jsonObj = parseJsonObject(jsonText);
             SzResolvedEntity newEntity = SzResolvedEntity.parse(jsonObj);
             long newEntityId = (newEntity == null) ? -1L : newEntity.getEntityId();
-            if (newEntity == null || newEntityId == 398
-                || newEntityId == 223 || newEntityId == 268 || newEntityId == 319
+            if (newEntity == null || newEntityId == 319
+                || newEntityId == 268 //|| newEntityId == 223 || newEntityId == 398
                 || newEntity.getRecords().containsKey(CUSTOMER_1005)) 
             {
                 if (!overridingDebug) {
@@ -119,6 +119,20 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                     overridingDebug = true;
                 }
             }
+
+            if (newEntity != null) {
+                for (SzRelatedEntity rel : newEntity.getRelatedEntities().values()) {
+                    if (rel.getMatchKey() == null) {
+                        logError("Entity JSON with missing match key: ",
+                                 toJsonText(jsonObj, true));
+                        if (!overridingDebug) { 
+                            LoggingUtilities.overrideDebugLogging(true);
+                            overridingDebug = true;
+                        }
+                        break;
+                    }
+               }
+            } 
 
             logDebug("REFRESHING ENTITY " + entityId + ": ",
                      (newEntity == null) ? "--> DELETED" : newEntity.toString());

@@ -455,8 +455,8 @@ public class SzEntitiesPage implements Serializable {
         SzEntitiesPage other = (SzEntitiesPage) obj;
         return Objects.equals(bound, other.bound) && boundType == other.boundType && pageSize == other.pageSize
                 && Objects.equals(sampleSize, other.sampleSize)
-                && Objects.equals(pageMinimumValue, other.pageMinimumValue)
-                && Objects.equals(pageMaximumValue, other.pageMaximumValue)
+                && Objects.equals(getPageMinimumValue(), other.getPageMinimumValue())
+                && Objects.equals(getPageMaximumValue(), other.getPageMaximumValue())
                 && totalEntityCount == other.totalEntityCount && beforePageCount == other.beforePageCount
                 && afterPageCount == other.afterPageCount && Objects.equals(entities, other.entities);
     }

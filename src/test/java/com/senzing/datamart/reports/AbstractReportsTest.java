@@ -1109,7 +1109,7 @@ public abstract class AbstractReportsTest {
             pw.flush();
             testInfo = validateReport(expected, actual, testInfo, false) + sw.toString();
         }
-        
+
         assertEquals(expected.getBound(), actual.getBound(),
                     "Bound does not match: " + testInfo);
         assertEquals(expected.getBoundType(), actual.getBoundType(),
@@ -1225,7 +1225,7 @@ public abstract class AbstractReportsTest {
             pw.flush();
             testInfo = validateReport(expected, actual, testInfo, false) + sw.toString();
         }
-        
+
         assertEquals(expected.getBound(), actual.getBound(),
                     "Bound does not match: " + testInfo);
         assertEquals(expected.getBoundType(), actual.getBoundType(),
