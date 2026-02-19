@@ -220,7 +220,7 @@ public final class LoadedStatsReports {
 
             // add the source stats to the result
             sourceStatsMap.values().forEach(stats -> {
-                if (!unusedDataSources.contains(stats.getDataSource())) {
+                if (unusedDataSources == null || !unusedDataSources.contains(stats.getDataSource())) {
                     logWarning("Missing unmatched record count stats for data source (" 
                                 + stats.getDataSource() + "), but got entity and record "
                                 + "count stats:  dataSources=[ " + dataSources 
