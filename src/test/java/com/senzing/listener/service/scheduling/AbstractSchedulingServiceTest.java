@@ -25,6 +25,21 @@ import static org.junit.jupiter.api.Assertions.*;
 class AbstractSchedulingServiceTest {
 
     // ========================================================================
+    // Helper Methods
+    // ========================================================================
+
+    /**
+     * Asserts that the service is in an initialized state (READY or ACTIVE).
+     * After init(), the background thread may transition from READY to ACTIVE
+     * before this assertion runs, so both states are valid.
+     */
+    private void assertInitializedState(MockSchedulingService service) {
+        SchedulingService.State state = service.getState();
+        assertTrue(state == SchedulingService.State.READY || state == SchedulingService.State.ACTIVE,
+            "State should be READY or ACTIVE after init, but was: " + state);
+    }
+
+    // ========================================================================
     // Mock Task Handlers
     // ========================================================================
 
@@ -108,7 +123,7 @@ class AbstractSchedulingServiceTest {
         MockSchedulingService service = new MockSchedulingService();
 
         assertDoesNotThrow(() -> service.init(null, handler));
-        assertEquals(SchedulingService.State.READY, service.getState());
+        assertInitializedState(service);
 
         service.destroy();
     }
@@ -121,7 +136,7 @@ class AbstractSchedulingServiceTest {
         JsonObject config = Json.createObjectBuilder().build();
 
         service.init(config, handler);
-        assertEquals(SchedulingService.State.READY, service.getState());
+        assertInitializedState(service);
 
         service.destroy();
     }
@@ -136,7 +151,7 @@ class AbstractSchedulingServiceTest {
             .build();
 
         service.init(config, handler);
-        assertEquals(SchedulingService.State.READY, service.getState());
+        assertInitializedState(service);
 
         service.destroy();
     }
@@ -155,7 +170,7 @@ class AbstractSchedulingServiceTest {
             .build();
 
         service.init(config, handler);
-        assertEquals(SchedulingService.State.READY, service.getState());
+        assertInitializedState(service);
 
         service.destroy();
     }
@@ -199,10 +214,7 @@ class AbstractSchedulingServiceTest {
 
         service.init(null, handler);
 
-        // After init, state should be READY or ACTIVE (background thread may have started)
-        SchedulingService.State state = service.getState();
-        assertTrue(state == SchedulingService.State.READY || state == SchedulingService.State.ACTIVE,
-            "State should be READY or ACTIVE after init, but was: " + state);
+        assertInitializedState(service);
 
         service.destroy();
     }
@@ -213,7 +225,7 @@ class AbstractSchedulingServiceTest {
         MockSchedulingService service = new MockSchedulingService();
 
         service.init(null, handler);
-        assertEquals(SchedulingService.State.READY, service.getState());
+        assertInitializedState(service);
 
         service.destroy();
 
@@ -719,7 +731,7 @@ class AbstractSchedulingServiceTest {
 
         service.init(config, handler);
 
-        assertEquals(SchedulingService.State.READY, service.getState());
+        assertInitializedState(service);
 
         service.destroy();
     }
@@ -944,7 +956,7 @@ class AbstractSchedulingServiceTest {
         service.init(config, handler);
 
         // Verify service initialized correctly
-        assertEquals(SchedulingService.State.READY, service.getState());
+        assertInitializedState(service);
 
         service.destroy();
     }
@@ -1334,7 +1346,7 @@ class AbstractSchedulingServiceTest {
         service.init(null, handler);
 
         // Service should use the custom locking service
-        assertEquals(SchedulingService.State.READY, service.getState());
+        assertInitializedState(service);
 
         service.destroy();
     }
