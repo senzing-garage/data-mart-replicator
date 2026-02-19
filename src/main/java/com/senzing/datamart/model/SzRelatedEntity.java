@@ -109,7 +109,7 @@ public class SzRelatedEntity extends SzEntity {
             builder.add("matchType", this.getMatchType().getCode());
         }
         if (this.getMatchKey() != null) {
-	    builder.add("matchKey", this.getMatchKey());
+            builder.add("matchKey", this.getMatchKey());
         }
         if (this.getPrinciple() != null) {
             builder.add("principle", this.getPrinciple());
@@ -152,12 +152,12 @@ public class SzRelatedEntity extends SzEntity {
             matchKey = getString(jsonObject, "MATCH_KEY");
         }
         if (matchKey == null || matchKey.trim().length() == 0) {
-            logError("","---------------------",
+            logError("", "---------------------",
                     "Encountered empty match key (" + matchKey + ") for relationship: ", 
                      JsonUtilities.toJsonText(jsonObject, true), 
-                     "","---------------------", "",
+                     "", "---------------------", "",
                      formatStackTrace((new IllegalArgumentException()).getStackTrace()),
-                     "","---------------------", "");
+                     "", "---------------------", "");
         }
         entity.setMatchKey(matchKey);
 
@@ -211,7 +211,7 @@ public class SzRelatedEntity extends SzEntity {
 
     /**
      * Normalizes the specified text value so that if <code>null</code>
-     * or empty string or purely whitespace, then <code>null<code> is
+     * or empty string or purely whitespace, then <code>null</code> is
      * returned, otherwise the value is returned with leading and trailing
      * whitespace removed.
      * 

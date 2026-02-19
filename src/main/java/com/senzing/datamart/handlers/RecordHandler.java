@@ -1,7 +1,6 @@
 package com.senzing.datamart.handlers;
 
 import com.senzing.datamart.SzReplicationProvider;
-import com.senzing.datamart.SzReplicationProvider.TaskAction;
 import com.senzing.datamart.model.*;
 import com.senzing.listener.service.exception.ServiceExecutionException;
 import com.senzing.listener.service.scheduling.Scheduler;
@@ -49,8 +48,9 @@ public class RecordHandler extends AbstractTaskHandler {
     }
 
     /**
-     * Implemented to handle the {@link TaskAction#HANDLE_RECORD} action by
-     * scheduling an entity refresh for a given record key.
+     * Implemented to handle the {@link 
+     * com.senzing.datamart.SzReplicationProvider.TaskAction#HANDLE_RECORD} 
+     * action by scheduling an entity refresh for a given record key.
      * <p>
      * {@inheritDoc}
      */

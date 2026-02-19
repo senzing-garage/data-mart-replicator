@@ -7,7 +7,6 @@ import com.senzing.listener.service.exception.ServiceExecutionException;
 import com.senzing.listener.service.scheduling.Scheduler;
 import com.senzing.listener.service.scheduling.TaskHandler;
 import com.senzing.sdk.SzEnvironment;
-import com.senzing.sdk.SzNotFoundException;
 import com.senzing.sql.ConnectionProvider;
 import com.senzing.sql.DatabaseType;
 import com.senzing.text.TextUtilities;
@@ -46,7 +45,8 @@ public abstract class AbstractTaskHandler implements TaskHandler {
     protected static final int SZ_ERR_NO_OBSERVED_ENTITY_FOR_DSRC_ENTITY_KEY = 39;
     
     /**
-     * The Senzing SDK error codes to treat as an {@link SzNotFoundException}.
+     * The Senzing SDK error codes to treat as an {@link 
+     * com.senzing.sdk.SzNotFoundException}.
      */
     protected static final Set<Integer> NOT_FOUND_ERROR_CODES
         = Set.of(SZ_ERR_RECORD_HAS_NO_RESOLVED_ENTITY, 

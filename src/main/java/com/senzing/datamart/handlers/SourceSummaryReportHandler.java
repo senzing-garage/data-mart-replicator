@@ -157,7 +157,7 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
                         continue;
                     }
 
-                    logDebug("ENTITY FOR RECORD " + recordKey + ": "+ entityId);
+                    logDebug("ENTITY FOR RECORD " + recordKey + ": " + entityId);
                     
                     // check the entity ID
                     ResultSet rs2 = null;
