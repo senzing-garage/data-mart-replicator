@@ -480,7 +480,7 @@ class AbstractListenerServiceTest {
                 service.init(null);
                 latch.countDown();
             } catch (Exception e) {
-                // ignore
+                e.printStackTrace();
             }
         });
 

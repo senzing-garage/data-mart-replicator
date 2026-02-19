@@ -715,13 +715,13 @@ class ProcessScopeLockingServiceTest {
         String output = systemErr.getText();
 
         // Verify expected content in output
-        assertNotNull(output);
-        assertTrue(output.contains("***"), "Output should contain separator stars");
-        assertTrue(output.contains("---") || output.contains("--"), "Output should contain dashes");
-        assertTrue(output.contains("ENTITY"), "Output should contain ENTITY resource type");
-        assertTrue(output.contains("RECORD"), "Output should contain RECORD resource type");
-        assertTrue(output.contains("100") || output.contains("101"), "Output should contain entity IDs");
-        assertTrue(output.contains("DS1") || output.contains("R001"), "Output should contain record info");
+        assertNotNull(output, "Output should not be null");
+        assertTrue(output.contains("***"), "Output should contain separator stars. Actual output: [" + output + "]");
+        assertTrue(output.contains("---") || output.contains("--"), "Output should contain dashes. Actual output: [" + output + "]");
+        assertTrue(output.contains("ENTITY"), "Output should contain ENTITY resource type. Actual output: [" + output + "]");
+        assertTrue(output.contains("RECORD"), "Output should contain RECORD resource type. Actual output: [" + output + "]");
+        assertTrue(output.contains("100") || output.contains("101"), "Output should contain entity IDs. Actual output: [" + output + "]");
+        assertTrue(output.contains("DS1") || output.contains("R001"), "Output should contain record info. Actual output: [" + output + "]");
 
         service.releaseLocks(token1);
         service.releaseLocks(token2);
