@@ -317,7 +317,7 @@ public class DataMartTestExtension implements BeforeAllCallback {
          *
          * @param repositoryType    The repository type.
          * @param senzingConnUri    The connection URI for the Senzing database.
-         * @param datraMartConnUri  The connection URI for the data mart database.
+         * @param dataMartConnUri   The connection URI for the data mart database.
          * @param dataMartJdbcUrl   The JDBC URL for the data mart database.
          * @param dataMartConnector The connector for for the data mart database.
          * @param coreSettings      The Senzing core settings JSON.

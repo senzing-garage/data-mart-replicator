@@ -1921,7 +1921,7 @@ public abstract class AbstractReportsTest {
     }
 
     /**
-     * Checks if the specified actual value matches the specified excpected value.
+     * Checks if the specified actual value matches the specified expected value.
      * 
      * @param expected  The expected report value.
      * @param actual    The actual report value.
