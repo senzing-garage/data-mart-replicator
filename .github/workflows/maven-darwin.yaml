@@ -58,8 +58,8 @@ jobs:
         uses: madrapps/jacoco-report@v1.7.2
         with:
           fail-emoji: ":red_circle:"
-          min-coverage-changed-files: 10
-          min-coverage-overall: 10
+          min-coverage-changed-files: 80
+          min-coverage-overall: 80
           pass-emoji: ":green_circle:"
           paths: ${{ github.workspace }}/target/site/**/*.xml
           skip-if-no-changes: true
@@ -67,12 +67,12 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           update-comment: true
 
-      - name: Fail PR if overall coverage is less than 10%
-        if: ${{ steps.jacoco.outputs.coverage-overall < 10.0 }}
+      - name: Fail PR if overall coverage is less than 80%
+        if: ${{ steps.jacoco.outputs.coverage-overall < 80.0 }}
         uses: actions/github-script@v8
         with:
           script: |
-            core.setFailed('Overall coverage is less than 10%!')
+            core.setFailed('Overall coverage is less than 80%!')
 
   slack-notification:
     needs: [maven-darwin]

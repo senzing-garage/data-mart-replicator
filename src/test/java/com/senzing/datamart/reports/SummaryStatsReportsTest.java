@@ -671,9 +671,9 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                 }
 
                 validateReport(expected.getMatches(),
-                            matchCounts.getCounts(),
-                            "CrossSourceMatchSummary",
-                            testInfo);
+                               matchCounts.getCounts(),
+                               "CrossSourceMatchSummary",
+                               testInfo);
 
             } catch (Exception e) {
                 validateException(testInfo, e, exceptionType);
@@ -689,9 +689,9 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                 }
 
                 validateReport(expected.getAmbiguousMatches(),
-                            relationCounts.getCounts(),
-                            "CrossSourceAmbiguousMatchSummary",
-                            testInfo);
+                               relationCounts.getCounts(),
+                               "CrossSourceAmbiguousMatchSummary",
+                               testInfo);
 
 
             } catch (Exception e) {
@@ -708,9 +708,9 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                 }
 
                 validateReport(expected.getPossibleMatches(),
-                            relationCounts.getCounts(),
-                            "CrossSourcePossibleMatchSummary",
-                            testInfo);
+                               relationCounts.getCounts(),
+                               "CrossSourcePossibleMatchSummary",
+                               testInfo);
 
 
             } catch (Exception e) {
@@ -727,9 +727,9 @@ public class SummaryStatsReportsTest extends AbstractReportsTest {
                 }
 
                 validateReport(expected.getPossibleRelations(),
-                            relationCounts.getCounts(),
-                            "CrossSourcePossibleRelationSummary",
-                            testInfo);
+                               relationCounts.getCounts(),
+                               "CrossSourcePossibleRelationSummary",
+                               testInfo);
 
             } catch (Exception e) {
                 validateException(testInfo, e, exceptionType);

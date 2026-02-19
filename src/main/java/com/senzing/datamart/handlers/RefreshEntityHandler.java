@@ -31,8 +31,6 @@ import static com.senzing.sdk.SzFlag.*;
  * Provides a handler for refreshing an affected entity.
  */
 public class RefreshEntityHandler extends AbstractTaskHandler {
-    private static final SzRecordKey CUSTOMER_1005 = new SzRecordKey("CUSTOMERS", "1005");
-
     /**
      * The parameter key for the entity ID.
      */
@@ -46,6 +44,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
         EnumSet<SzFlag> enumSet = EnumSet.of(SZ_ENTITY_INCLUDE_ENTITY_NAME,
                                              SZ_ENTITY_INCLUDE_RECORD_DATA,
                                              SZ_ENTITY_INCLUDE_RECORD_MATCHING_INFO,
+                                             SZ_INCLUDE_MATCH_KEY_DETAILS,
                                              SZ_ENTITY_INCLUDE_RELATED_MATCHING_INFO,
                                              SZ_ENTITY_INCLUDE_RELATED_RECORD_DATA);
         enumSet.addAll(SZ_ENTITY_INCLUDE_ALL_RELATIONS);
@@ -109,30 +108,49 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
             JsonObject jsonObj = parseJsonObject(jsonText);
             SzResolvedEntity newEntity = SzResolvedEntity.parse(jsonObj);
-            long newEntityId = (newEntity == null) ? -1L : newEntity.getEntityId();
-            if (newEntity == null || newEntityId == 319
-                || newEntityId == 268 //|| newEntityId == 223 || newEntityId == 398
-                || newEntity.getRecords().containsKey(CUSTOMER_1005)) 
-            {
-                if (!overridingDebug) {
-                    LoggingUtilities.overrideDebugLogging(true);
-                    overridingDebug = true;
-                }
-            }
 
-            if (newEntity != null) {
+            // we need to check for the transient state of a missing relationship match key
+            for (int retry = 0; (newEntity != null) && (retry < 5); retry++) {
+                boolean missingMatchKey = false;
                 for (SzRelatedEntity rel : newEntity.getRelatedEntities().values()) {
                     if (rel.getMatchKey() == null) {
-                        logError("Entity JSON with missing match key: ",
-                                 toJsonText(jsonObj, true));
+                        missingMatchKey = true;
+                        logWarning("ENTITY " + entityId + " MISSING RELATIONSHIP MATCH KEY: ",
+                                toJsonText(jsonObj, true));
                         if (!overridingDebug) { 
                             LoggingUtilities.overrideDebugLogging(true);
                             overridingDebug = true;
                         }
                         break;
                     }
-               }
-            } 
+                }
+
+                // check if not missing a match key
+                if (!missingMatchKey) {
+                    break;
+                }
+
+                // missing match key should be transient, so sleep and retry
+                try {
+                    Thread.sleep(retry * 10L);
+                } catch (InterruptedException ignore) {
+                    // do nothing
+                }
+
+                // now retry the entity get
+                jsonText = null;
+                try {
+                    jsonText = engine.getEntity(entityId, ENTITY_FLAGS);
+                } catch (SzNotFoundException e) {
+                    // let the result be null to indicate deletion
+                    jsonText = null;
+                }
+
+                jsonObj = parseJsonObject(jsonText);
+                logWarning("ENTITY " + entityId + ": RETRIED GET ENTITY (" 
+                            + retry + "):", toJsonText(jsonObj, true));
+                newEntity = SzResolvedEntity.parse(jsonObj);
+            }
 
             logDebug("REFRESHING ENTITY " + entityId + ": ",
                      (newEntity == null) ? "--> DELETED" : newEntity.toString());
@@ -150,31 +168,24 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                     : this.ensureEntityRow(conn, newEntity);
 
             if (entityHash != null && entityHash.trim().length() == 0) {
-                logDebug("ENTITY " + entityId 
-                        + " HASHES MATCH (PRESUMABLY NO CHANGES)");
-
-                // check if the entity exists
-                if (newEntity != null) {
-                    // if so, ensure we have relationship integrity
-                    EntityDelta noDelta = new EntityDelta(newEntity, newEntity);
-                    this.ensureRelationIntegrity(
-                            conn, noDelta, followUpScheduler, new TreeSet<>());
+                // check if the entity never existed
+                if (newEntity == null) {
+                    logDebug("ENTITY " + entityId + " WAS NEVER REPLICATED.  FOLLOWING UP ON RELATED ENTITIES...");
+                } else {
+                    logDebug("ENTITY " + entityId 
+                             + " HASHES MATCH (PRESUMABLY NO CHANGES)");
                 }
+
+                // ensure we have relationship integrity
+                this.ensureRelationIntegrity(
+                        conn, entityId, followUpScheduler, new TreeSet<>());
+
                 return;
             }
             logDebug("CHANGES DETECTED FOR ENTITY " + entityId);
 
             // parse the old entity
             SzResolvedEntity oldEntity = SzResolvedEntity.parseHash(entityHash);
-
-            if (oldEntity != null 
-                && oldEntity.getRecords().containsKey(CUSTOMER_1005))
-            {
-                if (!overridingDebug) {
-                    LoggingUtilities.overrideDebugLogging(true);
-                    overridingDebug = true;
-                }
-            }
 
             // check if the entity in unchanged -- this is a double-check since the
             // hashes should have been the same before we got here
@@ -1079,7 +1090,59 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
      *
      * @throws SQLException If a JDBC failure occurs.
      */
-    protected void ensureRelationIntegrity(Connection   conn, 
+    protected void ensureRelationIntegrity(Connection   conn,
+                                           EntityDelta  entityDelta, 
+                                           Scheduler    followUpScheduler, 
+                                           Set<Long>    followUpSet) 
+        throws SQLException 
+    {
+        this.ensureRelationIntegrity(
+            conn, entityDelta.getEntityId(), entityDelta, followUpScheduler, followUpSet);
+    }
+    /**
+     * Ensures the related entities connected by stale relationships to this entity
+     * are followed up on and removed relationships in the mart are also followed up
+     * on.
+     *
+     * @param conn              The JDBC {@link Connection} to use.
+     * @param entityId          The entity ID of the entity.
+     * @param followUpScheduler The {@link Scheduler} to use for scheduling
+     *                          follow-up tasks.
+     * @param followUpSet       The {@link Set} to populate with {@link Long} entity
+     *                          ID's for which a relationship refresh follow-up was
+     *                          scheduled.
+     *
+     * @throws SQLException If a JDBC failure occurs.
+     */
+    protected void ensureRelationIntegrity(Connection   conn,
+                                           long         entityId,
+                                           Scheduler    followUpScheduler, 
+                                           Set<Long>    followUpSet) 
+        throws SQLException 
+    {
+        this.ensureRelationIntegrity(
+            conn, entityId, null, followUpScheduler, followUpSet);
+    }
+
+    /**
+     * Ensures the related entities connected by stale relationships to this entity
+     * are followed up on and removed relationships in the mart are also followed up
+     * on.
+     *
+     * @param conn              The JDBC {@link Connection} to use.
+     * @param entityId          The entity ID of the entity.
+     * @param entityDelta       The {@link EntityDelta} to use, or <code>null</code>
+     *                          if a deleted entity was never replicated.
+     * @param followUpScheduler The {@link Scheduler} to use for scheduling
+     *                          follow-up tasks.
+     * @param followUpSet       The {@link Set} to populate with {@link Long} entity
+     *                          ID's for which a relationship refresh follow-up was
+     *                          scheduled.
+     *
+     * @throws SQLException If a JDBC failure occurs.
+     */
+    protected void ensureRelationIntegrity(Connection   conn,
+                                           long         entityId,
                                            EntityDelta  entityDelta, 
                                            Scheduler    followUpScheduler, 
                                            Set<Long>    followUpSet) 
@@ -1087,13 +1150,22 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
     {
         Set<Long> knownRelations = new LinkedHashSet<>();
 
-        knownRelations.addAll(entityDelta.getOldRelatedEntities().keySet());
-        knownRelations.addAll(entityDelta.getNewRelatedEntities().keySet());
+        // check if we have an entity delta
+        if (entityDelta != null) {
+            // ensure the entity ID's match up
+            if (entityId != entityDelta.getEntityId()) {
+                throw new IllegalArgumentException(
+                    "Mismatch between specified entity ID (" + entityId 
+                    + ") and EntityDelta ID (" + entityDelta.getEntityId()
+                    + ")");
+            }
 
+            // populate the known relations
+            knownRelations.addAll(entityDelta.getOldRelatedEntities().keySet());
+            knownRelations.addAll(entityDelta.getNewRelatedEntities().keySet());
+        }
         PreparedStatement ps = null;
         ResultSet rs = null;
-
-        long entityId = entityDelta.getEntityId();
 
         try {
             ps = conn.prepareStatement(

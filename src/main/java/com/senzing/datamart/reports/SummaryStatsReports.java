@@ -190,7 +190,8 @@ public final class SummaryStatsReports {
                     "SELECT statistic, entity_count, record_count "
                     + "FROM sz_dm_report WHERE report=? " 
                     + "AND data_source1 = ? AND data_source2 = ? "
-                    + "AND statistic IN (?, ?)" 
+                    + "AND statistic IN (?, ?) "
+                    + "AND (entity_count <> 0 OR record_count <> 0) " 
                     + "ORDER BY statistic");
 
                 // bind the parameters
@@ -448,6 +449,7 @@ public final class SummaryStatsReports {
                     + "FROM sz_dm_report WHERE report=? AND data_source1 = ? "
                     + "AND data_source2 = ? AND statistic NOT IN (?, ?) "
                     + ((requestedStatistic != null) ? "AND statistic LIKE ? " : "") 
+                    + "AND (entity_count <> 0 OR record_count <> 0 OR relation_count <> 0) "
                     + "ORDER BY statistic");
 
                 // bind the parameters

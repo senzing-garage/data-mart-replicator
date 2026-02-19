@@ -130,10 +130,12 @@ public class EntityDelta {
      */
     public EntityDelta(SzResolvedEntity oldEntity, SzResolvedEntity newEntity) {
         if (oldEntity != null && newEntity != null && oldEntity.getEntityId() != newEntity.getEntityId()) {
-            throw new IllegalArgumentException("The entities for which the differences are being discovered must "
-                    + "describe the same entity at different points in time, rather than "
-                    + "two different entities.  oldEntityId=[ " + oldEntity.getEntityId() + " ], newEntityId=[ "
-                    + newEntity.getEntityId() + " ]");
+            throw new IllegalArgumentException(
+                "The entities for which the differences are being discovered must "
+                + "describe the same entity at different points in time, rather than "
+                + "two different entities.  oldEntityId=[ " 
+                + oldEntity.getEntityId() + " ], newEntityId=[ "
+                + newEntity.getEntityId() + " ]");
         }
 
         // create the resource key set
@@ -1589,7 +1591,7 @@ public class EntityDelta {
 
         // check if we previously had a singleton entity and now we don't
         if ((oldEntity != null && oldEntity.getRecords().size() == 1) 
-             && (newEntity == null || newEntity.getRecords().size() > 1)) 
+             && (newEntity == null || !newSourceSummary.equals(oldSourceSummary))) 
         {
             String source = oldSourceSummary.keySet().iterator().next();
 
@@ -1601,7 +1603,7 @@ public class EntityDelta {
 
         // check if we now have a singleton entity
         if ((newEntity != null && newEntity.getRecords().size() == 1) 
-             && (oldEntity == null || oldEntity.getRecords().size() > 1))
+             && (oldEntity == null || !oldSourceSummary.equals(newSourceSummary)))
         {
             String source = newSourceSummary.keySet().iterator().next();
 

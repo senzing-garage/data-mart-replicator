@@ -942,7 +942,7 @@ public class AbstractMessageConsumerTest {
 
     @ParameterizedTest
     @ValueSource(ints = { 1, 2, 3, 4, 8 })
-    public void errantTest(int concurrency) {
+    public void errantTest(int concurrency) throws Exception {
         List<Message> messages = new LinkedList<>();
         messages.add(new Message(1, buildInfoMessage(1, "CUSTOMERS", "001", 1, 2, 3)));
         messages.add(new Message(2, buildInfoMessage(2, 1, null, "CUSTOMERS", "002", 1, 4)));
@@ -950,12 +950,15 @@ public class AbstractMessageConsumerTest {
         messages.add(new Message(4, buildInfoMessage(4, 1, null, "CUSTOMERS", "004", 4, 5)));
         messages.add(new Message(5, buildInfoMessage(5, "CUSTOMERS", "005", 6, 7)));
 
-        this.performTest(messages, messages.size(), concurrency, null, null, 2500L, null, null, 0.0, null);
+        SystemErr systemErr = new SystemErr();
+        systemErr.execute(() -> {
+            this.performTest(messages, messages.size(), concurrency, null, null, 2500L, null, null, 0.0, null);
+        });
     }
 
     @ParameterizedTest
     @ValueSource(ints = { 8, 16, 24 })
-    public void loadTest(int concurrency) {
+    public void loadTest(int concurrency) throws Exception {
         List<Message> batches = new LinkedList<>();
         int messageCount = buildInfoBatches(batches, 2000, List.of("CUSTOMERS", "EMPLOYEES", "VENDORS"), 1, 10, 1000,
                 3000, 4, 0.005);
@@ -966,7 +969,10 @@ public class AbstractMessageConsumerTest {
                 + " messages with concurrency of " + concurrency + ".");
 
         long start = System.nanoTime() / 1000000L;
-        this.performTest(batches, messageCount, concurrency, 30, 50L, 5000L, 2L, 5L, 0.0, null);
+        SystemErr systemErr = new SystemErr();
+        systemErr.execute(() -> {
+            this.performTest(batches, messageCount, concurrency, 30, 50L, 5000L, 2L, 5L, 0.0, null);
+        });
         long duration = (System.nanoTime() / 1000000L) - start;
         System.err.println("TOTAL TIME: " + (duration) + " ms");
     }

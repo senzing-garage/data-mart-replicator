@@ -7,7 +7,6 @@ import com.senzing.sdk.SzEngine;
 import com.senzing.sdk.SzEnvironment;
 import com.senzing.sdk.SzException;
 import com.senzing.util.JsonUtilities;
-import com.senzing.util.LoggingUtilities;
 
 import javax.json.JsonObject;
 import java.sql.*;
@@ -71,23 +70,9 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
 
         PreparedStatement ps = null;
         ResultSet rs = null;
-        LoggingUtilities.overrideDebugLogging(true);
         try {
-            int recordDelta = 0;
-
-            // sum all the positive record deltas -- we will compute the negatives
-            // by counting orphaned records that we cannot reconnect, and thus delete
-            for (SzReportUpdate update : updates) {
-                if (update.getRecordDelta() < 0) {
-                    continue;
-                }
-                recordDelta += update.getRecordDelta();
-            }
-
             // get the data source
             String dataSource = reportKey.getDataSource1();
-
-            logDebug("ADDED RECORD COUNT FOR " + dataSource + " DATA SOURCE: " + recordDelta);
 
             // generate an operation ID
             String operationId = this.generateOperationId();
@@ -110,7 +95,7 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
                 logInfo("No rows leased for entity ID zero and "
                         + "data source: " + dataSource);
 
-                return recordDelta;
+                return computedSum;
             }
 
             // select back the leased rows
@@ -129,6 +114,7 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
 
             Set<SzRecordKey> deleteSet = new LinkedHashSet<>();
             Map<SzRecordKey, SzResolvedEntity> reconnectMap = new LinkedHashMap<>();
+            int reconnectedCount = 0;
             while (rs.next()) {
                 String recordId = rs.getString(1);
                 SzRecordKey recordKey = new SzRecordKey(dataSource, recordId);
@@ -276,7 +262,6 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
                     });
 
                 int index = 0;
-                int reconnectedCount = 0;
                 for (Map.Entry<SzRecordKey, SzResolvedEntity> entry : reconnectMap.entrySet()) {
                     int rowCount = rowCounts.get(index++);
                     if (rowCount == 0) {
@@ -321,18 +306,17 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
                     deletedCount++;
                 }
 
-                // the row count is the number to decrement by
-                recordDelta -= deletedCount;
+                logDebug("Deleted " + deletedCount + " records from " 
+                         + dataSource + " data source");
             }
 
             // release resources
             ps = close(ps);
 
-            // return the record delta
-            return recordDelta;
+            // return the computed sum
+            return computedSum + reconnectedCount;
 
         } finally {
-            LoggingUtilities.clearDebugOverride();
             rs = close(rs);
             ps = close(ps);
         }

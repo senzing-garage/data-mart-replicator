@@ -1345,11 +1345,6 @@ public class DataMartTestExtension implements BeforeAllCallback {
                 redo = engine.getRedoRecord()) 
         {
             String info = engine.processRedoRecord(redo, SZ_WITH_INFO_FLAGS);
-            if (info.indexOf("319") >= 0) {
-                logInfo("GOT REDO INCLUDING 319: ",
-                        toJsonText(parseJsonObject(info), true),
-                        "");
-            }
             replicator.getDatabaseMessageQueue().enqueueMessage(info);
         }
     }
@@ -1505,13 +1500,6 @@ public class DataMartTestExtension implements BeforeAllCallback {
 
                 // track the entity
                 entities.put(entity.getEntityId(), entity);
-
-                if (entity.getEntityId() == 31 || entity.getEntityId() == 34) {
-                    logInfo("",
-                            "ENTITY " + entity.getEntityId() + " AFTER REPLICATION:",
-                            toJsonText(parseJsonObject(entityJson), true),
-                            "");
-                }
 
                 // track the records already found
                 Map<com.senzing.datamart.model.SzRecordKey, SzRecord> records = entity.getRecords();

@@ -1065,7 +1065,7 @@ public abstract class AbstractReportsTest {
                                      SzEntitiesPage actual)
         throws Exception
     {
-        if (!expected.equals(actual)) {
+        if (!checkExpected(expected, actual)) {
             Repository repo = DataMartTestExtension.getRepository(repoType);
             Map<Long, SzResolvedEntity> loadedEntities = repo.getLoadedEntities();
 
@@ -1183,9 +1183,7 @@ public abstract class AbstractReportsTest {
                                       SzRelationsPage   actual)
         throws Exception
     {
-        if (!expected.equals(actual)) {
-            Repository repo = DataMartTestExtension.getRepository(repoType);
-
+        if (!checkExpected(expected, actual)) {
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
 
@@ -1923,6 +1921,114 @@ public abstract class AbstractReportsTest {
     }
 
     /**
+     * Checks if the specified actual value matches the specified excpected value.
+     * 
+     * @param expected  The expected report value.
+     * @param actual    The actual report value.
+     * @return <code>true</code> if the specified actual value is functionally
+     *         equivalent to the specified expected value, otherwise 
+     *         <code>false</code>.
+     */
+    public static <R> boolean checkExpected(R expected, R actual)
+    {
+        if (expected == actual) {
+            return true;
+        }
+        if (expected == null || actual == null) {
+            return false;
+        }
+        if (expected instanceof SzEntitiesPage) {
+            SzEntitiesPage exp = (SzEntitiesPage) expected;
+            SzEntitiesPage act = (SzEntitiesPage) actual;
+            return checkExpected(exp, act);
+        }
+        if (expected instanceof SzRelationsPage) {
+            SzRelationsPage exp = (SzRelationsPage) expected;
+            SzRelationsPage act = (SzRelationsPage) actual;
+            return checkExpected(exp, act);            
+        }
+        return expected.equals(actual);
+    }
+
+    /**
+     * Checks if the actual {@link SzEntitiesPage} matches the expected page,
+     * taking into account sampling behavior. When sampling is used, the actual
+     * entities should be a subset of the expected entities.
+     *
+     * @param expected The expected {@link SzEntitiesPage}.
+     * @param actual The actual {@link SzEntitiesPage}.
+     * @return {@code true} if the actual page matches expectations, {@code false} otherwise.
+     */
+    public static boolean checkExpected(SzEntitiesPage expected, SzEntitiesPage actual) {
+        // Check scalar fields for equality
+        if (!Objects.equals(expected.getBound(), actual.getBound())) return false;
+        if (expected.getBoundType() != actual.getBoundType()) return false;
+        if (expected.getPageSize() != actual.getPageSize()) return false;
+        if (!Objects.equals(expected.getSampleSize(), actual.getSampleSize())) return false;
+        if (!Objects.equals(expected.getPageMinimumValue(), actual.getPageMinimumValue())) return false;
+        if (!Objects.equals(expected.getPageMaximumValue(), actual.getPageMaximumValue())) return false;
+        if (expected.getTotalEntityCount() != actual.getTotalEntityCount()) return false;
+        if (expected.getBeforePageCount() != actual.getBeforePageCount()) return false;
+        if (expected.getAfterPageCount() != actual.getAfterPageCount()) return false;
+
+        // Handle entities comparison based on sampling
+        Integer sampleSize = expected.getSampleSize();
+        if (sampleSize == null) {
+            // No sampling - expect exact match
+            return Objects.equals(expected.getEntities(), actual.getEntities());
+        } else {
+            // Sampling - check that actual is subset of expected
+            List<SzReportEntity> expectedEntities = expected.getEntities();
+            List<SzReportEntity> actualEntities = actual.getEntities();
+
+            // Actual should have at most sampleSize entities
+            if (actualEntities.size() > sampleSize) return false;
+
+            // All actual entities should be in expected
+            return expectedEntities.containsAll(actualEntities);
+        }
+    }
+
+    /**
+     * Checks if the actual {@link SzRelationsPage} matches the expected page,
+     * taking into account sampling behavior. When sampling is used, the actual
+     * relations should be a subset of the expected relations.
+     *
+     * @param expected The expected {@link SzRelationsPage}.
+     * @param actual The actual {@link SzRelationsPage}.
+     * @return {@code true} if the actual page matches expectations, {@code false} otherwise.
+     */
+    public static boolean checkExpected(SzRelationsPage expected, SzRelationsPage actual) {
+        // Check scalar fields for equality
+        if (!Objects.equals(expected.getBound(), actual.getBound())) return false;
+        if (expected.getBoundType() != actual.getBoundType()) return false;
+        if (expected.getPageSize() != actual.getPageSize()) return false;
+        if (!Objects.equals(expected.getSampleSize(), actual.getSampleSize())) return false;
+        if (!Objects.equals(expected.getPageMinimumValue(), actual.getPageMinimumValue())) return false;
+        if (!Objects.equals(expected.getPageMaximumValue(), actual.getPageMaximumValue())) return false;
+        if (expected.getTotalRelationCount() != actual.getTotalRelationCount()) return false;
+        if (expected.getBeforePageCount() != actual.getBeforePageCount()) return false;
+        if (expected.getAfterPageCount() != actual.getAfterPageCount()) return false;
+
+        // Handle relations comparison based on sampling
+        Integer sampleSize = expected.getSampleSize();
+        if (sampleSize == null) {
+            // No sampling - expect exact match
+            return Objects.equals(expected.getRelations(), actual.getRelations());
+        } else {
+            // Sampling - check that actual is subset of expected
+            List<SzReportRelation> expectedRelations = expected.getRelations();
+            List<SzReportRelation> actualRelations = actual.getRelations();
+
+            // Actual should have at most sampleSize relations
+            if (actualRelations.size() > sampleSize) return false;
+
+            // All actual relations should be in expected
+            return expectedRelations.containsAll(actualRelations);
+        }
+    }
+
+    /**
      * Validates the specified actual report object matches the
      * specified expected report object.
      * 
@@ -1982,7 +2088,7 @@ public abstract class AbstractReportsTest {
                                           String    testInfo) 
         throws Exception
     {
-        validateReport(expected, actual, reportType, testInfo, false);
+        validateReport(expected, actual, reportType, testInfo, true);
     }
 
     /**
@@ -2007,7 +2113,7 @@ public abstract class AbstractReportsTest {
                                             boolean triggerFail)
         throws Exception
     {
-        if (!expected.equals(actual)) {
+        if (!checkExpected(expected, actual)) {
             File expectedFile = File.createTempFile("expected-", ".json");
             File actualFile = new File(
                 expectedFile.getParent(),

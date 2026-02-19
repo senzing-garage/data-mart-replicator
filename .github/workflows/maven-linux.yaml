@@ -56,20 +56,20 @@ jobs:
         with:
           paths: ${{ github.workspace }}/target/site/**/*.xml
           token: ${{ secrets.GITHUB_TOKEN }}
-          min-coverage-overall: 10
-          min-coverage-changed-files: 10
+          min-coverage-overall: 80
+          min-coverage-changed-files: 80
           title: Code Coverage
           update-comment: true
           skip-if-no-changes: true
           pass-emoji: ":green_circle:"
           fail-emoji: ":red_circle:"
 
-      - name: Fail PR if overall coverage is less than 10%
-        if: ${{ github.event_name == 'pull_request' && steps.jacoco.outputs.coverage-overall < 10.0 }}
+      - name: Fail PR if overall coverage is less than 80%
+        if: ${{ github.event_name == 'pull_request' && steps.jacoco.outputs.coverage-overall < 80.0 }}
         uses: actions/github-script@v8
         with:
           script: |
-            core.setFailed('Overall coverage is less than 10%!')
+            core.setFailed('Overall coverage is less than 80%!')
 
   slack-notification:
     needs: [maven-linux]
