@@ -5,12 +5,8 @@ import java.util.ArrayList;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import com.senzing.sql.DatabaseType;
-
-import static com.senzing.sql.SQLUtilities.*;
-import static com.senzing.util.LoggingUtilities.*;
 
 /**
  * Provides a PostgreSQL implementation of {@link SQLClient}.
@@ -111,28 +107,8 @@ public class PostgreSQLClient implements SQLClient {
         sqlList.add(createTriggerFunctionSql);
         sqlList.add(dropTriggerSql);
         sqlList.add(createTriggerSql);
-      
+
         // execute the statements
-        Statement stmt = null;
-        try {
-            // create the statement
-            stmt = conn.createStatement();
-        
-            // execute the SQL statements
-            for (String sql : sqlList) {
-                try {
-                  stmt.execute(sql);
-                } catch (SQLException e) {
-                  logError(e, "SQL Error Encountered: ", sql);
-                  throw e;
-                }
-            }
-        
-            // commit the connection
-            conn.commit();
-        
-        } finally {
-            stmt = close(stmt);
-        }
+        this.executeSqlStatements(conn, sqlList);
     }
 }

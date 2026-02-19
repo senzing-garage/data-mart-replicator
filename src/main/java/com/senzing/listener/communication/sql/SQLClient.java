@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.LinkedList;
@@ -12,6 +13,7 @@ import java.util.Objects;
 import com.senzing.sql.DatabaseType;
 
 import static com.senzing.sql.SQLUtilities.*;
+import static com.senzing.util.LoggingUtilities.logError;
 
 /**
  * Interface for adapting the {@link SQLConsumer} to a specific database.
@@ -62,6 +64,31 @@ public interface SQLClient {
     } finally {
       rs = close(rs);
       ps = close(ps);
+    }
+  }
+
+  /**
+   * Executes a list of SQL statements within a single transaction.
+   *
+   * @param conn    The {@link Connection} to use.
+   * @param sqlList The list of SQL statements to execute.
+   * @throws SQLException If a database error occurs.
+   */
+  default void executeSqlStatements(Connection conn, List<String> sqlList) throws SQLException {
+    Statement stmt = null;
+    try {
+      stmt = conn.createStatement();
+      for (String sql : sqlList) {
+        try {
+          stmt.execute(sql);
+        } catch (SQLException e) {
+          logError(e, "SQL Error Encountered: ", sql);
+          throw e;
+        }
+      }
+      conn.commit();
+    } finally {
+      stmt = close(stmt);
     }
   }
 

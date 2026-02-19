@@ -2,14 +2,10 @@ package com.senzing.listener.communication.sql;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.List;
 import java.util.ArrayList;
 
 import com.senzing.sql.DatabaseType;
-
-import static com.senzing.sql.SQLUtilities.*;
-import static com.senzing.util.LoggingUtilities.*;
 
 /**
  * Provides a SQLite implementation of {@link SQLClient}.
@@ -91,28 +87,8 @@ public class SQLiteClient implements SQLClient {
        sqlList.add(createIndexSql);
        sqlList.add(createUpdateTriggerSql);
        sqlList.add(createInsertTriggerSql);
-      
+
        // execute the statements
-       Statement stmt = null;
-       try {
-           // create the statement
-           stmt = conn.createStatement();
-
-           // execute the SQL statements
-           for (String sql : sqlList) {
-               try {
-                   stmt.execute(sql);
-               } catch (SQLException e) {
-                   logError(e, "SQL Error Encountered: ", sql);
-                   throw e;
-               }
-           }
-
-           // commit the connection
-           conn.commit();
-
-       } finally {
-           stmt = close(stmt);
-       }
+       this.executeSqlStatements(conn, sqlList);
     }
 }

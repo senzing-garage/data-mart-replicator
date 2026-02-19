@@ -86,6 +86,33 @@ public abstract class AbstractSQLSchedulingService extends AbstractSchedulingSer
     }
 
     /**
+     * Executes a list of SQL statements within a single transaction.
+     *
+     * @param sqlList The list of SQL statements to execute.
+     * @throws SQLException If a database error occurs.
+     */
+    protected void executeSqlStatements(List<String> sqlList) throws SQLException {
+        Connection conn = null;
+        Statement stmt = null;
+        try {
+            conn = this.getConnection();
+            stmt = conn.createStatement();
+            for (String sql : sqlList) {
+                try {
+                    stmt.execute(sql);
+                } catch (SQLException e) {
+                    logError(e, "SQL Error Encountered: ", sql);
+                    throw e;
+                }
+            }
+            conn.commit();
+        } finally {
+            stmt = close(stmt);
+            conn = close(conn);
+        }
+    }
+
+    /**
      * Overridden to obtain the {@link ConnectionProvider}.
      *
      * {@inheritDoc}
