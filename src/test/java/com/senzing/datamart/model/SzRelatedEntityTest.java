@@ -1,6 +1,7 @@
 package com.senzing.datamart.model;
 
 import org.junit.jupiter.api.Test;
+import uk.org.webcompere.systemstubs.stream.SystemErr;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -307,6 +308,33 @@ class SzRelatedEntityTest {
         SzRelatedEntity parsed = SzRelatedEntity.parse(null, json);
 
         assertEquals(original, parsed);
+    }
+
+    @Test
+    void testParseWithEmptyMatchKeyLogsError() throws Exception {
+        SystemErr systemErr = new SystemErr();
+        systemErr.execute(() -> {
+            JsonObjectBuilder builder = Json.createObjectBuilder();
+            builder.add("ENTITY_ID", 100L);
+            builder.add("ENTITY_NAME", "Test Entity");
+            builder.add("MATCH_LEVEL_CODE", "POSSIBLY_SAME");
+            builder.add("MATCH_KEY", "");  // Empty match key
+            builder.add("ERRULE_CODE", "MFF");
+
+            JsonObject json = builder.build();
+            SzRelatedEntity entity = SzRelatedEntity.parse(null, json);
+
+            // Verify entity was still parsed
+            assertEquals(100L, entity.getEntityId());
+            assertNull(entity.getMatchKey());  // Empty string normalized to null
+        });
+
+        // Verify the expected error was logged
+        String errOutput = systemErr.getText();
+        assertTrue(errOutput.contains("Encountered empty match key"),
+                "Should log error about empty match key. Actual output: " + errOutput);
+        assertTrue(errOutput.contains("---------------------"),
+                "Should include separator lines in error output");
     }
 
     private SzRelatedEntity createTestRelatedEntity() {

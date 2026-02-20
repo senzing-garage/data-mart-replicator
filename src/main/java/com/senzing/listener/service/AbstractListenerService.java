@@ -290,7 +290,13 @@ public abstract class AbstractListenerService implements ListenerService {
             return null;
         default:
             if (timeoutMillis < 0L) {
-                this.wait();
+                // Loop until we reach a terminal state (handles intermediate state notifications)
+                for (State state = this.getState();
+                     state != AVAILABLE && state != DESTROYING && state != DESTROYED;
+                     state = this.getState())
+                {
+                    this.wait();
+                }
             } else if (timeoutMillis > 0L) {
                 this.wait(timeoutMillis);
             }
