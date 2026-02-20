@@ -19,7 +19,6 @@ import com.senzing.sql.DatabaseType;
 import com.senzing.sql.PostgreSqlConnector;
 import com.senzing.sql.SQLiteConnector;
 import com.senzing.text.TextUtilities;
-import com.senzing.util.OperatingSystemFamily;
 import com.senzing.util.SzInstallLocations;
 import com.senzing.util.SzUtilities;
 
@@ -781,8 +780,10 @@ public class DataMartTestExtension implements BeforeAllCallback {
      */
     private static Repository setupSqliteRepository() throws Exception {
         // Create temporary files for SQLite databases
-        File senzingDbFile = File.createTempFile("senzing_test_", ".db");
-        File dataMartDbFile = File.createTempFile("datamart_test_", ".db");
+        // Use getCanonicalFile() to resolve Windows 8.3 short names (e.g., RUNNER~1)
+        // to full paths, preventing URL encoding issues with the ~ character
+        File senzingDbFile = File.createTempFile("senzing_test_", ".db").getCanonicalFile();
+        File dataMartDbFile = File.createTempFile("datamart_test_", ".db").getCanonicalFile();
 
         if (!PRESERVE_TEST_DATABASES) {
             senzingDbFile.deleteOnExit();
@@ -812,11 +813,6 @@ public class DataMartTestExtension implements BeforeAllCallback {
 
             // Create Senzing schema
             createSenzingSchema(RepositoryType.SQLITE, senzingJdbcUrl);
-
-            // On Windows, wait for file lock to be released before native SDK opens the file
-            if (OperatingSystemFamily.RUNTIME_OS_FAMILY.isWindows()) {
-                Thread.sleep(3000);
-            }
 
             // Build the core settings JSON using SzUtilities
             String coreSettings = SzUtilities.basicSettingsFromDatabaseUri(
