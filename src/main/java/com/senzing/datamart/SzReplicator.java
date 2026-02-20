@@ -1073,6 +1073,7 @@ public class SzReplicator extends Thread {
      * @return <code>true</code> if idle, otherwise <code>false</code>.
      */
     public boolean waitUntilIdle(long idleTime, long maxWaitTime) {
+        logInfo("Beginning SzReplicator.waitUntilIdle()");
         long    start           = System.nanoTime();
         long    maxWaitNanos    = maxWaitTime * ONE_MILLION;
         boolean firstPass       = true;
@@ -1104,7 +1105,9 @@ public class SzReplicator extends Thread {
                 // check if the scheduler and the report updates have been idle for long enough
                 if (((nowNanos - messageNanos) / ONE_MILLION) >= idleTime)
                 {
-                    if (this.replicatorService.waitUntilIdle(idleTime, 0L)) {
+                    long remainingTime = (maxWaitTime <= 0L) ? maxWaitTime
+                        : (maxWaitNanos - (System.nanoTime() - start)) / ONE_MILLION;
+                    if (this.replicatorService.waitUntilIdle(idleTime, remainingTime)) {
                         logInfo("SzReplicator found to be idle");
                         return true;
                     }
@@ -1112,7 +1115,11 @@ public class SzReplicator extends Thread {
             }
             
         } while (maxWaitTime < 0L || (maxWaitTime > 0L && (System.nanoTime() - start) < maxWaitNanos));
-        logInfo("SzReplicator NOT found to be idle");
+        logInfo("SzReplicator NOT found to be idle: ",
+                " - - - - - - - - - - - - - - - - - - - - - - - ",
+                "    Remaining Messages : " + this.messageConsumer.getMessageCount(),
+                "    Message Idle Time  : " + ((System.nanoTime() - this.messageConsumer.getLastMessageNanoTime()) / ONE_MILLION) + "ms",
+                " - - - - - - - - - - - - - - - - - - - - - - - ");
         return false;
     }
 

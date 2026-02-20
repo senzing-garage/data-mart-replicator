@@ -397,6 +397,7 @@ public class SzReplicatorService extends AbstractListenerService {
      * @return <code>true</code> if idle, otherwise <code>false</code>.
      */
     public boolean waitUntilIdle(long idleTime, long maxWaitTime) {
+        logInfo("Beginning SzReplicatorService.waitUntilIdle()");
         long    start           = System.nanoTime();
         long    maxWaitNanos    = maxWaitTime * ONE_MILLION;
         boolean firstPass       = true;
@@ -427,9 +428,11 @@ public class SzReplicatorService extends AbstractListenerService {
                 long reportNanos    = this.lastReportActivityNanoTime.get();
                 long taskNanos      = this.getSchedulingService().getLastTaskActivityNanoTime();
 
+                long reportIdle = ((nowNanos - reportNanos) / ONE_MILLION);
+                long taskIdle = ((nowNanos - taskNanos) / ONE_MILLION);
+
                 // check if the scheduler and the report updates have been idle for long enough
-                if ((((nowNanos - reportNanos) / ONE_MILLION) >= idleTime)
-                    && (((nowNanos - taskNanos) / ONE_MILLION) >= idleTime))
+                if (reportIdle >= idleTime && taskIdle >= idleTime)
                 {
                     logInfo("SzReplicatorService found to be idle");
                     return true;
@@ -437,7 +440,14 @@ public class SzReplicatorService extends AbstractListenerService {
             }
             
         } while (maxWaitTime < 0L || (maxWaitTime > 0L && (System.nanoTime() - start) < maxWaitNanos));
-        logInfo("SzReplicatorService NOT found to be idle");
+        logInfo("SzReplicatorService NOT found to be idle: ",
+                " - - - - - - - - - - - - - - - - - - - - - - - ",
+                "    Remaining Report Updates  : " + this.getPendingReportUpdateCount(),
+                "    Report Idle Time          : " + ((System.nanoTime() - this.lastReportActivityNanoTime.get()) / ONE_MILLION) + "ms",
+                "    Remaining Scheduled Tasks : " + this.getSchedulingService().getAllRemainingTasksCount(),
+                "    Task Idle Time            : " + ((System.nanoTime() - this.getSchedulingService().getLastTaskActivityNanoTime()) / ONE_MILLION) + "ms",
+                " - - - - - - - - - - - - - - - - - - - - - - - ");
+        
         return false;
     }
 

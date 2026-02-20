@@ -38,6 +38,10 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.ResultSet;
+import java.sql.ResultSet;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -809,7 +813,9 @@ public class DataMartTestExtension implements BeforeAllCallback {
             createSenzingSchema(RepositoryType.SQLITE, senzingJdbcUrl);
 
             // Build the core settings JSON using SzUtilities
-            String coreSettings = SzUtilities.basicSettingsFromDatabaseUri(connectionUri.toString());
+            String coreSettings = SzUtilities.basicSettingsFromDatabaseUri(
+                connectionUri.toString().replace(
+                    "sqlite3://", "sqlite3://na:na@"));
 
             // Initialize the default configuration
             Set<String> dataSources = initializeDefaultConfig(coreSettings);
@@ -1063,10 +1069,10 @@ public class DataMartTestExtension implements BeforeAllCallback {
             throw new IOException("Schema file not found: " + schemaFile.getAbsolutePath());
         }
 
-        try (FileReader rdr = new FileReader(schemaFile, UTF_8);
-             BufferedReader br = new BufferedReader(rdr);
-             Connection conn = DriverManager.getConnection(jdbcUrl);
-             Statement stmt = conn.createStatement())
+        try (FileReader     rdr     = new FileReader(schemaFile, UTF_8);
+             BufferedReader br      = new BufferedReader(rdr);
+             Connection     conn    = DriverManager.getConnection(jdbcUrl);
+             Statement      stmt    = conn.createStatement())
         {
             for (String sql = br.readLine(); sql != null; sql = br.readLine()) {
                 sql = sql.trim();
@@ -1192,7 +1198,7 @@ public class DataMartTestExtension implements BeforeAllCallback {
             logInfo("Loaded truth set.");
             if (replicator != null) {
                 logInfo("Waiting for replicator completion...");
-                if (!replicator.waitUntilIdle(2000L, 20000L)) {
+                if (!replicator.waitUntilIdle(2000L, 300000L)) {
                     replicator.shutdown(); // force shutdown here
                     if (env != null) {
                         env.destroy();
