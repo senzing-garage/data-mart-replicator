@@ -1,6 +1,8 @@
 package com.senzing.datamart.model;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import uk.org.webcompere.systemstubs.stream.SystemErr;
 
 import javax.json.Json;
@@ -9,6 +11,7 @@ import javax.json.JsonObjectBuilder;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Execution(ExecutionMode.SAME_THREAD)
 class SzRelatedEntityTest {
 
     @Test
