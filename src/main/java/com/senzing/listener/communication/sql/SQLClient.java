@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.LinkedList;
@@ -12,6 +13,7 @@ import java.util.Objects;
 import com.senzing.sql.DatabaseType;
 
 import static com.senzing.sql.SQLUtilities.*;
+import static com.senzing.util.LoggingUtilities.logError;
 
 /**
  * Interface for adapting the {@link SQLConsumer} to a specific database.
@@ -66,6 +68,31 @@ public interface SQLClient {
   }
 
   /**
+   * Executes a list of SQL statements within a single transaction.
+   *
+   * @param conn    The {@link Connection} to use.
+   * @param sqlList The list of SQL statements to execute.
+   * @throws SQLException If a database error occurs.
+   */
+  default void executeSqlStatements(Connection conn, List<String> sqlList) throws SQLException {
+    Statement stmt = null;
+    try {
+      stmt = conn.createStatement();
+      for (String sql : sqlList) {
+        try {
+          stmt.execute(sql);
+        } catch (SQLException e) {
+          logError(e, "SQL Error Encountered: ", sql);
+          throw e;
+        }
+      }
+      conn.commit();
+    } finally {
+      stmt = close(stmt);
+    }
+  }
+
+  /**
    * Gets the number of messages currently in the message queue. The
    * returned value will include leased messages.
    * 
@@ -76,7 +103,7 @@ public interface SQLClient {
    * 
    * @throws SQLException If a database failure occurs.
    */
-  default int getMessageCount(Connection conn) throws SQLException {
+  default long getMessageCount(Connection conn) throws SQLException {
     PreparedStatement ps = null;
     ResultSet rs = null;
     try {
@@ -88,7 +115,7 @@ public interface SQLClient {
 
       rs.next();
 
-      return rs.getInt(1);
+      return rs.getLong(1);
 
     } finally {
       rs = close(rs);
@@ -154,7 +181,7 @@ public interface SQLClient {
     PreparedStatement ps = null;
     DatabaseType dbType = this.getDatabaseType();
 
-    try {
+    try {      
       // prepare the statement
       ps = conn.prepareStatement(
           "UPDATE sz_message_queue "

@@ -9,7 +9,7 @@ import java.util.Objects;
  * principle having <code>null</code> values to indicate "any" match key or
  * principle, respectively.
  */
-public class MatchPairKey implements Comparable<MatchPairKey> {
+public final class MatchPairKey implements Comparable<MatchPairKey> {
     /**
      * The match key associated with the relationships.
      */
@@ -37,7 +37,7 @@ public class MatchPairKey implements Comparable<MatchPairKey> {
      * <code>null</code> match key.
      * 
      * @return The associated match key, or <code>null</code> if no specific
-     *         principle was associated.
+     *         match key was associated.
      */
     public String getMatchKey() {
         return this.matchKey;

@@ -222,5 +222,4 @@ public class SzResolvedEntity extends SzEntity {
     public int hashCode() {
         return Objects.hash(super.hashCode(), this.getRelatedEntities());
     }
-
 }

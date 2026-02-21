@@ -1,3 +1,4 @@
 {
-  "threshold": 6
+  "threshold": 6,
+  "ignore": ["**/src/test/**"]
 }

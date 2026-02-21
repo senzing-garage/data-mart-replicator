@@ -1,25 +1,15 @@
 package com.senzing.listener.communication.sql;
 
-import java.io.File;
 import java.util.List;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Instant;
 
-import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonArray;
-import javax.json.JsonObjectBuilder;
-import javax.json.JsonArrayBuilder;
 import javax.naming.NameNotFoundException;
 
 import com.senzing.sql.ConnectionProvider;
 import com.senzing.sql.DatabaseType;
-import com.senzing.sql.Connector;
-import com.senzing.sql.SQLiteConnector;
-import com.senzing.sql.PostgreSqlConnector;
-import com.senzing.sql.ConnectionPool;
-import com.senzing.sql.PoolConnectionProvider;
 
 import com.senzing.text.TextUtilities;
 import com.senzing.listener.communication.AbstractMessageConsumer;
@@ -27,13 +17,14 @@ import com.senzing.listener.communication.exception.MessageConsumerException;
 import com.senzing.listener.communication.exception.MessageConsumerSetupException;
 import com.senzing.listener.service.MessageProcessor;
 import com.senzing.util.AccessToken;
-import com.senzing.util.JsonUtilities;
+
 import com.senzing.naming.Registry;
 
 import static java.lang.Boolean.*;
 import static com.senzing.sql.SQLUtilities.*;
 import static com.senzing.util.LoggingUtilities.*;
 import static com.senzing.listener.communication.MessageConsumer.State.*;
+import static com.senzing.listener.service.ServiceUtilities.*;
 
 /**
  * A consumer for a SQL-based message queue using a database table to hold the
@@ -64,7 +55,7 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
          * 
          * @throws SQLException If a database failure occurs.
          */
-        int getMessageCount() throws SQLException;
+        long getMessageCount() throws SQLException;
 
         /**
          * Enqueues a message on this {@link MessageQueue} so the associated
@@ -130,7 +121,7 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
          * backing {@link SQLClient}.
          * </p>
          */
-        public int getMessageCount() throws SQLException {
+        public long getMessageCount() throws SQLException {
             Connection conn = null;
             try {
                 conn = SQLConsumer.this.getConnection();
@@ -247,16 +238,18 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
     public static final String MAXIMUM_SLEEP_TIME_KEY = "maximumSleepTime";
 
     /**
-     * The default number of times to retry failed SQS requests before aborting
-     * consumption. The default value is {@value}. A different value can be set via
-     * the {#link #MAXIMUM_RETRIES_KEY} initialization parameter.
+     * The default number of times to retry failed reading from the database
+     * queue before aborting consumption. The default value is {@value}. A 
+     * different value can be set via the {#link #MAXIMUM_RETRIES_KEY} 
+     * initialization parameter.
      */
     public static final int DEFAULT_MAXIMUM_RETRIES = 0;
 
     /**
-     * The default number of milliseconds to wait before retrying the SQS request if
-     * the previous request failed. The default value is {@value}. A different value
-     * can be set via the {@link #RETRY_WAIT_TIME_KEY} initialization parameter.
+     * The default number of milliseconds to wait before retrying reading from
+     * the database queue if the previous attempt failed. The default value is 
+     * {@value}. A different value can be set via the {@link #RETRY_WAIT_TIME_KEY}
+     * initialization parameter.
      */
     public static final long DEFAULT_RETRY_WAIT_TIME = 1000L;
 
@@ -300,7 +293,7 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
      * The {@link MessageQueue} for this instance.
      */
     private MessageQueue messageQueue;
-
+    
     /**
      * The name for binding the {@link #messageQueue} in the
      * {@link #MESSAGE_QUEUE_REGISTRY}.
@@ -324,14 +317,19 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
     private Thread consumptionThread = null;
 
     /**
-     * The maximum number of times to retry failed SQS requests before aborting
-     * consumption.
+     * Indicates the thread currently being joined against.
+     */
+    private Thread joiningThread = null;
+
+    /**
+     * The maximum number of times to retry reading from the database
+     * queue before aborting consumption.
      */
     private int maximumRetries = DEFAULT_MAXIMUM_RETRIES;
 
     /**
-     * The number of milliseconds to wait before retrying the SQS request if the
-     * previous request failed.
+     * The number of milliseconds to wait before we retry reading from
+     * the database queue if the previous attempt failed.
      */
     private long retryWaitTime = DEFAULT_RETRY_WAIT_TIME;
 
@@ -435,6 +433,9 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
                 this.registryToken = MESSAGE_QUEUE_REGISTRY.bind(this.queueRegistryName, this.messageQueue);
             }
 
+        } catch (MessageConsumerSetupException e) {
+            throw e;
+        
         } catch (Exception e) {
             throw new MessageConsumerSetupException(e);
         }
@@ -524,6 +525,24 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
      */
     public MessageQueue getMessageQueue() {
         return this.messageQueue;
+    }
+
+    /**
+     * Implemented to return the result from {@link MessageQueue#getMessageCount()}
+     * after calling {@link #getMessageQueue()}.
+     * 
+     * <p>
+     * {@inheritDoc}
+     */
+    @Override
+    protected Long getQueueMessageCount() {
+        try {
+            return this.getMessageQueue().getMessageCount();
+
+        } catch (Exception e) {
+            logWarning(e, "Failed to get queue message count");
+            return null;
+        }
     }
 
     /**
@@ -669,111 +688,165 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
      */
     @Override
     protected void doConsume(MessageProcessor processor) throws MessageConsumerException {
-        this.consumptionThread = new Thread(() -> {
-            int failureCount = 0;
-            long sleepTime = ONE_SECOND;
-            while (this.getState() == CONSUMING) {
-                // get the SQLClient
-                SQLClient sqlClient = this.getSQLClient();
+        Thread thread = new Thread(() -> {
+            try {
+                int failureCount = 0;
+                long sleepTime = ONE_SECOND;
+                while (this.getState() == CONSUMING) {
+                    // get the SQLClient
+                    SQLClient sqlClient = this.getSQLClient();
 
-                // generate a lease ID
-                String leaseId = this.generateLeaseId();
+                    // generate a lease ID
+                    String leaseId = this.generateLeaseId();
 
-                // get the lease time (in seconds)
-                int leaseTime = this.getLeaseTime();
+                    // get the lease time (in seconds)
+                    int leaseTime = this.getLeaseTime();
 
-                // get the maximum lease count
-                int maxLeaseCount = this.getMaximumLeaseCount();
+                    // get the maximum lease count
+                    int maxLeaseCount = this.getMaximumLeaseCount();
 
-                // initialize the messages list
-                List<LeasedMessage> messages = null;
+                    // initialize the messages list
+                    List<LeasedMessage> messages = null;
 
-                // initialize the connection
-                Connection conn = null;
+                    // initialize the connection
+                    Connection conn = null;
 
-                try {
-                    // get the connection
-                    conn = this.getConnection();
+                    try {
+                        // get the connection
+                        conn = this.getConnection();
 
-                    // first release any expired leases so we can lease those messages
-                    int count = sqlClient.releaseExpiredLeases(conn, leaseTime);
+                        // first release any expired leases so we can lease those messages
+                        int count = sqlClient.releaseExpiredLeases(conn, leaseTime);
 
-                    // commit the transaction
-                    conn.commit();
+                        // commit the transaction
+                        conn.commit();
 
-                    if (count > 0) {
-                        logInfo("expired leases on " + count + " messages");
-                    }
-
-                    // lease messages
-                    count = sqlClient.leaseMessages(conn, leaseId, leaseTime, maxLeaseCount);
-
-                    // commit and close the connection so the leases are marked
-                    // and the connection is available
-                    conn.commit();
-                    conn = close(conn);
-
-                    // check if we have an empty queue
-                    if (count == 0) {
-                        failureCount = 0;
-                        try {
-                            Thread.sleep(sleepTime);
-                        } catch (InterruptedException ignore) {
-                            // do nothing
-                        }
-                        sleepTime = sleepTime * 2L;
-                        long maxSleepTime = ONE_SECOND * ((long) this.getMaximumSleepTime());
-
-                        if (sleepTime > maxSleepTime) {
-                            sleepTime = maxSleepTime;
+                        if (count > 0) {
+                            logInfo("expired leases on " + count + " messages");
                         }
 
-                        // try again
-                        continue;
+                        // lease messages
+                        count = sqlClient.leaseMessages(conn, leaseId, leaseTime, maxLeaseCount);
+
+                        // commit and close the connection so the leases are marked
+                        // and the connection is available
+                        conn.commit();
+                        conn = close(conn);
+
+                        // check if we have an empty queue
+                        if (count == 0) {
+                            failureCount = 0;
+                            try {
+                                Thread.sleep(sleepTime);
+                            } catch (InterruptedException ignore) {
+                                // do nothing
+                            }
+                            sleepTime = sleepTime * 2L;
+                            long maxSleepTime = ONE_SECOND * ((long) this.getMaximumSleepTime());
+
+                            if (sleepTime > maxSleepTime) {
+                                sleepTime = maxSleepTime;
+                            }
+
+                            // try again
+                            continue;
+                        }
+
+                        // we got a non-empty queue so restore the sleep time to one second
+                        sleepTime = ONE_SECOND;
+
+                        // get the connection
+                        conn = this.getConnection();
+
+                        // get the list of leased messages
+                        messages = sqlClient.getLeasedMessages(conn, leaseId);
+
+                        // close the connection
+                        conn = close(conn);
+
+                    } catch (SQLException e) {
+                        if (this.handleFailure(++failureCount, e)) {
+                            // check if already joining the consumption thread
+                            synchronized (this) {
+                                // if destroying & joining, short-circuit here and return
+                                if (Thread.currentThread() == this.joiningThread) {
+                                    return;
+                                }
+                            }
+
+                            // destroy and then return to abort consumption
+                            this.destroy();
+                            return;
+
+                        } else {
+                            // let's retry
+                            continue;
+                        }
+                    } finally {
+                        // close the connection
+                        conn = close(conn);
                     }
 
-                    // we got a non-empty queue so restore the sleep time to one second
-                    sleepTime = ONE_SECOND;
+                    // if we get here then we have leased messages without a failure
+                    // so we reset the failure count
+                    failureCount = 0;
 
-                    // get the connection
-                    conn = this.getConnection();
-
-                    // get the list of leased messages
-                    messages = sqlClient.getLeasedMessages(conn, leaseId);
-
-                    // close the connection
-                    conn = close(conn);
-
-                } catch (SQLException e) {
-                    if (this.handleFailure(++failureCount, e)) {
-                        // destroy and then return to abort consumption
-                        this.destroy();
-                        return;
-
-                    } else {
-                        // let's retry
-                        continue;
+                    // get the messages from the response
+                    for (LeasedMessage message : messages) {
+                        // enqueue the next message for processing -- this call may wait
+                        // for enough room in the queue for the messages to be enqueued
+                        this.enqueueMessages(processor, message);
                     }
-                } finally {
-                    // close the connection
-                    conn = close(conn);
                 }
-
-                // if we get here then we have leased messages without a failure
-                // so we reset the failure count
-                failureCount = 0;
-
-                // get the messages from the response
-                for (LeasedMessage message : messages) {
-                    // enqueue the next message for processing -- this call may wait
-                    // for enough room in the queue for the messages to be enqueued
-                    this.enqueueMessages(processor, message);
+            } finally {
+                synchronized (this) {
+                    this.consumptionThread = null;
                 }
             }
         });
 
+        // set the member field in a thread-safe manner
+        synchronized (this) {
+            this.consumptionThread = thread;
+        }
+
         // start the thread
         this.consumptionThread.start();
+    }
+
+    /**
+     * Overridden to avoid deadlocks when called from the consumption thread.
+     * 
+     * {@inheritDoc}
+     */
+    protected synchronized void waitUntilDestroyed() {
+        // check if already destroyed
+        if (this.getState() == State.DESTROYED) {
+            return;
+        }
+
+        // check if NOT destroying
+        if (this.getState() != State.DESTROYING) {
+            throw new IllegalStateException(
+                    "Cannot call waitUntilDestroyed() if NOT currently destroying: " + this.getState());
+        }
+
+        // wait until notified
+        while (this.getState() != State.DESTROYED) {
+            // check if called from consumption thread
+            if (Thread.currentThread() == this.joiningThread) {
+                // do not wait, simply return here
+                return;
+            }
+
+            try {
+                // wait for destruction
+                this.wait(this.getTimeout());
+
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     /**
@@ -786,7 +859,6 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
     protected synchronized InfoMessage<LeasedMessage> dequeueMessage(MessageProcessor processor) {
         // get the message
         InfoMessage<LeasedMessage> message = super.dequeueMessage(processor);
-
         // check if we got a message and renew its lease
         if (message != null) {
             Connection conn = null;
@@ -867,9 +939,29 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
     protected void doDestroy() {
         // join to the consumption thread
         try {
-            this.consumptionThread.join();
+            Thread consumeThread = null;
             synchronized (this) {
-                this.consumptionThread = null;
+                consumeThread = this.consumptionThread;
+            }
+            if (consumeThread != null && Thread.currentThread() != consumeThread) {
+                synchronized (this) {
+                    this.joiningThread = consumeThread;
+                    this.notifyAll();
+                }
+                try {
+                    consumeThread.join();
+                    synchronized (this) {
+                        if (this.consumptionThread == consumeThread) {
+                            this.consumptionThread = null;
+                        }
+                    }
+
+                } finally {
+                    synchronized (this) {
+                        this.joiningThread = null;
+                        this.notifyAll();
+                    }
+                }
             }
 
             // unregister the the message queue if registered
@@ -887,167 +979,5 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
         } catch (InterruptedException ignore) {
             // ignore
         }
-    }
-
-    /**
-     * Provides a means to test this class from the command-line.
-     * 
-     * @param args The command-line arguments.
-     */
-    public static void main(String[] args) {
-        // check if no arguments specified
-        if (args.length != 1 && args.length != 2 && args.length != 6) {
-            System.err.println("Unexpected number of command-line arguments.");
-            printUsage();
-            System.exit(1);
-        }
-
-        try {
-            DatabaseType dbType = DatabaseType.valueOf(args[0]);
-
-            Connector connector = null;
-            int minPoolSize = 1;
-            int maxPoolSize = 1;
-            switch (dbType) {
-            case SQLITE:
-                if (args.length == 1) {
-                    SQLiteConnector conn = new SQLiteConnector();
-                    File file = conn.getSqliteFile();
-                    System.out.println("SQLite File: " + file);
-                    connector = conn;
-
-                } else if (args.length == 2) {
-                    connector = new SQLiteConnector(args[1]);
-                } else {
-                    System.err.println("Unexpected number of command-line arguments.");
-                    printUsage();
-                    System.exit(1);
-                }
-                break;
-            case POSTGRESQL:
-                if (args.length != 6) {
-                    System.err.println("Unexpected number of command-line arguments.");
-                    printUsage();
-                    System.exit(1);
-                }
-                String host = args[1];
-                int port = Integer.parseInt(args[2]);
-                String database = args[3];
-                String user = args[4];
-                String password = args[5];
-
-                connector = new PostgreSqlConnector(host, port, database, user, password);
-                minPoolSize = 2;
-                maxPoolSize = 5;
-
-                break;
-            default:
-                System.err.println("Unsupported database type: " + dbType);
-                printUsage();
-                System.exit(1);
-                break;
-            }
-
-            ConnectionPool pool = new ConnectionPool(connector, minPoolSize, maxPoolSize);
-
-            ConnectionProvider provider = new PoolConnectionProvider(pool);
-
-            ConnectionProvider.REGISTRY.bind("test-provider", provider);
-
-            JsonObjectBuilder builder = Json.createObjectBuilder();
-            builder.add(CLEAN_DATABASE_KEY, false);
-            builder.add(CONNECTION_PROVIDER_KEY, "test-provider");
-            builder.add(QUEUE_REGISTRY_NAME_KEY, "message-queue");
-
-            JsonObject config = builder.build();
-
-            SQLConsumer consumer = new SQLConsumer();
-            consumer.init(config);
-
-            consumer.consume((jsonMessage) -> {
-                String recordId = jsonMessage.getString("RECORD_ID");
-                JsonArray array = jsonMessage.getJsonArray("AFFECTED_ENTITIES");
-                for (JsonObject obj : array.getValuesAs(JsonObject.class)) {
-                    long entityId = obj.getJsonNumber("ENTITY_ID").longValue();
-
-                    System.out.println();
-                    System.out.println("ENTITY ID: " + entityId + " / RECORD ID: " + recordId);
-                }
-            });
-
-            MessageQueue messageQueue = SQLConsumer.MESSAGE_QUEUE_REGISTRY.lookup("message-queue");
-
-            int entityId = 10;
-            int recordId = 100000;
-            int messageCount = 0;
-            for (int index1 = 0; index1 < 100; index1++) {
-                JsonArrayBuilder jab = Json.createArrayBuilder();
-                for (int index2 = 0; index2 < 15; index2++) {
-                    JsonObjectBuilder job = Json.createObjectBuilder();
-                    job.add("DATA_SOURCE", "CUSTOMERS");
-                    job.add("RECORD_ID", String.valueOf(recordId++));
-
-                    JsonArrayBuilder jab2 = Json.createArrayBuilder();
-
-                    JsonObjectBuilder job2 = Json.createObjectBuilder();
-                    job2.add("ENTITY_ID", entityId++);
-                    jab2.add(job2);
-                    job.add("AFFECTED_ENTITIES", jab2);
-
-                    jab.add(job);
-                }
-                String message = JsonUtilities.toJsonText(jab);
-                messageQueue.enqueueMessage(message);
-                messageCount++;
-            }
-
-            System.out.println();
-            System.out.println("ENQUEUED " + messageCount + " MESSAGES");
-
-            // wait until the queue is empty
-            for (int index = 0; !messageQueue.isEmpty(); index++) {
-                Thread.sleep(1000L);
-                if (index % 10 == 0) {
-                    java.util.Map<Statistic, Number> statistics = consumer.getStatistics();
-                    System.out.println();
-                    System.out.println("------------------------------");
-                    statistics.forEach((stat, value) -> {
-                        System.out.println(stat.getName() + " : " + value + " " + stat.getUnits());
-                    });
-                    System.out.println();
-                    System.out.println("QUEUE SIZE  : " + messageQueue.getMessageCount());
-                    System.out.println("------------------------------");
-                }
-            }
-
-            System.out.println();
-            System.out.println("QUEUE EMPTY : " + messageQueue.isEmpty());
-            System.out.println("QUEUE SIZE  : " + messageQueue.getMessageCount());
-
-            // destroy the consumer
-            consumer.destroy();
-            pool.shutdown();
-
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-            System.err.println(formatStackTrace(e.getStackTrace()));
-            printUsage();
-            System.exit(1);
-        }
-    }
-
-    /**
-     * 
-     */
-    private static void printUsage() {
-        System.err.println();
-        System.err.println("COMMAND-LINE ARGUMENT OPTIONS: ");
-        System.err.println("  - For SQLite with an auto-created temporary file:");
-        System.err.println("       SQLITE");
-        System.err.println("  - For SQLite with a specific database file:");
-        System.err.println("       SQLITE <sqlite-file-path>");
-        System.err.println("  - For PostrgreSQL:");
-        System.err.println("       POSTGRESQL <db-host> <db-port> <db-name> <db-user> <db-password>");
-        System.err.println();
     }
 }

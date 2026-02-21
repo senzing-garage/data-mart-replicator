@@ -290,7 +290,13 @@ public abstract class AbstractListenerService implements ListenerService {
             return null;
         default:
             if (timeoutMillis < 0L) {
-                this.wait();
+                // Loop until we reach a terminal state (handles intermediate state notifications)
+                for (State state = this.getState();
+                     state != AVAILABLE && state != DESTROYING && state != DESTROYED;
+                     state = this.getState())
+                {
+                    this.wait();
+                }
             } else if (timeoutMillis > 0L) {
                 this.wait(timeoutMillis);
             }
@@ -533,6 +539,8 @@ public abstract class AbstractListenerService implements ListenerService {
             List<Task> failedTasks = taskGroup.getFailedTasks();
             if (failedTasks.size() == 1) {
                 Exception failure = failedTasks.get(0).getFailure();
+                System.err.println(failure.getMessage());
+                System.err.println(formatStackTrace(failure.getStackTrace()));
                 if (failure instanceof ServiceExecutionException) {
                     throw ((ServiceExecutionException) failure);
                 } else {
@@ -550,7 +558,7 @@ public abstract class AbstractListenerService implements ListenerService {
                     System.err.println(formatStackTrace(failure.getStackTrace()));
                     pw.println();
                 }
-                throw new ServiceExecutionException(pw.toString());
+                throw new ServiceExecutionException(sw.toString());
             }
         } catch (ServiceExecutionException e) {
             throw e;
@@ -576,8 +584,12 @@ public abstract class AbstractListenerService implements ListenerService {
         // handle the record first
         String dataSource = getString(message, RAW_DATA_SOURCE_KEY);
         String recordId = getString(message, RAW_RECORD_ID_KEY);
-        this.handleRecord(dataSource, recordId, infoMessage, message, scheduler);
-
+        if ((dataSource != null && dataSource.trim().length() > 0)
+            && (recordId != null && recordId.trim().length() > 0)) 
+        {
+            this.handleRecord(dataSource, recordId, infoMessage, message, scheduler);
+        }
+        
         // now handle the affected entities
         JsonArray jsonArray = getJsonArray(message, RAW_AFFECTED_ENTITIES_KEY);
         if (jsonArray != null) {
@@ -650,8 +662,10 @@ public abstract class AbstractListenerService implements ListenerService {
         if (action == null || action.trim().length() == 0) {
             return;
         }
-        scheduler.createTaskBuilder(action).parameter(DATA_SOURCE_PARAMETER_KEY, dataSource)
-                .parameter(RECORD_ID_PARAMETER_KEY, recordId).resource(RECORD_RESOURCE_KEY, dataSource, recordId)
+        scheduler.createTaskBuilder(action)
+                .parameter(DATA_SOURCE_PARAMETER_KEY, dataSource)
+                .parameter(RECORD_ID_PARAMETER_KEY, recordId)
+                .resource(RECORD_RESOURCE_KEY, dataSource, recordId)
                 .schedule();
     }
 

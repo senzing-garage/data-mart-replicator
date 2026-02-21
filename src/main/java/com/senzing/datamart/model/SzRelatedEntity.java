@@ -2,10 +2,12 @@ package com.senzing.datamart.model;
 
 import javax.json.*;
 
+import com.senzing.util.JsonUtilities;
+
 import java.util.Objects;
 
 import static com.senzing.util.JsonUtilities.*;
-
+import static com.senzing.util.LoggingUtilities.*;
 /**
  * Extends {@link SzEntity} to describe a related entity.
  */
@@ -70,7 +72,7 @@ public class SzRelatedEntity extends SzEntity {
      * @param matchKey The match key for this related entity.
      */
     public void setMatchKey(String matchKey) {
-        this.matchKey = matchKey;
+        this.matchKey = normalize(matchKey);
     }
 
     /**
@@ -92,7 +94,7 @@ public class SzRelatedEntity extends SzEntity {
      *                  that created this relationship.
      */
     public void setPrinciple(String principle) {
-        this.principle = principle;
+        this.principle = normalize(principle);
     }
 
     /**
@@ -103,9 +105,15 @@ public class SzRelatedEntity extends SzEntity {
      */
     public void buildJson(JsonObjectBuilder builder) {
         super.buildJson(builder);
-        builder.add("matchType", this.getMatchType().getCode());
-        builder.add("matchKey", this.getMatchKey());
-        builder.add("principle", this.getPrinciple());
+        if (this.getMatchType() != null) {
+            builder.add("matchType", this.getMatchType().getCode());
+        }
+        if (this.getMatchKey() != null) {
+            builder.add("matchKey", this.getMatchKey());
+        }
+        if (this.getPrinciple() != null) {
+            builder.add("principle", this.getPrinciple());
+        }
     }
 
     /**
@@ -142,6 +150,14 @@ public class SzRelatedEntity extends SzEntity {
         String matchKey = getString(jsonObject, "matchKey");
         if (matchKey == null) {
             matchKey = getString(jsonObject, "MATCH_KEY");
+        }
+        if (matchKey == null || matchKey.trim().length() == 0) {
+            logError("", "---------------------",
+                    "Encountered empty match key (" + matchKey + ") for relationship: ", 
+                     JsonUtilities.toJsonText(jsonObject, true), 
+                     "", "---------------------", "",
+                     formatStackTrace((new IllegalArgumentException()).getStackTrace()),
+                     "", "---------------------", "");
         }
         entity.setMatchKey(matchKey);
 
@@ -191,5 +207,25 @@ public class SzRelatedEntity extends SzEntity {
     public int hashCode() {
         return Objects.hash(super.hashCode(), this.getMatchType(), this.getMatchKey(),
                 this.getPrinciple());
+    }
+
+    /**
+     * Normalizes the specified text value so that if <code>null</code>
+     * or empty string or purely whitespace, then <code>null</code> is
+     * returned, otherwise the value is returned with leading and trailing
+     * whitespace removed.
+     * 
+     * @param value The value to normalize.
+     * 
+     * @return The normalized value.
+     */
+    private static String normalize(String value) {
+        if (value != null) {
+            value = value.trim();
+            if (value.length() == 0) {
+                value = null;
+            }
+        }
+        return value;
     }
 }

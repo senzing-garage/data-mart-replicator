@@ -7,21 +7,21 @@ import com.senzing.listener.service.locking.LockingService;
 import com.senzing.listener.service.locking.ProcessScopeLockingService;
 import com.senzing.util.AsyncWorkerPool;
 import com.senzing.util.AsyncWorkerPool.AsyncResult;
-import com.senzing.util.JsonUtilities;
 import com.senzing.util.Timers;
 
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static java.util.Collections.*;
 import static com.senzing.util.JsonUtilities.parseJsonObject;
 import static com.senzing.util.JsonUtilities.parseJsonArray;
 import static com.senzing.util.JsonUtilities.toJsonText;
 import static com.senzing.listener.communication.MessageConsumer.State.*;
-import static com.senzing.util.AsyncWorkerPool.*;
 import static com.senzing.listener.communication.AbstractMessageConsumer.Stat.*;
 import static com.senzing.util.LoggingUtilities.*;
+import static com.senzing.listener.service.ServiceUtilities.*;
 
 /**
  * Base class for {@link MessageConsumer} implementations.
@@ -423,15 +423,26 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     private long dequeueMissCount = 0L;
 
     /**
+     * The result from {@link System#nanoTime()} when the last message 
+     * was pulled from the queue.
+     */
+    private AtomicLong lastMessageNanoTime = new AtomicLong(-1L);
+         
+    /**
      * The processing {@link Timers}.
      */
     private final Timers timers = new Timers();
 
     /**
      * Flag to use to suppress checking if already processing when backgrounding
-     * message processing.
+     * message processing.  Initialized to {@link Boolean#FALSE} by default.
      */
-    private static final ThreadLocal<Boolean> SUPPRESS_PROCESSING_CHECK = new ThreadLocal<>();
+    private static final ThreadLocal<Boolean> SUPPRESS_PROCESSING_CHECK = new ThreadLocal<>() {
+        @Override
+        protected Boolean initialValue() {
+            return Boolean.FALSE;
+        }
+    };
 
     /**
      * Default constructor.
@@ -502,6 +513,52 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
      */
     protected synchronized int getPendingMessageCount() {
         return this.pendingMessages.size();
+    }
+
+    /**
+     * Override this method to return the exact or approximate
+     * number of messages still on the message queue.  This 
+     * method returns <code>null</code> if the number of messages
+     * cannot be determined.
+     * <p>
+     * The default implementation of this method simply returns
+     * <code>null</code>.
+     * 
+     * @return The exact or approximate number of messages still
+     *         on the message queue, or <code>null</code> if the
+     *         count could not be determined.
+     */
+    protected Long getQueueMessageCount() {
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getLastMessageNanoTime() {
+        return this.lastMessageNanoTime.get();
+    }
+
+    /**
+     * Implemented to return a result which sums the values
+     * from {@link #getPendingMessageCount()} and {@link 
+     * #getQueueMessageCount()}.
+     * <p>
+     * If {@link #getQueueMessageCount()} returns <code>null</code>
+     * and {@link #getPendingMessageCount()} is non-zero then the
+     * result from {@link #getPendingMessageCount()} is returned.
+     * <p>
+     * If {@link #getPendingMessageCount()} returns zero then the
+     * result from {@link #getQueueMessageCount()} is returned.
+     * {@inheritDoc}
+     * 
+     */
+    public Long getMessageCount() {
+        int pending = this.getPendingMessageCount();
+        Long queued = this.getQueueMessageCount();
+        return (pending == 0) ? queued 
+            : (pending + ((queued == null) ? 0 : queued));
     }
 
     /**
@@ -745,13 +802,26 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
         }
 
         // join against the processing thread
+        Thread thread = null;
+        synchronized (this) {
+            thread = this.processingThread;
+        }
+
         try {
-            this.processingThread.join();
+            if (thread != null 
+                && Thread.currentThread() != thread
+                && thread.isAlive()) 
+            {
+                thread.join();
+            }
+
+            synchronized (this) {
+                if (this.processingThread == thread) {
+                    this.processingThread = null;
+                }
+            }
         } catch (InterruptedException ignore) {
             // ignore the exception
-        }
-        synchronized (this) {
-            this.processingThread = null;
         }
 
         try {
@@ -1018,6 +1088,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
             // add to the queue
             synchronized (this) {
                 int totalCount = this.pendingMessages.size() + infoMessages.size();
+                this.lastMessageNanoTime.set(System.nanoTime());
                 this.pendingMessages.addAll(infoMessages);
                 this.notifyAll();
                 if (totalCount >= this.getMaximumPendingCount()) {
@@ -1103,28 +1174,28 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
      *                  locking.
      */
     protected void processMessages(MessageProcessor processor) {
-        try {
-            // check if we should validate the current state
-            if (!SUPPRESS_PROCESSING_CHECK.get()) {
-                // first check if we are even consuming
-                synchronized (this) {
-                    // check if not consuming messages
-                    if (this.getState() != CONSUMING) {
-                        throw new IllegalStateException("Cannot call processMessages() if not in the " + CONSUMING
-                                + " state.  Current state is " + this.getState());
-                    }
-
-                    // check if already processing
-                    if (this.processing) {
-                        throw new IllegalStateException("Cannot call processMessages() when it has already been called "
-                                + "and is still processing messages.");
-                    }
-
-                    // set the processing flag
-                    this.processing = true;
+        // check if we should validate the current state
+        if (!SUPPRESS_PROCESSING_CHECK.get()) {
+            // first check if we are even consuming
+            synchronized (this) {
+                // check if not consuming messages
+                if (this.getState() != CONSUMING) {
+                    throw new IllegalStateException("Cannot call processMessages() if not in the " + CONSUMING
+                            + " state.  Current state is " + this.getState());
                 }
-            }
 
+                // check if already processing
+                if (this.processing) {
+                    throw new IllegalStateException("Cannot call processMessages() when it has already been called "
+                            + "and is still processing messages.");
+                }
+
+                // set the processing flag
+                this.processing = true;
+            }
+        }
+
+        try {
             // create the worker pool
             synchronized (this) {
                 this.workerPool = new AsyncWorkerPool<>(this.getConcurrency());
@@ -1163,6 +1234,8 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
                             timers.pause(markProcessed.toString());
 
                         } catch (Exception e) {
+                            logWarning(e, "Failure detected, will retry");
+                            
                             // in case of exception mark it as processed and non-disposable
                             timers.start(markProcessed.toString());
                             infoMsg.markProcessed(false);
@@ -1214,8 +1287,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
             }
 
         } catch (Exception e) {
-            System.err.println(e.getMessage());
-            System.err.println(formatStackTrace(e.getStackTrace()));
+            logWarning(e, "Processing failure");
         }
     }
 
@@ -1262,7 +1334,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
 
         // if none ready then check if we can grab a pending message
         // NOTE: we do not get more pending messages if state is not CONSUMING
-        while (this.pendingMessages.size() > 0) {
+        if (this.pendingMessages.size() > 0) {
             // get the candidate message
             msg = this.pendingMessages.remove(0);
 
@@ -1271,7 +1343,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
             this.timerStart(activelyProcessing);
             this.updateDequeueHitRatio(hit);
 
-            // this will short-circuit the loop
+            // return the message
             return msg;
         }
 
@@ -1693,290 +1765,6 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
          */
         public String toString() {
             return "disposable=[ " + this.isDisposable() + " ]: " + toJsonText(this.getMessage());
-        }
-    }
-
-    /**
-     * Utility method for obtaining a {@link String} configuration parameter with
-     * options to check if missing and required. This will throw a
-     * {@link MessageConsumerSetupException} if it fails. Any {@link String} value
-     * that is obtained will be trimmed of leading and trailing whitespace and if
-     * empty will be returned as <code>null</code>.
-     *
-     * @param config   The {@link JsonObject} configuration.
-     * @param key      The configuration parameter key.
-     * @param required <code>true</code> if required, otherwise <code>false</code>.
-     * @return The {@link String} configuration value.
-     * @throws MessageConsumerSetupException If the parameter value is required but
-     *                                       is missing.
-     */
-    protected static String getConfigString(JsonObject config, String key, boolean required) throws MessageConsumerSetupException {
-        return getConfigString(config, key, required, true);
-    }
-
-    /**
-     * Utility method for obtaining a {@link String} configuration parameter with
-     * options to check if missing and required. This will throw a
-     * {@link MessageConsumerSetupException} if it fails. Any {@link String} value
-     * that is obtained will be trimmed of leading and trailing whitespace.
-     * Resultant empty-string values will optionally be converted to
-     * <code>null</code> if the normalization parameter is set to <code>true</code>
-     * and will be returned as-is if <code>false</code>.
-     *
-     * @param config    The {@link JsonObject} configuration.
-     * @param key       The configuration parameter key.
-     * @param required  <code>true</code> if required, otherwise <code>false</code>.
-     * @param normalize <code>true</code> if empty or pure whitespace strings should
-     *                  be returned as <code>null</code>, otherwise
-     *                  <code>false</code> to return them as-is.
-     * @return The {@link String} configuration value.
-     * @throws MessageConsumerSetupException If a failure occurs in obtaining the
-     *                                       parameter value.
-     */
-    protected static String getConfigString(JsonObject config, String key, boolean required, boolean normalize) throws MessageConsumerSetupException {
-        // check if required and missing
-        if (required && !config.containsKey(key)) {
-            throw new MessageConsumerSetupException("Following configuration parameter missing: " + key);
-        }
-
-        String result = getConfigString(config, key, null, normalize);
-
-        // check if required and missing
-        if (required && normalize && result == null) {
-            throw new MessageConsumerSetupException(
-                    "Following configuration parameter is specified as null " + "or empty string: " + key);
-        }
-
-        // return the result
-        return result;
-    }
-
-    /**
-     * Utility method for obtaining a {@link String} configuration parameter with
-     * option to return a default value if missing. This will throw a
-     * {@link MessageConsumerSetupException} if it fails. Any {@link String} value
-     * that is obtained will be trimmed of leading and trailing whitespace and if
-     * empty will be returned as <code>null</code>.
-     *
-     * @param config       The {@link JsonObject} configuration.
-     * @param key          The configuration parameter key.
-     * @param defaultValue The default value to return if the value is missing.
-     * @return The {@link String} configuration value.
-     * @throws MessageConsumerSetupException If the value is required but not
-     *                                       present.
-     */
-    protected static String getConfigString(JsonObject config, String key, String defaultValue) throws MessageConsumerSetupException {
-        try {
-            return getConfigString(config, key, defaultValue, true);
-
-        } catch (Exception e) {
-            throw new MessageConsumerSetupException(
-                    "Failed to parse JSON configuration parameter (" + key + "): " + e.getMessage());
-        }
-    }
-
-    /**
-     * Utility method for obtaining a {@link String} configuration parameter with
-     * option to return a default value if missing. This will throw a
-     * {@link MessageConsumerSetupException} if it fails. Any {@link String} value
-     * that is obtained will be trimmed of leading and trailing whitespace.
-     * Resultant empty-string values will optionally be converted to
-     * <code>null</code> if the normalization parameter is set to <code>true</code>
-     * and will be returned as-is if <code>false</code>.
-     *
-     * @param config       The {@link JsonObject} configuration.
-     * @param key          The configuration parameter key.
-     * @param defaultValue The default value to return if the value is missing.
-     * @param normalize    <code>true</code> if empty or pure whitespace strings
-     *                     should be returned as <code>null</code>, otherwise
-     *                     <code>false</code> to return them as-is.
-     * @return The {@link String} configuration value.
-     * @throws MessageConsumerSetupException If the value could not be interpreted
-     *                                       as a {@link String} for some reason.
-     */
-    protected static String getConfigString(JsonObject config, String key, String defaultValue, boolean normalize) throws MessageConsumerSetupException {
-        try {
-            String result = JsonUtilities.getString(config, key, defaultValue);
-
-            // trim the whitespace (regardless of normalization)
-            if (result != null) {
-                result = result.trim();
-            }
-
-            // optionally normalize empty string to null
-            if (normalize && result != null && result.length() == 0) {
-                result = null;
-            }
-
-            // return the result
-            return result;
-
-        } catch (Exception e) {
-            throw new MessageConsumerSetupException(
-                    "Failed to parse JSON configuration parameter (" + key + "): " + e.getMessage());
-        }
-    }
-
-    /**
-     * Utility method for obtaining an {@link Integer} configuration parameter with
-     * options to check if missing and required or if it is less than an optional
-     * minimum value. This will throw {@link MessageConsumerSetupException} if it
-     * fails.
-     *
-     * @param config   The {@link JsonObject} configuration.
-     * @param key      The configuration parameter key.
-     * @param required <code>true</code> if required, otherwise <code>false</code>.
-     * @param minimum  The minimum integer value allowed, or <code>null</code> if no
-     *                 minimum is enforced.
-     * @return The {@link String} configuration value.
-     * @throws MessageConsumerSetupException If the value is required and not
-     *                                       present or if it is present and less
-     *                                       than the optionally specified minimum
-     *                                       value or could not an integer.
-     */
-    protected static Integer getConfigInteger(JsonObject config, String key, boolean required, Integer minimum) throws MessageConsumerSetupException {
-        // check if required and missing
-        if (required && !config.containsKey(key)) {
-            throw new MessageConsumerSetupException("Following configuration parameter missing: " + key);
-        }
-        return getConfigInteger(config, key, minimum, null);
-    }
-
-    /**
-     * Utility method for obtaining an {@link Integer} configuration parameter with
-     * options to check if missing and required or if it is less than an optional
-     * minimum value. This will throw {@link MessageConsumerSetupException} if it
-     * fails.
-     *
-     * @param config       The {@link JsonObject} configuration.
-     * @param key          The configuration parameter key.
-     * @param minimum      The minimum integer value allowed, or <code>null</code>
-     *                     if no minimum is enforced.
-     * @param defaultValue The default value to return if the value is missing.
-     * @return The {@link String} configuration value.
-     * @throws MessageConsumerSetupException If the value is present and less than
-     *                                       the optionally specified minimum value
-     *                                       or could not an integer.
-     */
-    protected static Integer getConfigInteger(JsonObject config, String key, Integer minimum, Integer defaultValue) throws MessageConsumerSetupException {
-        Integer result = null;
-        try {
-            result = JsonUtilities.getInteger(config, key, defaultValue);
-
-        } catch (Exception e) {
-            throw new MessageConsumerSetupException(
-                    "Failed to parse JSON configuration parameter (" + key + "): " + e.getMessage());
-        }
-        // check the result
-        if (result != null && minimum != null && result < minimum) {
-            throw new MessageConsumerSetupException(
-                    "The " + key + " configuration parameter cannot be less than " + minimum + ": " + result);
-        }
-        return result;
-    }
-
-    /**
-     * Utility method for obtaining a {@link Long} configuration parameter with
-     * options to check if missing and required or if it is less than an optional
-     * minimum value. This will throw {@link MessageConsumerSetupException} if it
-     * fails.
-     *
-     * @param config   The {@link JsonObject} configuration.
-     * @param key      The configuration parameter key.
-     * @param required <code>true</code> if required, otherwise <code>false</code>.
-     * @param minimum  The minimum integer value allowed, or <code>null</code> if no
-     *                 minimum is enforced.
-     * @return The {@link String} configuration value.
-     * @throws MessageConsumerSetupException If the value is required and not
-     *                                       present or if it is present and less
-     *                                       than the optionally specified minimum
-     *                                       value or could not a long integer.
-     */
-    protected static Long getConfigLong(JsonObject config, String key, boolean required, Long minimum) throws MessageConsumerSetupException {
-        // check if required and missing
-        if (required && !config.containsKey(key)) {
-            throw new MessageConsumerSetupException("Following configuration parameter missing: " + key);
-        }
-
-        return getConfigLong(config, key, minimum, null);
-    }
-
-    /**
-     * Utility method for obtaining a {@link Long} configuration parameter with
-     * options to check if missing and required or if it is less than an optional
-     * minimum value. This will throw {@link MessageConsumerSetupException} if it
-     * fails.
-     *
-     * @param config       The {@link JsonObject} configuration.
-     * @param key          The configuration parameter key.
-     * @param minimum      The minimum integer value allowed, or <code>null</code>
-     *                     if no minimum is enforced.
-     * @param defaultValue The default value to return if the value is missing.
-     * @return The {@link String} configuration value.
-     * @throws MessageConsumerSetupException If the value is less than the
-     *                                       optionally specified minimum value or
-     *                                       if it is not a long integer.
-     */
-    protected static Long getConfigLong(JsonObject config, String key, Long minimum, Long defaultValue) throws MessageConsumerSetupException {
-        Long result = null;
-        try {
-            result = JsonUtilities.getLong(config, key, defaultValue);
-
-        } catch (Exception e) {
-            throw new MessageConsumerSetupException(
-                    "Failed to parse JSON configuration parameter (" + key + "): " + e.getMessage());
-        }
-        // check the result
-        if (result != null && minimum != null && result < minimum) {
-            throw new MessageConsumerSetupException(
-                    "The " + key + " configuration parameter cannot be less than " + minimum + ": " + result);
-        }
-        return result;
-    }
-
-    /**
-     * Utility method for obtaining a {@link Boolean} configuration parameter with
-     * options to check if missing and required. This will throw
-     * {@link MessageConsumerSetupException} if it fails.
-     *
-     * @param config   The {@link JsonObject} configuration.
-     * @param key      The configuration parameter key.
-     * @param required <code>true</code> if required, otherwise <code>false</code>.
-     * @return The {@link String} configuration value.
-     * @throws MessageConsumerSetupException If the value is required and not
-     *                                       present or if it is present and could
-     *                                       not be interpreted as a boolean.
-     */
-    protected static Boolean getConfigBoolean(JsonObject config, String key, boolean required) throws MessageConsumerSetupException {
-        // check if required and missing
-        if (required && !config.containsKey(key)) {
-            throw new MessageConsumerSetupException("Following configuration parameter missing: " + key);
-        }
-
-        return getConfigBoolean(config, key, null);
-    }
-
-    /**
-     * Utility method for obtaining a {@link Long} configuration parameter with
-     * options to check if missing and required or if it is less than an optional
-     * minimum value. This will throw {@link MessageConsumerSetupException} if it
-     * fails.
-     *
-     * @param config       The {@link JsonObject} configuration.
-     * @param key          The configuration parameter key.
-     * @param defaultValue The default value to return if the value is missing.
-     * @return The {@link String} configuration value.
-     *
-     * @throws MessageConsumerSetupException If the value is present but could not
-     *                                       be interpreted as a boolean.
-     */
-    protected static Boolean getConfigBoolean(JsonObject config, String key, Boolean defaultValue) throws MessageConsumerSetupException {
-        try {
-            return JsonUtilities.getBoolean(config, key, defaultValue);
-
-        } catch (Exception e) {
-            throw new MessageConsumerSetupException(
-                    "Failed to parse JSON configuration parameter (" + key + "): " + e.getMessage());
         }
     }
 

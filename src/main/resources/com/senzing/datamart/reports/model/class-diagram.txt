@@ -1,0 +1,132 @@
+═══════════════════════════════════════════════════════════════════════════════════
+                    com.senzing.datamart.reports.model CLASS DIAGRAM
+═══════════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              ENUMERATIONS                                       │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│  «enum»                           «enum»                                        │
+│  SzBoundType                      SzRelationType                                │
+│  ├─ INCLUSIVE_LOWER               ├─ AMBIGUOUS_MATCH                            │
+│  ├─ EXCLUSIVE_LOWER               ├─ POSSIBLE_MATCH                             │
+│  ├─ INCLUSIVE_UPPER               ├─ POSSIBLE_RELATION                          │
+│  └─ EXCLUSIVE_UPPER               └─ DISCLOSED_RELATION                         │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────────────────┐
+│                          LOADED STATS HIERARCHY                                          │
+├──────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                          │
+│  SzLoadedStats ─────────────────────────────1:* ────► SzSourceLoadedStats                │
+│  ├─ getTotalRecordCount(): long                      ├─ getDataSource(): String          │
+│  ├─ getTotalEntityCount(): long                      ├─ getRecordCount(): long           │
+│  ├─ getTotalUnmatchedRecordCount(): long             ├─ getEntityCount(): long           │
+│  └─ getDataSourceCounts(): List                      └─ getUnmatchedRecordCount(): long  │
+│                                                                                          │
+└──────────────────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────────────────┐
+│                        SUMMARY STATS HIERARCHY                                           │
+├──────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                          │
+│  SzSummaryStats ────────────────1:* ────► SzSourceSummary ────1:* ───────────┐           │
+│  └─ getSourceSummaries(): List            ├─ getDataSource(): String         │           │
+│                                           ├─ getEntityCount(): long          │           │
+│                                           ├─ getRecordCount(): long          │           │
+│                                           ├─ getUnmatchedRecordCount(): long │           │
+│                                           └─ getCrossSourceSummaries(): List │           │
+│                                                      │                       │           │
+│                               ┌──────────────────────┘                       │           │
+│                               ▼                                              │           │
+│                      SzCrossSourceSummary ◄──────────────────────────────────┘           │
+│                      ├─ getDataSource(): String                                          │
+│                      ├─ getVersusDataSource(): String                                    │
+│                      ├─ getMatches(): List<SzMatchCounts>                                │
+│                      ├─ getAmbiguousMatches(): List<SzRelationCounts>                    │
+│                      ├─ getPossibleMatches(): List<SzRelationCounts>                     │
+│                      ├─ getPossibleRelations(): List<SzRelationCounts>                   │
+│                      └─ getDisclosedRelations(): List<SzRelationCounts>                  │
+│                                      │                    │                              │
+│                                      ▼                    ▼                              │
+│                            SzMatchCounts          SzRelationCounts                       │
+│                            ├─ getMatchKey()       ├─ getMatchKey()                       │
+│                            ├─ getPrinciple()      ├─ getPrinciple()                      │
+│                            ├─ getEntityCount()    ├─ getEntityCount()                    │
+│                            └─ getRecordCount()    ├─ getRecordCount()                    │
+│                                                   └─ getRelationCount()                  │
+│                                                                                          │
+└──────────────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                         BREAKDOWN HIERARCHIES                                   │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  SzEntitySizeBreakdown ──────1:* ──► SzEntitySizeCount                          │
+│  └─ getEntitySizeCounts(): List      ├─ getEntitySize(): int                    │
+│                                      └─ getEntityCount(): long                  │
+│                                                                                 │
+│  SzEntityRelationsBreakdown ─1:* ──► SzEntityRelationsCount                     │
+│  └─ getEntityRelationsCounts(): List ├─ getRelationsCount(): int                │
+│                                      └─ getEntityCount(): long                  │
+│                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                          PAGING / DETAIL CLASSES                                                 │
+├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                                  │
+│  SzEntitiesPage ─────────────1:* ──► SzReportEntity ──────1:* ──────► SzReportRecord             │
+│  ├─ getBound(): String               ├─ getEntityId(): long           ├─ getDataSource(): String │
+│  ├─ getBoundType(): SzBoundType      ├─ getEntityName(): String       │─ getRecordId(): String   │
+│  ├─ getPageSize(): int               ├─ getRecordCount(): Integer     ├─ getMatchKey(): String   │ 
+│  ├─ getSampleSize(): Integer         ├─ getRelationCount(): Integer   └─ getPrinciple(): String  │
+│  ├─ getMinimumValue(): Long          └─ getRecords(): List                                       │
+│  ├─ getMaximumValue(): Long                                                                      │
+│  ├─ getPageMinimumValue(): Long                                                                  │
+│  ├─ getPageMaximumValue(): Long                                                                  │
+│  ├─ getTotalEntityCount(): long                                                                  │
+│  ├─ getBeforePageCount(): long                                                                   │
+│  ├─ getAfterPageCount(): long                                                                    │
+│  └─ getEntities(): List                                                                          │
+│                                                                                                  │
+│  SzRelationsPage ────────────1:* ──► SzReportRelation                                            │
+│  ├─ getBound(): String               ├─ getEntity(): SzReportEntity ────────────────┐            │
+│  ├─ getBoundType(): SzBoundType      ├─ getRelatedEntity(): SzReportEntity ─────────┤            │
+│  ├─ getPageSize(): int               ├─ getRelationType(): SzRelationType           │            │
+│  ├─ getSampleSize(): Integer         ├─ getMatchKey(): String                       │            │
+│  ├─ getMinimumValue(): String        └─ getPrinciple(): String                      │            │
+│  ├─ getMaximumValue(): String                       │                               │            │
+│  ├─ getPageMinimumValue(): String                   │                               │            │
+│  ├─ getPageMaximumValue(): String                   │    ┌──────────────────────────┘            │
+│  ├─ getTotalRelationCount(): long                   │    │                                       │
+│  ├─ getBeforePageCount(): long                      ▼    ▼                                       │
+│  ├─ getAfterPageCount(): long                SzReportEntity                                      │
+│  └─ getRelations(): List                                                                         │
+│                                                                                                  │
+└──────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════════
+                              RELATIONSHIP LEGEND
+═══════════════════════════════════════════════════════════════════════════════════
+  ────1:*───►   One-to-many composition (contains collection of)
+  ────────►     References / uses
+  «enum»        Enumeration type
+═══════════════════════════════════════════════════════════════════════════════════
+
+FUNCTIONAL GROUPS
+═════════════════
+
+The model is organized into 4 main functional groups:
+
+1. Loaded Stats - Basic record/entity counts per data source
+   (SzLoadedStats → SzSourceLoadedStats)
+
+2. Summary Stats - Cross-source matching statistics with match/relation counts
+   broken down by match key and principle
+   (SzSummaryStats → SzSourceSummary → SzCrossSourceSummary → SzMatchCounts / SzRelationCounts)
+
+3. Breakdowns - Distribution histograms for entity sizes and relation counts
+   (SzEntitySizeBreakdown → SzEntitySizeCount, SzEntityRelationsBreakdown → SzEntityRelationsCount)
+
+4. Paging/Detail - Paginated entity and relation results with full detail
+   (SzEntitiesPage → SzReportEntity → SzReportRecord, SzRelationsPage → SzReportRelation)

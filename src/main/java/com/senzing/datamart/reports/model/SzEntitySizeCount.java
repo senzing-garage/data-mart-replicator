@@ -44,8 +44,15 @@ public class SzEntitySizeCount implements Serializable {
      *
      * @param recordCount The number of records indicating the size of the entities
      *                    for which the entity count is provided.
+     * 
+     * @throws IllegalArgumentException If the specified parameter is not positive.
      */
     public void setEntitySize(int recordCount) {
+        if (recordCount < 1) {
+            throw new IllegalArgumentException(
+                "The specified record count must be a positive number: "
+                + recordCount);
+        }
         this.entitySize = recordCount;
     }
 
@@ -66,8 +73,15 @@ public class SzEntitySizeCount implements Serializable {
      *
      * @param entityCount The number of entities in the entity repository having the
      *                    associated {@linkplain #getEntitySize() entity size}.
+     * 
+     * @throws IllegalArgumentException If the specified parameter is negative.
      */
     public void setEntityCount(long entityCount) {
+        if (entityCount < 0) {
+            throw new IllegalArgumentException(
+                "The specified entity count cannot be negative: "
+                + entityCount);
+        }
         this.entityCount = entityCount;
     }
 
@@ -78,8 +92,8 @@ public class SzEntitySizeCount implements Serializable {
      */
     @Override
     public String toString() {
-        return "entitySize=[ " + this.getEntitySize() 
-               + " ], entityCount=[ " + this.getEntityCount() +  " ]";
+        return "{ entitySize=[ " + this.getEntitySize() 
+               + " ], entityCount=[ " + this.getEntityCount() +  " ] }";
     }
 
     /**

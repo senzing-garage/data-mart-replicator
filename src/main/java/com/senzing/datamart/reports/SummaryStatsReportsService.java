@@ -14,6 +14,7 @@ import com.senzing.datamart.reports.model.SzEntitiesPage;
 import com.senzing.datamart.reports.model.SzRelationsPage;
 import com.senzing.datamart.reports.model.SzSourceSummary;
 import com.senzing.datamart.reports.model.SzSummaryStats;
+import com.senzing.sdk.SzException;
 import com.senzing.util.Timers;
 
 import static com.senzing.sql.SQLUtilities.close;
@@ -191,7 +192,11 @@ public interface SummaryStatsReportsService extends ReportsService {
     @Path(SUMMARY_STATS_PREFIX)
     @Path(SUMMARY_STATS_ENDPOINT)
     @ProducesJson
-    default SzSummaryStats getSummaryStats(@Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("onlyLoadedSources") @Default("true") boolean onlyLoaded) throws ReportsServiceException {
+    default SzSummaryStats getSummaryStats(
+            @Param("matchKey") @Nullable                    String  matchKey, 
+            @Param("principle") @Nullable                   String  principle, 
+            @Param("onlyLoadedSources") @Default("true")    boolean onlyLoaded) 
+        throws ReportsServiceException {
         Connection conn = null;
         try {
             conn = this.getConnection();
@@ -202,20 +207,16 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             return SummaryStatsReports.getSummaryStatistics(conn, matchKey, principle, dataSources, timers);
 
-        } catch (SQLException e) {
+        } catch (SzException | SQLException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
-
+            throw e;
+        
         } finally {
             conn = close(conn);
         }
@@ -246,7 +247,13 @@ public interface SummaryStatsReportsService extends ReportsService {
      */
     @Get(SOURCE_SUMMARY_ENDPOINT)
     @ProducesJson
-    default SzSourceSummary getSourceSummary(@Param("dataSourceCode") String dataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("onlyLoadedSources") @Default("true") boolean onlyLoaded) throws ReportsServiceException {
+    default SzSourceSummary getSourceSummary(
+            @Param("dataSourceCode")                        String  dataSource,
+            @Param("matchKey") @Nullable                    String  matchKey,
+            @Param("principle") @Nullable                   String  principle,
+            @Param("onlyLoadedSources") @Default("true")    boolean onlyLoaded)
+        throws ReportsServiceException 
+    {
         Connection conn = null;
         try {
             conn = this.getConnection();
@@ -257,19 +264,15 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             return SummaryStatsReports.getSourceSummary(conn, dataSource, matchKey, principle, dataSources, timers);
 
-        } catch (SQLException e) {
+        } catch (SzException | SQLException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
+            throw e;
 
         } finally {
             conn = close(conn);
@@ -280,13 +283,13 @@ public interface SummaryStatsReportsService extends ReportsService {
      * Exposes
      * {@link SummaryStatsReports#getCrossSourceSummary(Connection, String, String, String, String, Timers)}
      * as a REST/JSON service at {@link #CROSS_SOURCE_SUMMARY_ENDPOINT}.
-     * 
+     *
      * @param dataSource   The data source code identifying the data source for the
      *                     cross-source report being requested.
-     * 
+     *
      * @param vsDataSource The data source code identifying the "versus" data source
      *                     for which the cross-source report being requested.
-     * 
+     *
      * @param matchKey     The optional match key for retrieving statistics specific
      *                     to a match key, or asterisk (<code>"*"</code>) for all
      *                     match keys, or <code>null</code> for only retrieving
@@ -295,17 +298,20 @@ public interface SummaryStatsReportsService extends ReportsService {
      *                     to a principle, or asterisk (<code>"*"</code>) for all
      *                     principles, or <code>null</code> for only retrieving
      *                     statistics that are not specific to a principle.
-     * @param onlyLoaded   Set to <code>true</code> to only consider data sources
-     *                     that have loaded record, otherwise set this to
-     *                     <code>false</code> to consider all data sources.
-     * 
+     *
      * @return The {@link SzCrossSourceSummary} describing the report.
-     * 
+     *
      * @throws ReportsServiceException If a failure occurs.
      */
     @Get(CROSS_SOURCE_SUMMARY_ENDPOINT)
     @ProducesJson
-    default SzCrossSourceSummary getCrossSourceSummary(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("onlyLoadedSources") @Default("true") boolean onlyLoaded) throws ReportsServiceException {
+    default SzCrossSourceSummary getCrossSourceSummary(
+            @Param("dataSourceCode")        String  dataSource,
+            @Param("vsDataSourceCode")      String  vsDataSource,
+            @Param("matchKey") @Nullable    String  matchKey,
+            @Param("principle") @Nullable   String  principle)
+        throws ReportsServiceException 
+    {
         Connection conn = null;
         try {
             conn = this.getConnection();
@@ -320,14 +326,10 @@ public interface SummaryStatsReportsService extends ReportsService {
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
+            throw e;
 
         } finally {
             conn = close(conn);
@@ -338,7 +340,7 @@ public interface SummaryStatsReportsService extends ReportsService {
      * Exposes
      * {@link SummaryStatsReports#getCrossSourceMatchSummary( Connection, String, String, String, String, Timers)}
      * as a REST/JSON service at {@link #CROSS_SOURCE_MATCH_SUMMARY_ENDPOINT}.
-     * 
+     *
      * @param dataSource   The data source code identifying the data source for the
      *                     cross-source report being requested.
      * @param vsDataSource The data source code identifying the "versus" data source
@@ -351,19 +353,22 @@ public interface SummaryStatsReportsService extends ReportsService {
      *                     to a principle, or asterisk (<code>"*"</code>) for all
      *                     principles, or <code>null</code> for only retrieving
      *                     statistics that are not specific to a principle.
-     * @param onlyLoaded   Set to <code>true</code> to only consider data sources
-     *                     that have loaded record, otherwise set this to
-     *                     <code>false</code> to consider all data sources.
-     * 
+     *
      * @return The {@link SzCrossSourceMatchCounts} describing the report.
-     * 
+     *
      * @throws ReportsServiceException If a failure occurs.
      */
     @Get
     @Path(CROSS_SOURCE_MATCH_SUMMARY_ENDPOINT)
     @Path(CROSS_SOURCE_MATCH_SUMMARY_ENDPOINT + "/")
     @ProducesJson
-    default SzCrossSourceMatchCounts getCrossSourceMatchSummary(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("onlyLoadedSources") @Default("true") boolean onlyLoaded) throws ReportsServiceException {
+    default SzCrossSourceMatchCounts getCrossSourceMatchSummary(
+            @Param("dataSourceCode")        String  dataSource,
+            @Param("vsDataSourceCode")      String  vsDataSource,
+            @Param("matchKey") @Nullable    String  matchKey,
+            @Param("principle") @Nullable   String  principle)
+        throws ReportsServiceException
+    {
         Connection conn = null;
         try {
             conn = this.getConnection();
@@ -378,14 +383,10 @@ public interface SummaryStatsReportsService extends ReportsService {
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
+            throw e;
 
         } finally {
             conn = close(conn);
@@ -411,39 +412,37 @@ public interface SummaryStatsReportsService extends ReportsService {
      *                     to a principle, or asterisk (<code>"*"</code>) for all
      *                     principles, or <code>null</code> for only retrieving
      *                     statistics that are not specific to a principle.
-     * @param onlyLoaded   Set to <code>true</code> to only consider data sources
-     *                     that have loaded record, otherwise set this to
-     *                     <code>false</code> to consider all data sources.
-     * 
      * @return The {@link SzCrossSourceRelationCounts} describing the report.
      * 
      * @throws ReportsServiceException If a failure occurs.
      */
     @Get(CROSS_SOURCE_AMBIGUOUS_MATCH_SUMMARY_ENDPOINT)
     @ProducesJson
-    default SzCrossSourceRelationCounts getCrossSourceAmbiguousMatchSummary(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("onlyLoadedSources") @Default("true") boolean onlyLoaded) throws ReportsServiceException {
+    default SzCrossSourceRelationCounts getCrossSourceAmbiguousMatchSummary(
+            @Param("dataSourceCode")        String  dataSource,
+            @Param("vsDataSourceCode")      String  vsDataSource,
+            @Param("matchKey") @Nullable    String  matchKey,
+            @Param("principle") @Nullable   String  principle)
+        throws ReportsServiceException 
+    {
         Connection conn = null;
         try {
             conn = this.getConnection();
 
             Timers timers = this.getTimers();
 
-            return SummaryStatsReports.getCrossSourceAmbiguousMatchSummary(conn, dataSource, vsDataSource, matchKey,
-                    principle, timers);
+            return SummaryStatsReports.getCrossSourceAmbiguousMatchSummary(
+                conn, dataSource, vsDataSource, matchKey, principle, timers);
 
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
+            throw e;
 
         } finally {
             conn = close(conn);
@@ -455,10 +454,10 @@ public interface SummaryStatsReportsService extends ReportsService {
      * {@link SummaryStatsReports#getCrossSourcePossibleMatchSummary( Connection, String, String, String, String, Timers)}
      * as a REST/JSON service at
      * {@link #CROSS_SOURCE_POSSIBLE_MATCH_SUMMARY_ENDPOINT}.
-     * 
+     *
      * @param dataSource   The data source code identifying the data source for the
      *                     cross-source report being requested.
-     * 
+     *
      * @param vsDataSource The data source code identifying the "versus" data source
      *                     for which the cross-source report being requested.
      * @param matchKey     The optional match key for retrieving statistics specific
@@ -469,19 +468,22 @@ public interface SummaryStatsReportsService extends ReportsService {
      *                     to a principle, or asterisk (<code>"*"</code>) for all
      *                     principles, or <code>null</code> for only retrieving
      *                     statistics that are not specific to a principle.
-     * @param onlyLoaded   Set to <code>true</code> to only consider data sources
-     *                     that have loaded record, otherwise set this to
-     *                     <code>false</code> to consider all data sources.
-     * 
+     *
      * @return The {@link SzCrossSourceRelationCounts} describing the report.
-     * 
+     *
      * @throws ReportsServiceException If a failure occurs.
      */
     @Get
     @Path(CROSS_SOURCE_POSSIBLE_MATCH_SUMMARY_ENDPOINT)
     @Path(CROSS_SOURCE_POSSIBLE_MATCH_SUMMARY_ENDPOINT + "/")
     @ProducesJson
-    default SzCrossSourceRelationCounts getCrossSourcePossibleMatchSummary(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("onlyLoadedSources") @Default("true") boolean onlyLoaded) throws ReportsServiceException {
+    default SzCrossSourceRelationCounts getCrossSourcePossibleMatchSummary(
+            @Param("dataSourceCode")        String  dataSource,
+            @Param("vsDataSourceCode")      String  vsDataSource,
+            @Param("matchKey") @Nullable    String  matchKey,
+            @Param("principle") @Nullable   String  principle)
+        throws ReportsServiceException
+    {
         Connection conn = null;
         try {
             conn = this.getConnection();
@@ -496,14 +498,10 @@ public interface SummaryStatsReportsService extends ReportsService {
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
+            throw e;
 
         } finally {
             conn = close(conn);
@@ -515,10 +513,10 @@ public interface SummaryStatsReportsService extends ReportsService {
      * {@link SummaryStatsReports#getCrossSourcePossibleRelationSummary( Connection, String, String, String, String, Timers)}
      * as a REST/JSON service at
      * {@link #CROSS_SOURCE_POSSIBLE_RELATION_SUMMARY_ENDPOINT}.
-     * 
+     *
      * @param dataSource   The data source code identifying the data source for the
      *                     cross-source report being requested.
-     * 
+     *
      * @param vsDataSource The data source code identifying the "versus" data source
      *                     for which the cross-source report being requested.
      * @param matchKey     The optional match key for retrieving statistics specific
@@ -529,19 +527,22 @@ public interface SummaryStatsReportsService extends ReportsService {
      *                     to a principle, or asterisk (<code>"*"</code>) for all
      *                     principles, or <code>null</code> for only retrieving
      *                     statistics that are not specific to a principle.
-     * @param onlyLoaded   Set to <code>true</code> to only consider data sources
-     *                     that have loaded record, otherwise set this to
-     *                     <code>false</code> to consider all data sources.
-     * 
+     *
      * @return The {@link SzCrossSourceRelationCounts} describing the report.
-     * 
+     *
      * @throws ReportsServiceException If a failure occurs.
      */
     @Get
     @Path(CROSS_SOURCE_POSSIBLE_RELATION_SUMMARY_ENDPOINT)
     @Path(CROSS_SOURCE_POSSIBLE_RELATION_SUMMARY_ENDPOINT + "/")
     @ProducesJson
-    default SzCrossSourceRelationCounts getCrossSourcePossibleRelationSummary(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("onlyLoadedSources") @Default("true") boolean onlyLoaded) throws ReportsServiceException {
+    default SzCrossSourceRelationCounts getCrossSourcePossibleRelationSummary(
+            @Param("dataSourceCode")        String  dataSource,
+            @Param("vsDataSourceCode")      String  vsDataSource,
+            @Param("matchKey") @Nullable    String  matchKey,
+            @Param("principle") @Nullable   String  principle)
+        throws ReportsServiceException
+    {
         Connection conn = null;
         try {
             conn = this.getConnection();
@@ -556,14 +557,10 @@ public interface SummaryStatsReportsService extends ReportsService {
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
+            throw e;
 
         } finally {
             conn = close(conn);
@@ -575,10 +572,10 @@ public interface SummaryStatsReportsService extends ReportsService {
      * {@link SummaryStatsReports#getCrossSourceDisclosedRelationSummary( Connection, String, String, String, String, Timers)}
      * as a REST/JSON service at
      * {@link #CROSS_SOURCE_DISCLOSED_RELATION_SUMMARY_ENDPOINT}.
-     * 
+     *
      * @param dataSource   The data source code identifying the data source for the
      *                     cross-source report being requested.
-     * 
+     *
      * @param vsDataSource The data source code identifying the "versus" data source
      *                     for which the cross-source report being requested.
      * @param matchKey     The optional match key for retrieving statistics specific
@@ -589,19 +586,22 @@ public interface SummaryStatsReportsService extends ReportsService {
      *                     to a principle, or asterisk (<code>"*"</code>) for all
      *                     principles, or <code>null</code> for only retrieving
      *                     statistics that are not specific to a principle.
-     * @param onlyLoaded   Set to <code>true</code> to only consider data sources
-     *                     that have loaded record, otherwise set this to
-     *                     <code>false</code> to consider all data sources.
-     * 
+     *
      * @return The {@link SzCrossSourceRelationCounts} describing the report.
-     * 
+     *
      * @throws ReportsServiceException If a failure occurs.
      */
     @Get
     @Path(CROSS_SOURCE_DISCLOSED_RELATION_SUMMARY_ENDPOINT)
     @Path(CROSS_SOURCE_DISCLOSED_RELATION_SUMMARY_ENDPOINT + "/")
     @ProducesJson
-    default SzCrossSourceRelationCounts getCrossSourceDisclosedRelationSummary(@Param("dataSourceCode") String dataSource, @Param("vsDataSourceCode") String vsDataSource, @Param("matchKey") @Nullable String matchKey, @Param("principle") @Nullable String principle, @Param("onlyLoadedSources") @Default("true") boolean onlyLoaded) throws ReportsServiceException {
+    default SzCrossSourceRelationCounts getCrossSourceDisclosedRelationSummary(
+            @Param("dataSourceCode")        String  dataSource,
+            @Param("vsDataSourceCode")      String  vsDataSource,
+            @Param("matchKey") @Nullable    String  matchKey,
+            @Param("principle") @Nullable   String  principle)
+        throws ReportsServiceException
+    {
         Connection conn = null;
         try {
             conn = this.getConnection();
@@ -616,14 +616,10 @@ public interface SummaryStatsReportsService extends ReportsService {
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
+            throw e;
 
         } finally {
             conn = close(conn);
@@ -675,19 +671,16 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             return SummaryStatsReports.getSummaryMatchEntityIds(conn, dataSource, matchKey, principle, entityIdBound,
                     boundType, pageSize, sampleSize, timers);
+
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
+            throw e;
 
         } finally {
             conn = close(conn);
@@ -740,19 +733,16 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             return SummaryStatsReports.getSummaryAmbiguousMatchEntityIds(conn, dataSource, matchKey, principle,
                     entityIdBound, boundType, pageSize, sampleSize, timers);
+
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
+            throw e;
 
         } finally {
             conn = close(conn);
@@ -806,19 +796,16 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             return SummaryStatsReports.getSummaryPossibleMatchEntityIds(conn, dataSource, matchKey, principle,
                     entityIdBound, boundType, pageSize, sampleSize, timers);
+
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
+            throw e;
 
         } finally {
             conn = close(conn);
@@ -872,19 +859,16 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             return SummaryStatsReports.getSummaryPossibleRelationEntityIds(conn, dataSource, matchKey, principle,
                     entityIdBound, boundType, pageSize, sampleSize, timers);
+
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
+            throw e;
 
         } finally {
             conn = close(conn);
@@ -893,7 +877,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
     /**
      * Exposes
-     * {@link SummaryStatsReports#getSummaryDisclosedRelatedEntityIds(Connection, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
+     * {@link SummaryStatsReports#getSummaryDisclosedRelationEntityIds(Connection, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
      * as a REST/JSON service at
      * {@link #SOURCE_SUMMARY_DISCLOSED_RELATION_ENTITIES_ENDPOINT}.
      * 
@@ -936,21 +920,18 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             Timers timers = this.getTimers();
 
-            return SummaryStatsReports.getSummaryDisclosedRelatedEntityIds(conn, dataSource, matchKey, principle,
+            return SummaryStatsReports.getSummaryDisclosedRelationEntityIds(conn, dataSource, matchKey, principle,
                     entityIdBound, boundType, pageSize, sampleSize, timers);
+
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
+            throw e;
 
         } finally {
             conn = close(conn);
@@ -959,7 +940,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
     /**
      * Exposes
-     * {@link SummaryStatsReports#getSummaryMatchEntityIds(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
+     * {@link SummaryStatsReports#getCrossMatchEntityIds(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
      * as a REST/JSON service at
      * {@link #CROSS_SOURCE_SUMMARY_MATCH_ENTITIES_ENDPOINT}.
      * 
@@ -1006,21 +987,18 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             Timers timers = this.getTimers();
 
-            return SummaryStatsReports.getSummaryMatchEntityIds(conn, dataSource, vsDataSource, matchKey, principle,
+            return SummaryStatsReports.getCrossMatchEntityIds(conn, dataSource, vsDataSource, matchKey, principle,
                     entityIdBound, boundType, pageSize, sampleSize, timers);
+
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
+            throw e;
 
         } finally {
             conn = close(conn);
@@ -1029,7 +1007,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
     /**
      * Exposes
-     * {@link SummaryStatsReports#getSummaryAmbiguousMatchEntityIds(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
+     * {@link SummaryStatsReports#getCrossAmbiguousMatchEntityIds(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
      * as a REST/JSON service at
      * {@link #CROSS_SOURCE_SUMMARY_AMBIGUOUS_MATCH_ENTITIES_ENDPOINT}.
      * 
@@ -1076,21 +1054,18 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             Timers timers = this.getTimers();
 
-            return SummaryStatsReports.getSummaryAmbiguousMatchEntityIds(conn, dataSource, vsDataSource, matchKey,
+            return SummaryStatsReports.getCrossAmbiguousMatchEntityIds(conn, dataSource, vsDataSource, matchKey,
                     principle, entityIdBound, boundType, pageSize, sampleSize, timers);
+
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
+            throw e;
 
         } finally {
             conn = close(conn);
@@ -1099,7 +1074,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
     /**
      * Exposes
-     * {@link SummaryStatsReports#getSummaryPossibleMatchEntityIds(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
+     * {@link SummaryStatsReports#getCrossPossibleMatchEntityIds(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
      * as a REST/JSON service at
      * {@link #CROSS_SOURCE_SUMMARY_POSSIBLE_MATCH_ENTITIES_ENDPOINT}.
      * 
@@ -1146,21 +1121,18 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             Timers timers = this.getTimers();
 
-            return SummaryStatsReports.getSummaryPossibleMatchEntityIds(conn, dataSource, vsDataSource, matchKey,
+            return SummaryStatsReports.getCrossPossibleMatchEntityIds(conn, dataSource, vsDataSource, matchKey,
                     principle, entityIdBound, boundType, pageSize, sampleSize, timers);
+
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
+            throw e;
 
         } finally {
             conn = close(conn);
@@ -1169,7 +1141,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
     /**
      * Exposes
-     * {@link SummaryStatsReports#getSummaryPossibleRelationEntityIds(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
+     * {@link SummaryStatsReports#getCrossPossibleRelationEntityIds(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
      * as a REST/JSON service at
      * {@link #CROSS_SOURCE_SUMMARY_POSSIBLE_RELATION_ENTITIES_ENDPOINT}.
      * 
@@ -1216,21 +1188,18 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             Timers timers = this.getTimers();
 
-            return SummaryStatsReports.getSummaryPossibleRelationEntityIds(conn, dataSource, vsDataSource, matchKey,
+            return SummaryStatsReports.getCrossPossibleRelationEntityIds(conn, dataSource, vsDataSource, matchKey,
                     principle, entityIdBound, boundType, pageSize, sampleSize, timers);
+
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
+            throw e;
 
         } finally {
             conn = close(conn);
@@ -1239,7 +1208,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
     /**
      * Exposes
-     * {@link SummaryStatsReports#getSummaryDisclosedRelationEntityIds(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
+     * {@link SummaryStatsReports#getCrossDisclosedRelationEntityIds(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
      * as a REST/JSON service at
      * {@link #CROSS_SOURCE_SUMMARY_DISCLOSED_RELATION_ENTITIES_ENDPOINT}.
      * 
@@ -1286,21 +1255,18 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             Timers timers = this.getTimers();
 
-            return SummaryStatsReports.getSummaryDisclosedRelationEntityIds(conn, dataSource, vsDataSource, matchKey,
+            return SummaryStatsReports.getCrossDisclosedRelationEntityIds(conn, dataSource, vsDataSource, matchKey,
                     principle, entityIdBound, boundType, pageSize, sampleSize, timers);
+
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
+            throw e;
 
         } finally {
             conn = close(conn);
@@ -1309,7 +1275,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
     /**
      * Exposes
-     * {@link SummaryStatsReports#getSummaryAmbiguousMatchRelations(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
+     * {@link SummaryStatsReports#getSummaryAmbiguousMatches(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
      * as a REST/JSON service at
      * {@link #CROSS_SOURCE_SUMMARY_AMBIGUOUS_MATCH_RELATIONS_ENDPOINT}.
      * 
@@ -1356,21 +1322,18 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             Timers timers = this.getTimers();
 
-            return SummaryStatsReports.getSummaryAmbiguousMatchRelations(conn, dataSource, vsDataSource, matchKey,
+            return SummaryStatsReports.getSummaryAmbiguousMatches(conn, dataSource, vsDataSource, matchKey,
                     principle, entityIdBound, boundType, pageSize, sampleSize, timers);
+
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
+            throw e;
 
         } finally {
             conn = close(conn);
@@ -1379,7 +1342,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
     /**
      * Exposes
-     * {@link SummaryStatsReports#getSummaryPossibleMatchRelations(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
+     * {@link SummaryStatsReports#getSummaryPossibleMatches(Connection, String, String, String, String, String, SzBoundType, Integer, Integer, Timers)}
      * as a REST/JSON service at
      * {@link #CROSS_SOURCE_SUMMARY_POSSIBLE_MATCH_RELATIONS_ENDPOINT}.
      * 
@@ -1426,21 +1389,18 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             Timers timers = this.getTimers();
 
-            return SummaryStatsReports.getSummaryPossibleMatchRelations(conn, dataSource, vsDataSource, matchKey,
+            return SummaryStatsReports.getSummaryPossibleMatches(conn, dataSource, vsDataSource, matchKey,
                     principle, entityIdBound, boundType, pageSize, sampleSize, timers);
+
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
+            throw e;
 
         } finally {
             conn = close(conn);
@@ -1498,19 +1458,16 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             return SummaryStatsReports.getSummaryPossibleRelations(conn, dataSource, vsDataSource, matchKey, principle,
                     entityIdBound, boundType, pageSize, sampleSize, timers);
+
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
+            throw e;
 
         } finally {
             conn = close(conn);
@@ -1568,20 +1525,17 @@ public interface SummaryStatsReportsService extends ReportsService {
 
             return SummaryStatsReports.getSummaryDisclosedRelations(conn, dataSource, vsDataSource, matchKey, principle,
                     entityIdBound, boundType, pageSize, sampleSize, timers);
+
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
             throw new ReportsServiceException(e);
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.err.println(e.getMessage());
             System.err.println(formatStackTrace(e.getStackTrace()));
-            if (e instanceof RuntimeException) {
-                throw ((RuntimeException) e);
-            } else {
-                throw new ReportsServiceException(e);
-            }
-
+            throw e;
+            
         } finally {
             conn = close(conn);
         }

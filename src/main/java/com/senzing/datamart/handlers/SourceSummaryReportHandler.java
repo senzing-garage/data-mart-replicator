@@ -13,6 +13,7 @@ import java.sql.*;
 import java.util.*;
 
 import com.senzing.sdk.SzFlag;
+import com.senzing.sdk.SzNotFoundException;
 
 import static com.senzing.datamart.SzReplicationProvider.TaskAction.*;
 import static com.senzing.datamart.model.SzReportStatistic.*;
@@ -20,6 +21,7 @@ import static com.senzing.sql.SQLUtilities.close;
 import static com.senzing.util.LoggingUtilities.*;
 import static com.senzing.listener.service.AbstractListenerService.*;
 import static com.senzing.sdk.SzFlag.*;
+import static java.sql.Types.*;
 
 /**
  * Handles updates to the data source summary (DSS) report statistics.
@@ -28,9 +30,11 @@ import static com.senzing.sdk.SzFlag.*;
  */
 public class SourceSummaryReportHandler extends UpdateReportHandler {
     /**
-     * The flags to use when retrieving the entity from the G2 repository.
+     * The flags to use when retrieving the entity from the Senzing repository.
      */
-    private static final Set<SzFlag> ENTITY_FLAGS = SZ_NO_FLAGS;
+    public static final Set<SzFlag> ENTITY_FLAGS = Collections.unmodifiableSet(
+            EnumSet.of(SZ_ENTITY_INCLUDE_RECORD_DATA,
+                       SZ_ENTITY_INCLUDE_RECORD_MATCHING_INFO));
 
     /**
      * Constructs with the specified {@link SzReplicationProvider}. This
@@ -52,11 +56,11 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
      * directly from the record table where the entity ID is set to zero (0).
      */
     @Override
-    protected int overrideRecordDelta(Connection conn,
-            SzReportKey reportKey,
-            List<SzReportUpdate> updates,
-            int computedSum,
-            Scheduler followUpScheduler)
+    protected int overrideRecordDelta(Connection            conn,
+                                      SzReportKey           reportKey,
+                                      List<SzReportUpdate>  updates,
+                                      int                   computedSum,
+                                      Scheduler             followUpScheduler)
         throws SQLException, SzException
     {
         // check if not ENTITY_COUNT statistic
@@ -67,15 +71,6 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
-            int recordDelta = 0;
-
-            for (SzReportUpdate update : updates) {
-                if (update.getRecordDelta() < 0) {
-                    continue;
-                }
-                recordDelta += update.getRecordDelta();
-            }
-
             // get the data source
             String dataSource = reportKey.getDataSource1();
 
@@ -92,11 +87,15 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
             // execute the lease
             int leasedCount = ps.executeUpdate();
 
+            logDebug("LEASED ORPHANED RECORDS FOR " + dataSource + " DATA SOURCE: " + leasedCount);
+
             ps = close(ps);
 
             if (leasedCount == 0) {
-                logWarning("No rows leased for entity ID zero and "
-                            + "data source: " + dataSource);
+                logInfo("No rows leased for entity ID zero and "
+                        + "data source: " + dataSource);
+
+                return computedSum;
             }
 
             // select back the leased rows
@@ -114,22 +113,33 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
             SzEngine engine = env.getEngine();
 
             Set<SzRecordKey> deleteSet = new LinkedHashSet<>();
-            Map<SzRecordKey, Long> reconnectMap = new LinkedHashMap<>();
+            Map<SzRecordKey, SzResolvedEntity> reconnectMap = new LinkedHashMap<>();
+            int reconnectedCount = 0;
             while (rs.next()) {
                 String recordId = rs.getString(1);
                 SzRecordKey recordKey = new SzRecordKey(dataSource, recordId);
 
-                Long entityId = null;
+                logDebug("LOOKING UP ENTITY FOR RECORD: " + recordKey);
+
+                SzResolvedEntity entity = null;
                 String jsonText = null;
                 try {
                     jsonText = engine.getEntity(recordKey.toKey(), ENTITY_FLAGS);
 
+                } catch (SzNotFoundException e) {
+                    // do nothing and fall through
+                
                 } catch (SzException e) {
-                    logWarning(e, "FAILED TO CHECK IF RECORD STILL EXISTS: " + recordKey);
-                    continue;
+                    if (!NOT_FOUND_ERROR_CODES.contains(e.getErrorCode())) {
+                        logWarning(e, "FAILED TO CHECK IF RECORD STILL EXISTS: " + recordKey);
+                        continue;
+                    }
                 }
 
-                if (jsonText != null) {
+                if (jsonText == null) {
+                    logDebug("ENTITY FOR RECORD " + recordKey + ": NOT FOUND");
+
+                } else {
                     JsonObject jsonObject = JsonUtilities.parseJsonObject(jsonText);
 
                     // dereference the resolved entity
@@ -138,7 +148,7 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
                     }
 
                     // get the entity ID
-                    entityId = JsonUtilities.getLong(jsonObject, "ENTITY_ID");
+                    Long entityId = JsonUtilities.getLong(jsonObject, "ENTITY_ID");
 
                     if (entityId == null) {
                         logWarning("Skipping orphan record + " + recordKey
@@ -147,43 +157,63 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
                         continue;
                     }
 
+                    logDebug("ENTITY FOR RECORD " + recordKey + ": " + entityId);
+                    
                     // check the entity ID
                     ResultSet rs2 = null;
-                    PreparedStatement ps2 = conn.prepareStatement(
+                    PreparedStatement ps2 = null;
+                    try {
+                        ps2 = conn.prepareStatement(
                         "SELECT COUNT(*) FROM sz_dm_entity WHERE entity_id = ?");
-                    ps2.setLong(1, entityId);
-                    rs2 = ps2.executeQuery();
-                    rs2.next();
-                    int entityCount = rs2.getInt(1);
-                    rs2 = close(rs2);
-                    ps2 = close(ps2);
-                    if (entityCount == 0) {
-                        logDebug("Entity " + entityId + " for orphan record "
-                            + recordKey + " has not yet been replicated.  "
-                            + "Scheduling follow-up....");
+                        ps2.setLong(1, entityId);
+                        rs2 = ps2.executeQuery();
+                        rs2.next();
+                        int entityCount = rs2.getInt(1);
+                        rs2 = close(rs2);
+                        ps2 = close(ps2);
+                        if (entityCount == 0) {
+                            logDebug("Entity " + entityId + " for orphan record "
+                                + recordKey + " has not yet been replicated.  "
+                                + "Scheduling follow-up....");
 
-                        followUpScheduler.createTaskBuilder(REFRESH_ENTITY.toString())
-                            .resource(ENTITY_RESOURCE_KEY, entityId)
-                            .parameter(RefreshEntityHandler.ENTITY_ID_KEY, entityId)
-                            .schedule(true);
+                            followUpScheduler.createTaskBuilder(REFRESH_ENTITY.toString())
+                                .resource(ENTITY_RESOURCE_KEY, entityId)
+                                .parameter(RefreshEntityHandler.ENTITY_ID_KEY, entityId)
+                                .schedule(true);
 
-                        continue;
+                            continue;
 
-                    } else if (entityCount > 1) {
-                        logWarning("Entity " + entityId + " for orphan record "
-                            + recordKey + " has " + entityCount
-                            + " data-mart rows.");
+                        } else if (entityCount > 1) {
+                            logWarning("Entity " + entityId + " for orphan record "
+                                + recordKey + " has " + entityCount
+                                + " data-mart rows.");
+                            continue;
+                        }
+                    } finally {
+                        rs2 = close(rs2);
+                        ps2 = close(ps2);
+                    }
+
+
+                    // parse the entity
+                    entity = SzResolvedEntity.parse(jsonObject);
+
+                    // confirm we have the record
+                    if (!entity.getRecords().containsKey(recordKey)) {
+                        logWarning("Entity " + entityId + " missing target orphaned "
+                                   + "record (" + recordKey + "): " + entity);
                         continue;
                     }
                 }
-                if (entityId == null) {
+                
+                if (entity == null) {
                     logDebug("Determined that record is truly deleted: " + recordKey);
                     deleteSet.add(new SzRecordKey(dataSource, recordId));
 
                 } else {
                     logDebug("Queueing record " + recordKey
-                        + " for reconnection to entity " + entityId);
-                    reconnectMap.put(recordKey, entityId);
+                             + " for reconnection to entity:", entity);
+                    reconnectMap.put(recordKey, entity);
                 }
             }
 
@@ -192,28 +222,47 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
 
             // check if we have any to reconnect
             if (reconnectMap.size() > 0) {
+                logDebug("Reconnecting " + reconnectMap.size() + " for data source: " + dataSource);
+
                 // reconnect the records that have been mistakenly orphaned
                 ps = conn.prepareStatement(
-                    "UPDATE sz_dm_record SET entity_id = ?, adopter_id = ? "
+                    "UPDATE sz_dm_record SET "
+                    + "entity_id=?, match_key=?, errule_code=?, adopter_id=?, prev_entity_id=NULL "
                     + "WHERE data_source = ? AND record_id = ? AND entity_id = 0 "
                     + "AND modifier_id = ?");
 
                 List<Integer> rowCounts = this.batchUpdate(
                     ps, reconnectMap.entrySet(), (ps2, entry) -> 
                     {
-                        SzRecordKey recordKey = entry.getKey();
-                        Long entityId = entry.getValue();
-                        ps2.setLong(1, entityId);
-                        ps2.setString(2, operationId);
-                        ps2.setString(3, recordKey.getDataSource());
-                        ps2.setString(4, recordKey.getRecordId());
-                        ps2.setString(5, operationId);
+                        SzRecordKey         recordKey   = entry.getKey();
+                        SzResolvedEntity    entity      = entry.getValue();
+                        SzRecord            record      = entity.getRecords().get(recordKey);
+
+                        logDebug("ENTITY " + entity.getEntityId() + " RECONNECTING RECORD:", record, entity);
+                        
+                        ps2.setLong(1, entity.getEntityId());
+                        
+                        if (record.getMatchKey() == null) {
+                            ps2.setNull(2, VARCHAR);
+                        } else {
+                            ps2.setString(2, record.getMatchKey());
+                        }
+
+                        if (record.getPrinciple() == null) {
+                            ps2.setNull(3, VARCHAR);
+                        } else {
+                            ps2.setString(3, record.getPrinciple());
+                        }
+
+                        ps2.setString(4, operationId);
+                        ps2.setString(5, recordKey.getDataSource());
+                        ps2.setString(6, recordKey.getRecordId());
+                        ps2.setString(7, operationId);
                         return -1;
                     });
 
                 int index = 0;
-                int reconnectedCount = 0;
-                for (Map.Entry<SzRecordKey, Long> entry : reconnectMap.entrySet()) {
+                for (Map.Entry<SzRecordKey, SzResolvedEntity> entry : reconnectMap.entrySet()) {
                     int rowCount = rowCounts.get(index++);
                     if (rowCount == 0) {
                         logWarning("FAILED TO RECONNECT RECORD " + entry.getKey()
@@ -257,19 +306,19 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
                     deletedCount++;
                 }
 
-                // the row count is the number to decrement by
-                recordDelta -= deletedCount;
+                logDebug("Deleted " + deletedCount + " records from " 
+                         + dataSource + " data source");
             }
 
             // release resources
             ps = close(ps);
 
-            // return the record delta
-            return recordDelta;
+            // return the computed sum
+            return computedSum + reconnectedCount;
 
         } finally {
-            ps = close(ps);
             rs = close(rs);
+            ps = close(ps);
         }
     }
 }

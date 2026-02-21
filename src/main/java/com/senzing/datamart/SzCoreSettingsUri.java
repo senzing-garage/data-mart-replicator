@@ -19,7 +19,11 @@ import com.senzing.util.JsonUtilities;
 import static com.senzing.text.TextUtilities.urlDecodeUtf8;
 
 /**
- * Represents a SQLite database connection URI.
+ * Represents a database connection URI that is extracted from
+ * the Senzing Core Settings JSON.  The Senzing Core Setting JSON
+ * typically contains URI's for the database connection(s) and
+ * these can be accessed via a JSON path.  For example, the JSON path
+ * to the Senzing repository database connection is <code>SQL/CONNECTION</code>.
  */
 public class SzCoreSettingsUri extends ConnectionUri {
     /**
@@ -31,7 +35,7 @@ public class SzCoreSettingsUri extends ConnectionUri {
 
     /**
      * Supported format for a Senzing Core Settings URI using a JSON path.
-     * The value of this constant is <code>{value}</code>.
+     * The value of this constant is <code>{@value}</code>.
      */
     public static final String SUPPORTED_FORMAT
         = "sz://core-settings/[json-path]";

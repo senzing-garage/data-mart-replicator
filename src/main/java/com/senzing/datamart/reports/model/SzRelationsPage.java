@@ -242,7 +242,7 @@ public class SzRelationsPage implements Serializable {
      */
     @JsonInclude(NON_NULL)
     public String getPageMinimumValue() {
-        if (this.getSampleSize() == null && this.pageMinimumValue == null) {
+        if (this.getSampleSize() == null || this.pageMinimumValue == null) {
             return this.getMinimumValue();
         }
         return this.pageMinimumValue;
@@ -288,7 +288,7 @@ public class SzRelationsPage implements Serializable {
      */
     @JsonInclude(NON_NULL)
     public String getPageMaximumValue() {
-        if (this.getSampleSize() == null && this.pageMaximumValue == null) {
+        if (this.getSampleSize() == null || this.pageMaximumValue == null) {
             return this.getMaximumValue();
         }
         return this.pageMaximumValue;
@@ -481,8 +481,8 @@ public class SzRelationsPage implements Serializable {
         SzRelationsPage other = (SzRelationsPage) obj;
         return Objects.equals(bound, other.bound) && boundType == other.boundType && pageSize == other.pageSize
                 && Objects.equals(sampleSize, other.sampleSize)
-                && Objects.equals(pageMinimumValue, other.pageMinimumValue)
-                && Objects.equals(pageMaximumValue, other.pageMaximumValue)
+                && Objects.equals(getPageMinimumValue(), other.getPageMinimumValue())
+                && Objects.equals(getPageMaximumValue(), other.getPageMaximumValue())
                 && totalRelationCount == other.totalRelationCount && beforePageCount == other.beforePageCount
                 && afterPageCount == other.afterPageCount && Objects.equals(relations, other.relations);
     }

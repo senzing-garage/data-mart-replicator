@@ -1,7 +1,5 @@
 package com.senzing.listener.service.locking;
 
-import static com.senzing.util.LoggingUtilities.formatStackTrace;
-
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -323,25 +321,5 @@ public final class LockToken implements Serializable {
      */
     public String toString() {
         return this.getTokenKey();
-    }
-
-    /**
-     * Test main method to create tokens and print out their token keys.
-     * 
-     * @param args The command-line arguments.
-     */
-    public static void main(String[] args) {
-        try {
-            LockScope[] scopes = LockScope.values();
-            for (int index = 0; index < 10; index++) {
-                LockToken lockToken = new LockToken(scopes[index % 3]);
-                System.out.println();
-                System.out.println("---------------------------------------------");
-                System.out.println(lockToken);
-            }
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-            System.err.println(formatStackTrace(e.getStackTrace()));
-        }
     }
 }

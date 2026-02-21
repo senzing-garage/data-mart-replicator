@@ -37,12 +37,6 @@ public class TaskBuilder {
   private SortedSet<ResourceKey> resourceKeys;
 
   /**
-   * Flag indicating if tasks identical to the one being built can be collapsed
-   * into a single single task with a greater multiplicity.
-   */
-  private boolean allowCollapse = false;
-
-  /**
    * Constructs with the specified {@link Scheduler} and {@link String} action
    * name.
    *
