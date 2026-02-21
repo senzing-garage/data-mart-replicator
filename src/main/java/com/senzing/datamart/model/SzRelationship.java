@@ -8,14 +8,20 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import java.util.*;
 
+import static com.senzing.datamart.model.SzMatchType.DISCLOSED_RELATION;
 import static com.senzing.util.JsonUtilities.*;
-import static com.senzing.util.LoggingUtilities.formatStackTrace;
+import static com.senzing.util.LoggingUtilities.*;
 
 /**
  * Describes a relationship between two entities as it is stored in the data
  * mart.
  */
 public class SzRelationship {
+    /**
+     * The prefix for <code>"REL_POINTER"</code> match keys.
+     */
+    private static final String REL_POINTER_PREFIX = "+REL_POINTER(";
+
     /**
      * The entity ID, which is always the greatest of the two entity ID's.
      */
@@ -35,6 +41,12 @@ public class SzRelationship {
      * The match key for this related entity.
      */
     private String matchKey;
+
+    /**
+     * The match key from the greater entity to the lesser entity to
+     * accommodate directional match keys.
+     */
+    private String reverseMatchKey;
 
     /**
      * The principle used for relating the entities.
@@ -66,28 +78,39 @@ public class SzRelationship {
      *                                  not related to the specified
      *                                  {@link SzResolvedEntity}.
      */
-    public SzRelationship(SzResolvedEntity resolvedEntity, SzRelatedEntity relatedEntity) {
+    public SzRelationship(SzResolvedEntity  resolvedEntity, 
+                          SzRelatedEntity   relatedEntity) 
+    {
         Objects.requireNonNull(resolvedEntity, "The resolved entity cannot be null.");
         Objects.requireNonNull(relatedEntity, "The related entity cannot be null.");
         if (!resolvedEntity.getRelatedEntities().containsKey(relatedEntity.getEntityId())) {
-            throw new IllegalArgumentException("The specified related entity is not related to the specified "
-                    + "resolved entity.  related=[ " + relatedEntity + " ], resolved=[ " + resolvedEntity + " ]");
+            throw new IllegalArgumentException(
+                "The specified related entity is not related to the specified "
+                + "resolved entity.  related=[ " + relatedEntity 
+                + " ], resolved=[ " + resolvedEntity + " ]");
         }
         if (resolvedEntity.getEntityId() == relatedEntity.getEntityId()) {
             throw new IllegalArgumentException(
-                    "The two entities cannot have the same entity ID: " + resolvedEntity.getEntityId());
+                    "The two entities cannot have the same entity ID: "
+                    + resolvedEntity.getEntityId());
         }
 
         this.matchType = relatedEntity.getMatchType();
         this.matchKey = relatedEntity.getMatchKey();
+        this.reverseMatchKey = this.matchKey;
         this.principle = relatedEntity.getPrinciple();
-
+        if (this.matchType.equals(DISCLOSED_RELATION)) {
+            this.reverseMatchKey = getReverseMatchKey(this.matchKey);
+        }
         boolean flip = (resolvedEntity.getEntityId() > relatedEntity.getEntityId());
         long resolvedEntityId = resolvedEntity.getEntityId();
         long relatedEntityId = relatedEntity.getEntityId();
 
         this.entityId = (flip) ? relatedEntityId : resolvedEntityId;
         this.relatedId = (flip) ? resolvedEntityId : relatedEntityId;
+
+        this.matchKey = (flip) ? this.reverseMatchKey : this.matchKey;
+        this.reverseMatchKey = (flip) ? relatedEntity.getMatchKey() : this.reverseMatchKey;
 
         this.sourceSummary = (flip) ? relatedEntity.getSourceSummary() : resolvedEntity.getSourceSummary();
         this.relatedSourceSummary = (flip) ? resolvedEntity.getSourceSummary() : relatedEntity.getSourceSummary();
@@ -96,44 +119,64 @@ public class SzRelationship {
     /**
      * Constructs with the specified properties.
      *
-     * @param entityId1      The first entity ID for the relationship.
-     * @param entityId2      The second entity ID for the relationship.
-     * @param matchType      The non-null {@link SzMatchType} for the relationship.
-     * @param matchKey       The non-null match key for the relationship.
-     * @param principle      The principle (ER Rule Code) for the relationship.
-     * @param sourceSummary1 The {@link Map} of {@link String} data source code keys
-     *                       to {@link Integer} record counts for the first entity
-     *                       ID.
-     * @param sourceSummary2 The {@link Map} of {@link String} data source code keys
-     *                       to {@link Integer} record counts for the second entity
-     *                       ID.
+     * @param entityId1       The first entity ID for the relationship.
+     * @param entityId2       The second entity ID for the relationship.
+     * @param matchType       The non-null {@link SzMatchType} for the relationship.
+     * @param matchKey        The non-null match key for the relationship.
+     * @param reverseMatchKey The non-null reverse match key for the relationship.
+     * @param principle       The principle (ER Rule Code) for the relationship.
+     * @param sourceSummary1  The {@link Map} of {@link String} data source code
+     *                        keys to {@link Integer} record counts for the first
+     *                        entity ID.
+     * @param sourceSummary2  The {@link Map} of {@link String} data source code
+     *                        keys to {@link Integer} record counts for the second
+     *                        entity ID.
      */
-    public SzRelationship(long entityId1, long entityId2, SzMatchType matchType, String matchKey, String principle, Map<String, Integer> sourceSummary1, Map<String, Integer> sourceSummary2)
-            throws NullPointerException, IllegalArgumentException {
-        this(entityId1, entityId2, matchType, matchKey, principle, sourceSummary1, sourceSummary2, true);
+    SzRelationship(long                 entityId1, 
+                   long                 entityId2, 
+                   SzMatchType          matchType,
+                   String               matchKey, 
+                   String               reverseMatchKey,
+                   String               principle,
+                   Map<String, Integer> sourceSummary1,
+                   Map<String, Integer> sourceSummary2)
+            throws NullPointerException, IllegalArgumentException 
+    {
+        this(entityId1, entityId2, matchType, matchKey, reverseMatchKey,
+             principle, sourceSummary1, sourceSummary2, true);
     }
 
     /**
      * Private constructor to avoid copying the specified maps.
      *
-     * @param entityId1      The first entity ID for the relationship.
-     * @param entityId2      The second entity ID for the relationship.
-     * @param matchType      The non-null {@link SzMatchType} for the relationship.
-     * @param matchKey       The non-null match key for the relationship.
-     * @param principle      The principle (ER Rule Code) for the relationship.
-     * @param sourceSummary1 The {@link Map} of {@link String} data source code keys
-     *                       to {@link Integer} record counts for the first entity
-     *                       ID.
-     * @param sourceSummary2 The {@link Map} of {@link String} data source code keys
-     *                       to {@link Integer} record counts for the second entity
-     *                       ID.
-     * @param copyMaps       <code>true</code> if the specified maps should be
-     *                       copied, or <code>false</code> if the referenced maps
-     *                       should be used directly.
+     * @param entityId1       The first entity ID for the relationship.
+     * @param entityId2       The second entity ID for the relationship.
+     * @param matchType       The non-null {@link SzMatchType} for the relationship.
+     * @param matchKey        The non-null match key for the relationship.
+     * @param reverseMatchKey The non-null reverse match key for the relationship.
+     * @param principle       The principle (ER Rule Code) for the relationship.
+     * @param sourceSummary1  The {@link Map} of {@link String} data source code
+     *                        keys to {@link Integer} record counts for the first
+     *                        entity ID.
+     * @param sourceSummary2  The {@link Map} of {@link String} data source code
+     *                        keys to {@link Integer} record counts for the second
+     *                        entity ID.
+     * @param copyMaps        <code>true</code> if the specified maps should be
+     *                        copied, or <code>false</code> if the referenced maps
+     *                        should be used directly.
      */
-    private SzRelationship(long entityId1, long entityId2, SzMatchType matchType, String matchKey, String principle, Map<String, Integer> sourceSummary1, Map<String, Integer> sourceSummary2, boolean copyMaps)
+    private SzRelationship(long                 entityId1, 
+                           long                 entityId2, 
+                           SzMatchType          matchType,
+                           String               matchKey,
+                           String               reverseMatchKey,
+                           String               principle, 
+                           Map<String, Integer> sourceSummary1,
+                           Map<String, Integer> sourceSummary2,
+                           boolean              copyMaps)
             throws NullPointerException, IllegalArgumentException {
         Objects.requireNonNull(matchKey, "The match key cannot be null.");
+        Objects.requireNonNull(reverseMatchKey, "The reverse match key cannot be null.");
         Objects.requireNonNull(principle, "The principle cannot be null.");
         Objects.requireNonNull(matchType, "The match type cannot be null.");
         Objects.requireNonNull(sourceSummary1, "The first source summary cannot be null");
@@ -145,6 +188,7 @@ public class SzRelationship {
         this.relatedId = (flip) ? entityId1 : entityId2;
         this.matchType = matchType;
         this.matchKey = matchKey;
+        this.reverseMatchKey = reverseMatchKey;
         this.principle = principle;
 
         Map<String, Integer> summary1 = (flip) ? sourceSummary2 : sourceSummary1;
@@ -153,6 +197,164 @@ public class SzRelationship {
         this.sourceSummary = (copyMaps) ? new LinkedHashMap<>(summary1) : summary1;
 
         this.relatedSourceSummary = (copyMaps) ? new LinkedHashMap<>(summary2) : summary2;
+    }
+
+    /**
+     * Reverses the specified <code>"REL_POINTER"</code> match key if it is
+     * formatted as expected, otherwise returns the specified match key and
+     * logs warnings.  This handles changing a match key that looks like
+     * <code>"+REL_POINTER(A:B)"</code> to <code>"+REL_POINTER(B:A)"</code>,
+     * but typically it would change <code>"+REL_POINTER(ABC:)"</code> to
+     * <code>"+REL_POINTER(:ABC)"</code> since usually only one side of the
+     * colon is populated in a <code>"REL_POINTER"</code> match key.
+     * 
+     * @param matchKey The original match key.
+     * 
+     * @return The reversed match key if the specified match key is in the
+     *         expected format, otherwise the specified match key.
+     */
+    public static final String getReverseMatchKey(String matchKey) {
+        // check if null
+        if (matchKey == null) {
+            return null;
+        }
+
+        // trim the match key
+        String key = matchKey.trim();
+
+        if (!key.startsWith(REL_POINTER_PREFIX)) {
+            return matchKey;
+        }
+
+        // check that our match key is longer than the prefix by at
+        // least 3 characters (colon and parentheses and one other)
+        int prefixLength = REL_POINTER_PREFIX.length();
+        if (key.length() < (prefixLength + 3)) {
+            logWarning("Badly formatted REL_POINTER match key: " + matchKey);
+            return matchKey;
+        }
+
+        // get the characters
+        char[] text = key.toCharArray();
+
+        // find the starting index
+        int startingIndex = prefixLength;
+        for (; startingIndex < text.length; startingIndex++) {
+            if (!Character.isWhitespace(text[startingIndex])) {
+                break;
+            }
+        }
+
+        // check if all whitespace
+        if (startingIndex >= text.length) {
+            logWarning("Unexpected format for REL_POINTER match key: " + matchKey);
+            return matchKey;
+        }
+
+        // find the ending index
+        int endingIndex = key.length() - 1;
+        for (; endingIndex > 0; endingIndex--) {
+            // skip the whitespace
+            if (Character.isWhitespace(text[endingIndex])) {
+                continue;
+            }
+
+            // check if a closing parentheses
+            if (text[endingIndex] != ')') {
+                endingIndex = -1;
+            }
+
+            // we got a non-whitespace character, so we are done
+            break;
+        }
+
+        // check if no ending index
+        if (endingIndex == startingIndex) {
+            logWarning("Failed to find contents in REL_POINTER match key: " + matchKey);
+            return matchKey;
+        }
+        if (endingIndex < startingIndex) {
+            logWarning("Failed to find closing parentheses in REL_POINTER match key: " + matchKey);
+            return matchKey;
+        }
+
+        // track all the colon indexes
+        List<Integer> colonIndexes = new ArrayList<>();
+
+        // find all the colon indexes and closing parentheses
+        boolean escaping = false;
+        for (int index = startingIndex; index < endingIndex; index++) {
+            if (!escaping) {
+                switch (text[index]) {
+                    case '\\':
+                        escaping = true;
+                        break;
+                    case ':':
+                        colonIndexes.add(index);
+                        break;
+                    default:
+                        // do nothing
+                }
+            } else {
+                escaping = false;
+            }
+        }
+
+        // check if we have a single unescaped colon
+        if (colonIndexes.size() == 0) {
+            logWarning("Failed to find unescaped colon in REL_POINTER match key: " + matchKey);
+            return matchKey;            
+        }
+        
+        // check for the common base case
+        if (colonIndexes.size() == 1) {
+            // get the parts
+            int colonIndex = colonIndexes.get(0);
+            String part1 = key.substring(prefixLength, colonIndex);
+            String part2 = key.substring(colonIndex + 1, endingIndex);
+            return REL_POINTER_PREFIX + part2 + ":" + part1 + ")";
+        }
+
+        // handle multiple multiple colons
+        int firstColon = colonIndexes.get(0);
+        int lastColon = colonIndexes.get(colonIndexes.size() - 1);
+
+        // check if we have a leading, but not trailing colon
+        if (firstColon == prefixLength && lastColon != endingIndex - 1) {
+            String part1 = key.substring(prefixLength + 1, lastColon);
+            String part2 = key.substring(lastColon + 1, endingIndex);
+            return REL_POINTER_PREFIX + part2 + ":" + part1 + ")";
+ 
+        }
+    
+        // check if we have a trailing, but not a leading colon
+        if (lastColon == endingIndex - 1 && firstColon != prefixLength) {
+            String part1 = key.substring(prefixLength + 1, firstColon);
+            String part2 = key.substring(firstColon + 1, endingIndex - 1);
+            return REL_POINTER_PREFIX + part2 + ":" + part1 + ")";
+        }
+        logWarning("Found more than one colon in REL_POINTER match key: " 
+                   + matchKey);
+        return matchKey;
+    }
+
+    /**
+     * Finds the index of the first non-whitespace character in 
+     * the specified text starting at the specified index (inclusive)
+     * and searching towards the end of the text.
+     * 
+     * @param text The text to search.
+     * @param startIndex The starting index to begin the search.
+     * @return The index of the first non-whitespace character,
+     *         or the length of the specified text if not found.
+     */
+    protected static int eatWhiteSpace(char[] text, int startIndex) {
+        for (int index = startIndex; index < text.length; index++) {
+            if (!Character.isWhitespace(text[index])) {
+                return index;
+            }
+        }
+        return text.length;
     }
 
     /**
@@ -194,6 +396,20 @@ public class SzRelationship {
      */
     public String getMatchKey() {
         return this.matchKey;
+    }
+
+    /**
+     * Gets the reverse match key from the greater entity ID to the lesser
+     * entity ID.  This will usually be the same as the match key except in
+     * the case of {@linkplain SzMatchType#DISCLOSED_RELATION disclosed 
+     * relationship} with a <code>"REL_POINTER"</code> match key which is
+     * directional.
+     * 
+     * @return The match key from the greater entity ID to the lesser 
+     *         entity ID to accommodate directional match keys.
+     */
+    public String getReverseMatchKey() {
+        return this.reverseMatchKey;
     }
 
     /**
@@ -255,6 +471,7 @@ public class SzRelationship {
         return getEntityId() == rel.getEntityId() && this.getRelatedEntityId() == rel.getRelatedEntityId()
                 && this.getMatchType() == rel.getMatchType()
                 && Objects.equals(this.getMatchKey(), rel.getMatchKey())
+                && Objects.equals(this.getReverseMatchKey(), rel.getReverseMatchKey())
                 && Objects.equals(this.getPrinciple(), rel.getPrinciple())
                 && this.getSourceSummary().equals(rel.getSourceSummary())
                 && this.getRelatedSourceSummary().equals(rel.getRelatedSourceSummary());
@@ -269,7 +486,8 @@ public class SzRelationship {
     @Override
     public int hashCode() {
         return Objects.hash(this.getEntityId(), this.getRelatedEntityId(), this.getMatchType(),
-                this.getMatchKey(), this.getPrinciple(), this.getSourceSummary(), this.getRelatedSourceSummary());
+                this.getMatchKey(), this.getReverseMatchKey(), this.getPrinciple(),
+                this.getSourceSummary(), this.getRelatedSourceSummary());
     }
 
     /**
@@ -282,9 +500,18 @@ public class SzRelationship {
     public void buildJson(JsonObjectBuilder builder) {
         builder.add("entityId", this.getEntityId());
         builder.add("relatedId", this.getRelatedEntityId());
-        builder.add("matchType", this.getMatchType().toString());
-        builder.add("matchKey", this.getMatchKey());
-        builder.add("principle", this.getPrinciple());
+        if (this.getMatchType() != null) {
+            builder.add("matchType", this.getMatchType().toString());
+        }
+        if (this.getMatchKey() != null) {
+            builder.add("matchKey", this.getMatchKey());
+        }
+        if (this.getReverseMatchKey() != null) {
+            builder.add("reverseMatchKey", this.getReverseMatchKey());
+        }
+        if (this.getPrinciple() != null) {
+            builder.add("principle", this.getPrinciple());
+        }
         SortedMap<String, Integer> sortedSummary = new TreeMap<>(this.getSourceSummary());
         addProperty(builder, "sourceSummary", sortedSummary);
         SortedMap<String, Integer> sortedRelatedSummary = new TreeMap<>(this.getRelatedSourceSummary());
@@ -345,6 +572,7 @@ public class SzRelationship {
         Long entityId2 = getLong(jsonObject, "relatedId");
         String typeString = getString(jsonObject, "matchType");
         String matchKey = getString(jsonObject, "matchKey");
+        String revMatchKey = getString(jsonObject, "reverseMatchKey");
         String principle = getString(jsonObject, "principle");
         SzMatchType matchType = SzMatchType.valueOf(typeString);
 
@@ -363,8 +591,9 @@ public class SzRelationship {
         }
 
         // construct the new instance
-        return new SzRelationship(entityId1, entityId2, matchType, matchKey, principle, summary1, summary2,
-                false);
+        return new SzRelationship(
+            entityId1, entityId2, matchType, matchKey, revMatchKey, principle, 
+            summary1, summary2, false);
     }
 
     /**
@@ -395,42 +624,5 @@ public class SzRelationship {
         }
         String jsonText = ZipUtilities.unzipText64(hashText);
         return parse(jsonText);
-    }
-
-    /**
-     * Test main method.
-     * 
-     * @param args The command-line arguments.
-     */
-    public static void main(String[] args) {
-        try {
-            SzResolvedEntity resolved = new SzResolvedEntity();
-            resolved.setEntityId(1);
-            resolved.setEntityName("Foo Smith");
-            resolved.addRecord(new SzRecord("FOO", "FOO-1", null, null));
-            SzRelatedEntity related = new SzRelatedEntity();
-            related.setEntityId(2);
-            related.addRecord(new SzRecord("BAR", "BAR-1", null, null));
-            related.setEntityName("Bar Jones");
-            related.setMatchKey("ADDRESS+PHONE_NUMBER");
-            related.setPrinciple("MFF");
-            related.setMatchType(SzMatchType.POSSIBLE_RELATION);
-            resolved.addRelatedEntity(related);
-
-            SzRelationship relationship1 = new SzRelationship(resolved, related);
-            String hash = relationship1.toHash();
-            SzRelationship relationship2 = SzRelationship.parseHash(hash);
-
-            System.out.println();
-            System.out.println(relationship1);
-            System.out.println();
-            System.out.println(relationship2);
-            System.out.println();
-            System.out.println(relationship1.equals(relationship2));
-
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-            System.err.println(formatStackTrace(e.getStackTrace()));
-        }
     }
 }

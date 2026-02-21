@@ -203,7 +203,7 @@ public class SzCrossSourceMatchCounts implements Serializable {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof SzCrossSourceMatchCounts)) {
+        if (obj == null || this.getClass() != obj.getClass()) {
             return false;
         }
         SzCrossSourceMatchCounts other = (SzCrossSourceMatchCounts) obj;

@@ -76,6 +76,14 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      * Core Senzing SDK. The parameter to this option should be the settings as a
      * JSON object <b>or</b> the path to a file containing the settings JSON.
      * <p>
+     * This option requires {@link #DATABASE_URI} and one of the following info
+     * queue options to be specified:
+     * <ul>
+     * <li>{@link #SQS_INFO_URI} (for Amazon SQS)</li>
+     * <li>{@link #RABBITMQ_URI} and {@link #RABBITMQ_INFO_QUEUE} (for RabbitMQ)</li>
+     * <li>{@link #DATABASE_INFO_QUEUE} (for database queue)</li>
+     * </ul>
+     * <p>
      * This option can be specified in the following ways:
      * <ul>
      * <li>Command Line: <code>--core-settings [{file-path}|{json-text}]</code></li>
@@ -308,6 +316,21 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      * Senzing Core SDK settings}.
      */
     DATABASE_URI("--database-uri", ENV_PREFIX + "DATA_MART_DATABASE_URI", null, 1, DEFAULT_CORE_SETTINGS_DATABASE_URI);
+
+
+    /**
+     * The <b>unmodifiable</b> {@link Set} of supported URI types for the
+     * {@link #DATABASE_URI} option.  These are:
+     * <ul>
+     *   <li>{@link PostgreSqlUri}</li>
+     *   <li>{@link SQLiteUri}</li>
+     *   <li>{@link SzCoreSettingsUri} 
+     *       <i>(assuming it resolves to a PostgreSqlUri or SQLiteUri)</i>
+     *   </li>
+     * </ul>
+     */
+    public static final Set<Class<? extends ConnectionUri>> SUPPORTED_DATABASE_URI_TYPES
+        = Set.of(PostgreSqlUri.class, SQLiteUri.class, SzCoreSettingsUri.class);
 
     /**
      * Constructs with the specified parameters.
@@ -557,6 +580,11 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
             dependSet.addAll(requiredRabbit);
             baseDependSets.add(Collections.unmodifiableSet(dependSet));
 
+            dependSet = new LinkedHashSet<>();
+            dependSet.add(DATABASE_URI);
+            dependSet.add(DATABASE_INFO_QUEUE);
+            baseDependSets.add(Collections.unmodifiableSet(dependSet));
+
             SzReplicatorOption[] initOptions = { CORE_SETTINGS };
             // make the primary options dependent on one set of info queue options
             for (SzReplicatorOption option : initOptions) {
@@ -673,10 +701,10 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
                     switch (paramVal) {
                         case "verbose":
                         case "1":
-                            return true;
+                            return 1;
                         case "muted":
                         case "0":
-                            return false;
+                            return 0;
                         default:
                             throw new IllegalArgumentException(
                                     "The specified core log level is not recognized; " + paramVal);
@@ -761,10 +789,9 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      */
     public static ConnectionUri parseDatabaseUri(String paramValue) {
         Objects.requireNonNull(paramValue, "Parameter value cannot be null");
-        Set<Class<? extends ConnectionUri>> allowed = Set.of(PostgreSqlUri.class, SQLiteUri.class);
 
         ConnectionUri uri = ConnectionUri.parse(paramValue);
-        if (!allowed.contains(uri.getClass())) {
+        if (!SUPPORTED_DATABASE_URI_TYPES.contains(uri.getClass())) {
             throw new IllegalArgumentException("Unrecognized database connection URI: " + paramValue);
         }
         return uri;

@@ -7,12 +7,14 @@ on:
     - cron: "15 7 * * *"
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 permissions: {}
 
 jobs:
   maven-windows:
-    outputs:
-      status: ${{ job.status }}
     permissions:
       contents: read
       pull-requests: write
@@ -48,7 +50,7 @@ jobs:
         run: |
           $Env:SENZING_PATH = "$Env:USERPROFILE\senzing"
           java -jar "$Env:SENZING_PATH\er\sdk\java\sz-sdk.jar" -x
-          mvn clean install -B "-Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn" -Pjacoco "-Djacoco.haltOnFailure=false" "-Djacoco.ignoreFailure=true" "-Dsenzing.path=$Env:USERPROFILE\Senzing"
+          mvn clean install -B "-Dcom.senzing.datamart.test.shuffle=${{ github.sha }}" "-Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn" -Pjacoco "-Djacoco.haltOnFailure=false" "-Djacoco.ignoreFailure=true" "-Dsenzing.path=$Env:USERPROFILE\Senzing"
 
       - name: Jacoco Report to PR
         id: jacoco
@@ -56,27 +58,27 @@ jobs:
         with:
           paths: ${{ github.workspace }}/target/site/**/*.xml
           token: ${{ secrets.GITHUB_TOKEN }}
-          min-coverage-overall: 10
-          min-coverage-changed-files: 10
+          min-coverage-overall: 80
+          min-coverage-changed-files: 80
           title: Code Coverage
           update-comment: true
           skip-if-no-changes: true
           pass-emoji: ":green_circle:"
           fail-emoji: ":red_circle:"
 
-      - name: Fail PR if overall coverage is less than 10%
-        if: ${{ steps.jacoco.outputs.coverage-overall < 10.0 }}
+      - name: Fail PR if overall coverage is less than 80%
+        if: ${{ steps.jacoco.outputs.coverage-overall < 80.0 }}
         uses: actions/github-script@v8
         with:
           script: |
-            core.setFailed('Overall coverage is less than 10%!')
+            core.setFailed('Overall coverage is less than 80%!')
 
   slack-notification:
     needs: [maven-windows]
-    if: ${{ always() && contains(fromJSON('["failure", "cancelled"]'), needs.maven-windows.outputs.status ) && github.event_name == 'schedule' }}
+    if: ${{ always() && contains(fromJSON('["failure", "cancelled"]'), needs.maven-windows.result ) && github.event_name == 'schedule' }}
     secrets:
       SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
       SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
     uses: senzing-factory/build-resources/.github/workflows/build-failure-slack-notification.yaml@v4
     with:
-      job-status: ${{ needs.maven-windows.outputs.status }}
+      job-status: ${{ needs.maven-windows.result }}

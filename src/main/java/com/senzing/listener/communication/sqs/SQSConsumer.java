@@ -8,14 +8,20 @@ import com.senzing.listener.communication.AbstractMessageConsumer;
 import com.senzing.listener.communication.exception.MessageConsumerException;
 import com.senzing.listener.communication.exception.MessageConsumerSetupException;
 import com.senzing.listener.service.MessageProcessor;
+import com.senzing.listener.service.exception.ServiceSetupException;
+
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
+import software.amazon.awssdk.services.sqs.model.GetQueueAttributesResponse;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 import static com.senzing.util.LoggingUtilities.*;
 import static com.senzing.listener.communication.MessageConsumer.State.*;
+import static com.senzing.listener.service.ServiceUtilities.*;
+import static software.amazon.awssdk.services.sqs.model.QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES;
 
 /**
  * A consumer for SQS.
@@ -154,11 +160,21 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
             // get the visibility timeout
             this.visibilityTimeout = getConfigInteger(config, VISIBILITY_TIMEOUT_KEY, 1, null);
 
-            this.sqsClient = SqsClient.builder().build();
+            this.sqsClient = createSqsClient();
 
-        } catch (RuntimeException e) {
+        } catch (ServiceSetupException | RuntimeException e) {
             throw new MessageConsumerSetupException(e);
         }
+    }
+
+    /**
+     * Creates the {@link SqsClient} for this consumer. This method is protected
+     * to allow test subclasses to inject mock clients.
+     *
+     * @return The {@link SqsClient} to use.
+     */
+    protected SqsClient createSqsClient() {
+        return SqsClient.builder().build();
     }
 
     /**
@@ -247,6 +263,40 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
     }
 
     /**
+     * Implemented to return the 
+     * <code>QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES</code>
+     * attribute from the {@link 
+     * SqsClient#getQueueAttributes(GetQueueAttributesRequest)} method.
+     * 
+     * <p>
+     * {@inheritDoc}
+     */
+    @Override
+    protected Long getQueueMessageCount() {
+        try {
+            GetQueueAttributesRequest request = GetQueueAttributesRequest.builder()
+                .queueUrl(this.getSqsUrl())
+                .attributeNames(APPROXIMATE_NUMBER_OF_MESSAGES)
+                .build();
+            
+            GetQueueAttributesResponse response = sqsClient.getQueueAttributes(request);
+            String count = response.attributes().get(APPROXIMATE_NUMBER_OF_MESSAGES);
+
+            // check if the value was not found
+            if (count == null || count.trim().length() == 0) {
+                return null;
+            }
+
+            // parse the value as a long integer
+            return Long.parseLong(count);
+
+        } catch (Exception e) {
+            logWarning(e, "Failed to get queue message count");
+            return null;
+        }
+    }
+
+    /**
      * Sets up a SQS consumer and then receives messages from SQS and feeds to
      * service.
      * 
@@ -267,7 +317,10 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
 
                     // failed obtaining a response
                     if (!response.sdkHttpResponse().isSuccessful()) {
-                        int responseCode = response.sdkHttpResponse().statusCode();
+                        // check if we intentionally shut down before logging/retrying
+                        if (this.getState() != CONSUMING) {
+                            return;
+                        }
                         if (this.handleFailure(++failureCount, response, null)) {
                             // destroy and then return to abort consumption
                             this.destroy();
@@ -285,6 +338,8 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
 
                     // get the messages from the response
                     List<Message> messages = response.messages();
+
+                    // enqueue the messages
                     for (Message message : messages) {
                         // enqueue the next message for processing -- this call may wait
                         // for enough room in the queue for the messages to be enqueued
@@ -292,10 +347,16 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
                     }
 
                 } catch (SdkException e) {
-                    System.err.println(e.getMessage());
-                    System.err.println(formatStackTrace(e.getStackTrace()));
-                    failureCount++;
-
+                    // check if we intentionally shut down before logging/retrying
+                    if (this.getState() != CONSUMING) {
+                        return;
+                    }
+                    if (this.handleFailure(++failureCount, null, e)) {
+                        // destroy and then return to abort consumption
+                        this.destroy();
+                        return;
+                    }
+                    // otherwise retry
                 }
             }
         });
@@ -336,7 +397,16 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
     protected void doDestroy() {
         // join to the consumption thread
         try {
-            this.consumptionThread.join();
+            Thread thread = null;
+            synchronized (this) {
+                thread = this.consumptionThread;
+            }
+            if (thread != null 
+                && Thread.currentThread() != thread
+                && thread.isAlive()) 
+            {
+                thread.join();
+            }
             synchronized (this) {
                 this.consumptionThread = null;
             }

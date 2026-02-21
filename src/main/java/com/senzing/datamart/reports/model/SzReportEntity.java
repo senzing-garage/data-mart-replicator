@@ -253,12 +253,14 @@ public class SzReportEntity implements Serializable {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof SzReportEntity)) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
         SzReportEntity other = (SzReportEntity) obj;
-        return entityId == other.entityId && Objects.equals(entityName, other.entityName)
-                && Objects.equals(recordCount, other.recordCount) && Objects.equals(relationCount, other.relationCount)
+        return entityId == other.entityId 
+                && Objects.equals(entityName, other.entityName)
+                && Objects.equals(recordCount, other.recordCount) 
+                && Objects.equals(relationCount, other.relationCount)
                 && Objects.equals(records, other.records);
     }
 }

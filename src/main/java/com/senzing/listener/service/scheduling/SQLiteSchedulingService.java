@@ -5,9 +5,6 @@ import com.senzing.sql.DatabaseType;
 import java.sql.*;
 import java.util.*;
 
-import static com.senzing.sql.SQLUtilities.*;
-import static com.senzing.util.LoggingUtilities.*;
-
 /**
  * Implements {@link SchedulingService} using a SQLite database to handle
  * persisting the follow-up tasks by extending
@@ -96,31 +93,7 @@ public class SQLiteSchedulingService extends AbstractSQLSchedulingService {
         sqlList.add(createInsertTriggerSql);
 
         // execute the statements
-        Connection conn = null;
-        Statement stmt = null;
-        try {
-            conn = this.getConnection();
-
-            // create the statement
-            stmt = conn.createStatement();
-
-            // execute the SQL statements
-            for (String sql : sqlList) {
-                try {
-                    stmt.execute(sql);
-                } catch (SQLException e) {
-                    logError(e, "SQL Error Encountered: ", sql);
-                    throw e;
-                }
-            }
-
-            // commit the connection
-            conn.commit();
-
-        } finally {
-            stmt = close(stmt);
-            conn = close(conn);
-        }
+        this.executeSqlStatements(sqlList);
     }
 
     /**

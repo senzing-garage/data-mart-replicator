@@ -130,6 +130,36 @@ public interface MessageConsumer extends Quantified {
     void consume(MessageProcessor processor) throws MessageConsumerException;
 
     /**
+     * Attempts to determine the approximate sum of the number 
+     * of messages pending on the queue feeding the consumer and
+     * the number of messages that have been dequeued but not yet
+     * processed and acknowledged.  This method can be used to
+     * determine if this instance is busy doing work.   If the
+     * number cannot be determined (even approximately) then the
+     * implementation may return <code>null</code> to indicate it
+     * is unknown.
+     * 
+     * @return The (approximate) number of messages pending on
+     *         the associated queue, or <code>null</code> if it
+     *         could not be determined.
+     */
+    Long getMessageCount();
+
+    /**
+     * Returns the system nanosecond time that the last message was
+     * dequeued by this instance.  This requires that implementations
+     * track the {@link System#nanoTime()} timestamp when the last 
+     * message is dequeued and return it so the caller can compare
+     * with the current result from {@link System#nanoTime()} and
+     * determine how long this instance has been idle.
+     * 
+     * @return The system nanosecond time that the last message was
+     *         dequeued, or negative one if no messages have been 
+     *         dequeued.
+     */
+    long getLastMessageNanoTime();
+
+    /**
      * Closes the consumer and completes message processing.
      */
     void destroy();

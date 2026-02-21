@@ -1,8 +1,11 @@
 # Compiled class file
 *.class
+*.DS_Store
 
 # Log file
 *.log
+build.out
+build-*.out
 
 # BlueJ files
 *.ctxt

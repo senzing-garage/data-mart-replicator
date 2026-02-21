@@ -103,6 +103,19 @@ public class SzNoticeTest {
 
   @ParameterizedTest
   @MethodSource("getPropertyParameters")
+  public void toJsonTextPrettyPrintTest(String code, String description) {
+    SzNotice notice = new SzNotice(code, description);
+
+    String jsonText = notice.toJsonText(true);
+    assertNotNull(jsonText, "Pretty-printed JSON text should not be null");
+
+    // Verify it can be parsed back
+    JsonObject parsed = JsonUtilities.parseJsonObject(jsonText);
+    assertNotNull(parsed, "Parsed JSON should not be null");
+  }
+
+  @ParameterizedTest
+  @MethodSource("getPropertyParameters")
   public void toJsonObjectTest(String code, String description) {
     SzNotice notice = new SzNotice();
     notice.setCode(code);
@@ -116,6 +129,31 @@ public class SzNoticeTest {
     JsonObject expected = job.build();
 
     assertEquals(expected, actual, "JSON not as expected");
+  }
+
+  @ParameterizedTest
+  @MethodSource("getPropertyParameters")
+  public void toJsonObjectBuilderWithNullTest(String code, String description) {
+    SzNotice notice = new SzNotice(code, description);
+
+    JsonObjectBuilder builder = notice.toJsonObjectBuilder(null);
+    assertNotNull(builder, "Builder should not be null");
+    assertNotNull(builder.build(), "Built JSON should not be null");
+  }
+
+  @ParameterizedTest
+  @MethodSource("getPropertyParameters")
+  public void toJsonObjectBuilderWithExistingTest(String code, String description) {
+    SzNotice notice = new SzNotice(code, description);
+
+    JsonObjectBuilder existingBuilder = Json.createObjectBuilder();
+    existingBuilder.add("existingKey", "existingValue");
+
+    JsonObjectBuilder builder = notice.toJsonObjectBuilder(existingBuilder);
+    JsonObject result = builder.build();
+
+    assertTrue(result.containsKey("existingKey"), "Should retain existing key");
+    assertEquals("existingValue", result.getString("existingKey"));
   }
 
   @ParameterizedTest
@@ -152,6 +190,49 @@ public class SzNoticeTest {
                  "Description is not as expected");
   }
 
+  @Test
+  public void fromJsonNullTextTest() {
+    SzNotice notice = SzNotice.fromJson((String) null);
+    assertNull(notice, "fromJson with null text should return null");
+  }
+
+  @Test
+  public void fromJsonNullObjectTest() {
+    SzNotice notice = SzNotice.fromJson((JsonObject) null);
+    assertNull(notice, "fromJson with null object should return null");
+  }
+
+  @Test
+  public void fromJsonMissingCodePropertyTest() {
+    JsonObject jsonObject = Json.createObjectBuilder()
+            .add(DESCRIPTION_KEY, "Some description")
+            .build();
+
+    assertThrows(IllegalArgumentException.class,
+            () -> SzNotice.fromJson(jsonObject),
+            "Should throw when code property is missing");
+  }
+
+  @Test
+  public void fromJsonRoundTripTest() {
+    SzNotice original = new SzNotice("TEST_CODE", "Test description");
+
+    String jsonText = original.toJsonText();
+    SzNotice parsed = SzNotice.fromJson(jsonText);
+
+    assertEquals(original, parsed, "Round-trip should produce equal object");
+  }
+
+  @Test
+  public void fromJsonObjectRoundTripTest() {
+    SzNotice original = new SzNotice("CODE", "Description");
+
+    JsonObject jsonObject = original.toJsonObject();
+    SzNotice parsed = SzNotice.fromJson(jsonObject);
+
+    assertEquals(original, parsed, "Round-trip should produce equal object");
+  }
+
   @ParameterizedTest
   @MethodSource("getPropertyParameters")
   public void fromRawJsonTextTest(String code, String description) {
@@ -186,12 +267,42 @@ public class SzNoticeTest {
                  "Description is not as expected");
   }
 
+  @Test
+  public void fromRawJsonNullTextTest() {
+    SzNotice notice = SzNotice.fromRawJson((String) null);
+    assertNull(notice, "fromRawJson with null text should return null");
+  }
+
+  @Test
+  public void fromRawJsonNullObjectTest() {
+    SzNotice notice = SzNotice.fromRawJson((JsonObject) null);
+    assertNull(notice, "fromRawJson with null object should return null");
+  }
+
   @ParameterizedTest
   @MethodSource("getPropertyParameters")
   public void equalsTest(String code, String description) {
     SzNotice notice1 = new SzNotice(code, description);
     SzNotice notice2 = new SzNotice(code, description);
     assertEquals(notice1, notice2, "Equals method not equal");
+  }
+
+  @Test
+  public void equalsSameInstanceTest() {
+    SzNotice notice = new SzNotice("CODE", "description");
+    assertEquals(notice, notice, "Notice should equal itself");
+  }
+
+  @Test
+  public void notEqualsNullTest() {
+    SzNotice notice = new SzNotice("CODE", "description");
+    assertNotEquals(notice, null, "Notice should not equal null");
+  }
+
+  @Test
+  public void notEqualsDifferentClassTest() {
+    SzNotice notice = new SzNotice("CODE", "description");
+    assertNotEquals(notice, "not a notice", "Notice should not equal different class");
   }
 
   @ParameterizedTest
@@ -212,6 +323,27 @@ public class SzNoticeTest {
     SzNotice notice2 = new SzNotice(code, description);
 
     assertNotEquals(notice1, notice2, "Equals method equal");
+  }
+
+  @ParameterizedTest
+  @MethodSource("getPropertyParameters")
+  public void hashCodeConsistencyTest(String code, String description) {
+    SzNotice notice1 = new SzNotice(code, description);
+    SzNotice notice2 = new SzNotice(code, description);
+
+    if (notice1.equals(notice2)) {
+      assertEquals(notice1.hashCode(), notice2.hashCode(),
+              "Equal objects must have equal hash codes");
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("getPropertyParameters")
+  public void toStringTest(String code, String description) {
+    SzNotice notice = new SzNotice(code, description);
+    assertDoesNotThrow(() -> notice.toString(),
+            "toString should not throw exception");
+    assertNotNull(notice.toString(), "toString should not return null");
   }
 
 }

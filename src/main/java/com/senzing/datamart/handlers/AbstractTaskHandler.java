@@ -1,6 +1,7 @@
 package com.senzing.datamart.handlers;
 
 import com.senzing.datamart.SzReplicationProvider;
+import com.senzing.datamart.SzReplicationProvider.TaskAction;
 import com.senzing.datamart.model.SzReportKey;
 import com.senzing.listener.service.exception.ServiceExecutionException;
 import com.senzing.listener.service.scheduling.Scheduler;
@@ -16,7 +17,6 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.util.*;
 
-import static com.senzing.datamart.SzReplicationProvider.*;
 import static com.senzing.util.LoggingUtilities.*;
 
 /**
@@ -30,6 +30,28 @@ public abstract class AbstractTaskHandler implements TaskHandler {
      */
     protected static final int MAX_BATCH_SIZE = 1000;
 
+    /**
+     * The error code when a record is encountered by Senzing SDK but it has no resolved
+     * entity.  This is likely an indication of a race condition where the record no 
+     * longer exists -- treat it as such.
+     */
+    protected static final int SZ_ERR_RECORD_HAS_NO_RESOLVED_ENTITY = 38;
+
+    /**
+     * The error code when a record is encountered by Senzing SDK but it has no obs ent.
+     * This is likely an indication of a race condition where the record no longer exists
+     * -- treat it as such.
+     */
+    protected static final int SZ_ERR_NO_OBSERVED_ENTITY_FOR_DSRC_ENTITY_KEY = 39;
+    
+    /**
+     * The Senzing SDK error codes to treat as an {@link 
+     * com.senzing.sdk.SzNotFoundException}.
+     */
+    protected static final Set<Integer> NOT_FOUND_ERROR_CODES
+        = Set.of(SZ_ERR_RECORD_HAS_NO_RESOLVED_ENTITY, 
+                 SZ_ERR_NO_OBSERVED_ENTITY_FOR_DSRC_ENTITY_KEY);
+    
     /**
      * The backing {@link SzReplicationProvider}.
      */

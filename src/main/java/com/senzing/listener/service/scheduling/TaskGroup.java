@@ -526,15 +526,17 @@ public class TaskGroup implements Quantified {
       // increment the scheduled count
       this.scheduledCount++;
 
-      // set the state
-      if (state != SCHEDULING) {
+      // set the state (but don't overwrite FAILED state)
+      if (state != SCHEDULING && state != FAILED) {
         this.setState(SCHEDULING);
       }
 
-      // check if this was the last
+      // check if this was the last (but don't overwrite FAILED state)
       if (this.getScheduledCount() == this.getTaskCount()) {
         this.lastScheduledTimeNanos = System.nanoTime();
-        this.setState(SCHEDULED);
+        if (state != FAILED) {
+          this.setState(SCHEDULED);
+        }
       }
 
       // notify all

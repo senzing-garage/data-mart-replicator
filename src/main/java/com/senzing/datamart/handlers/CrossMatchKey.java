@@ -6,7 +6,7 @@ import java.util.Objects;
  * The key for a cross-match report statistic comprising two data sources, an
  * optional principle and an optional match key.
  */
-public class CrossMatchKey implements Comparable<CrossMatchKey> {
+public final class CrossMatchKey implements Comparable<CrossMatchKey> {
     /**
      * The first data source.
      */
@@ -30,11 +30,11 @@ public class CrossMatchKey implements Comparable<CrossMatchKey> {
     /**
      * Constructs with the specified parameters.
      *
-     * @param source    The data source code representing both the "from" and "to"
-     *                  data source.
+     * @param source    The non-null data source code representing both the
+     *                  "from" and "to" data source.
      * @param matchKey  The optional match key associated with the match.
      * @param principle The optional principle associated with the match.
-     * @throws NullPointerException If any of the parameter is <code>null</code>
+     * @throws NullPointerException If the specified data source is <code>null</code>
      */
     public CrossMatchKey(String source, String matchKey, String principle) 
         throws NullPointerException 
@@ -45,8 +45,8 @@ public class CrossMatchKey implements Comparable<CrossMatchKey> {
     /**
      * Constructs with the specified parameters.
      *
-     * @param source1   The first ("from") data source code.
-     * @param source2   The second ("to") data source code.
+     * @param source1   The non-null first ("from") data source code.
+     * @param source2   The non-null second ("to") data source code.
      * @param matchKey  The optional match key for the match.
      * @param principle The optional principle for the match.
      * @throws NullPointerException If either of the data sources is
@@ -208,7 +208,7 @@ public class CrossMatchKey implements Comparable<CrossMatchKey> {
      */
     @Override
     public String toString() {
-        return this.getSource1() + ":" + this.getSource2() + "[" + ":" 
+        return this.getSource1() + ":" + this.getSource2() + "[" 
             + this.getPrinciple() + ":" + this.getMatchKey() + "]";
     }
 }

@@ -7,7 +7,7 @@ import java.util.Objects;
  * Provides a key for uniquely identifying relationships and preventing
  * duplication.
  */
-class SzRelationKey implements Comparable<SzRelationKey>, Serializable {
+public class SzRelationKey implements Comparable<SzRelationKey>, Serializable {
     /**
      * The first entity ID.
      */
@@ -24,7 +24,7 @@ class SzRelationKey implements Comparable<SzRelationKey>, Serializable {
      * @param entityId  The first entity ID.
      * @param relatedId The related entity ID.
      */
-    SzRelationKey(long entityId, long relatedId) {
+    public SzRelationKey(long entityId, long relatedId) {
         this.entityId = entityId;
         this.relatedId = relatedId;
     }
@@ -123,5 +123,51 @@ class SzRelationKey implements Comparable<SzRelationKey>, Serializable {
      */
     public String toString() {
         return this.getEntityId() + ":" + this.getRelatedId();
+    }
+
+    /**
+     * Parses an {@link SzRelationKey} formatted as two long integer
+     * entity ID bounds separated by a colon character.  Either or both
+     * entity ID bounds can be specified as <code>"max"</code> for using
+     * {@link Long#MAX_VALUE}.  This function is tolerant of white space
+     * preceding or trailing either entity ID bound token.
+     * 
+     * @param text The text to parse.
+     * 
+     * @return The parsed {@link SzRelationKey} instance, or 
+     *         <code>null</code> if the specified parameter is
+     *         <code>null</code>.
+     * 
+     * @throws IllegalArgumentException If the text is improperly formatted.
+     */
+    public static SzRelationKey parse(String text) {
+        // check for null
+        if (text == null) {
+            return null;
+        }
+
+        // find the colon character
+        int index = text.indexOf(':');
+        
+        if (index <= 0 || index > text.length() - 2) {
+            throw new IllegalArgumentException(
+                "Should be formatted as two entity ID's separated by a colon: "
+                + text);
+        }
+
+        try {
+            String part1 = text.substring(0, index).trim().toLowerCase();
+            String part2 = text.substring(index + 1).trim().toLowerCase();
+
+            long entityId = "max".equals(part1) ? Long.MAX_VALUE : Long.parseLong(part1);
+            long relatedId = "max".equals(part2) ? Long.MAX_VALUE : Long.parseLong(part2);
+
+            return new SzRelationKey(entityId, relatedId);
+
+        } catch (Exception e) {
+            throw new IllegalArgumentException(
+                "Should be formatted as two entity ID's separated by a colon: "
+                + text);
+        }
     }
 }

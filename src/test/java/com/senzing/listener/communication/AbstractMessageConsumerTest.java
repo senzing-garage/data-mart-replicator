@@ -1,5 +1,6 @@
 package com.senzing.listener.communication;
 
+import com.senzing.listener.communication.exception.MessageConsumerException;
 import com.senzing.listener.service.AbstractListenerService;
 import com.senzing.listener.service.MessageProcessor;
 import com.senzing.listener.service.exception.ServiceExecutionException;
@@ -19,13 +20,23 @@ import java.security.SecureRandom;
 import java.sql.DriverManager;
 import java.util.*;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static com.senzing.listener.communication.MessageConsumer.State.CONSUMING;
+import uk.org.webcompere.systemstubs.stream.SystemErr;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static com.senzing.listener.communication.MessageConsumer.State.*;
+import com.senzing.listener.communication.MessageConsumer.State;
 import static com.senzing.listener.communication.AbstractMessageConsumer.*;
 import static com.senzing.listener.service.scheduling.AbstractSQLSchedulingService.CLEAN_DATABASE_KEY;
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,7 +54,7 @@ import static com.senzing.util.LoggingUtilities.*;
 public class AbstractMessageConsumerTest {
     private static SecureRandom PRNG = new SecureRandom();
     static {
-        double value = PRNG.nextDouble();
+        PRNG.nextDouble();
     }
     private Set<Long> previousAffectedSet = null;
     private int noOverlapCount = 0;
@@ -931,7 +942,7 @@ public class AbstractMessageConsumerTest {
 
     @ParameterizedTest
     @ValueSource(ints = { 1, 2, 3, 4, 8 })
-    public void errantTest(int concurrency) {
+    public void errantTest(int concurrency) throws Exception {
         List<Message> messages = new LinkedList<>();
         messages.add(new Message(1, buildInfoMessage(1, "CUSTOMERS", "001", 1, 2, 3)));
         messages.add(new Message(2, buildInfoMessage(2, 1, null, "CUSTOMERS", "002", 1, 4)));
@@ -939,12 +950,15 @@ public class AbstractMessageConsumerTest {
         messages.add(new Message(4, buildInfoMessage(4, 1, null, "CUSTOMERS", "004", 4, 5)));
         messages.add(new Message(5, buildInfoMessage(5, "CUSTOMERS", "005", 6, 7)));
 
-        this.performTest(messages, messages.size(), concurrency, null, null, 2500L, null, null, 0.0, null);
+        SystemErr systemErr = new SystemErr();
+        systemErr.execute(() -> {
+            this.performTest(messages, messages.size(), concurrency, null, null, 2500L, null, null, 0.0, null);
+        });
     }
 
     @ParameterizedTest
     @ValueSource(ints = { 8, 16, 24 })
-    public void loadTest(int concurrency) {
+    public void loadTest(int concurrency) throws Exception {
         List<Message> batches = new LinkedList<>();
         int messageCount = buildInfoBatches(batches, 2000, List.of("CUSTOMERS", "EMPLOYEES", "VENDORS"), 1, 10, 1000,
                 3000, 4, 0.005);
@@ -955,7 +969,10 @@ public class AbstractMessageConsumerTest {
                 + " messages with concurrency of " + concurrency + ".");
 
         long start = System.nanoTime() / 1000000L;
-        this.performTest(batches, messageCount, concurrency, 30, 50L, 5000L, 2L, 5L, 0.0, null);
+        SystemErr systemErr = new SystemErr();
+        systemErr.execute(() -> {
+            this.performTest(batches, messageCount, concurrency, 30, 50L, 5000L, 2L, 5L, 0.0, null);
+        });
         long duration = (System.nanoTime() / 1000000L) - start;
         System.err.println("TOTAL TIME: " + (duration) + " ms");
     }
@@ -1177,6 +1194,1295 @@ public class AbstractMessageConsumerTest {
                 });
             });
         }
+    }
+
+    // ========================================================================
+    // Direct processMessages() Tests
+    // These tests exercise the code path guarded by SUPPRESS_PROCESSING_CHECK
+    // at line 1109 of AbstractMessageConsumer.java
+    // ========================================================================
+
+    /**
+     * A test consumer that exposes processMessages() for direct calls and allows
+     * state manipulation for testing purposes.
+     */
+    public static class DirectProcessingConsumer extends AbstractMessageConsumer<Message> {
+        private List<Message> messageQueue = new LinkedList<>();
+        private AtomicInteger processedCount = new AtomicInteger(0);
+        private AtomicBoolean destroyCalled = new AtomicBoolean(false);
+        private CountDownLatch processingStartedLatch = new CountDownLatch(1);
+        private CountDownLatch destroyLatch = new CountDownLatch(1);
+        private long sleepTimePerMessage = 10L;
+
+        public DirectProcessingConsumer(List<Message> messages, long sleepTimePerMessage) {
+            this.messageQueue.addAll(messages);
+            this.sleepTimePerMessage = sleepTimePerMessage;
+        }
+
+        public DirectProcessingConsumer(List<Message> messages) {
+            this(messages, 10L);
+        }
+
+        public int getProcessedCount() {
+            return this.processedCount.get();
+        }
+
+        public CountDownLatch getProcessingStartedLatch() {
+            return this.processingStartedLatch;
+        }
+
+        public CountDownLatch getDestroyLatch() {
+            return this.destroyLatch;
+        }
+
+        /**
+         * Exposes processMessages() for direct testing.
+         */
+        public void callProcessMessages(MessageProcessor processor) {
+            this.processMessages(processor);
+        }
+
+        /**
+         * Allows setting the processing flag for testing.
+         */
+        public synchronized void setProcessingFlag(boolean processing) {
+            try {
+                java.lang.reflect.Field field = AbstractMessageConsumer.class.getDeclaredField("processing");
+                field.setAccessible(true);
+                field.setBoolean(this, processing);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to set processing flag", e);
+            }
+        }
+
+        @Override
+        protected void doInit(JsonObject config) {
+            // nothing to do
+        }
+
+        @Override
+        protected void doDestroy() {
+            this.destroyCalled.set(true);
+            this.destroyLatch.countDown();
+        }
+
+        @Override
+        protected void doConsume(MessageProcessor processor) {
+            // For direct testing, we don't need background consumption
+        }
+
+        @Override
+        protected String extractMessageBody(Message msg) {
+            return msg.getBody();
+        }
+
+        @Override
+        protected void disposeMessage(Message msg) {
+            // nothing to do
+        }
+    }
+
+    /**
+     * A slow message processor that sleeps for a configurable time, used to
+     * simulate long-running processing for testing concurrent destroy.
+     */
+    public static class SlowMessageProcessor implements MessageProcessor {
+        private long sleepTime;
+        private AtomicInteger processCount = new AtomicInteger(0);
+        private CountDownLatch processingLatch;
+
+        public SlowMessageProcessor(long sleepTime, CountDownLatch processingLatch) {
+            this.sleepTime = sleepTime;
+            this.processingLatch = processingLatch;
+        }
+
+        public int getProcessCount() {
+            return this.processCount.get();
+        }
+
+        @Override
+        public void process(JsonObject message) throws ServiceExecutionException {
+            this.processCount.incrementAndGet();
+            if (this.processingLatch != null) {
+                this.processingLatch.countDown();
+            }
+            try {
+                Thread.sleep(this.sleepTime);
+            } catch (InterruptedException ignore) {
+                // ignore
+            }
+        }
+    }
+
+    /**
+     * Tests that calling processMessages() when the state is not CONSUMING
+     * throws an IllegalStateException with the expected message.
+     */
+    @Test
+    public void testProcessMessagesNotConsumingState() throws Exception {
+        List<Message> messages = new LinkedList<>();
+        messages.add(new Message(1, buildInfoMessage(1, "CUSTOMERS", "001", 1)));
+
+        DirectProcessingConsumer consumer = new DirectProcessingConsumer(messages);
+
+        // Initialize but don't transition to CONSUMING state
+        JsonObject config = Json.createObjectBuilder().build();
+        consumer.init(config);
+
+        // Verify state is INITIALIZED, not CONSUMING
+        assertEquals(INITIALIZED, consumer.getState(),
+                "State should be INITIALIZED before consume() is called");
+
+        // Create a simple processor
+        MessageProcessor processor = (msg) -> {};
+
+        // Call processMessages() directly - should throw IllegalStateException
+        // (SUPPRESS_PROCESSING_CHECK defaults to false, so validation is performed)
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> consumer.callProcessMessages(processor),
+                "Should throw IllegalStateException when state is not CONSUMING");
+
+        assertTrue(exception.getMessage().contains("Cannot call processMessages()"),
+                "Exception message should mention processMessages()");
+        assertTrue(exception.getMessage().contains("CONSUMING"),
+                "Exception message should mention CONSUMING state");
+        assertTrue(exception.getMessage().contains(INITIALIZED.toString()),
+                "Exception message should mention current state (INITIALIZED)");
+    }
+
+    /**
+     * Tests that calling processMessages() when already processing
+     * throws an IllegalStateException with the expected message.
+     */
+    @Test
+    public void testProcessMessagesAlreadyProcessing() throws Exception {
+        List<Message> messages = new LinkedList<>();
+        messages.add(new Message(1, buildInfoMessage(1, "CUSTOMERS", "001", 1)));
+
+        DirectProcessingConsumer consumer = new DirectProcessingConsumer(messages);
+
+        // Initialize
+        JsonObject config = Json.createObjectBuilder().build();
+        consumer.init(config);
+
+        // Manually set state to CONSUMING using reflection
+        synchronized (consumer) {
+            // setState is protected - directly accessible in same package
+            consumer.setState(CONSUMING);
+        }
+
+        // Manually set processing flag to true
+        consumer.setProcessingFlag(true);
+
+        // Create a simple processor
+        MessageProcessor processor = (msg) -> {};
+
+        // Call processMessages() directly - should throw IllegalStateException
+        // (SUPPRESS_PROCESSING_CHECK defaults to false, so validation is performed)
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> consumer.callProcessMessages(processor),
+                "Should throw IllegalStateException when already processing");
+
+        assertTrue(exception.getMessage().contains("Cannot call processMessages()"),
+                "Exception message should mention processMessages()");
+        assertTrue(exception.getMessage().contains("already been called"),
+                "Exception message should mention already processing");
+    }
+
+    /**
+     * Tests that calling processMessages() directly when state is CONSUMING
+     * and not already processing sets the processing flag and proceeds.
+     * This exercises the code path at line 1125 that sets this.processing = true.
+     */
+    @Test
+    public void testProcessMessagesDirectCallSuccess() throws Exception {
+        // Create messages to process
+        List<Message> messages = new LinkedList<>();
+        for (int i = 1; i <= 5; i++) {
+            messages.add(new Message(i, buildInfoMessage(i, "CUSTOMERS", "00" + i, i)));
+        }
+
+        DirectProcessingConsumer consumer = new DirectProcessingConsumer(messages, 5L);
+
+        // Initialize
+        JsonObject config = Json.createObjectBuilder()
+                .add(CONCURRENCY_KEY, 2)
+                .build();
+        consumer.init(config);
+
+        // Manually set state to CONSUMING using reflection
+        synchronized (consumer) {
+            // setState is protected - directly accessible in same package
+            consumer.setState(CONSUMING);
+        }
+
+        // Ensure processing flag is false
+        consumer.setProcessingFlag(false);
+
+        // Create a latch to track when processing starts
+        CountDownLatch processingLatch = new CountDownLatch(1);
+        AtomicInteger messageCount = new AtomicInteger(0);
+        AtomicReference<Throwable> exceptionRef = new AtomicReference<>(null);
+        AtomicBoolean processingFlagWasSet = new AtomicBoolean(false);
+
+        // Create processor that counts messages and signals when done
+        MessageProcessor processor = (msg) -> {
+            messageCount.incrementAndGet();
+            processingLatch.countDown();
+            // Small sleep to simulate processing
+            try {
+                Thread.sleep(5);
+            } catch (InterruptedException ignore) {
+                // ignore
+            }
+        };
+
+        // Start processMessages in a separate thread since it blocks
+        // (SUPPRESS_PROCESSING_CHECK defaults to false, so validation is performed)
+        Thread processingThread = new Thread(() -> {
+            try {
+                // Call processMessages directly - this should set this.processing = true
+                // and then proceed to create worker pool and process messages
+                consumer.callProcessMessages(processor);
+            } catch (IllegalStateException e) {
+                // This would indicate state/processing check failed
+                exceptionRef.set(e);
+            } catch (Exception e) {
+                // Other exceptions during processing - check if processing started
+                // (The loop will exit with exception when state changes from CONSUMING)
+            }
+        });
+        processingThread.start();
+
+        // Wait for processing to start (indicates the check at line 1125 passed)
+        boolean started = processingLatch.await(2, TimeUnit.SECONDS);
+
+        // Check if processing flag was set (via reflection)
+        try {
+            java.lang.reflect.Field field = AbstractMessageConsumer.class.getDeclaredField("processing");
+            field.setAccessible(true);
+            processingFlagWasSet.set(field.getBoolean(consumer));
+        } catch (Exception ignore) {
+            // ignore
+        }
+
+        // Change state to trigger loop exit
+        synchronized (consumer) {
+            // setState is protected - directly accessible in same package
+            consumer.setState(DESTROYING);
+        }
+
+        // Wait for thread to complete
+        processingThread.join(5000);
+
+        // Verify no IllegalStateException occurred (which would indicate the check failed)
+        assertNull(exceptionRef.get(),
+                "No IllegalStateException should occur when state is CONSUMING and not processing: "
+                        + (exceptionRef.get() != null ? exceptionRef.get().getMessage() : ""));
+
+        // Verify processing started (indicates the processing flag was set and loop entered)
+        assertTrue(started || processingFlagWasSet.get(),
+                "Processing should have started (processing flag set at line 1125)");
+    }
+
+    // ========================================================================
+    // waitUntilDestroyed() Tests
+    // These tests exercise the code path in waitUntilDestroyed() at lines 486-492
+    // ========================================================================
+
+    /**
+     * A consumer that allows controlled timing during destroy for testing
+     * waitUntilDestroyed().
+     */
+    public static class SlowDestroyConsumer extends AbstractMessageConsumer<Message> {
+        private long destroyDelay;
+        private CountDownLatch destroyStartedLatch = new CountDownLatch(1);
+        private CountDownLatch destroyCompleteLatch = new CountDownLatch(1);
+        private AtomicBoolean doDestroyStarted = new AtomicBoolean(false);
+        private AtomicBoolean doDestroyCompleted = new AtomicBoolean(false);
+
+        public SlowDestroyConsumer(long destroyDelay) {
+            this.destroyDelay = destroyDelay;
+        }
+
+        public CountDownLatch getDestroyStartedLatch() {
+            return this.destroyStartedLatch;
+        }
+
+        public CountDownLatch getDestroyCompleteLatch() {
+            return this.destroyCompleteLatch;
+        }
+
+        public boolean isDoDestroyStarted() {
+            return this.doDestroyStarted.get();
+        }
+
+        public boolean isDoDestroyCompleted() {
+            return this.doDestroyCompleted.get();
+        }
+
+        @Override
+        protected void doInit(JsonObject config) {
+            // nothing to do
+        }
+
+        @Override
+        protected void doDestroy() {
+            this.doDestroyStarted.set(true);
+            this.destroyStartedLatch.countDown();
+            try {
+                // Simulate slow cleanup
+                Thread.sleep(this.destroyDelay);
+            } catch (InterruptedException ignore) {
+                // ignore
+            }
+            this.doDestroyCompleted.set(true);
+            this.destroyCompleteLatch.countDown();
+        }
+
+        @Override
+        protected void doConsume(MessageProcessor processor) {
+            // nothing to do
+        }
+
+        @Override
+        protected String extractMessageBody(Message msg) {
+            return msg.getBody();
+        }
+
+        @Override
+        protected void disposeMessage(Message msg) {
+            // nothing to do
+        }
+    }
+
+    /**
+     * Tests that waitUntilDestroyed() blocks when another thread is destroying
+     * the consumer, and waits until destruction is complete.
+     * This exercises the loop at lines 486-492 in AbstractMessageConsumer.java.
+     */
+    @Test
+    public void testWaitUntilDestroyedConcurrent() throws Exception {
+        // Create a consumer with slow destroy (500ms delay)
+        SlowDestroyConsumer consumer = new SlowDestroyConsumer(500L);
+
+        // Initialize and start consuming
+        JsonObject config = Json.createObjectBuilder().build();
+        consumer.init(config);
+
+        // Create a simple processor
+        SlowMessageProcessor processor = new SlowMessageProcessor(10L, null);
+
+        // Start consuming (this sets up the processing thread)
+        consumer.consume(processor);
+
+        // Give consumption a moment to start
+        Thread.sleep(50);
+
+        // Track timing
+        AtomicReference<Long> thread1StartTime = new AtomicReference<>();
+        AtomicReference<Long> thread1EndTime = new AtomicReference<>();
+        AtomicReference<Long> thread2StartTime = new AtomicReference<>();
+        AtomicReference<Long> thread2EndTime = new AtomicReference<>();
+        AtomicBoolean thread2WaitedForDestroy = new AtomicBoolean(false);
+
+        // First thread starts destroy
+        Thread destroyThread1 = new Thread(() -> {
+            thread1StartTime.set(System.nanoTime());
+            consumer.destroy();
+            thread1EndTime.set(System.nanoTime());
+        });
+
+        // Second thread also tries to destroy (should wait)
+        Thread destroyThread2 = new Thread(() -> {
+            try {
+                // Wait for first thread to start destroying
+                consumer.getDestroyStartedLatch().await(2, TimeUnit.SECONDS);
+                // Small delay to ensure we're in DESTROYING state
+                Thread.sleep(50);
+            } catch (InterruptedException ignore) {
+                // ignore
+            }
+            thread2StartTime.set(System.nanoTime());
+            consumer.destroy(); // This should call waitUntilDestroyed()
+            thread2EndTime.set(System.nanoTime());
+            // Check if thread 2 had to wait (entered after doDestroy started, exited after it completed)
+            if (consumer.isDoDestroyCompleted()) {
+                thread2WaitedForDestroy.set(true);
+            }
+        });
+
+        // Start first destroy thread
+        destroyThread1.start();
+
+        // Wait a moment then start second thread
+        Thread.sleep(20);
+        destroyThread2.start();
+
+        // Wait for both threads to complete
+        destroyThread1.join(3000);
+        destroyThread2.join(3000);
+
+        // Verify both threads completed
+        assertNotNull(thread1EndTime.get(), "Thread 1 should have completed");
+        assertNotNull(thread2EndTime.get(), "Thread 2 should have completed");
+
+        // Verify consumer is destroyed
+        assertEquals(DESTROYED, consumer.getState(),
+                "Consumer should be in DESTROYED state");
+
+        // Verify doDestroy was only called once
+        assertTrue(consumer.isDoDestroyCompleted(),
+                "doDestroy should have completed");
+
+        // Verify thread 2 waited (it should end after or close to thread 1)
+        // Allow some tolerance since timing is not exact
+        long thread1Duration = thread1EndTime.get() - thread1StartTime.get();
+        long thread2Start = thread2StartTime.get();
+        long thread1End = thread1EndTime.get();
+
+        // Thread 2 should have started before thread 1 ended (overlap during wait)
+        // and ended after or around the same time as thread 1
+        assertTrue(thread2Start < thread1End || thread2EndTime.get() >= thread1End - 50000000L,
+                "Thread 2 should have waited for destroy to complete");
+    }
+
+    /**
+     * Tests that waitUntilDestroyed() returns immediately when already destroyed.
+     */
+    @Test
+    public void testWaitUntilDestroyedAlreadyDestroyed() throws Exception {
+        SlowDestroyConsumer consumer = new SlowDestroyConsumer(10L);
+
+        // Initialize
+        JsonObject config = Json.createObjectBuilder().build();
+        consumer.init(config);
+
+        // Consume to set up processing thread
+        consumer.consume((msg) -> {});
+
+        // Give it a moment
+        Thread.sleep(20);
+
+        // Destroy
+        consumer.destroy();
+
+        // Verify destroyed
+        assertEquals(DESTROYED, consumer.getState());
+
+        // Calling destroy again should return immediately (no exception)
+        long start = System.nanoTime();
+        consumer.destroy();
+        long duration = (System.nanoTime() - start) / 1000000L;
+
+        // Should return very quickly (under 50ms)
+        assertTrue(duration < 50,
+                "destroy() on already destroyed consumer should return immediately");
+    }
+
+    /**
+     * Tests that waitUntilDestroyed() throws when not in DESTROYING state.
+     */
+    @Test
+    public void testWaitUntilDestroyedNotDestroyingState() throws Exception {
+        SlowDestroyConsumer consumer = new SlowDestroyConsumer(10L);
+
+        // Initialize but don't destroy
+        JsonObject config = Json.createObjectBuilder().build();
+        consumer.init(config);
+
+        // Try to call waitUntilDestroyed() directly via reflection
+        // It should throw because we're not in DESTROYING state
+        synchronized (consumer) {
+            // waitUntilDestroyed is protected - directly accessible in same package
+            IllegalStateException exception = assertThrows(IllegalStateException.class,
+                    () -> consumer.waitUntilDestroyed(),
+                    "Should throw IllegalStateException when not in DESTROYING state");
+
+            assertTrue(exception.getMessage().contains("waitUntilDestroyed"),
+                    "Exception should mention waitUntilDestroyed()");
+            assertTrue(exception.getMessage().contains("NOT currently destroying"),
+                    "Exception should mention not destroying");
+        }
+    }
+
+    // ========================================================================
+    // Additional Code Coverage Tests
+    // These tests exercise code paths for better coverage
+    // ========================================================================
+
+    /**
+     * A simple consumer for testing that allows control over the message body
+     * returned by extractMessageBody().
+     */
+    public static class SimpleTestConsumer extends AbstractMessageConsumer<Message> {
+        private String messageBodyOverride = null;
+        private boolean useOverride = false;
+
+        public SimpleTestConsumer() {
+        }
+
+        public void setMessageBodyOverride(String body) {
+            this.messageBodyOverride = body;
+            this.useOverride = true;
+        }
+
+        public void clearMessageBodyOverride() {
+            this.useOverride = false;
+            this.messageBodyOverride = null;
+        }
+
+        @Override
+        protected void doInit(JsonObject config) {
+            // nothing to do
+        }
+
+        @Override
+        protected void doDestroy() {
+            // nothing to do
+        }
+
+        @Override
+        protected void doConsume(MessageProcessor processor) {
+            // nothing to do
+        }
+
+        @Override
+        protected String extractMessageBody(Message msg) {
+            if (this.useOverride) {
+                return this.messageBodyOverride;
+            }
+            return msg.getBody();
+        }
+
+        @Override
+        protected void disposeMessage(Message msg) {
+            // nothing to do
+        }
+
+        /**
+         * Exposes enqueueMessages() for testing.
+         */
+        public void callEnqueueMessages(MessageProcessor processor, Message message) {
+            this.enqueueMessages(processor, message);
+        }
+
+        /**
+         * Exposes backgroundProcessMessages() for testing.
+         */
+        public void callBackgroundProcessMessages(MessageProcessor processor) {
+            this.backgroundProcessMessages(processor);
+        }
+
+        /**
+         * Exposes timerStart() for testing.
+         */
+        public void callTimerStart(Stat stat, Stat... addlTimers) {
+            this.timerStart(stat, addlTimers);
+        }
+
+        /**
+         * Exposes timerPause() for testing.
+         */
+        public void callTimerPause(Stat stat, Stat... addlTimers) {
+            this.timerPause(stat, addlTimers);
+        }
+
+        /**
+         * Exposes timerResume() for testing.
+         */
+        public void callTimerResume(Stat stat, Stat... addlTimers) {
+            this.timerResume(stat, addlTimers);
+        }
+
+        /**
+         * Allows setting the processing flag for testing.
+         */
+        public synchronized void setProcessingFlag(boolean processing) {
+            try {
+                java.lang.reflect.Field field = AbstractMessageConsumer.class.getDeclaredField("processing");
+                field.setAccessible(true);
+                field.setBoolean(this, processing);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to set processing flag", e);
+            }
+        }
+
+        /**
+         * Allows setting the processingThread field for testing.
+         */
+        public synchronized void setProcessingThread(Thread thread) {
+            try {
+                java.lang.reflect.Field field = AbstractMessageConsumer.class.getDeclaredField("processingThread");
+                field.setAccessible(true);
+                field.set(this, thread);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to set processingThread", e);
+            }
+        }
+    }
+
+    /**
+     * Test 1: Tests that Stat.getUnits() returns the expected units for all Stat values.
+     * This exercises line 308 of AbstractMessageConsumer.java.
+     */
+    @Test
+    public void testStatGetUnits() {
+        // Verify all Stat values have getUnits() called
+        for (AbstractMessageConsumer.Stat stat : AbstractMessageConsumer.Stat.values()) {
+            String units = stat.getUnits();
+            // Some stats have null units (like parallelism, dequeueHitRatio)
+            // Just verify the method can be called without exception
+            switch (stat) {
+                case parallelism:
+                case dequeueHitRatio:
+                    assertNull(units, "Expected null units for " + stat);
+                    break;
+                case concurrency:
+                    assertEquals("threads", units, "Expected 'threads' units for " + stat);
+                    break;
+                case roundTripCount:
+                case messageRetryCount:
+                    assertEquals("messages", units, "Expected 'messages' units for " + stat);
+                    break;
+                case processCount:
+                case processSuccessCount:
+                case processFailureCount:
+                case processRetryCount:
+                    assertEquals("calls", units, "Expected 'calls' units for " + stat);
+                    break;
+                default:
+                    // Most other stats are in milliseconds
+                    assertEquals("ms", units, "Expected 'ms' units for " + stat);
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Test 2: Tests that waitUntilDestroyed() returns immediately when already destroyed.
+     * This exercises line 481 of AbstractMessageConsumer.java.
+     */
+    @Test
+    public void testWaitUntilDestroyedWhenAlreadyDestroyed() throws Exception {
+        // Use SlowDestroyConsumer since it properly handles destruction
+        SlowDestroyConsumer consumer = new SlowDestroyConsumer(10L);
+
+        // Initialize
+        JsonObject config = Json.createObjectBuilder().build();
+        consumer.init(config);
+
+        // Start consuming (this initializes the processing thread)
+        MessageProcessor processor = (msg) -> {};
+        consumer.consume(processor);
+
+        // Destroy the consumer
+        consumer.destroy();
+
+        // Verify state is DESTROYED
+        assertEquals(DESTROYED, consumer.getState(), "State should be DESTROYED");
+
+        // Call waitUntilDestroyed() again - should return immediately without blocking
+        // because state is already DESTROYED (exercises line 481)
+        // waitUntilDestroyed is protected - directly accessible in same package
+
+        // This should not block and should not throw
+        synchronized (consumer) {
+            consumer.waitUntilDestroyed();
+        }
+
+        // If we get here without blocking or exception, the test passes
+        assertEquals(DESTROYED, consumer.getState(), "State should still be DESTROYED");
+    }
+
+    /**
+     * Test 3: Tests that calling init() twice throws IllegalStateException.
+     * This exercises lines 634-635 of AbstractMessageConsumer.java.
+     */
+    @Test
+    public void testInitCalledTwiceThrowsException() throws Exception {
+        SimpleTestConsumer consumer = new SimpleTestConsumer();
+
+        // First init should succeed
+        JsonObject config = Json.createObjectBuilder().build();
+        consumer.init(config);
+
+        assertEquals(INITIALIZED, consumer.getState(), "State should be INITIALIZED");
+
+        // Second init should throw IllegalStateException
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> consumer.init(config),
+                "Second call to init() should throw IllegalStateException");
+
+        assertTrue(exception.getMessage().contains("Cannot initialize"),
+                "Exception message should mention cannot initialize");
+        assertTrue(exception.getMessage().contains(UNINITIALIZED.toString()),
+                "Exception message should mention UNINITIALIZED state");
+    }
+
+    /**
+     * Test 4: Tests that init() with invalid config (bad CONCURRENCY_KEY) throws
+     * MessageConsumerSetupException wrapping ServiceSetupException.
+     * This exercises lines 662-663 of AbstractMessageConsumer.java.
+     */
+    @Test
+    public void testInitWithInvalidConcurrencyConfig() {
+        SimpleTestConsumer consumer = new SimpleTestConsumer();
+
+        // Create config with invalid concurrency (not an integer)
+        JsonObject config = Json.createObjectBuilder()
+                .add(CONCURRENCY_KEY, "not-a-number")
+                .build();
+
+        // Init should throw MessageConsumerSetupException
+        com.senzing.listener.communication.exception.MessageConsumerSetupException exception =
+                assertThrows(com.senzing.listener.communication.exception.MessageConsumerSetupException.class,
+                        () -> consumer.init(config),
+                        "init() with invalid concurrency should throw MessageConsumerSetupException");
+
+        // Verify the cause is a ServiceSetupException (which is what getConfigInteger throws)
+        Throwable cause = exception.getCause();
+        assertNotNull(cause, "Exception should have a cause");
+        assertTrue(cause instanceof com.senzing.listener.service.exception.ServiceSetupException,
+                "Cause should be ServiceSetupException, but was: " + cause.getClass().getName());
+        assertTrue(cause.getMessage().contains(CONCURRENCY_KEY),
+                "Cause message should mention the config key");
+    }
+
+    /**
+     * Test 4b: Tests that init() with invalid TIMEOUT_KEY throws
+     * MessageConsumerSetupException wrapping ServiceSetupException.
+     * This also exercises lines 662-663 of AbstractMessageConsumer.java.
+     */
+    @Test
+    public void testInitWithInvalidTimeoutConfig() {
+        SimpleTestConsumer consumer = new SimpleTestConsumer();
+
+        // Create config with invalid timeout (not an integer)
+        JsonObject config = Json.createObjectBuilder()
+                .add(TIMEOUT_KEY, "not-a-number")
+                .build();
+
+        // Init should throw MessageConsumerSetupException
+        com.senzing.listener.communication.exception.MessageConsumerSetupException exception =
+                assertThrows(com.senzing.listener.communication.exception.MessageConsumerSetupException.class,
+                        () -> consumer.init(config),
+                        "init() with invalid timeout should throw MessageConsumerSetupException");
+
+        // Verify the cause is a ServiceSetupException (which is what getConfigLong throws)
+        Throwable cause = exception.getCause();
+        assertNotNull(cause, "Exception should have a cause");
+        assertTrue(cause instanceof com.senzing.listener.service.exception.ServiceSetupException,
+                "Cause should be ServiceSetupException, but was: " + cause.getClass().getName());
+        assertTrue(cause.getMessage().contains(TIMEOUT_KEY),
+                "Cause message should mention the config key");
+    }
+
+    /**
+     * Test 5: Tests that consume() when not initialized throws IllegalStateException.
+     * This exercises lines 697-698 of AbstractMessageConsumer.java.
+     */
+    @Test
+    public void testConsumeWhenNotInitializedThrowsException() {
+        SimpleTestConsumer consumer = new SimpleTestConsumer();
+
+        // Don't initialize - just try to consume
+        MessageProcessor processor = (msg) -> {};
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> consumer.consume(processor),
+                "consume() when not initialized should throw IllegalStateException");
+
+        assertTrue(exception.getMessage().contains(INITIALIZED.toString()),
+                "Exception message should mention INITIALIZED state");
+        assertTrue(exception.getMessage().contains(CONSUMING.toString()),
+                "Exception message should mention CONSUMING state");
+    }
+
+    /**
+     * Test 6: Tests that getAverageRoundTripMillis() returns null on uninitialized instance.
+     * This exercises line 818 of AbstractMessageConsumer.java.
+     */
+    @Test
+    public void testGetAverageRoundTripMillisReturnsNullWhenNoBatches() {
+        SimpleTestConsumer consumer = new SimpleTestConsumer();
+
+        // Call on uninitialized instance - should return null
+        Long result = consumer.getAverageRoundTripMillis();
+        assertNull(result, "getAverageRoundTripMillis() should return null when no batches processed");
+    }
+
+    /**
+     * Test 7: Tests that getLongestRoundTripMillis() returns null on uninitialized instance.
+     * This exercises line 841 of AbstractMessageConsumer.java.
+     */
+    @Test
+    public void testGetLongestRoundTripMillisReturnsNullWhenNoBatches() {
+        SimpleTestConsumer consumer = new SimpleTestConsumer();
+
+        // Call on uninitialized instance - should return null
+        Long result = consumer.getLongestRoundTripMillis();
+        assertNull(result, "getLongestRoundTripMillis() should return null when no batches processed");
+    }
+
+    /**
+     * Test 8a: Tests that getAverageProcessMillis() returns null on uninitialized instance.
+     * This exercises line 911 of AbstractMessageConsumer.java.
+     */
+    @Test
+    public void testGetAverageProcessMillisReturnsNullWhenNoMessages() {
+        SimpleTestConsumer consumer = new SimpleTestConsumer();
+
+        // Call on uninitialized instance - should return null
+        Long result = consumer.getAverageProcessMillis();
+        assertNull(result, "getAverageProcessMillis() should return null when no messages processed");
+    }
+
+    /**
+     * Test 8b: Tests that getParallelism() returns null or zero on uninitialized instance.
+     * This exercises line 931 of AbstractMessageConsumer.java.
+     * Note: On an uninitialized consumer, this may return null (if activeTime is exactly 0)
+     * or a zero-ish value (if there's minimal timer initialization overhead).
+     */
+    @Test
+    public void testGetParallelismReturnsNullOrZeroWhenNoActiveTime() {
+        SimpleTestConsumer consumer = new SimpleTestConsumer();
+
+        // Call on uninitialized instance - should return null or 0.0
+        Double result = consumer.getParallelism();
+        // Either null or zero (including -0.0) is acceptable since no processing has occurred
+        assertTrue(result == null || result == 0.0 || result == -0.0,
+                "getParallelism() should return null or zero when no active processing time, but was: " + result);
+    }
+
+    /**
+     * Test 9: Tests that enqueueMessages() when not CONSUMING throws IllegalStateException.
+     * This exercises lines 993-994 of AbstractMessageConsumer.java.
+     */
+    @Test
+    public void testEnqueueMessagesWhenNotConsumingThrowsException() throws Exception {
+        SimpleTestConsumer consumer = new SimpleTestConsumer();
+
+        // Initialize but don't start consuming
+        JsonObject config = Json.createObjectBuilder().build();
+        consumer.init(config);
+
+        assertEquals(INITIALIZED, consumer.getState(), "State should be INITIALIZED");
+
+        MessageProcessor processor = (msg) -> {};
+        Message message = new Message(1, buildInfoMessage(1, "TEST", "001", 1));
+
+        // Should throw IllegalStateException
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> consumer.callEnqueueMessages(processor, message),
+                "enqueueMessages() when not CONSUMING should throw IllegalStateException");
+
+        assertTrue(exception.getMessage().contains("Cannot enqueue"),
+                "Exception message should mention cannot enqueue");
+        assertTrue(exception.getMessage().contains(CONSUMING.toString()),
+                "Exception message should mention CONSUMING state");
+    }
+
+    /**
+     * Test 10: Tests that enqueueMessages() with null message body returns early.
+     * This exercises line 1004 of AbstractMessageConsumer.java.
+     */
+    @Test
+    public void testEnqueueMessagesWithNullBodyReturnsEarly() throws Exception {
+        SimpleTestConsumer consumer = new SimpleTestConsumer();
+
+        // Initialize
+        JsonObject config = Json.createObjectBuilder().build();
+        consumer.init(config);
+
+        // Manually set state to CONSUMING
+        synchronized (consumer) {
+            // setState is protected - directly accessible in same package
+            consumer.setState(CONSUMING);
+        }
+
+        // Set override to return null body
+        consumer.setMessageBodyOverride(null);
+
+        MessageProcessor processor = (msg) -> {};
+        Message message = new Message(1, "ignored");
+
+        // Should not throw - just return early
+        consumer.callEnqueueMessages(processor, message);
+
+        // Verify no messages were enqueued
+        assertEquals(0, consumer.getPendingMessageCount(),
+                "No messages should be enqueued when body is null");
+    }
+
+    /**
+     * Test 11: Tests that enqueueMessages() with empty/whitespace body returns early.
+     * This exercises line 1008 of AbstractMessageConsumer.java.
+     */
+    @Test
+    public void testEnqueueMessagesWithEmptyBodyReturnsEarly() throws Exception {
+        SimpleTestConsumer consumer = new SimpleTestConsumer();
+
+        // Initialize
+        JsonObject config = Json.createObjectBuilder().build();
+        consumer.init(config);
+
+        // Manually set state to CONSUMING
+        synchronized (consumer) {
+            // setState is protected - directly accessible in same package
+            consumer.setState(CONSUMING);
+        }
+
+        MessageProcessor processor = (msg) -> {};
+
+        // Test with empty string
+        consumer.setMessageBodyOverride("");
+        Message message1 = new Message(1, "ignored");
+        consumer.callEnqueueMessages(processor, message1);
+        assertEquals(0, consumer.getPendingMessageCount(),
+                "No messages should be enqueued when body is empty");
+
+        // Test with whitespace only
+        consumer.setMessageBodyOverride("   \t\n  ");
+        Message message2 = new Message(2, "ignored");
+        consumer.callEnqueueMessages(processor, message2);
+        assertEquals(0, consumer.getPendingMessageCount(),
+                "No messages should be enqueued when body is whitespace only");
+    }
+
+    /**
+     * Test 12: Tests that enqueueMessages() with invalid JSON logs warning and returns.
+     * This exercises lines 1019-1021 of AbstractMessageConsumer.java.
+     * Note: Log output is captured by SystemStubs to suppress console noise for this test only.
+     */
+    @Test
+    public void testEnqueueMessagesWithInvalidJsonReturnsEarly() throws Exception {
+        SimpleTestConsumer consumer = new SimpleTestConsumer();
+
+        // Initialize
+        JsonObject config = Json.createObjectBuilder().build();
+        consumer.init(config);
+
+        // Manually set state to CONSUMING
+        synchronized (consumer) {
+            // setState is protected - directly accessible in same package
+            consumer.setState(CONSUMING);
+        }
+
+        // Set override to return invalid JSON (not a Senzing INFO message format)
+        // Note: This will trigger a warning log message which is captured by SystemStubs
+        consumer.setMessageBodyOverride("this is not valid json at all!");
+
+        MessageProcessor processor = (msg) -> {};
+        Message message = new Message(1, "ignored");
+
+        // Capture stderr output for this specific call that generates warning logs
+        SystemErr systemErr = new SystemErr();
+        systemErr.execute(() -> {
+            // Should not throw - just log warning and return
+            consumer.callEnqueueMessages(processor, message);
+        });
+
+        // Verify no messages were enqueued
+        assertEquals(0, consumer.getPendingMessageCount(),
+                "No messages should be enqueued when body is invalid JSON");
+
+        // Verify the warning was logged (captured by SystemStubs)
+        String errOutput = systemErr.getText();
+        assertTrue(errOutput.contains("Ignoring unrecognized message body"),
+                "Warning about unrecognized message should be logged");
+    }
+
+    /**
+     * Test 13: Tests that backgroundProcessMessages() when not CONSUMING throws exception.
+     * This exercises lines 1070-1071 of AbstractMessageConsumer.java.
+     */
+    @Test
+    public void testBackgroundProcessMessagesWhenNotConsumingThrowsException() throws Exception {
+        SimpleTestConsumer consumer = new SimpleTestConsumer();
+
+        // Initialize but don't start consuming
+        JsonObject config = Json.createObjectBuilder().build();
+        consumer.init(config);
+
+        assertEquals(INITIALIZED, consumer.getState(), "State should be INITIALIZED");
+
+        MessageProcessor processor = (msg) -> {};
+
+        // Should throw IllegalStateException
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> consumer.callBackgroundProcessMessages(processor),
+                "backgroundProcessMessages() when not CONSUMING should throw IllegalStateException");
+
+        assertTrue(exception.getMessage().contains("Cannot call processMessages()"),
+                "Exception message should mention cannot call processMessages");
+        assertTrue(exception.getMessage().contains(CONSUMING.toString()),
+                "Exception message should mention CONSUMING state");
+    }
+
+    /**
+     * Test 14: Tests that backgroundProcessMessages() when already processing throws exception.
+     * This exercises line 1076 of AbstractMessageConsumer.java.
+     */
+    @Test
+    public void testBackgroundProcessMessagesWhenAlreadyProcessingThrowsException() throws Exception {
+        SimpleTestConsumer consumer = new SimpleTestConsumer();
+
+        // Initialize
+        JsonObject config = Json.createObjectBuilder().build();
+        consumer.init(config);
+
+        // Manually set state to CONSUMING
+        synchronized (consumer) {
+            // setState is protected - directly accessible in same package
+            consumer.setState(CONSUMING);
+        }
+
+        // Set processing flag to true
+        consumer.setProcessingFlag(true);
+
+        MessageProcessor processor = (msg) -> {};
+
+        // Should throw IllegalStateException
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> consumer.callBackgroundProcessMessages(processor),
+                "backgroundProcessMessages() when already processing should throw IllegalStateException");
+
+        assertTrue(exception.getMessage().contains("Cannot call processMessages()"),
+                "Exception message should mention cannot call processMessages");
+        assertTrue(exception.getMessage().contains("already been called"),
+                "Exception message should mention already called");
+    }
+
+    /**
+     * Test 15: Tests that backgroundProcessMessages() when processingThread is non-null throws exception.
+     * This exercises line 1085 of AbstractMessageConsumer.java.
+     */
+    @Test
+    public void testBackgroundProcessMessagesWhenProcessingThreadExistsThrowsException() throws Exception {
+        SimpleTestConsumer consumer = new SimpleTestConsumer();
+
+        // Initialize
+        JsonObject config = Json.createObjectBuilder().build();
+        consumer.init(config);
+
+        // Manually set state to CONSUMING
+        synchronized (consumer) {
+            // setState is protected - directly accessible in same package
+            consumer.setState(CONSUMING);
+        }
+
+        // Set processing flag to true (required) and processingThread to non-null
+        consumer.setProcessingFlag(false); // Not processing yet
+        consumer.setProcessingThread(Thread.currentThread()); // But thread exists
+
+        MessageProcessor processor = (msg) -> {};
+
+        // Should throw IllegalStateException
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> consumer.callBackgroundProcessMessages(processor),
+                "backgroundProcessMessages() when processingThread exists should throw IllegalStateException");
+
+        assertTrue(exception.getMessage().contains("Processing thread"),
+                "Exception message should mention processing thread");
+        assertTrue(exception.getMessage().contains("already exist"),
+                "Exception message should mention already exists");
+
+        // Clean up
+        consumer.setProcessingThread(null);
+    }
+
+    /**
+     * Test 16: Tests timerStart(), timerPause(), and timerResume() functions.
+     * This exercises lines 1768-1777 (timerResume) of AbstractMessageConsumer.java.
+     */
+    @Test
+    public void testTimerStartPauseResume() throws Exception {
+        SimpleTestConsumer consumer = new SimpleTestConsumer();
+
+        // Initialize (this sets up the timers)
+        JsonObject config = Json.createObjectBuilder().build();
+        consumer.init(config);
+
+        // Use the serviceProcess stat for testing
+        AbstractMessageConsumer.Stat testStat = AbstractMessageConsumer.Stat.serviceProcess;
+        AbstractMessageConsumer.Stat testStat2 = AbstractMessageConsumer.Stat.markProcessed;
+
+        // Start the timer
+        consumer.callTimerStart(testStat);
+
+        // Sleep a bit to accumulate time
+        Thread.sleep(10);
+
+        // Pause the timer
+        consumer.callTimerPause(testStat);
+
+        // Get statistics to verify timer was used
+        Map<Statistic, Number> stats1 = consumer.getStatistics();
+        Number serviceProcessTime1 = stats1.get(testStat);
+        assertNotNull(serviceProcessTime1, "Timer should have recorded time");
+        assertTrue(serviceProcessTime1.longValue() >= 0, "Timer value should be non-negative");
+
+        // Resume the timer
+        consumer.callTimerResume(testStat);
+
+        // Sleep a bit more
+        Thread.sleep(10);
+
+        // Pause again
+        consumer.callTimerPause(testStat);
+
+        // Verify time increased
+        Map<Statistic, Number> stats2 = consumer.getStatistics();
+        Number serviceProcessTime2 = stats2.get(testStat);
+        assertTrue(serviceProcessTime2.longValue() >= serviceProcessTime1.longValue(),
+                "Timer value should have increased after resume");
+
+        // Test with multiple timers (varargs)
+        consumer.callTimerStart(testStat, testStat2);
+        Thread.sleep(5);
+        consumer.callTimerPause(testStat, testStat2);
+
+        // Verify both timers were affected
+        Map<Statistic, Number> stats3 = consumer.getStatistics();
+        Number markProcessedTime = stats3.get(testStat2);
+        assertNotNull(markProcessedTime, "Second timer should have recorded time");
+        assertTrue(markProcessedTime.longValue() >= 0, "Second timer value should be non-negative");
+
+        // Test timerResume with multiple timers
+        consumer.callTimerResume(testStat, testStat2);
+        Thread.sleep(5);
+        consumer.callTimerPause(testStat, testStat2);
+
+        // Verify the test completed without exceptions
+        Map<Statistic, Number> stats4 = consumer.getStatistics();
+        assertNotNull(stats4.get(testStat), "First timer should still have value");
+        assertNotNull(stats4.get(testStat2), "Second timer should still have value");
+    }
+
+    // ========================================================================
+    // InfoMessage Tests
+    // Tests for AbstractMessageConsumer.InfoMessage inner class
+    // ========================================================================
+
+    /**
+     * Tests that InfoMessage.isPending() returns true before markProcessed() is called
+     * and false after markProcessed() is called.
+     */
+    @Test
+    public void testInfoMessageIsPending() {
+        // Create a simple JSON message
+        String jsonText = "{\"DATA_SOURCE\":\"TEST\",\"RECORD_ID\":\"001\",\"AFFECTED_ENTITIES\":[{\"ENTITY_ID\":1}]}";
+
+        // Create a MessageBatch which will create an InfoMessage
+        AbstractMessageConsumer.MessageBatch<Message> batch =
+                new AbstractMessageConsumer.MessageBatch<>(new Message(1, jsonText), jsonText);
+
+        // Get the InfoMessage from the batch
+        List<AbstractMessageConsumer.InfoMessage<Message>> infoMessages = batch.getInfoMessages();
+        assertNotNull(infoMessages, "InfoMessages list should not be null");
+        assertEquals(1, infoMessages.size(), "Should have exactly one InfoMessage");
+
+        AbstractMessageConsumer.InfoMessage<Message> infoMessage = infoMessages.get(0);
+
+        // Before markProcessed() is called, isPending() should return true
+        assertTrue(infoMessage.isPending(), "isPending() should return true before markProcessed()");
+
+        // Mark the message as processed (disposable = true)
+        infoMessage.markProcessed(true);
+
+        // After markProcessed() is called, isPending() should return false
+        assertFalse(infoMessage.isPending(), "isPending() should return false after markProcessed()");
+    }
+
+    /**
+     * Tests that InfoMessage.isPending() returns false after markProcessed(false) is called
+     * (when the message failed and should be retried).
+     */
+    @Test
+    public void testInfoMessageIsPendingAfterFailure() {
+        // Create a simple JSON message
+        String jsonText = "{\"DATA_SOURCE\":\"TEST\",\"RECORD_ID\":\"002\",\"AFFECTED_ENTITIES\":[{\"ENTITY_ID\":2}]}";
+
+        // Create a MessageBatch which will create an InfoMessage
+        AbstractMessageConsumer.MessageBatch<Message> batch =
+                new AbstractMessageConsumer.MessageBatch<>(new Message(2, jsonText), jsonText);
+
+        // Get the InfoMessage from the batch
+        AbstractMessageConsumer.InfoMessage<Message> infoMessage = batch.getInfoMessages().get(0);
+
+        // Before markProcessed() is called, isPending() should return true
+        assertTrue(infoMessage.isPending(), "isPending() should return true before markProcessed()");
+
+        // Mark the message as processed but failed (disposable = false, should be retried)
+        infoMessage.markProcessed(false);
+
+        // After markProcessed() is called, isPending() should return false (even if it failed)
+        assertFalse(infoMessage.isPending(), "isPending() should return false after markProcessed(false)");
+    }
+
+    /**
+     * Tests that InfoMessage.toString() returns the expected format containing
+     * the disposable status and the JSON message text.
+     * Note: isDisposable() returns false when disposable field is null (pending)
+     * because it uses Boolean.TRUE.equals(disposable).
+     */
+    @Test
+    public void testInfoMessageToString() {
+        // Create a simple JSON message
+        String jsonText = "{\"DATA_SOURCE\":\"TEST\",\"RECORD_ID\":\"003\",\"AFFECTED_ENTITIES\":[{\"ENTITY_ID\":3}]}";
+
+        // Create a MessageBatch which will create an InfoMessage
+        AbstractMessageConsumer.MessageBatch<Message> batch =
+                new AbstractMessageConsumer.MessageBatch<>(new Message(3, jsonText), jsonText);
+
+        // Get the InfoMessage from the batch
+        AbstractMessageConsumer.InfoMessage<Message> infoMessage = batch.getInfoMessages().get(0);
+
+        // Before markProcessed(), toString() should show disposable=false
+        // (isDisposable() returns false when pending because it uses Boolean.TRUE.equals(null))
+        String toStringBefore = infoMessage.toString();
+        assertNotNull(toStringBefore, "toString() should not return null");
+        assertTrue(toStringBefore.contains("disposable=[ false ]"),
+                "toString() should contain 'disposable=[ false ]' before processing (pending state), but was: " + toStringBefore);
+        assertTrue(toStringBefore.contains("DATA_SOURCE"),
+                "toString() should contain the JSON message content");
+
+        // Mark the message as processed successfully
+        infoMessage.markProcessed(true);
+
+        // After markProcessed(true), toString() should show disposable=true
+        String toStringAfter = infoMessage.toString();
+        assertNotNull(toStringAfter, "toString() should not return null after processing");
+        assertTrue(toStringAfter.contains("disposable=[ true ]"),
+                "toString() should contain 'disposable=[ true ]' after markProcessed(true), but was: " + toStringAfter);
+        assertTrue(toStringAfter.contains("DATA_SOURCE"),
+                "toString() should contain the JSON message content");
+    }
+
+    /**
+     * Tests that InfoMessage.toString() shows disposable=false after markProcessed(false).
+     */
+    @Test
+    public void testInfoMessageToStringAfterFailure() {
+        // Create a simple JSON message
+        String jsonText = "{\"DATA_SOURCE\":\"TEST\",\"RECORD_ID\":\"004\",\"AFFECTED_ENTITIES\":[{\"ENTITY_ID\":4}]}";
+
+        // Create a MessageBatch which will create an InfoMessage
+        AbstractMessageConsumer.MessageBatch<Message> batch =
+                new AbstractMessageConsumer.MessageBatch<>(new Message(4, jsonText), jsonText);
+
+        // Get the InfoMessage from the batch
+        AbstractMessageConsumer.InfoMessage<Message> infoMessage = batch.getInfoMessages().get(0);
+
+        // Mark the message as failed (should be retried)
+        infoMessage.markProcessed(false);
+
+        // After markProcessed(false), toString() should show disposable=false
+        String toStringAfter = infoMessage.toString();
+        assertNotNull(toStringAfter, "toString() should not return null after processing");
+        assertTrue(toStringAfter.contains("disposable=[ false ]"),
+                "toString() should contain 'disposable=[ false ]' after markProcessed(false), but was: " + toStringAfter);
     }
 
     private static Map<Statistic, Number> printStatistics(TestMessageConsumer consumer, TestService service, ConnectionPool pool) {

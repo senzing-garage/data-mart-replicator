@@ -14,7 +14,7 @@ import java.util.Map.Entry;
 
 import static com.senzing.datamart.SzReplicationProvider.TaskAction;
 import static com.senzing.sql.SQLUtilities.close;
-import static java.util.Map.*;
+import static com.senzing.sql.SQLUtilities.rollback;
 import static com.senzing.util.LoggingUtilities.*;
 
 /**
@@ -113,9 +113,8 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
             logError(e, "SQL ERROR -- ROLLING BACK TRANSACTION....");
             // rollback the transaction
             try {
-                if (conn != null) {
-                    conn.rollback();
-                }
+                rollback(conn);
+
             } catch (Exception e2) {
                 logError(e2, "**** FAILED TO ROLLBACK");
                 System.err.println(e2.getMessage());
@@ -469,10 +468,14 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
                 return 0;
             }
 
-            ps = conn.prepareStatement("INSERT INTO sz_dm_report_detail AS t1 ("
-                    + " report_key, entity_id, related_id, stat_count," + " creator_id, modifier_id ) "
-                    + "VALUES (?, ?, ?, ?, ?, ?) " + "ON CONFLICT (report_key, entity_id, related_id) "
-                    + "DO UPDATE SET" + " stat_count = t1.stat_count + EXCLUDED.stat_count,"
+            ps = conn.prepareStatement(
+                    "INSERT INTO sz_dm_report_detail AS t1 ("
+                    + " report_key, entity_id, related_id, stat_count," 
+                    + " creator_id, modifier_id ) "
+                    + "VALUES (?, ?, ?, ?, ?, ?) " 
+                    + "ON CONFLICT (report_key, entity_id, related_id) "
+                    + "DO UPDATE SET" 
+                    + " stat_count = t1.stat_count + EXCLUDED.stat_count,"
                     + " modifier_id = EXCLUDED.modifier_id");
 
             List<Integer> rowCounts = this.batchUpdate(ps, deltaSumMap.entrySet(), (ps2, entry) -> {
@@ -504,12 +507,16 @@ public abstract class UpdateReportHandler extends AbstractTaskHandler {
             int updateCount = sum(rowCounts);
             if (updateCount != deltaSumMap.size()) {
                 throw new IllegalStateException(
-                        "Inserted/updated an unexpected number of detail rows.  " + "expected=[ " + deltaSumMap.size()
-                                + " ], actual=[ " + updateCount + " ], reportKey=[ " + reportKey + " ]");
+                        "Inserted/updated an unexpected number of detail rows.  " 
+                        + "expected=[ " + deltaSumMap.size()
+                        + " ], actual=[ " + updateCount 
+                        + " ], reportKey=[ " + reportKey + " ]");
             }
 
             // now delete any rows that dropped to a zero (0) count
-            ps = conn.prepareStatement("DELETE FROM sz_dm_report_detail " + "WHERE report_key = ? AND modifier_id = ? "
+            ps = conn.prepareStatement(
+                    "DELETE FROM sz_dm_report_detail " 
+                    + "WHERE report_key = ? AND modifier_id = ? "
                     + "AND stat_count = 0");
 
             ps.setString(1, reportKey.toString());

@@ -150,7 +150,7 @@ public final class ReportUtilities {
 
         // check if the bound type is null (this should not be the case)
         if (boundType == null) {
-            boundType = EXCLUSIVE_LOWER;
+            boundType = ("max".equals(entityIdBound)) ? EXCLUSIVE_UPPER : EXCLUSIVE_LOWER;
         }
 
         String formattedReportKey = reportKey.toString();
@@ -477,7 +477,8 @@ public final class ReportUtilities {
 
         // check if the bound type is null (this should not be the case)
         if (boundType == null) {
-            boundType = EXCLUSIVE_LOWER;
+            boundType = ("max:max".equals(relationBound)) 
+                ? EXCLUSIVE_UPPER : EXCLUSIVE_LOWER;
         }
 
         String formattedReportKey = reportKey.toString();
@@ -603,7 +604,7 @@ public final class ReportUtilities {
 
             // now do the outer query
             sb.append("SELECT rel_entity_id, rel_related_id," 
-                    + " match_type, rel_match_key, rel_errule_code,"
+                    + " match_type, rel_match_key, rel_rev_match_key, rel_errule_code,"
                     + " entity_id, entity_name, record_count, relation_count,"
                     + " data_source, record_id, match_key, errule_code " 
                     + "FROM (SELECT"
@@ -611,6 +612,7 @@ public final class ReportUtilities {
                     + " t1.related_id AS rel_related_id,"
                     + " t2.match_type AS match_type," 
                     + " t2.match_key AS rel_match_key,"
+                    + " t2.rev_match_key AS rel_rev_match_key,"
                     + " t2.errule_code AS rel_errule_code,"
                     + " t3.entity_id AS entity_id, t3.entity_name AS entity_name," 
                     + " t3.record_count AS record_count,"
@@ -633,6 +635,7 @@ public final class ReportUtilities {
                     + " t5.related_id AS rel_related_id,"
                     + " t6.match_type AS match_type,"
                     + " t6.match_key AS rel_match_key,"
+                    + " t6.rev_match_key AS rel_rev_match_key,"
                     + " t6.errule_code AS rel_errule_code,"
                     + " t7.entity_id AS entity_id, t7.entity_name AS entity_name,"
                     + " t7.record_count AS record_count,"
@@ -679,16 +682,17 @@ public final class ReportUtilities {
                 long relRelatedId = rs.getLong(2);
                 String relTypeText = getString(rs, 3);
                 String relMatchKey = getString(rs, 4);
-                String relPrinciple = getString(rs, 5);
+                String relRevMatchKey = getString(rs, 5);
+                String relPrinciple = getString(rs, 6);
 
-                Long entityId = getLong(rs, 6);
-                String entityName = getString(rs, 7);
-                int recordCount = rs.getInt(8);
-                int relationCount = rs.getInt(9);
-                String dataSource = getString(rs, 10);
-                String recordId = getString(rs, 11);
-                String matchKey = getString(rs, 12);
-                String principle = getString(rs, 13);
+                Long entityId = getLong(rs, 7);
+                String entityName = getString(rs, 8);
+                int recordCount = rs.getInt(9);
+                int relationCount = rs.getInt(10);
+                String dataSource = getString(rs, 11);
+                String recordId = getString(rs, 12);
+                String matchKey = getString(rs, 13);
+                String principle = getString(rs, 14);
 
                 SzRelationType relationType = (relTypeText == null) 
                     ? null : SzRelationType.valueOf(relTypeText);
@@ -753,8 +757,12 @@ public final class ReportUtilities {
                     relation.setEntity(entity);
                     relation.setRelatedEntity(related);
                     relation.setRelationType(relationType);
-                    relation.setMatchKey(relMatchKey);
                     relation.setPrinciple(relPrinciple);
+
+                    // choose the reverse match key if the related entity ID 
+                    // is less than the entity ID
+                    relation.setMatchKey(
+                        (relRelatedId < relEntityId) ? relRevMatchKey : relMatchKey);
                 }
 
                 // get the entity to be updated

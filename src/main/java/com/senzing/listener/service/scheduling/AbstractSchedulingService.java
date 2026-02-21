@@ -16,6 +16,8 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.senzing.util.JsonUtilities.*;
 import static com.senzing.listener.service.scheduling.SchedulingService.State.*;
@@ -634,6 +636,16 @@ public abstract class AbstractSchedulingService implements SchedulingService {
     private AsyncWorkerPool<TaskResult> workerPool = null;
 
     /**
+     * The number of currently in-progress non-follow-up tasks.
+     */
+    private AtomicInteger inProgressTaskCount = new AtomicInteger(0);
+
+    /**
+     * The number of currently in-progress follow-up tasks.
+     */
+    private AtomicInteger inProgressFollowUpCount = new AtomicInteger(0);
+
+    /**
      * The number of milliseconds to sleep between checks on the locks required for
      * tasks that have been postponed due to contention. This timeout is used when
      * there are pending tasks that have been postponed due to contention.
@@ -689,6 +701,12 @@ public abstract class AbstractSchedulingService implements SchedulingService {
      * The {@link List} of follow-up tasks.
      */
     private List<ScheduledTask> followUpTasks;
+
+    /**
+     * The value from {@link System#nanoTime()} when a task was 
+     * last scheduled or handled (initialized as negative-one).
+     */
+    private AtomicLong lastTaskActivityNanoTime = new AtomicLong(-1L);
 
     /**
      * The {@link List} of follow-up tasks that are currently being worked on.
@@ -1276,6 +1294,10 @@ public abstract class AbstractSchedulingService implements SchedulingService {
             }
         }
 
+        if (tasks.size() > 0) {
+            this.lastTaskActivityNanoTime.set(System.nanoTime());
+        }
+
         // loop through the tasks
         for (Task task : tasks) {
             synchronized (this) {
@@ -1289,8 +1311,7 @@ public abstract class AbstractSchedulingService implements SchedulingService {
                     // enqueue the follow-up task for later retrieval
                     this.enqueueFollowUpTask(task);
 
-                    // notify all that a new follow-up task was enqueued
-                    this.notifyAll();
+                    // continue on
                     continue;
                 }
 
@@ -1321,11 +1342,23 @@ public abstract class AbstractSchedulingService implements SchedulingService {
                     ScheduledTask scheduledTask = new ScheduledTask(task);
                     this.pendingTasks.add(scheduledTask);
                 }
+            }
+        }
 
-                // for good measure notify all that a new task was scheduled
+        // ensure we notify all if new tasks were scheduled
+        if (tasks.size() > 0) {
+            synchronized (this) {
                 this.notifyAll();
             }
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public long getLastTaskActivityNanoTime() {
+        return this.lastTaskActivityNanoTime.get();
     }
 
     /**
@@ -1339,9 +1372,6 @@ public abstract class AbstractSchedulingService implements SchedulingService {
 
         // set the hit flag to true
         boolean hit = true;
-
-        int prevPendingCount = -1;
-        int prevPostponedCount = -1;
 
         // wait for a task to be available
         while (this.getState().isAvailable() && (this.pendingTasks.size() == 0) && (!this.isFollowUpReadyCheckTime())
@@ -1409,6 +1439,8 @@ public abstract class AbstractSchedulingService implements SchedulingService {
                 try {
                     task = this.getReadyFollowUpTask();
                 } catch (ServiceExecutionException e) {
+                    // we don't want to check again right away if we got an error
+                    this.followUpNanoTime = System.nanoTime();
                     logWarning(e, "FAILED TO OBTAIN A FOLLOW-UP TASK, " + "DEFERRING FOLLOW-UP TASKS FOR NOW");
                 } finally {
                     this.timerPause(checkFollowUp);
@@ -1422,6 +1454,9 @@ public abstract class AbstractSchedulingService implements SchedulingService {
 
         // if not null then return the task
         if (task != null) {
+            // update the last-activity timestamp here
+            this.lastTaskActivityNanoTime.set(System.nanoTime());
+            
             // ensure the timers toggled correctly
             this.timerPause(waitingOnPostponed, waitingForTasks);
             this.timerStart(activelyHandling);
@@ -1588,6 +1623,42 @@ public abstract class AbstractSchedulingService implements SchedulingService {
         // if we get here without returning a message then return null
         return null;
     }
+
+    /**
+     * Implemented to return the sum of the in-progress non-follow-up
+     * tasks and the pending tasks (including postponed tasks).
+     * <p>
+     * {@inheritDoc}
+     */
+    @Override
+    public synchronized Long getRemainingTasksCount() {
+        return Long.valueOf(this.inProgressTaskCount.get() 
+                            + this.pendingTasks.size() 
+                            + this.postponedTasks.size());
+    }
+
+    /**
+     * Implemented to return the sum of the in-progress follow-up 
+     * tasks and the {@linkplain #countScheduledFollowUpTasks()
+     * scheduled follow-up tasks}.
+     */
+    @Override
+    public synchronized Long getRemainingFollowUpTasksCount() {
+        return Long.valueOf(this.inProgressFollowUpCount.get() 
+                            + this.countScheduledFollowUpTasks());
+    }
+
+    /**
+     * Implement this to count the number of scheduled follow-up tasks
+     * and return the count.  This may return <code>null</code> if the
+     * count cannot be determined or an error occurs in obtaining the
+     * count.
+     * 
+     * @return The count of the number of scheduled follow-up tasks, 
+     *         or <code>null</code> if the count cannot be determined.
+     *         
+     */
+    protected abstract Long countScheduledFollowUpTasks();
 
     /**
      * Removes any aborted backing tasks from the specified {@link ScheduledTask},
@@ -1829,51 +1900,77 @@ public abstract class AbstractSchedulingService implements SchedulingService {
             // set the handling tasks flag
             this.handlingTasks = true;
 
-            // verify the handling thread is null
-            if (this.taskHandlingThread != null) {
-                throw new IllegalStateException("Task handling thread seems to already exist.");
-            }
+            try {
+                // verify the handling thread is null
+                if (this.taskHandlingThread != null) {
+                    throw new IllegalStateException("Task handling thread seems to already exist.");
+                }
 
-            // create the thread
-            this.taskHandlingThread = new Thread(() -> {
-                TaskHandler taskHandler = this.getTaskHandler();
-                Boolean ready = null;
-                int count = 0;
+                // create the thread
+                this.taskHandlingThread = new Thread(() -> {
+                    boolean success = false;
+                    TaskHandler taskHandler = this.getTaskHandler();
+                    Boolean ready = null;
+                    int count = 0;
 
-                try {
-                    do {
-                        if (count > 0) {
-                            logInfo("****** STILL WAITING ON TASK HANDLER READINESS");
+                    try {
+                        try {
+                            do {
+                                if (count > 0) {
+                                    logInfo("****** STILL WAITING ON TASK HANDLER READINESS");
+                                }
+                                count++;
+                                ready = taskHandler.waitUntilReady(READY_TIMEOUT);
+                            } while (FALSE.equals(ready));
+
+                        } catch (InterruptedException e) {
+                            logWarning("****** INTERRUPTED WHILE WAITING ON TASK HANDLER " + "READINESS");
+                            System.err.println(e.getMessage());
+                            System.err.println(formatStackTrace(e.getStackTrace()));
+                            return;
                         }
-                        count++;
-                        ready = taskHandler.waitUntilReady(READY_TIMEOUT);
-                    } while (FALSE.equals(ready));
 
-                } catch (InterruptedException e) {
-                    logWarning("****** INTERRUPTED WHILE WAITING ON TASK HANDLER " + "READINESS");
-                    System.err.println(e.getMessage());
-                    System.err.println(formatStackTrace(e.getStackTrace()));
-                    return;
+                        // check if ready state indicates a failure
+                        if (ready == null) {
+                            logWarning("****** TASK HANDLER HAS INDICATED A FAILURE PREVENTING " 
+                                    + "READINESS (CHECK LOGS)");
+                            return;
+                        }
+
+                        // check if ready state is false (should not get here)
+                        if (FALSE.equals(ready)) {
+                            logWarning("****** TASK HANDLER NEVER BECAME READY TO HANDLE TASKS");
+                            return;
+                        }
+
+                        SUPPRESS_HANDLING_CHECK.set(true);
+                        success = true;
+                        this.handleTasks();
+
+                    } finally {
+                        if (!success) {
+                            synchronized (this) {
+                                this.handlingTasks = false;
+                                this.notifyAll();
+                            }
+                        }
+                    }
+                });
+
+                // start the thread
+                this.taskHandlingThread.start();
+
+            } finally {
+                // check if we never got the thread going
+                if (this.taskHandlingThread == null
+                    || this.taskHandlingThread.getState() == Thread.State.NEW)
+                {
+                    synchronized (this) {
+                        this.handlingTasks = false;
+                        this.notifyAll();
+                    }
                 }
-
-                // check if ready state indicates a failure
-                if (ready == null) {
-                    logWarning("****** TASK HANDLER HAS INDICATED A FAILURE PREVENTING " + "READINESS (CHECK LOGS)");
-                    return;
-                }
-
-                // check if ready state is false (should not get here)
-                if (FALSE.equals(ready)) {
-                    logWarning("****** TASK HANDLER NEVER BECAME READY TO HANDLE TASKS");
-                    return;
-                }
-
-                SUPPRESS_HANDLING_CHECK.set(true);
-                this.handleTasks();
-            });
-
-            // start the thread
-            this.taskHandlingThread.start();
+            }
         }
     }
 
@@ -1927,18 +2024,27 @@ public abstract class AbstractSchedulingService implements SchedulingService {
                 if (task != null) {
                     this.timerPause(betweenTasks);
                     this.timerStart(activelyHandling);
+                    if (task.isFollowUp()) {
+                        this.inProgressFollowUpCount.incrementAndGet();
+                    } else {
+                        this.inProgressTaskCount.incrementAndGet();
+                    }
 
                     // prep a task reference for the
                     final ScheduledTask currentTask = task;
                     final Timers timers = new Timers();
+                    this.lastTaskActivityNanoTime.set(System.nanoTime());
                     timers.start(waitForWorker.toString());
                     AsyncResult<TaskResult> result = this.workerPool.execute(() -> {
                         try {
+                            this.lastTaskActivityNanoTime.set(System.nanoTime());
                             // handle the task
                             timers.start(handleTask.toString());
                             currentTask.beginHandling();
-                            taskHandler.handleTask(currentTask.getAction(), currentTask.getParameters(),
-                                    currentTask.getMultiplicity(), this.createFollowUpScheduler(currentTask));
+                            taskHandler.handleTask(currentTask.getAction(), 
+                                                   currentTask.getParameters(),
+                                                   currentTask.getMultiplicity(),
+                                                   this.createFollowUpScheduler(currentTask));
                             timers.pause(handleTask.toString());
 
                             // in case of success mark it as handled
@@ -1964,12 +2070,22 @@ public abstract class AbstractSchedulingService implements SchedulingService {
                             }
 
                             // release any associated locks on the resources
-                            timers.start(releaseLocks.toString());
-                            currentTask.releaseLocks(this.getLockingService());
-                            timers.pause(releaseLocks.toString());
+                            try {
+                                timers.start(releaseLocks.toString());
+                                currentTask.releaseLocks(this.getLockingService());
+                                timers.pause(releaseLocks.toString());
 
-                            // record statistics
-                            this.recordStatistics(task, timers);
+                                // record statistics
+                                this.recordStatistics(task, timers);
+
+                            } finally {
+                                // ensure we decrement the counts
+                                if (task.isFollowUp()) {
+                                    this.inProgressFollowUpCount.decrementAndGet();
+                                } else {
+                                    this.inProgressTaskCount.decrementAndGet();
+                                }
+                            }
                         }
 
                         return new TaskResult(currentTask, timers);
@@ -1980,14 +2096,21 @@ public abstract class AbstractSchedulingService implements SchedulingService {
                 this.timerStart(betweenTasks);
             }
 
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            System.err.println(formatStackTrace(e.getStackTrace()));
+
+        } finally {
             // when done, close out the worker pool
             try {
-                // if we get here then all postponed tasks have been handled and we
-                // are no longer scheduling tasks -- time to wait for completion of
-                // in-flight tasks so they can be disposed
-                List<AsyncResult<TaskResult>> results = this.workerPool.close();
-                for (AsyncResult<TaskResult> result : results) {
-                    this.handleAsyncResult(result);
+                if (this.workerPool != null) {
+                    // if we get here then all postponed tasks have been handled and we
+                    // are no longer scheduling tasks -- time to wait for completion of
+                    // in-flight tasks so they can be disposed
+                    List<AsyncResult<TaskResult>> results = this.workerPool.close();
+                    for (AsyncResult<TaskResult> result : results) {
+                        this.handleAsyncResult(result);
+                    }
                 }
             } finally {
                 this.timerPause(taskHandling, activelyHandling, waitingForTasks, waitingOnPostponed);
@@ -1998,10 +2121,6 @@ public abstract class AbstractSchedulingService implements SchedulingService {
                     this.notifyAll();
                 }
             }
-
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-            System.err.println(formatStackTrace(e.getStackTrace()));
         }
     }
 
@@ -2383,9 +2502,23 @@ public abstract class AbstractSchedulingService implements SchedulingService {
         }
 
         // join against the scheduler thread
+        Thread taskThread = null;
+        synchronized (this) {
+            taskThread = this.taskHandlingThread;
+        }
         try {
-            this.taskHandlingThread.join();
+            if (taskThread != null
+                && Thread.currentThread() != taskThread
+                && taskThread.isAlive()) 
+            {
+                taskThread.join();
+            }
 
+            synchronized (this) {
+                if (this.taskHandlingThread == taskThread) {
+                    this.taskHandlingThread = null;
+                }
+            }
         } catch (InterruptedException ignore) {
             // ignore the exception
         }

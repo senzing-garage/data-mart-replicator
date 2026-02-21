@@ -207,7 +207,7 @@ public class SzEntitiesPage implements Serializable {
 
     /**
      * Gets the minimum entity ID of the entire entity page. This will be the same
-     * as the {@linkplain #getMinimumValue() minimum value} the
+     * as the {@linkplain #getMinimumValue() minimum value} if the
      * {@linkplain #getSampleSize() sample size} was not specified, however, if
      * sample size was specified then this will be the minimum entity ID value of
      * all the candidate entities on the page that were used for random sample
@@ -219,7 +219,7 @@ public class SzEntitiesPage implements Serializable {
      */
     @JsonInclude(NON_NULL)
     public Long getPageMinimumValue() {
-        if (this.getSampleSize() == null && this.pageMinimumValue == null) {
+        if (this.getSampleSize() == null || this.pageMinimumValue == null) {
             return this.getMinimumValue();
         }
         return this.pageMinimumValue;
@@ -243,7 +243,7 @@ public class SzEntitiesPage implements Serializable {
 
     /**
      * Gets the maximum entity ID of the entire entity page. This will be the same
-     * as the {@linkplain #getMaximumValue() maximum value} the
+     * as the {@linkplain #getMaximumValue() maximum value} if the
      * {@linkplain #getSampleSize() sample size} was not specified, however, if
      * sample size was specified then this will be the maximum entity ID value of
      * all the candidate entities on the page that were used for random sample
@@ -255,7 +255,7 @@ public class SzEntitiesPage implements Serializable {
      */
     @JsonInclude(NON_NULL)
     public Long getPageMaximumValue() {
-        if (this.getSampleSize() == null && this.pageMaximumValue == null) {
+        if (this.getSampleSize() == null || this.pageMaximumValue == null) {
             return this.getMaximumValue();
         }
         return this.pageMaximumValue;
@@ -455,8 +455,8 @@ public class SzEntitiesPage implements Serializable {
         SzEntitiesPage other = (SzEntitiesPage) obj;
         return Objects.equals(bound, other.bound) && boundType == other.boundType && pageSize == other.pageSize
                 && Objects.equals(sampleSize, other.sampleSize)
-                && Objects.equals(pageMinimumValue, other.pageMinimumValue)
-                && Objects.equals(pageMaximumValue, other.pageMaximumValue)
+                && Objects.equals(getPageMinimumValue(), other.getPageMinimumValue())
+                && Objects.equals(getPageMaximumValue(), other.getPageMaximumValue())
                 && totalEntityCount == other.totalEntityCount && beforePageCount == other.beforePageCount
                 && afterPageCount == other.afterPageCount && Objects.equals(entities, other.entities);
     }

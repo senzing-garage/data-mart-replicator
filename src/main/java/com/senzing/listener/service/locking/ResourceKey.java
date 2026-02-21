@@ -1,7 +1,5 @@
 package com.senzing.listener.service.locking;
 
-import com.senzing.cmdline.CommandLineUtilities;
-
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -12,7 +10,6 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.senzing.io.IOUtilities.UTF_8;
-import static com.senzing.util.LoggingUtilities.formatStackTrace;
 
 /**
  * Provides a key for identifying a resource that can be locked via the
@@ -237,30 +234,5 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey> 
             throw new IllegalStateException("UTF-8 supporting is not supported.");
         }
 
-    }
-
-    /**
-     * Simple test main that constructs a {@link ResourceKey} and converts it to a
-     * {@link String}.
-     * 
-     * @param args The command-line arguments.
-     */
-    public static void main(String[] args) {
-        try {
-            if (args.length == 0) {
-                System.err.println("Required parameters: <resource_type> <comp>*");
-                System.exit(1);
-            }
-            String resourceType = args[0];
-            String[] components = (args.length > 1) ? CommandLineUtilities.shiftArguments(args, 1) : new String[0];
-
-            ResourceKey key = new ResourceKey(resourceType, components);
-
-            System.out.println(key);
-
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-            System.err.println(formatStackTrace(e.getStackTrace()));
-        }
     }
 }

@@ -7,7 +7,7 @@ import com.senzing.datamart.model.SzMatchType;
  * The key for a cross-relation report statistic comprising two data sources, a
  * match type, an optional principle and an optional match key.
  */
-public class CrossRelationKey implements Comparable<CrossRelationKey> {
+public final class CrossRelationKey implements Comparable<CrossRelationKey> {
     /**
      * The first data source.
      */
@@ -36,12 +36,12 @@ public class CrossRelationKey implements Comparable<CrossRelationKey> {
     /**
      * Constructs with the specified data source codes and {@link SzMatchType}.
      *
-     * @param source    The data source code representing both the "from" and "to"
-     *                  data source.
-     * @param matchType The {@link SzMatchType} describing the match type.
+     * @param source    The non-null data source code representing both the
+     *                  "from" and "to" data source.
+     * @param matchType The non-null {@link SzMatchType} describing the match type.
      * @param matchKey  The optional match key for the relationships.
      * @param principle The optional principle for the relationships.
-     * @throws NullPointerException If any of the parameter is <code>null</code>
+     * @throws NullPointerException If any of the required parameters is <code>null</code>
      */
     public CrossRelationKey(String      source, 
                             SzMatchType matchType,
@@ -55,12 +55,12 @@ public class CrossRelationKey implements Comparable<CrossRelationKey> {
     /**
      * Constructs with the specified data source codes and {@link SzMatchType}.
      *
-     * @param source1   The first ("from") data source code.
-     * @param source2   The second ("to") data source code.
-     * @param matchType The {@link SzMatchType} describing the match type.
-     * @param matchKey  The match key for the relationships.
-     * @param principle The principle for the relationships.
-     * @throws NullPointerException If any of the parameter is <code>null</code>
+     * @param source1   The non-null first ("from") data source code.
+     * @param source2   The non-null second ("to") data source code.
+     * @param matchType The non-null {@link SzMatchType} describing the match type.
+     * @param matchKey  The optional match key for the relationships.
+     * @param principle The optional principle for the relationships.
+     * @throws NullPointerException If any of the required parameters is <code>null</code>
      */
     public CrossRelationKey(String      source1, 
                             String      source2, 
@@ -198,12 +198,6 @@ public class CrossRelationKey implements Comparable<CrossRelationKey> {
         SzMatchType matchType1 = this.getMatchType();
         SzMatchType matchType2 = key.getMatchType();
         if (matchType1 != matchType2) {
-            if (matchType1 == null) {
-                return -1;
-            }
-            if (matchType2 == null) {
-                return 1;
-            }
             return matchType1.compareTo(matchType2);
         }
 

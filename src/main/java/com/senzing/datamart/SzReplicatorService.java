@@ -20,6 +20,7 @@ import com.senzing.sql.DatabaseType;
 import javax.json.JsonObject;
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.senzing.listener.service.AbstractListenerService.MessagePart.*;
 import static com.senzing.listener.service.ServiceUtilities.*;
@@ -32,6 +33,11 @@ import static com.senzing.util.LoggingUtilities.*;
  * Extends {@link AbstractListenerService} to implement a data mart replication.
  */
 public class SzReplicatorService extends AbstractListenerService {
+    /**
+     * Constant for converting between nanoseconds and milliseconds.
+     */
+    private static final long ONE_MILLION = 1000000L;
+
     /**
      * The initialization key for obtaining the {@link ConnectionProvider} from the
      * {@link ConnectionProvider#REGISTRY}. This initialization parameter is
@@ -54,8 +60,9 @@ public class SzReplicatorService extends AbstractListenerService {
     /**
      * The {@link Map} of {@link DatabaseType} keys to {@link SchemaBuilder} values.
      */
-    private static final Map<DatabaseType, SchemaBuilder> SCHEMA_BUILDER_MAP = Map.of(SQLITE, new SQLiteSchemaBuilder(),
-            POSTGRESQL, new PostgreSQLSchemaBuilder());
+    private static final Map<DatabaseType, SchemaBuilder> SCHEMA_BUILDER_MAP 
+        = Map.of(SQLITE, new SQLiteSchemaBuilder(),
+                 POSTGRESQL, new PostgreSQLSchemaBuilder());
 
     /**
      * The {@link SzReplicationProvider} implementation used by
@@ -106,6 +113,7 @@ public class SzReplicatorService extends AbstractListenerService {
          */
         @Override
         public void scheduleReportFollowUp(String reportAction, SzReportKey reportKey) {
+            SzReplicatorService.this.lastReportActivityNanoTime.set(System.nanoTime());
             SzReplicatorService.this.reportUpdater.addReportTask(reportKey, reportAction);
         }
 
@@ -137,6 +145,11 @@ public class SzReplicatorService extends AbstractListenerService {
      * The {@link ReportUpdater} to handle background report updates.
      */
     private ReportUpdater reportUpdater = null;
+
+    /**
+     * Tracks the time of the last report activity.
+     */
+    private AtomicLong lastReportActivityNanoTime = new AtomicLong(System.nanoTime());
 
     /**
      * The {@link SzReplicationProvider} for this instance.
@@ -224,15 +237,20 @@ public class SzReplicatorService extends AbstractListenerService {
 
             while (!this.isShutdown()) {
                 synchronized (this) {
-                    Scheduler scheduler = scheduling.createScheduler(true);
+                    Scheduler scheduler = (this.reportKeyMap.size() > 0)
+                        ? scheduling.createScheduler(true) : null;
                     this.reportKeyMap.forEach((reportKey, action) -> {
-                        scheduler.createTaskBuilder(action).resource("REPORT", reportKey.toString())
+                        replicator.lastReportActivityNanoTime.set(System.nanoTime());
+                        scheduler.createTaskBuilder(action)
+                                .resource("REPORT", reportKey.toString())
                                 .parameter("reportKey", reportKey.toString()).schedule();
                     });
                     try {
-                        scheduler.commit();
-                        this.reportKeyMap.clear();
-
+                        if (scheduler != null) {
+                            scheduler.commit();
+                            this.reportKeyMap.clear();
+                        }
+                        
                     } catch (ServiceExecutionException e) {
                         logWarning(e, "FAILED TO SCHEDULE PERIODIC REPORT UPDATE: ");
                     }
@@ -268,9 +286,12 @@ public class SzReplicatorService extends AbstractListenerService {
 
         RelationBreakdownReportHandler relBreakdownHandler = new RelationBreakdownReportHandler(this.provider);
 
-        this.handlerMap = Map.of(REFRESH_ENTITY, entityHandler, UPDATE_DATA_SOURCE_SUMMARY, summaryHandler,
-                UPDATE_CROSS_SOURCE_SUMMARY, crossHandler, UPDATE_ENTITY_SIZE_BREAKDOWN, sizeBreakdownHandler,
-                UPDATE_ENTITY_RELATION_BREAKDOWN, relBreakdownHandler);
+        this.handlerMap = Map.of(
+            REFRESH_ENTITY, entityHandler,
+            UPDATE_DATA_SOURCE_SUMMARY, summaryHandler,
+            UPDATE_CROSS_SOURCE_SUMMARY, crossHandler,
+            UPDATE_ENTITY_SIZE_BREAKDOWN, sizeBreakdownHandler,
+            UPDATE_ENTITY_RELATION_BREAKDOWN, relBreakdownHandler);
     }
 
     /**
@@ -325,6 +346,112 @@ public class SzReplicatorService extends AbstractListenerService {
     }
 
     /**
+     * Gets the number of pending report updates.
+     * 
+     * @return The number of pending report updates.
+     */
+    protected long getPendingReportUpdateCount() {
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            // get the connection
+            conn = this.getConnection();
+
+            // create a statement
+            stmt = conn.createStatement();
+
+            // get the pending report keys
+            rs = stmt.executeQuery("SELECT COUNT(*) FROM sz_dm_pending_report");
+            rs.next();
+
+            synchronized (this.reportUpdater) {
+                return ((long) this.reportUpdater.reportKeyMap.size())
+                        + rs.getLong(1);
+            }
+        
+        } catch (SQLException e) { 
+            throw new IllegalStateException(e);
+
+        } finally {
+            rs = close(rs);
+            stmt = close(stmt);
+            conn = close(conn);
+        }
+    }
+
+    /**
+     * Checks if this replicator service has been idle for at least the
+     * specified number of milliseconds, optionally waiting for the
+     * specified maximum wait tine for it to become idle.
+     * 
+     * @param idleTime The number of milliseconds that the replicator
+     *                 service must be idle before this will return
+     *                 <code>true</code>.
+     * 
+     * @param maxWaitTime The maximum wait time in milliseconds to wait for
+     *                    the replicator service to become idle, or zero (0)
+     *                    if just checking without waiting and a negative
+     *                    number to wait indefinitely.
+     * 
+     * @return <code>true</code> if idle, otherwise <code>false</code>.
+     */
+    public boolean waitUntilIdle(long idleTime, long maxWaitTime) {
+        logInfo("Beginning SzReplicatorService.waitUntilIdle()");
+        long    start           = System.nanoTime();
+        long    maxWaitNanos    = maxWaitTime * ONE_MILLION;
+        boolean firstPass       = true;
+        do {
+            // check if we should sleep before checking if idle
+            if (!firstPass && maxWaitTime != 0L) {
+                long now = System.nanoTime();
+                long sleepTime = 1000L;
+                if (maxWaitTime > 0L && ((maxWaitNanos - (now - start)) / ONE_MILLION < sleepTime)) {
+                    sleepTime = (maxWaitNanos - (now - start)) / ONE_MILLION;
+                }
+                try {
+                    Thread.sleep(sleepTime);
+                } catch (InterruptedException ignore) {
+                    // do nothing
+                }
+            }
+
+            firstPass = false; // ensure we wait on subsequent passes
+
+            long updateCount    = this.getPendingReportUpdateCount();
+            long taskCount      = this.getSchedulingService().getAllRemainingTasksCount();
+            
+            // check if nothing pending
+            if (updateCount == 0L && taskCount == 0L) {
+                // check the idle time
+                long nowNanos       = System.nanoTime();
+                long reportNanos    = this.lastReportActivityNanoTime.get();
+                long taskNanos      = this.getSchedulingService().getLastTaskActivityNanoTime();
+
+                long reportIdle = ((nowNanos - reportNanos) / ONE_MILLION);
+                long taskIdle = ((nowNanos - taskNanos) / ONE_MILLION);
+
+                // check if the scheduler and the report updates have been idle for long enough
+                if (reportIdle >= idleTime && taskIdle >= idleTime)
+                {
+                    logInfo("SzReplicatorService found to be idle");
+                    return true;
+                }
+            }
+            
+        } while (maxWaitTime < 0L || (maxWaitTime > 0L && (System.nanoTime() - start) < maxWaitNanos));
+        logInfo("SzReplicatorService NOT found to be idle: ",
+                " - - - - - - - - - - - - - - - - - - - - - - - ",
+                "    Remaining Report Updates  : " + this.getPendingReportUpdateCount(),
+                "    Report Idle Time          : " + ((System.nanoTime() - this.lastReportActivityNanoTime.get()) / ONE_MILLION) + "ms",
+                "    Remaining Scheduled Tasks : " + this.getSchedulingService().getAllRemainingTasksCount(),
+                "    Task Idle Time            : " + ((System.nanoTime() - this.getSchedulingService().getLastTaskActivityNanoTime()) / ONE_MILLION) + "ms",
+                " - - - - - - - - - - - - - - - - - - - - - - - ");
+        
+        return false;
+    }
+
+    /**
      * Implemented to delegate to a {@link TaskHandler} implementation based on the
      * specified action.
      *
@@ -338,17 +465,31 @@ public class SzReplicatorService extends AbstractListenerService {
      * @throws ServiceExecutionException If a failure occurs.
      */
     @Override
-    protected void handleTask(String action, Map<String, Object> parameters, int multiplicity, Scheduler followUpScheduler) throws ServiceExecutionException {
+    protected void handleTask(String                action, 
+                              Map<String, Object>   parameters, 
+                              int                   multiplicity,
+                              Scheduler             followUpScheduler) 
+        throws ServiceExecutionException 
+    {
         TaskAction taskAction = null;
         try {
             taskAction = TaskAction.valueOf(action);
 
             TaskHandler handler = this.handlerMap.get(taskAction);
 
+            if (handler == null) {
+                throw new ServiceExecutionException(
+                    "The specified action (" + action + ") is not recognized: " 
+                    + this.handlerMap);
+            }
             handler.handleTask(action, parameters, multiplicity, followUpScheduler);
 
+        } catch (ServiceExecutionException e) {
+            throw e;
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
-            throw new ServiceExecutionException("The specified action is not recognized: " + action);
+            throw new ServiceExecutionException(e);
         }
 
     }
@@ -357,7 +498,9 @@ public class SzReplicatorService extends AbstractListenerService {
      * {@inheritDoc}
      */
     @Override
-    protected void doInit(JsonObject config) throws ServiceSetupException {
+    protected synchronized void doInit(JsonObject config) 
+        throws ServiceSetupException 
+    {
         try {
             // set up the connection provider
             String providerName = getConfigString(config, CONNECTION_PROVIDER_KEY, true);
@@ -368,7 +511,10 @@ public class SzReplicatorService extends AbstractListenerService {
 
             this.ensureSchema(false);
 
-            long period = getConfigLong(config, REPORT_UPDATE_PERIOD_KEY, 1L, DEFAULT_REPORT_UPDATE_PERIOD);
+            long period = getConfigLong(config, 
+                                        REPORT_UPDATE_PERIOD_KEY,
+                                        1L,
+                                        DEFAULT_REPORT_UPDATE_PERIOD);
 
             this.reportUpdater = new ReportUpdater(this, period);
 
@@ -388,9 +534,26 @@ public class SzReplicatorService extends AbstractListenerService {
      */
     @Override
     protected void doDestroy() {
-        this.reportUpdater.shutdown();
+        ReportUpdater updater = null;
+        synchronized (this) {
+            updater = this.reportUpdater;
+        }
+        if (updater != null) {
+            updater.shutdown();
+        }
+
         try {
-            this.reportUpdater.join();
+            if (updater != Thread.currentThread() && updater.isAlive())
+            {
+                updater.join();
+            }
+
+            synchronized (this) {
+                if (updater == this.reportUpdater) {
+                    this.reportUpdater = null;
+                }
+            }
+
         } catch (InterruptedException ignore) {
             // ignore
         }

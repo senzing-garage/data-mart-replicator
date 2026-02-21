@@ -517,7 +517,8 @@ public class SzInfoMessage implements Serializable {
         AFFECTED_ENTITIES_KEY,
         INTERESTING_ENTITIES_KEY,
         ENTITIES_KEY,
-        NOTICES_KEY);
+        NOTICES_KEY,
+        false);
   }
 
   /**
@@ -567,7 +568,8 @@ public class SzInfoMessage implements Serializable {
         RAW_AFFECTED_ENTITIES_KEY,
         RAW_INTERESTING_ENTITIES_KEY,
         RAW_ENTITIES_KEY,
-        RAW_NOTICES_KEY);
+        RAW_NOTICES_KEY,
+        true);
   }
 
   /**
@@ -593,6 +595,10 @@ public class SzInfoMessage implements Serializable {
    *
    * @param noticesKey             The JSON property key for the notices property.
    *
+   * @param rawJson                <code>true</code> if parsing raw Senzing INFO
+   *                               message JSON, <code>false</code> if parsing
+   *                               the serialized form from this class.
+   *
    * @return The created {@link SzInfoMessage} instance, or <code>null</code>
    *         if the specified parameter is <code>null</code>.
    *
@@ -606,35 +612,35 @@ public class SzInfoMessage implements Serializable {
       String affectedEntitiesKey,
       String interestingEntitiesKey,
       String entitiesKey,
-      String noticesKey)
+      String noticesKey,
+      boolean rawJson)
       throws IllegalArgumentException {
     if (jsonObject == null) {
       return null;
     }
     if (!jsonObject.containsKey(dataSourceKey)
-        || !jsonObject.containsKey(recordIdKey)
-        || !jsonObject.containsKey(affectedEntitiesKey)) {
+        || !jsonObject.containsKey(recordIdKey)) {
       throw new IllegalArgumentException(
-          "The specified JSON must at contain the \"" + dataSourceKey
-              + "\", \"" + recordIdKey + "\", and \""
-              + affectedEntitiesKey + "\" properties: "
+          "The specified JSON must contain the \"" + dataSourceKey
+              + "\" and \"" + recordIdKey + "\" properties: "
               + JsonUtilities.toJsonText(jsonObject));
     }
     String dataSource = JsonUtilities.getString(jsonObject, dataSourceKey);
 
     String recordId = JsonUtilities.getString(jsonObject, recordIdKey);
 
-    // parse the affected entity ID's
+    // parse the affected entity ID's (absent key treated as null, constructor normalizes to empty)
     JsonArray arr = JsonUtilities.getJsonArray(jsonObject, affectedEntitiesKey);
-    List<Long> entityIds = (arr == null) ? null : new ArrayList<>(arr.size());
+    List<Long> entityIds = null;
     if (arr != null) {
+      entityIds = new ArrayList<>(arr.size());
       for (int index = 0; index < arr.size(); index++) {
         JsonObject affectedObj = JsonUtilities.getJsonObject(arr, index);
         entityIds.add(JsonUtilities.getLong(affectedObj, RAW_ENTITY_ID_KEY));
       }
     }
 
-    // parse the interesting entities
+    // parse the interesting entities (absent keys treated as null, constructor normalizes to empty)
     JsonObject object = JsonUtilities.getJsonObject(jsonObject,
         interestingEntitiesKey);
     List<SzInterestingEntity> entities = null;
@@ -642,20 +648,23 @@ public class SzInfoMessage implements Serializable {
 
     if (object != null) {
       arr = JsonUtilities.getJsonArray(object, entitiesKey);
-      entities = (arr == null) ? null : new ArrayList<>(arr.size());
       if (arr != null) {
+        entities = new ArrayList<>(arr.size());
         for (JsonObject obj : arr.getValuesAs(JsonObject.class)) {
-          entities.add(SzInterestingEntity.fromJson(obj));
+          entities.add(rawJson
+              ? SzInterestingEntity.fromRawJson(obj)
+              : SzInterestingEntity.fromJson(obj));
         }
       }
 
       // parse the notices
       arr = JsonUtilities.getJsonArray(object, noticesKey);
-      notices = (arr == null) ? null : new ArrayList<>(arr.size());
-
       if (arr != null) {
+        notices = new ArrayList<>(arr.size());
         for (JsonObject obj : arr.getValuesAs(JsonObject.class)) {
-          notices.add(SzNotice.fromJson(obj));
+          notices.add(rawJson
+              ? SzNotice.fromRawJson(obj)
+              : SzNotice.fromJson(obj));
         }
       }
     }

@@ -139,10 +139,10 @@ public class SzLoadedStats implements Serializable {
      * <code>null</code> {@link List} is equivalent to specifying an empty
      * {@link List}.
      * 
-     * @param statsList The {@link List} of {@link SzSourceLoadedStats} describing
-     *                  the count statistics for each data source.
+     * @param statsList The {@link Collection} of {@link SzSourceLoadedStats}
+     *                  describing the count statistics for each data source.
      */
-    public void setDataSourceCounts(List<SzSourceLoadedStats> statsList) {
+    public void setDataSourceCounts(Collection<SzSourceLoadedStats> statsList) {
         this.dataSourceCounts.clear();
         if (statsList != null) {
             statsList.forEach(stats -> {

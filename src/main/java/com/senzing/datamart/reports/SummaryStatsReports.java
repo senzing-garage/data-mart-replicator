@@ -116,7 +116,7 @@ public final class SummaryStatsReports {
         try {
             for (String dataSource : reportSources) {
                 result.addSourceSummary(getSourceSummary(
-                    conn, dataSource, matchKey, principle, dataSources, timers));
+                    conn, dataSource, matchKey, principle, reportSources, timers));
             }
         } finally {
             AUGMENT_DATA_SOURCES.set(initialValue);
@@ -190,7 +190,8 @@ public final class SummaryStatsReports {
                     "SELECT statistic, entity_count, record_count "
                     + "FROM sz_dm_report WHERE report=? " 
                     + "AND data_source1 = ? AND data_source2 = ? "
-                    + "AND statistic IN (?, ?)" 
+                    + "AND statistic IN (?, ?) "
+                    + "AND (entity_count <> 0 OR record_count <> 0) " 
                     + "ORDER BY statistic");
 
                 // bind the parameters
@@ -406,6 +407,8 @@ public final class SummaryStatsReports {
         throws NullPointerException, SQLException
     {
         Objects.requireNonNull(conn, "The connection cannot be null");
+        Objects.requireNonNull(dataSource, "The data source cannot be null");
+        Objects.requireNonNull(vsDataSource, "The versus data source cannot be null");
         
         // normalize the match key and principle
         if (requestedMatchKey != null) {
@@ -446,6 +449,7 @@ public final class SummaryStatsReports {
                     + "FROM sz_dm_report WHERE report=? AND data_source1 = ? "
                     + "AND data_source2 = ? AND statistic NOT IN (?, ?) "
                     + ((requestedStatistic != null) ? "AND statistic LIKE ? " : "") 
+                    + "AND (entity_count <> 0 OR record_count <> 0 OR relation_count <> 0) "
                     + "ORDER BY statistic");
 
                 // bind the parameters
@@ -757,7 +761,7 @@ public final class SummaryStatsReports {
         SzCrossSourceRelationCounts result 
             = new SzCrossSourceRelationCounts(dataSource, vsDataSource, POSSIBLE_MATCH);
 
-        result.setCounts(summary.getAmbiguousMatches());
+        result.setCounts(summary.getPossibleMatches());
 
         return result;
     }
@@ -816,7 +820,7 @@ public final class SummaryStatsReports {
         SzCrossSourceRelationCounts result = new SzCrossSourceRelationCounts(
             dataSource, vsDataSource, POSSIBLE_RELATION);
 
-        result.setCounts(summary.getAmbiguousMatches());
+        result.setCounts(summary.getPossibleRelations());
 
         return result;
     }
@@ -875,7 +879,7 @@ public final class SummaryStatsReports {
         SzCrossSourceRelationCounts result = new SzCrossSourceRelationCounts(
             dataSource, vsDataSource, DISCLOSED_RELATION);
 
-        result.setCounts(summary.getAmbiguousMatches());
+        result.setCounts(summary.getDisclosedRelations());
 
         return result;
     }
@@ -1184,7 +1188,7 @@ public final class SummaryStatsReports {
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
-    public static SzEntitiesPage getSummaryDisclosedRelatedEntityIds(
+    public static SzEntitiesPage getSummaryDisclosedRelationEntityIds(
             Connection  conn,
             String      dataSource,
             String      matchKey,
@@ -1221,14 +1225,12 @@ public final class SummaryStatsReports {
      *                      entities are being retrieved.
      * @param matchKey   The optional match key for retrieving statistics
      *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) for all match keys, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a match key.
+     *                   (<code>"*"</code>) or <code>null</code> for all
+     *                   match keys.
      * @param principle  The optional principle for retrieving statistics
      *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) for all principles, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a principle.
+     *                   (<code>"*"</code>) or <code>null</code> for all 
+     *                   principles.
      * @param entityIdBound The bounded value for the returned entity ID's,
      *                      formatted as an integer or the word <code>"max"</code>.
      * @param boundType     The {@link SzBoundType} that describes how to apply the
@@ -1252,7 +1254,7 @@ public final class SummaryStatsReports {
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
-    public static SzEntitiesPage getSummaryMatchEntityIds(
+    public static SzEntitiesPage getCrossMatchEntityIds(
             Connection  conn,
             String      dataSource,
             String      vsDataSource,
@@ -1290,14 +1292,12 @@ public final class SummaryStatsReports {
      *                      entities are being retrieved.
      * @param matchKey   The optional match key for retrieving statistics
      *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) for all match keys, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a match key.
+     *                   (<code>"*"</code>) or <code>null</code> for all
+     *                   match keys.
      * @param principle  The optional principle for retrieving statistics
      *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) for all principles, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a principle.
+     *                   (<code>"*"</code>) or <code>null</code> for all 
+     *                   principles.
      * @param entityIdBound The bounded value for the returned entity ID's,
      *                      formatted as an integer or the word <code>"max"</code>.
      * @param boundType     The {@link SzBoundType} that describes how to apply the
@@ -1321,7 +1321,7 @@ public final class SummaryStatsReports {
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
-    public static SzEntitiesPage getSummaryAmbiguousMatchEntityIds(
+    public static SzEntitiesPage getCrossAmbiguousMatchEntityIds(
             Connection  conn,
             String      dataSource,
             String      vsDataSource,
@@ -1359,14 +1359,12 @@ public final class SummaryStatsReports {
      *                      entities are being retrieved.
      * @param matchKey   The optional match key for retrieving statistics
      *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) for all match keys, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a match key.
+     *                   (<code>"*"</code>) or <code>null</code> for all
+     *                   match keys.
      * @param principle  The optional principle for retrieving statistics
      *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) for all principles, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a principle.
+     *                   (<code>"*"</code>) or <code>null</code> for all 
+     *                   principles.
      * @param entityIdBound The bounded value for the returned entity ID's,
      *                      formatted as an integer or the word <code>"max"</code>.
      * @param boundType     The {@link SzBoundType} that describes how to apply the
@@ -1390,7 +1388,7 @@ public final class SummaryStatsReports {
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
-    public static SzEntitiesPage getSummaryPossibleMatchEntityIds(
+    public static SzEntitiesPage getCrossPossibleMatchEntityIds(
             Connection  conn,
             String      dataSource,
             String      vsDataSource,
@@ -1428,14 +1426,12 @@ public final class SummaryStatsReports {
      *                      entities are being retrieved.
      * @param matchKey   The optional match key for retrieving statistics
      *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) for all match keys, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a match key.
+     *                   (<code>"*"</code>) or <code>null</code> for all
+     *                   match keys.
      * @param principle  The optional principle for retrieving statistics
      *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) for all principles, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a principle.
+     *                   (<code>"*"</code>) or <code>null</code> for all 
+     *                   principles.
      * @param entityIdBound The bounded value for the returned entity ID's,
      *                      formatted as an integer or the word <code>"max"</code>.
      * @param boundType     The {@link SzBoundType} that describes how to apply the
@@ -1459,7 +1455,7 @@ public final class SummaryStatsReports {
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
-    public static SzEntitiesPage getSummaryPossibleRelationEntityIds(
+    public static SzEntitiesPage getCrossPossibleRelationEntityIds(
             Connection  conn,
             String      dataSource,
             String      vsDataSource,
@@ -1497,14 +1493,12 @@ public final class SummaryStatsReports {
      *                      entities are being retrieved.
      * @param matchKey   The optional match key for retrieving statistics
      *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) for all match keys, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a match key.
+     *                   (<code>"*"</code>) or <code>null</code> for all
+     *                   match keys.
      * @param principle  The optional principle for retrieving statistics
      *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) for all principles, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a principle.
+     *                   (<code>"*"</code>) or <code>null</code> for all 
+     *                   principles.
      * @param entityIdBound The bounded value for the returned entity ID's,
      *                      formatted as an integer or the word <code>"max"</code>.
      * @param boundType     The {@link SzBoundType} that describes how to apply the
@@ -1528,7 +1522,7 @@ public final class SummaryStatsReports {
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
-    public static SzEntitiesPage getSummaryDisclosedRelationEntityIds(
+    public static SzEntitiesPage getCrossDisclosedRelationEntityIds(
             Connection  conn,
             String      dataSource,
             String      vsDataSource,
@@ -1567,14 +1561,12 @@ public final class SummaryStatsReports {
      * @param statistic     The non-null {@link SzReportStatistic} to use.
      * @param matchKey   The optional match key for retrieving statistics
      *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) for all match keys, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a match key.
+     *                   (<code>"*"</code>) or <code>null</code> for all
+     *                   match keys.
      * @param principle  The optional principle for retrieving statistics
      *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) for all principles, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a principle.
+     *                   (<code>"*"</code>) or <code>null</code> for all 
+     *                   principles.
      * @param entityIdBound The bound value for the entity ID's that will be
      *                      returned.
      * @param boundType     The {@link SzBoundType} that describes how to apply the
@@ -1616,6 +1608,10 @@ public final class SummaryStatsReports {
         Objects.requireNonNull(vsDataSource,
         "The versus data source cannot be null");
 
+        // normalize the match key and principle
+        principle = "*".equals(principle) ? null : principle;
+        matchKey = "*".equals(matchKey) ? null : matchKey;
+
         String stat = statistic.principle(principle).matchKey(matchKey).format();
 
         SzReportCode reportCode = (dataSource.equals(vsDataSource)) 
@@ -1646,14 +1642,12 @@ public final class SummaryStatsReports {
      *                      entities are being retrieved.
      * @param matchKey   The optional match key for retrieving statistics
      *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) for all match keys, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a match key.
+     *                   (<code>"*"</code>) or <code>null</code> for all
+     *                   match keys.
      * @param principle  The optional principle for retrieving statistics
      *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) for all principles, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a principle.
+     *                   (<code>"*"</code>) or <code>null</code> for all 
+     *                   principles.
      * @param relationBound The bounded value for the returned relations.
      * @param boundType     The {@link SzBoundType} that describes how to apply the
      *                      specified entity ID bound.
@@ -1676,7 +1670,7 @@ public final class SummaryStatsReports {
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
-    public static SzRelationsPage getSummaryAmbiguousMatchRelations(
+    public static SzRelationsPage getSummaryAmbiguousMatches(
             Connection  conn,
             String      dataSource,
             String      vsDataSource,
@@ -1715,14 +1709,12 @@ public final class SummaryStatsReports {
      *                      entities are being retrieved.
      * @param matchKey   The optional match key for retrieving statistics
      *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) for all match keys, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a match key.
+     *                   (<code>"*"</code>) or <code>null</code> for all
+     *                   match keys.
      * @param principle  The optional principle for retrieving statistics
      *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) for all principles, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a principle.
+     *                   (<code>"*"</code>) or <code>null</code> for all 
+     *                   principles.
      * @param relationBound The bounded value for the returned relations.
      * @param boundType     The {@link SzBoundType} that describes how to apply the
      *                      specified entity ID bound.
@@ -1745,7 +1737,7 @@ public final class SummaryStatsReports {
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
-    public static SzRelationsPage getSummaryPossibleMatchRelations(
+    public static SzRelationsPage getSummaryPossibleMatches(
             Connection  conn,
             String      dataSource,
             String      vsDataSource,
@@ -1784,14 +1776,12 @@ public final class SummaryStatsReports {
      *                      entities are being retrieved.
      * @param matchKey   The optional match key for retrieving statistics
      *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) for all match keys, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a match key.
+     *                   (<code>"*"</code>) or <code>null</code> for all
+     *                   match keys.
      * @param principle  The optional principle for retrieving statistics
      *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) for all principles, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a principle.
+     *                   (<code>"*"</code>) or <code>null</code> for all 
+     *                   principles.
      * @param relationBound The bounded value for the returned relations.
      * @param boundType     The {@link SzBoundType} that describes how to apply the
      *                      specified entity ID bound.
@@ -1853,14 +1843,12 @@ public final class SummaryStatsReports {
      *                      entities are being retrieved.
      * @param matchKey   The optional match key for retrieving statistics
      *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) for all match keys, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a match key.
+     *                   (<code>"*"</code>) or <code>null</code> for all
+     *                   match keys.
      * @param principle  The optional principle for retrieving statistics
      *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) for all principles, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a principle.
+     *                   (<code>"*"</code>) or <code>null</code> for all 
+     *                   principles.
      * @param relationBound The bounded value for the returned relations.
      * @param boundType     The {@link SzBoundType} that describes how to apply the
      *                      specified entity ID bound.
@@ -1922,14 +1910,12 @@ public final class SummaryStatsReports {
      * @param statistic     The non-null {@link SzReportStatistic} to use.
      * @param matchKey   The optional match key for retrieving statistics
      *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) for all match keys, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a match key.
+     *                   (<code>"*"</code>) or <code>null</code> for all
+     *                   match keys.
      * @param principle  The optional principle for retrieving statistics
      *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) for all principles, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a principle.
+     *                   (<code>"*"</code>) or <code>null</code> for all 
+     *                   principles.
      * @param relationBound The bound value for the relation that is either a single
      *                      entity ID or a pair of entity ID's separated by a colon.
      * @param boundType     The {@link SzBoundType} that describes how to apply the
@@ -1970,6 +1956,10 @@ public final class SummaryStatsReports {
         Objects.requireNonNull(dataSource, "The data source cannot be null");
         Objects.requireNonNull(vsDataSource,
         "The versus data source cannot be null");
+
+        // normalize the match key and principle
+        principle = "*".equals(principle) ? null : principle;
+        matchKey = "*".equals(matchKey) ? null : matchKey;
 
         String stat = statistic.principle(principle).matchKey(matchKey).format();
 
