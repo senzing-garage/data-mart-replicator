@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-beta.2.1] - 2026-02-26
+
+### Changed in 2.0.0-beta.2.1
+
+- Minor fix for a unit test to address race condition
+- Updated `sz-sdk-java-auto` to version `0.5.1`
+- Updated `armeria-bom` to version `1.36.0`
+
 ## [2.0.0-beta.2.0] - 2026-02-18
 
 ### Changed in 2.0.0-beta.2.0
