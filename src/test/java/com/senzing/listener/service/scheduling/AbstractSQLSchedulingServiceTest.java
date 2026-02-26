@@ -1428,10 +1428,10 @@ class AbstractSQLSchedulingServiceTest {
             .schedule(true);
         scheduler.commit();
 
-        long afterSchedule = System.nanoTime();
-
-        // Get the last scheduled time
+        // Get the last scheduled time (read before capturing afterSchedule
+        // to avoid race with background handleTasks() updating the value)
         long lastNanoTime = service.getLastTaskActivityNanoTime();
+        long afterSchedule = System.nanoTime();
 
         // Should be within our timing window
         assertTrue(lastNanoTime > 0, "Last nano time should be positive after scheduling");
