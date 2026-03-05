@@ -5,8 +5,6 @@
         "http://www.puppycrawl.com/dtds/suppressions_1_0.dtd">
 
 <suppressions>
-  <suppress checks="LeftCurly" files="."/>
-  <suppress checks="LineLength" files="."/>
   <suppress checks="FinalParameters" files="."/>
   <suppress checks="RegexpSingleline" files="."/>
   <suppress checks="AvoidStarImport" files="."/>
