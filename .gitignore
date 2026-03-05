@@ -33,6 +33,7 @@ target
 .vscode/*
 !.vscode/cspell.json
 !.vscode/settings.json
+!.vscode/java-formatter.xml
 *.code-workspace
 .history
 .project
