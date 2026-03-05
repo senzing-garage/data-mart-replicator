@@ -46,7 +46,7 @@
       <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty-bom</artifactId>
-        <version>4.2.9.Final</version>
+        <version>4.2.10.Final</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -140,7 +140,7 @@
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>sqs</artifactId>
-      <version>2.41.22</version>
+      <version>2.41.25</version>
       <exclusions>
         <exclusion>
           <groupId>com.fasterxml.jackson.core</groupId>
