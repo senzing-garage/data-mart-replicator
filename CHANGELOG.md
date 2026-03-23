@@ -30,9 +30,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated `jackson-bom` from version `2.21.0` to `2.21.2`
   - Updated `armeria-bom` from version `1.36.0` to `1.37.0`
   - Updated `netty-bom` from version `4.2.9.Final` to `4.2.10.Final`
-  - Updated `sqlite-jdbc` from version `3.51.2.0` to `3.51.3.0`
+  - Updated `sqlite-jdbc` from version `3.51.1.0` to `3.51.3.0`
+  - Updated `postgresql` from version `42.7.9` to `42.7.10`
   - Updated `amqp-client` from version `5.28.0` to `5.29.0`
-  - Updated Amazon `sqs` from version `2.41.28` to `2.42.18`
+  - Updated Amazon `sqs` from version `2.41.22` to `2.42.18`
   - Updated `embedded-postgres` from version `2.2.0` to `2.2.2`
   - Removed explicit version for `jackson-datatype-joda` (now managed by `jackson-bom`)
   - Updated `maven-resources-plugin` from version `3.4.0` to `3.5.0`

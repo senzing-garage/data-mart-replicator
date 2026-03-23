@@ -510,6 +510,26 @@ public class SQLiteUriTest {
     }
 
     @ParameterizedTest
+    @CsvSource({
+            "sqlite3:///path%20with%20spaces/file.db, /path with spaces/file.db,",
+            "sqlite3://na:na@/Users/test/Library/Application%20Support/test.db, /Users/test/Library/Application Support/test.db, na"
+    })
+    public void testParseEncodedSpaces(String uriText, String expectedPath, String expectedUser) {
+        SQLiteUri uri = SQLiteUri.parse(uriText);
+        assertEquals(new File(expectedPath), uri.getFile(),
+                "File path not decoded correctly: " + uriText);
+        assertEquals(expectedUser, uri.getUnusedUser(),
+                "User not as expected: " + uriText);
+
+        // verify toString() produces the raw (unencoded) path
+        String result = uri.toString();
+        assertTrue(result.contains(expectedPath),
+                "toString() should contain raw path (" + expectedPath + "): " + result);
+        assertFalse(result.contains("%20"),
+                "toString() should not contain %20 encoding: " + result);
+    }
+
+    @ParameterizedTest
     @CsvSource({ "sqlite3://*:", "sqlite2:///tmp/test.db", "sqlite3://foo\\bar\\phoo", "sqlite3://foo/bar  /ph%o",
             "sqlite3://relative/path.db" })
     public void testBadUriParse(String text) {
