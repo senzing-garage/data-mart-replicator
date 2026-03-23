@@ -155,7 +155,9 @@ public class GenerateTestJVMScript {
                     senzingDir = new File("/Applications/Senzing.app/Contents/Resources/app/er");
                 }
                 libDir = new File(senzingDir, "lib");
-                platformLibDir = new File(libDir, "macos");
+                // NOTE: Intel-based Macs are not supported; only Apple Silicon
+                // (ARM64) where Homebrew installs to /opt/homebrew
+                platformLibDir = new File("/opt/homebrew/lib");
                 break;
             case UNIX:
                 if (senzingDir == null) {

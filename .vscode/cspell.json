@@ -134,6 +134,8 @@
     "target/**",
     ".claude/**",
     "**/truth-set*.jsonl",
-    "**/*.bak"
+    "**/*.bak",
+    "checkstyle.xml",
+    "java-formatter.xml"
   ]
 }

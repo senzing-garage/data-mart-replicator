@@ -3,8 +3,7 @@ package com.senzing.datamart;
 import static java.util.Objects.requireNonNull;
 
 import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
+
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -226,6 +225,9 @@ public class SQLiteUri extends ConnectionUri {
 
         requireNonNull(file, "The file cannot be null");
         if ((unusedUser == null && unusedPassword != null) || (unusedUser != null && unusedPassword == null)) {
+            // NOTE: logging unusedPassword here is fine — it is not a real
+            // credential, it is a placeholder value (typically "na") that
+            // Senzing ignores for SQLite connections.
             throw new IllegalArgumentException("Inconsistent user credentials.  Either both or neither "
                     + "should be null.  unusedUser=[ " + unusedUser + " ], unusedPassword=[ " + unusedPassword + " ]");
         }
@@ -357,13 +359,10 @@ public class SQLiteUri extends ConnectionUri {
                     }
                 }
             } else {
-                // handle standard non-Windows paths
-                String[] pathTokens = this.file.getPath().split("/");
-                String prefix = "";
-                for (String token : pathTokens) {
-                    sb.append(prefix).append(urlEncodeUtf8(token));
-                    prefix = "/";
-                }
+                // handle standard non-Windows paths — use the raw file path
+                // since the Senzing engine uses the path literally without
+                // URL decoding
+                sb.append(this.file.getPath());
             }
 
             sb.append(this.getQueryString());
@@ -402,12 +401,12 @@ public class SQLiteUri extends ConnectionUri {
         if (this.getClass() != obj.getClass()) {
             return false;
         }
-        SQLiteUri url = (SQLiteUri) obj;
-        return Objects.equals(this.isMemory(), url.isMemory()) && Objects.equals(this.getFile(), url.getFile())
-                && Objects.equals(this.getUnusedUser(), url.getUnusedUser())
-                && Objects.equals(this.getUnusedPassword(), url.getUnusedPassword())
-                && Objects.equals(this.getInMemoryIdentifier(), url.getInMemoryIdentifier())
-                && Objects.equals(this.getQueryOptions(), url.getQueryOptions());
+        SQLiteUri uri = (SQLiteUri) obj;
+        return Objects.equals(this.isMemory(), uri.isMemory()) && Objects.equals(this.getFile(), uri.getFile())
+                && Objects.equals(this.getUnusedUser(), uri.getUnusedUser())
+                && Objects.equals(this.getUnusedPassword(), uri.getUnusedPassword())
+                && Objects.equals(this.getInMemoryIdentifier(), uri.getInMemoryIdentifier())
+                && Objects.equals(this.getQueryOptions(), uri.getQueryOptions());
     }
 
     /**
@@ -506,12 +505,24 @@ public class SQLiteUri extends ConnectionUri {
             // do a simple conversion for the path for non-standard paths
             file = new File(urlDecodeUtf8(path));
         } else {
-            // actually parse the path as a URI and check it is valid
-            try {
-                file = new File(new URI("file://" + path));
-            } catch (URISyntaxException e) {
-                throw new IllegalArgumentException("Error parsing path (" + path + ") from URI: " + uri, e);
+            // reject backslashes in non-Windows paths (likely a
+            // Windows path used on the wrong platform)
+            if (path.indexOf('\\') >= 0) {
+                throw new IllegalArgumentException(
+                    "Backslashes are not allowed in non-Windows paths ("
+                    + path + ") from URI: " + uri);
             }
+            // validate that the path is absolute or explicitly relative
+            if (!path.startsWith("/") && !path.startsWith("./")
+                && !path.startsWith("../"))
+            {
+                throw new IllegalArgumentException(
+                    "Invalid non-Windows path (" + path
+                    + ") from URI: " + uri);
+            }
+            // handle standard non-Windows paths directly (supports both
+            // URL-encoded and unencoded spaces in the path)
+            file = new File(urlDecodeUtf8(path));
         }
 
         // construct the instance

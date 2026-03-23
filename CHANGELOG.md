@@ -6,6 +6,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-beta.2.2] - 2026-03-23
+
+### Changed in 2.0.0-beta.2.2
+
+- Fixed `SQLiteUri.parse()` to handle file paths containing spaces on non-Windows
+  platforms (e.g.: macOS `~/Library/Application Support/`). Previously, the
+  non-Windows code path routed through `java.net.URI` which rejected unencoded
+  spaces with `URISyntaxException`.
+- Fixed `SQLiteUri.toString()` to emit raw file paths without URL encoding on
+  non-Windows platforms. Previously, `urlEncodeUtf8()` encoded spaces as `+`
+  (form-encoding) which is invalid for URI paths and not recognized by the
+  native Senzing engine.
+- Added path validation in `SQLiteUri.parse()` for non-Windows paths to reject
+  backslashes and require absolute (`/`) or explicitly relative (`./`, `../`)
+  path prefixes.
+- Added unit tests for non-Windows file paths containing spaces.
+- Updated macOS (Darwin) CI workflow and test JVM script to use `/opt/homebrew/lib`
+  in `DYLD_LIBRARY_PATH` for Apple Silicon (ARM64) Homebrew libraries.
+- Updated Java code style and formatting settings (`checkstyle.xml`,
+  `.vscode/java-formatter.xml`, `.vscode/settings.json`).
+- Updated dependencies:
+  - Updated `jackson-bom` from version `2.21.0` to `2.21.2`
+  - Updated `armeria-bom` from version `1.36.0` to `1.37.0`
+  - Updated `netty-bom` from version `4.2.9.Final` to `4.2.10.Final`
+  - Updated `sqlite-jdbc` from version `3.51.1.0` to `3.51.3.0`
+  - Updated `postgresql` from version `42.7.9` to `42.7.10`
+  - Updated `amqp-client` from version `5.28.0` to `5.29.0`
+  - Updated Amazon `sqs` from version `2.41.22` to `2.42.18`
+  - Updated `embedded-postgres` from version `2.2.0` to `2.2.2`
+  - Removed explicit version for `jackson-datatype-joda` (now managed by `jackson-bom`)
+  - Updated `maven-resources-plugin` from version `3.4.0` to `3.5.0`
+  - Updated `maven-shade-plugin` from version `3.6.1` to `3.6.2`
+  - Updated `maven-surefire-plugin` from version `3.5.4` to `3.5.5`
+
 ## [2.0.0-beta.2.1] - 2026-02-26
 
 ### Changed in 2.0.0-beta.2.1
@@ -50,7 +84,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed in 2.0.0-beta.1.1
 
 - Modified `SQLiteUri` to handle Windows paths with drive letters and back-slashes
-  as path separators in the URI even these are NOT standard URI's.  This was done 
+  as path separators in the URI even these are NOT standard URI's. This was done
   because such URI's are supported by the underlying Senzing engine in the
   initialization settings and therefore need to be handled when encountered.
 
