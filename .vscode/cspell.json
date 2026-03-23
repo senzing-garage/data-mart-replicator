@@ -135,6 +135,7 @@
     ".claude/**",
     "**/truth-set*.jsonl",
     "**/*.bak",
-    "checkstyle.xml"
+    "checkstyle.xml",
+    "java-formatter.xml"
   ]
 }
