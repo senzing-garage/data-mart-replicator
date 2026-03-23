@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   backslashes and require absolute (`/`) or explicitly relative (`./`, `../`)
   path prefixes.
 - Added unit tests for non-Windows file paths containing spaces.
+- Updated macOS (Darwin) CI workflow and test JVM script to use `/opt/homebrew/lib`
+  in `DYLD_LIBRARY_PATH` for Apple Silicon (ARM64) Homebrew libraries.
+- Updated Java code style and formatting settings (`checkstyle.xml`,
+  `.vscode/java-formatter.xml`, `.vscode/settings.json`).
 - Updated dependencies:
   - Updated `jackson-bom` from version `2.21.0` to `2.21.2`
   - Updated `armeria-bom` from version `1.36.0` to `1.37.0`

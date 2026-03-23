@@ -47,6 +47,8 @@ jobs:
           SENZING_PATH="${HOME}/senzing"
           {
             echo "SENZING_PATH=${SENZING_PATH}"
+            # NOTE: /opt/homebrew/lib is for Apple Silicon (ARM64) only;
+            # Intel-based Macs are not supported
             echo "DYLD_LIBRARY_PATH=${SENZING_PATH}/er/lib:/opt/homebrew/lib"
           } >> "$GITHUB_ENV"
 
