@@ -84,6 +84,10 @@ public class SQLiteUriTest {
 
             result.add(Arguments.of(null, null, new File("\\\\server\\share\\test.db"), null));
 
+            result.add(Arguments.of(null, null, new File("/path with spaces/file.db"), null));
+
+            result.add(Arguments.of("na", "na", new File("/Users/test/Library/Application Support/test.db"), null));
+
             return result;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -506,7 +510,8 @@ public class SQLiteUriTest {
     }
 
     @ParameterizedTest
-    @CsvSource({ "sqlite3://*:", "sqlite2:///tmp/test.db", "sqlite3://foo\\bar\\phoo", "sqlite3://foo/bar  /ph%o" })
+    @CsvSource({ "sqlite3://*:", "sqlite2:///tmp/test.db", "sqlite3://foo\\bar\\phoo", "sqlite3://foo/bar  /ph%o",
+            "sqlite3://relative/path.db" })
     public void testBadUriParse(String text) {
         try {
             SQLiteUri.parse(text);

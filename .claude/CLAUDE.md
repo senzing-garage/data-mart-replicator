@@ -251,8 +251,7 @@ Use `LockingService` to prevent concurrent modifications:
 
 ## Current Development Status
 
-Working on branch: `112-caceres-v4-upgrade-1`
-- Upgrading from Senzing SDK 3.x to 4.x
 - Main branch: `main`
-- Modified files include URI classes and SQL client classes
-- Test file renamed: `PostgreSqlUrlTest.java` → `PostgreSqlUriTest.java`
+- Upgraded from Senzing SDK 3.x to 4.x
+- Minimum Senzing version: 4.3.0
+- URI classes renamed from `*Url` to `*Uri` (e.g., `PostgreSqlUrlTest.java` → `PostgreSqlUriTest.java`)
