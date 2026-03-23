@@ -2,6 +2,8 @@ package com.senzing.datamart;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -84,9 +86,13 @@ public class SQLiteUriTest {
 
             result.add(Arguments.of(null, null, new File("\\\\server\\share\\test.db"), null));
 
-            result.add(Arguments.of(null, null, new File("/path with spaces/file.db"), null));
+            // Unix-specific paths with spaces (skipped on Windows where
+            // File converts forward slashes to backslashes)
+            if (!System.getProperty("os.name").toLowerCase().startsWith("windows")) {
+                result.add(Arguments.of(null, null, new File("/path with spaces/file.db"), null));
 
-            result.add(Arguments.of("na", "na", new File("/Users/test/Library/Application Support/test.db"), null));
+                result.add(Arguments.of("na", "na", new File("/Users/test/Library/Application Support/test.db"), null));
+            }
 
             return result;
         } catch (IOException e) {
@@ -509,6 +515,7 @@ public class SQLiteUriTest {
         }
     }
 
+    @DisabledOnOs(OS.WINDOWS)
     @ParameterizedTest
     @CsvSource({
             "sqlite3:///path%20with%20spaces/file.db, /path with spaces/file.db,",
