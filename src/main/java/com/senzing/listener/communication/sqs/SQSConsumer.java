@@ -297,6 +297,21 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
     }
 
     /**
+     * Overridden to short-circuit if the calling thread is the
+     * consumption thread to avoid deadlock (i.e.: if destroying
+     * from the consumption thread due to an error).
+     *
+     * {@inheritDoc}
+     */
+    @Override
+    protected synchronized void waitUntilDestroyed() {
+        if (Thread.currentThread() == this.consumptionThread) {
+            return;
+        }
+        super.waitUntilDestroyed();
+    }
+
+    /**
      * Sets up a SQS consumer and then receives messages from SQS and feeds to
      * service.
      * 
