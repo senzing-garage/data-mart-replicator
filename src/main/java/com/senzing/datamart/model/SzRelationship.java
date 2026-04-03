@@ -200,161 +200,187 @@ public class SzRelationship {
     }
 
     /**
-     * Reverses the specified <code>"REL_POINTER"</code> match key if it is
-     * formatted as expected, otherwise returns the specified match key and
-     * logs warnings.  This handles changing a match key that looks like
-     * <code>"+REL_POINTER(A:B)"</code> to <code>"+REL_POINTER(B:A)"</code>,
-     * but typically it would change <code>"+REL_POINTER(ABC:)"</code> to
-     * <code>"+REL_POINTER(:ABC)"</code> since usually only one side of the
-     * colon is populated in a <code>"REL_POINTER"</code> match key.
-     * 
+     * Reverses a match key by swapping the min/max roles in any
+     * role-bearing components (those with parenthesized {@code min:max}
+     * values). Non-role-bearing components (e.g., {@code +NAME},
+     * {@code -DOB}) pass through unchanged.
+     *
+     * <p>This handles match keys that combine discovered and disclosed
+     * relationship components, e.g.:</p>
+     * <ul>
+     *   <li>{@code +NAME+ADDRESS+REL_POINTER(:SUBSIDIARY_OF)} &rarr;
+     *       {@code +NAME+ADDRESS+REL_POINTER(SUBSIDIARY_OF:)}</li>
+     *   <li>{@code +REL_POINTER(GLOBAL\:PARENT:SUBSIDIARY)} &rarr;
+     *       {@code +REL_POINTER(SUBSIDIARY:GLOBAL\:PARENT)}</li>
+     * </ul>
+     *
+     * <p>Special characters in role values are escaped with backslash
+     * by the Senzing engine (as of 4.3.0). The structural colon
+     * separating min/max roles is never escaped, making it the only
+     * unescaped colon inside the parentheses.</p>
+     *
      * @param matchKey The original match key.
-     * 
-     * @return The reversed match key if the specified match key is in the
-     *         expected format, otherwise the specified match key.
+     *
+     * @return The reversed match key, or the original if no role-bearing
+     *         components are found or the match key is {@code null}.
      */
     public static final String getReverseMatchKey(String matchKey) {
-        // check if null
         if (matchKey == null) {
             return null;
         }
 
-        // trim the match key
         String key = matchKey.trim();
-
-        if (!key.startsWith(REL_POINTER_PREFIX)) {
+        if (key.isEmpty()) {
             return matchKey;
         }
 
-        // check that our match key is longer than the prefix by at
-        // least 3 characters (colon and parentheses and one other)
-        int prefixLength = REL_POINTER_PREFIX.length();
-        if (key.length() < (prefixLength + 3)) {
-            logWarning("Badly formatted REL_POINTER match key: " + matchKey);
-            return matchKey;
-        }
-
-        // get the characters
         char[] text = key.toCharArray();
+        int len = text.length;
 
-        // find the starting index
-        int startingIndex = prefixLength;
-        for (; startingIndex < text.length; startingIndex++) {
-            if (!Character.isWhitespace(text[startingIndex])) {
-                break;
-            }
-        }
+        // Split into components on unescaped '+' and '-' boundaries
+        // and reverse any role-bearing components
+        StringBuilder result = new StringBuilder(len);
+        int componentStart = 0;
 
-        // check if all whitespace
-        if (startingIndex >= text.length) {
-            logWarning("Unexpected format for REL_POINTER match key: " + matchKey);
-            return matchKey;
-        }
-
-        // find the ending index
-        int endingIndex = key.length() - 1;
-        for (; endingIndex > 0; endingIndex--) {
-            // skip the whitespace
-            if (Character.isWhitespace(text[endingIndex])) {
-                continue;
-            }
-
-            // check if a closing parentheses
-            if (text[endingIndex] != ')') {
-                endingIndex = -1;
-            }
-
-            // we got a non-whitespace character, so we are done
-            break;
-        }
-
-        // check if no ending index
-        if (endingIndex == startingIndex) {
-            logWarning("Failed to find contents in REL_POINTER match key: " + matchKey);
-            return matchKey;
-        }
-        if (endingIndex < startingIndex) {
-            logWarning("Failed to find closing parentheses in REL_POINTER match key: " + matchKey);
-            return matchKey;
-        }
-
-        // track all the colon indexes
-        List<Integer> colonIndexes = new ArrayList<>();
-
-        // find all the colon indexes and closing parentheses
-        boolean escaping = false;
-        for (int index = startingIndex; index < endingIndex; index++) {
-            if (!escaping) {
-                switch (text[index]) {
-                    case '\\':
-                        escaping = true;
-                        break;
-                    case ':':
-                        colonIndexes.add(index);
-                        break;
-                    default:
-                        // do nothing
-                }
+        for (int i = 0; i <= len; i++) {
+            boolean atBoundary;
+            if (i == len) {
+                atBoundary = true;
+            } else if (i == 0) {
+                atBoundary = false;
+            } else if (text[i] == '+' || text[i] == '-') {
+                // check if this '+' or '-' is escaped
+                atBoundary = !isEscaped(text, i);
             } else {
-                escaping = false;
+                atBoundary = false;
+            }
+
+            if (atBoundary) {
+                // process the component from componentStart to i
+                String component = key.substring(componentStart, i);
+                result.append(reverseRoleBearingComponent(component));
+                componentStart = i;
             }
         }
 
-        // check if we have a single unescaped colon
-        if (colonIndexes.size() == 0) {
-            logWarning("Failed to find unescaped colon in REL_POINTER match key: " + matchKey);
-            return matchKey;            
-        }
-        
-        // check for the common base case
-        if (colonIndexes.size() == 1) {
-            // get the parts
-            int colonIndex = colonIndexes.get(0);
-            String part1 = key.substring(prefixLength, colonIndex);
-            String part2 = key.substring(colonIndex + 1, endingIndex);
-            return REL_POINTER_PREFIX + part2 + ":" + part1 + ")";
+        // handle the last (or only) component
+        if (componentStart < len) {
+            String component = key.substring(componentStart);
+            result.append(reverseRoleBearingComponent(component));
         }
 
-        // handle multiple multiple colons
-        int firstColon = colonIndexes.get(0);
-        int lastColon = colonIndexes.get(colonIndexes.size() - 1);
-
-        // check if we have a leading, but not trailing colon
-        if (firstColon == prefixLength && lastColon != endingIndex - 1) {
-            String part1 = key.substring(prefixLength + 1, lastColon);
-            String part2 = key.substring(lastColon + 1, endingIndex);
-            return REL_POINTER_PREFIX + part2 + ":" + part1 + ")";
- 
-        }
-    
-        // check if we have a trailing, but not a leading colon
-        if (lastColon == endingIndex - 1 && firstColon != prefixLength) {
-            String part1 = key.substring(prefixLength + 1, firstColon);
-            String part2 = key.substring(firstColon + 1, endingIndex - 1);
-            return REL_POINTER_PREFIX + part2 + ":" + part1 + ")";
-        }
-        logWarning("Found more than one colon in REL_POINTER match key: " 
-                   + matchKey);
-        return matchKey;
+        return result.toString();
     }
 
     /**
-     * Finds the index of the first non-whitespace character in 
-     * the specified text starting at the specified index (inclusive)
-     * and searching towards the end of the text.
-     * 
-     * @param text The text to search.
-     * @param startIndex The starting index to begin the search.
-     * @return The index of the first non-whitespace character,
-     *         or the length of the specified text if not found.
+     * Checks if the character at the specified index is escaped by
+     * counting preceding backslashes. An odd number of preceding
+     * backslashes means the character is escaped.
+     *
+     * @param text  The character array.
+     * @param index The index to check.
+     * @return {@code true} if the character at {@code index} is escaped.
      */
-    protected static int eatWhiteSpace(char[] text, int startIndex) {
-        for (int index = startIndex; index < text.length; index++) {
-            if (!Character.isWhitespace(text[index])) {
-                return index;
+    private static boolean isEscaped(char[] text, int index) {
+        int backslashCount = 0;
+        for (int j = index - 1; j >= 0 && text[j] == '\\'; j--) {
+            backslashCount++;
+        }
+        return (backslashCount % 2) != 0;
+    }
+
+    /**
+     * Finds the index of the next unescaped occurrence of the target
+     * character in the specified range of the character array.
+     *
+     * @param text   The character array to search.
+     * @param target The character to find.
+     * @param start  The start index (inclusive).
+     * @param end    The end index (exclusive).
+     * @return The index of the next unescaped occurrence, or {@code -1}.
+     */
+    private static int findNextUnescaped(char[] text, char target,
+                                         int start, int end) {
+        for (int i = start; i < end; i++) {
+            if (text[i] == target && !isEscaped(text, i)) {
+                return i;
             }
         }
-        return text.length;
+        return -1;
+    }
+
+    /**
+     * Reverses a single match key component if it is role-bearing
+     * (i.e., contains a parenthesized {@code min:max} section with
+     * exactly one unescaped colon). Non-role-bearing components are
+     * returned unchanged.
+     *
+     * @param component The match key component (e.g.,
+     *                  {@code "+REL_POINTER(A:B)"} or {@code "+NAME"}).
+     * @return The reversed component, or the original if not role-bearing.
+     */
+    private static String reverseRoleBearingComponent(String component) {
+        if (component == null || component.isEmpty()) {
+            return component;
+        }
+
+        char[] text = component.toCharArray();
+        int len = text.length;
+
+        // Find unescaped opening parenthesis
+        int openParen = findNextUnescaped(text, '(', 0, len);
+        if (openParen < 0) {
+            return component; // no parenthesized section
+        }
+
+        // Find unescaped closing parenthesis (search from end)
+        int closeParen = -1;
+        for (int i = len - 1; i > openParen; i--) {
+            if (text[i] == ')' && !isEscaped(text, i)) {
+                closeParen = i;
+                break;
+            }
+        }
+        if (closeParen < 0) {
+            logWarning("Missing closing parenthesis in match key component: "
+                       + component);
+            return component;
+        }
+
+        // Find the single unescaped colon between the parentheses
+        int roleStart = openParen + 1;
+        int roleEnd = closeParen;
+
+        // Count unescaped colons inside the parentheses
+        List<Integer> colonIndexes = new ArrayList<>();
+        for (int i = roleStart; i < roleEnd; i++) {
+            if (text[i] == ':' && !isEscaped(text, i)) {
+                colonIndexes.add(i);
+            }
+        }
+
+        if (colonIndexes.size() == 0) {
+            logWarning("No unescaped colon found in role-bearing component: "
+                       + component);
+            return component;
+        }
+
+        if (colonIndexes.size() > 1) {
+            logWarning("Multiple unescaped colons in role-bearing component: "
+                       + component);
+            return component;
+        }
+
+        int colonIndex = colonIndexes.get(0);
+
+        // Extract the min and max role parts
+        String prefix = component.substring(0, openParen + 1);
+        String minPart = component.substring(roleStart, colonIndex);
+        String maxPart = component.substring(colonIndex + 1, closeParen);
+        String suffix = component.substring(closeParen);
+
+        // Swap min and max
+        return prefix + maxPart + ":" + minPart + suffix;
     }
 
     /**

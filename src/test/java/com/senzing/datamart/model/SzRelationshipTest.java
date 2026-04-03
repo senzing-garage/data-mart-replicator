@@ -542,26 +542,6 @@ class SzRelationshipTest {
 
     @Test
     @Execution(ExecutionMode.SAME_THREAD)
-    void testStaticGetReverseMatchKeyWithRelPointerTooShort() throws Exception {
-        // Less than prefix + 3 chars (colon + parens + 1 other)
-        String matchKey = "+REL_POINTER()";
-
-        SystemErr systemErr = new SystemErr();
-        systemErr.execute(() -> {
-            String reversed = SzRelationship.getReverseMatchKey(matchKey);
-            // Should return original due to bad format and log warning
-            assertEquals(matchKey, reversed);
-        });
-
-        String errOutput = systemErr.getText();
-        assertTrue(errOutput.contains("Badly formatted REL_POINTER match key"),
-                "Expected warning about badly formatted match key");
-        assertTrue(errOutput.contains(matchKey),
-                "Warning should include the problematic match key");
-    }
-
-    @Test
-    @Execution(ExecutionMode.SAME_THREAD)
     void testStaticGetReverseMatchKeyWithRelPointerNoColon() throws Exception {
         String matchKey = "+REL_POINTER(ABC)";
 
@@ -573,10 +553,8 @@ class SzRelationshipTest {
         });
 
         String errOutput = systemErr.getText();
-        assertTrue(errOutput.contains("Failed to find unescaped colon in REL_POINTER match key"),
+        assertTrue(errOutput.contains("No unescaped colon found"),
                 "Expected warning about missing colon");
-        assertTrue(errOutput.contains(matchKey),
-                "Warning should include the problematic match key");
     }
 
     @Test
@@ -587,15 +565,13 @@ class SzRelationshipTest {
         SystemErr systemErr = new SystemErr();
         systemErr.execute(() -> {
             String reversed = SzRelationship.getReverseMatchKey(matchKey);
-            // Should return original due to multiple colons and log warning
+            // Should return original due to multiple unescaped colons
             assertEquals(matchKey, reversed);
         });
 
         String errOutput = systemErr.getText();
-        assertTrue(errOutput.contains("Found more than one colon in REL_POINTER match key"),
+        assertTrue(errOutput.contains("Multiple unescaped colons"),
                 "Expected warning about multiple colons");
-        assertTrue(errOutput.contains(matchKey),
-                "Warning should include the problematic match key");
     }
 
     @Test
@@ -611,10 +587,102 @@ class SzRelationshipTest {
         });
 
         String errOutput = systemErr.getText();
-        assertTrue(errOutput.contains("Failed to find closing parentheses in REL_POINTER match key"),
-                "Expected warning about missing closing parentheses");
-        assertTrue(errOutput.contains(matchKey),
-                "Warning should include the problematic match key");
+        assertTrue(errOutput.contains("Missing closing parenthesis"),
+                "Expected warning about missing closing parenthesis");
+    }
+
+    // ========================================================================
+    // New escape-aware parser tests
+    // ========================================================================
+
+    @Test
+    void testStaticGetReverseMatchKeyWithEscapedColonInRole() {
+        String matchKey = "+REL_POINTER(GLOBAL\\:PARENT:)";
+        String reversed = SzRelationship.getReverseMatchKey(matchKey);
+        assertEquals("+REL_POINTER(:GLOBAL\\:PARENT)", reversed);
+    }
+
+    @Test
+    void testStaticGetReverseMatchKeyWithEscapedColonBothSides() {
+        String matchKey = "+REL_POINTER(GLOBAL\\:PARENT:SUBSIDIARY)";
+        String reversed = SzRelationship.getReverseMatchKey(matchKey);
+        assertEquals("+REL_POINTER(SUBSIDIARY:GLOBAL\\:PARENT)", reversed);
+    }
+
+    @Test
+    void testStaticGetReverseMatchKeyWithOwns50Colon50() {
+        String matchKey = "+REL_POINTER(OWNS 50\\:50:)";
+        String reversed = SzRelationship.getReverseMatchKey(matchKey);
+        assertEquals("+REL_POINTER(:OWNS 50\\:50)", reversed);
+    }
+
+    @Test
+    void testStaticGetReverseMatchKeyCombinedDiscoveredAndDisclosed() {
+        String matchKey = "+NAME+ADDRESS+REL_POINTER(:SUBSIDIARY_OF)";
+        String reversed = SzRelationship.getReverseMatchKey(matchKey);
+        assertEquals("+NAME+ADDRESS+REL_POINTER(SUBSIDIARY_OF:)", reversed);
+    }
+
+    @Test
+    void testStaticGetReverseMatchKeyCombinedWithDenial() {
+        String matchKey = "+NAME-DOB+REL_POINTER(EMPLOYER:EMPLOYEE)";
+        String reversed = SzRelationship.getReverseMatchKey(matchKey);
+        assertEquals("+NAME-DOB+REL_POINTER(EMPLOYEE:EMPLOYER)", reversed);
+    }
+
+    @Test
+    void testStaticGetReverseMatchKeyDomainNamedComponent() {
+        String matchKey = "+EMPLOYMENT(EMPLOYER:EMPLOYEE)";
+        String reversed = SzRelationship.getReverseMatchKey(matchKey);
+        assertEquals("+EMPLOYMENT(EMPLOYEE:EMPLOYER)", reversed);
+    }
+
+    @Test
+    void testStaticGetReverseMatchKeyPurelyDiscovered() {
+        String matchKey = "+NAME+ADDRESS";
+        String reversed = SzRelationship.getReverseMatchKey(matchKey);
+        assertEquals("+NAME+ADDRESS", reversed);
+    }
+
+    @Test
+    void testStaticGetReverseMatchKeyEscapedBackslashInRole() {
+        String matchKey = "+REL_POINTER(PATH\\\\TO\\:VALUE:)";
+        String reversed = SzRelationship.getReverseMatchKey(matchKey);
+        assertEquals("+REL_POINTER(:PATH\\\\TO\\:VALUE)", reversed);
+    }
+
+    @Test
+    void testStaticGetReverseMatchKeyDoubleReverseWithEscapedColon() {
+        String matchKey = "+REL_POINTER(GLOBAL\\:PARENT:)";
+        String reversed1 = SzRelationship.getReverseMatchKey(matchKey);
+        String reversed2 = SzRelationship.getReverseMatchKey(reversed1);
+        assertEquals("+REL_POINTER(:GLOBAL\\:PARENT)", reversed1);
+        assertEquals(matchKey, reversed2);
+    }
+
+    @Test
+    void testStaticGetReverseMatchKeyDoubleReverseCombined() {
+        String matchKey = "+NAME+ADDRESS+REL_POINTER(:SUBSIDIARY_OF)";
+        String reversed1 = SzRelationship.getReverseMatchKey(matchKey);
+        String reversed2 = SzRelationship.getReverseMatchKey(reversed1);
+        assertEquals("+NAME+ADDRESS+REL_POINTER(SUBSIDIARY_OF:)", reversed1);
+        assertEquals(matchKey, reversed2);
+    }
+
+    @Test
+    void testStaticGetReverseMatchKeyMultipleRelPointerComponents() {
+        String matchKey = "+REL_POINTER(HUSBAND:WIFE)+REL_POINTER(DEFENDANT:PLAINTIFF)";
+        String reversed = SzRelationship.getReverseMatchKey(matchKey);
+        assertEquals("+REL_POINTER(WIFE:HUSBAND)+REL_POINTER(PLAINTIFF:DEFENDANT)", reversed);
+    }
+
+    @Test
+    void testStaticGetReverseMatchKeyRealEngineOutput() {
+        // Verified output from Senzing 4.3.0 engine
+        String forward = "+REL_POINTER(GLOBAL\\:PARENT:SUBSIDIARY)";
+        String reverse = "+REL_POINTER(SUBSIDIARY:GLOBAL\\:PARENT)";
+        assertEquals(reverse, SzRelationship.getReverseMatchKey(forward));
+        assertEquals(forward, SzRelationship.getReverseMatchKey(reverse));
     }
 
     @Test

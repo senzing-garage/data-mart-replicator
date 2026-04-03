@@ -1,0 +1,33 @@
+# Complex disclosed relationship test data
+# Tests combinations of discovered features (shared addresses/phones) with
+# disclosed relationships (REL_ANCHOR/REL_POINTER) to exercise match keys
+# that combine both discovered and disclosed components.
+#
+# Data sources: COUNTY_MARRIAGES, COUNTY_DIVORCE_FILINGS
+#
+# Scenario 1: John and Jane Smith - married couple
+#   - Share an address and phone number (discovered features)
+#   - Marriage record discloses HUSBAND/WIFE relationship (two-way disclosure)
+#   - Expected: match key combining +ADDRESS+PHONE+REL_POINTER(HUSBAND:WIFE)
+#
+# Scenario 2: Same couple in divorce filings
+#   - Different address (moved apart) but same phone still
+#   - Divorce filing discloses DEFENDANT/PLAINTIFF relationship (two-way disclosure)
+#
+# Scenario 3: Michael and Sarah Brown - married couple, one-way disclosure
+#   - Share an address
+#   - Only one record has REL_POINTER (one-way disclosure)
+#   - Tests one-way disclosed + discovered combination
+#
+# Marriage Record 1001 - John Smith (husband) - anchor
+{"DATA_SOURCE": "COUNTY_MARRIAGES", "RECORD_ID": "M-1001", "RECORD_TYPE": "PERSON", "PRIMARY_NAME_FIRST": "John", "PRIMARY_NAME_LAST": "Smith", "DATE_OF_BIRTH": "5/15/1985", "ADDR_LINE1": "742 Evergreen Terrace", "ADDR_CITY": "Springfield", "ADDR_STATE": "IL", "ADDR_POSTAL_CODE": "62704", "PHONE_NUMBER": "217-555-0142", "REL_ANCHOR_KEY": "MARRIAGE-2019-0042", "REL_POINTER_KEY": "MARRIAGE-2019-0042", "REL_POINTER_ROLE": "HUSBAND"}
+# Marriage Record 1002 - Jane Smith (wife) - pointer to same anchor
+{"DATA_SOURCE": "COUNTY_MARRIAGES", "RECORD_ID": "M-1002", "RECORD_TYPE": "PERSON", "PRIMARY_NAME_FIRST": "Jane", "PRIMARY_NAME_LAST": "Smith", "DATE_OF_BIRTH": "8/22/1987", "ADDR_LINE1": "742 Evergreen Terrace", "ADDR_CITY": "Springfield", "ADDR_STATE": "IL", "ADDR_POSTAL_CODE": "62704", "PHONE_NUMBER": "217-555-0142", "REL_ANCHOR_KEY": "MARRIAGE-2019-0042", "REL_POINTER_KEY": "MARRIAGE-2019-0042", "REL_POINTER_ROLE": "WIFE"}
+# Divorce Filing 2001 - John Smith (defendant)
+{"DATA_SOURCE": "COUNTY_DIVORCE_FILINGS", "RECORD_ID": "D-2001", "RECORD_TYPE": "PERSON", "PRIMARY_NAME_FIRST": "John", "PRIMARY_NAME_LAST": "Smith", "DATE_OF_BIRTH": "5/15/1985", "ADDR_LINE1": "100 Oak Street Apt 3B", "ADDR_CITY": "Springfield", "ADDR_STATE": "IL", "ADDR_POSTAL_CODE": "62704", "PHONE_NUMBER": "217-555-0142", "REL_ANCHOR_KEY": "DIVORCE-2024-0108", "REL_POINTER_KEY": "DIVORCE-2024-0108", "REL_POINTER_ROLE": "DEFENDANT"}
+# Divorce Filing 2002 - Jane Smith (plaintiff)
+{"DATA_SOURCE": "COUNTY_DIVORCE_FILINGS", "RECORD_ID": "D-2002", "RECORD_TYPE": "PERSON", "PRIMARY_NAME_FIRST": "Jane", "PRIMARY_NAME_LAST": "Smith", "DATE_OF_BIRTH": "8/22/1987", "ADDR_LINE1": "742 Evergreen Terrace", "ADDR_CITY": "Springfield", "ADDR_STATE": "IL", "ADDR_POSTAL_CODE": "62704", "REL_ANCHOR_KEY": "DIVORCE-2024-0108", "REL_POINTER_KEY": "DIVORCE-2024-0108", "REL_POINTER_ROLE": "PLAINTIFF"}
+# Marriage Record 3001 - Michael Brown (husband, anchor only)
+{"DATA_SOURCE": "COUNTY_MARRIAGES", "RECORD_ID": "M-3001", "RECORD_TYPE": "PERSON", "PRIMARY_NAME_FIRST": "Michael", "PRIMARY_NAME_LAST": "Brown", "DATE_OF_BIRTH": "3/10/1990", "ADDR_LINE1": "555 Maple Drive", "ADDR_CITY": "Springfield", "ADDR_STATE": "IL", "ADDR_POSTAL_CODE": "62704", "PHONE_NUMBER": "217-555-0199", "REL_ANCHOR_KEY": "MARRIAGE-2020-0101"}
+# Marriage Record 3002 - Sarah Brown (wife, one-way pointer)
+{"DATA_SOURCE": "COUNTY_MARRIAGES", "RECORD_ID": "M-3002", "RECORD_TYPE": "PERSON", "PRIMARY_NAME_FIRST": "Sarah", "PRIMARY_NAME_LAST": "Brown", "DATE_OF_BIRTH": "7/4/1992", "ADDR_LINE1": "555 Maple Drive", "ADDR_CITY": "Springfield", "ADDR_STATE": "IL", "ADDR_POSTAL_CODE": "62704", "PHONE_NUMBER": "217-555-0199", "REL_POINTER_KEY": "MARRIAGE-2020-0101", "REL_POINTER_ROLE": "SPOUSE"}

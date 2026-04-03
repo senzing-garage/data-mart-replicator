@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-beta.2.3] - 2026-04-03
+
+### Changed in 2.0.0-beta.2.3
+
+- Replaced the primitive match key reversal parser in `SzRelationship.getReverseMatchKey()`
+  with an escape-aware implementation that correctly handles:
+  - Escaped special characters in REL_POINTER role values (e.g., `Global\:Parent`)
+  - Combined discovered and disclosed match key components
+    (e.g., `+NAME+ADDRESS+REL_POINTER(HUSBAND:WIFE)`)
+  - Multiple REL_POINTER components in a single match key
+  - Domain-named role-bearing components (e.g., `+EMPLOYMENT(EMPLOYER:EMPLOYEE)`)
+- Removed `SZ_INCLUDE_MATCH_KEY_DETAILS` flag from entity retrieval in
+  `RefreshEntityHandler` for improved performance — match key details are no
+  longer needed since we parse the `MATCH_KEY` string directly.
+- Bumped minimum `sz-sdk` version from `4.1.0` to `4.3.0` to require the
+  engine's match key escaping fix.
+- Added integration tests (`SzMatchKeyReversalIntegrationTest`,
+  `SzComplexDisclosedRelTest`) that verify match key reversal against the
+  engine's own output from both entity perspectives.
+- Added test data (`complex-disclosed-rel-test.jsonl`) for COUNTY_MARRIAGES
+  and COUNTY_DIVORCE_FILINGS data sources exercising combined discovered and
+  disclosed relationship match keys.
+
 ## [2.0.0-beta.2.2] - 2026-03-23
 
 ### Changed in 2.0.0-beta.2.2
