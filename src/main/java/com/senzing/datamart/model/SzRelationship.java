@@ -322,14 +322,17 @@ public class SzRelationship {
             return component; // no parenthesized section
         }
 
-        // Find unescaped closing parenthesis (search from end)
-        int closeParen = -1;
-        for (int i = len - 1; i > openParen; i--) {
-            if (text[i] == ')' && !isEscaped(text, i)) {
-                closeParen = i;
-                break;
-            }
+        // The '(' must immediately follow the identifier with no whitespace.
+        // This distinguishes role-bearing components like +REL_POINTER(min:max)
+        // from the " (Ambiguous)" suffix the engine appends to ambiguous match keys.
+        if (openParen == 0 || Character.isWhitespace(text[openParen - 1])) {
+            return component;
         }
+
+        // Find the first unescaped closing parenthesis after the opening one.
+        // We search forward (not from the end) so that a trailing suffix like
+        // " (Ambiguous)" does not capture the wrong closing paren.
+        int closeParen = findNextUnescaped(text, ')', openParen + 1, len);
         if (closeParen < 0) {
             logWarning("Missing closing parenthesis in match key component: "
                        + component);

@@ -702,6 +702,23 @@ class SzRelationshipTest {
     }
 
     @Test
+    void testStaticGetReverseMatchKeyAmbiguousSuffix() {
+        // Engine appends " (Ambiguous)" to ambiguous match keys.
+        // The space before '(' means it is NOT a role-bearing component.
+        String matchKey = "+SSN (Ambiguous)";
+        String reversed = SzRelationship.getReverseMatchKey(matchKey);
+        assertEquals("+SSN (Ambiguous)", reversed);
+    }
+
+    @Test
+    void testStaticGetReverseMatchKeyAmbiguousSuffixWithRelPointer() {
+        // Combined disclosed + ambiguous: only the REL_POINTER gets reversed
+        String matchKey = "+REL_POINTER(HUSBAND:WIFE) (Ambiguous)";
+        String reversed = SzRelationship.getReverseMatchKey(matchKey);
+        assertEquals("+REL_POINTER(WIFE:HUSBAND) (Ambiguous)", reversed);
+    }
+
+    @Test
     void testStaticGetReverseMatchKeyRealEngineOutput() {
         // Verified output from Senzing 4.3.0 engine
         String forward = "+REL_POINTER(GLOBAL\\:PARENT:SUBSIDIARY)";
