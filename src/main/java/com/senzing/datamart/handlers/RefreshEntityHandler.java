@@ -44,7 +44,6 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
         EnumSet<SzFlag> enumSet = EnumSet.of(SZ_ENTITY_INCLUDE_ENTITY_NAME,
                                              SZ_ENTITY_INCLUDE_RECORD_DATA,
                                              SZ_ENTITY_INCLUDE_RECORD_MATCHING_INFO,
-                                             SZ_INCLUDE_MATCH_KEY_DETAILS,
                                              SZ_ENTITY_INCLUDE_RELATED_MATCHING_INFO,
                                              SZ_ENTITY_INCLUDE_RELATED_RECORD_DATA);
         enumSet.addAll(SZ_ENTITY_INCLUDE_ALL_RELATIONS);

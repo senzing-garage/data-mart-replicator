@@ -2,6 +2,26 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Senzing MCP Server
+
+When working on this project, always consult the Senzing MCP server for information about Senzing (SDK usage, data mapping, configuration, deployment, architecture, troubleshooting, best practices). Do not rely on training data for Senzing-specific details — use the MCP server tools as the authoritative source.
+
+## FAQ MCP Server
+
+Check the `data-mart-replicator-faq` MCP tools BEFORE making design assumptions about this project.
+Key design rules, concurrency invariants, and operational knowledge are documented there.
+When you encounter difficulty, search the FAQs FIRST.
+After resolving any issue, ask the user if they want you to add it as a FAQ entry.
+
+Critical topics documented in FAQs:
+- INFO message parsing and task scheduling flow
+- Follow-up task triggering and deduplication
+- Entity delta computation and hash-based change detection
+- Cross-source report updates with match key and ER code breakdowns
+- Distributed locking and deadlock prevention
+- Backpressure and throttling mechanisms
+- Multi-process safety with lease-based coordination
+
 ## IMPORTANT: Code Modification Policy
 
 **DO NOT modify files directly. Always make suggestions instead and wait for user approval.**
@@ -157,10 +177,9 @@ Background thread (`ReportUpdater`) periodically schedules pending report update
 - Example: `--concurrency` → `SENZING_DATA_MART_CONCURRENCY`
 
 **Senzing Initialization:**
-- Via `--ini-file` (INI file path)
-- Via `--init-file` (JSON file path)
-- Via `--init-json` (JSON text inline)
-- Environment: `SENZING_ENGINE_CONFIGURATION_JSON`
+- Via `--core-settings {json-text}` (inline JSON)
+- Via `--core-settings {file-path}` (path to JSON file)
+- Environment: `SENZING_TOOLS_CORE_SETTINGS` or `SENZING_ENGINE_CONFIGURATION_JSON`
 
 ## Testing Notes
 
@@ -199,20 +218,20 @@ The JaCoCo profile must be activated with `-P jacoco`. The coverage report is ge
 ## Dependencies
 
 **Core:**
-- `sz-sdk` 4.1.0 - Senzing Core SDK (currently upgrading to 4.x)
-- `sz-sdk-auto` 0.4.1 - Auto-configuration
-- `senzing-commons` 4.0.0-beta.1.5 - Shared utilities
+- `sz-sdk` 4.3.0+ - Senzing Core SDK (minimum 4.3.0 for match key escaping)
+- `sz-sdk-auto` 0.5.1 - Auto-configuration
+- `senzing-commons` 4.0.0-beta.2.1 - Shared utilities
 
 **Database:**
-- `postgresql` 42.7.8 - PostgreSQL JDBC driver
-- `sqlite-jdbc` 3.50.3.0 - SQLite JDBC driver
+- `postgresql` 42.7.10 - PostgreSQL JDBC driver
+- `sqlite-jdbc` 3.51.3.0 - SQLite JDBC driver
 
 **Messaging:**
-- `amqp-client` 5.27.0 - RabbitMQ client
-- `sqs` 2.36.1 - AWS SQS SDK
+- `amqp-client` 5.29.0 - RabbitMQ client
+- `sqs` 2.42.18 - AWS SQS SDK
 
 **Serialization:**
-- `jackson-*` 2.20.x - JSON processing
+- `jackson-*` 2.21.x - JSON processing
 
 ## Important Implementation Details
 
