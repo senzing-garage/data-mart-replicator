@@ -542,6 +542,25 @@ class SzRelationshipTest {
 
     @Test
     @Execution(ExecutionMode.SAME_THREAD)
+    void testStaticGetReverseMatchKeyWithRelPointerEmptyParens() throws Exception {
+        String matchKey = "+REL_POINTER()";
+
+        SystemErr systemErr = new SystemErr();
+        systemErr.execute(() -> {
+            String reversed = SzRelationship.getReverseMatchKey(matchKey);
+            // Should return original due to no colon inside empty parens
+            assertEquals(matchKey, reversed);
+        });
+
+        String errOutput = systemErr.getText();
+        assertTrue(errOutput.contains("No unescaped colon found"),
+                "Expected warning about missing colon");
+        assertTrue(errOutput.contains(matchKey),
+                "Warning should include the problematic match key");
+    }
+
+    @Test
+    @Execution(ExecutionMode.SAME_THREAD)
     void testStaticGetReverseMatchKeyWithRelPointerNoColon() throws Exception {
         String matchKey = "+REL_POINTER(ABC)";
 
@@ -555,6 +574,8 @@ class SzRelationshipTest {
         String errOutput = systemErr.getText();
         assertTrue(errOutput.contains("No unescaped colon found"),
                 "Expected warning about missing colon");
+        assertTrue(errOutput.contains(matchKey),
+                "Warning should include the problematic match key");
     }
 
     @Test
@@ -572,6 +593,8 @@ class SzRelationshipTest {
         String errOutput = systemErr.getText();
         assertTrue(errOutput.contains("Multiple unescaped colons"),
                 "Expected warning about multiple colons");
+        assertTrue(errOutput.contains(matchKey),
+                "Warning should include the problematic match key");
     }
 
     @Test
@@ -589,6 +612,8 @@ class SzRelationshipTest {
         String errOutput = systemErr.getText();
         assertTrue(errOutput.contains("Missing closing parenthesis"),
                 "Expected warning about missing closing parenthesis");
+        assertTrue(errOutput.contains(matchKey),
+                "Warning should include the problematic match key");
     }
 
     // ========================================================================

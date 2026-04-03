@@ -21,6 +21,7 @@ import java.util.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static com.senzing.sdk.SzFlag.*;
 import static com.senzing.util.JsonUtilities.*;
+import static com.senzing.util.LoggingUtilities.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -168,8 +169,8 @@ public class SzComplexDisclosedRelTest {
                     String matchKey = getString(rel, "MATCH_KEY");
                     int isDisclosed = getInteger(rel, "IS_DISCLOSED");
 
-                    // Print ALL relationships for diagnostic purposes
-                    System.out.println("Entity " + entityId + " -> " + relatedId
+                    // Log all relationships for diagnostic purposes
+                    logInfo("Entity " + entityId + " -> " + relatedId
                             + " [disclosed=" + isDisclosed + "] MATCH_KEY: "
                             + matchKey);
 
@@ -225,11 +226,11 @@ public class SzComplexDisclosedRelTest {
                         = SzRelationship.getReverseMatchKey(forwardKey);
 
                 if (!computedReverse.equals(reverseKey)) {
-                    System.err.println("MISMATCH: Entity " + entityA
-                            + " -> " + entityB);
-                    System.err.println("  Forward      : " + forwardKey);
-                    System.err.println("  Engine reverse: " + reverseKey);
-                    System.err.println("  Our reverse   : " + computedReverse);
+                    logWarning("MISMATCH: Entity " + entityA
+                            + " -> " + entityB,
+                            "  Forward      : " + forwardKey,
+                            "  Engine reverse: " + reverseKey,
+                            "  Our reverse   : " + computedReverse);
                     mismatches++;
                 } else {
                     verified++;
@@ -237,7 +238,7 @@ public class SzComplexDisclosedRelTest {
             }
         }
 
-        System.out.println("Complex disclosed rel test: verified="
+        logInfo("Complex disclosed rel test: verified="
                 + verified + " mismatches=" + mismatches);
         assertEquals(0, mismatches, "Match key reversal mismatches detected");
         assertTrue(verified > 0,

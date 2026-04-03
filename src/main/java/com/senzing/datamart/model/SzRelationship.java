@@ -18,11 +18,6 @@ import static com.senzing.util.LoggingUtilities.*;
  */
 public class SzRelationship {
     /**
-     * The prefix for <code>"REL_POINTER"</code> match keys.
-     */
-    private static final String REL_POINTER_PREFIX = "+REL_POINTER(";
-
-    /**
      * The entity ID, which is always the greatest of the two entity ID's.
      */
     private long entityId;
@@ -224,7 +219,7 @@ public class SzRelationship {
      * @return The reversed match key, or the original if no role-bearing
      *         components are found or the match key is {@code null}.
      */
-    public static final String getReverseMatchKey(String matchKey) {
+    public static String getReverseMatchKey(String matchKey) {
         if (matchKey == null) {
             return null;
         }
@@ -261,12 +256,6 @@ public class SzRelationship {
                 result.append(reverseRoleBearingComponent(component));
                 componentStart = i;
             }
-        }
-
-        // handle the last (or only) component
-        if (componentStart < len) {
-            String component = key.substring(componentStart);
-            result.append(reverseRoleBearingComponent(component));
         }
 
         return result.toString();
@@ -351,27 +340,32 @@ public class SzRelationship {
         int roleStart = openParen + 1;
         int roleEnd = closeParen;
 
-        // Count unescaped colons inside the parentheses
-        List<Integer> colonIndexes = new ArrayList<>();
+        // Find exactly one unescaped colon inside the parentheses
+        int colonIndex = -1;
+        int colonCount = 0;
         for (int i = roleStart; i < roleEnd; i++) {
             if (text[i] == ':' && !isEscaped(text, i)) {
-                colonIndexes.add(i);
+                if (colonCount == 0) {
+                    colonIndex = i;
+                }
+                colonCount++;
+                if (colonCount > 1) {
+                    break; // no need to keep counting
+                }
             }
         }
 
-        if (colonIndexes.size() == 0) {
+        if (colonCount == 0) {
             logWarning("No unescaped colon found in role-bearing component: "
                        + component);
             return component;
         }
 
-        if (colonIndexes.size() > 1) {
+        if (colonCount > 1) {
             logWarning("Multiple unescaped colons in role-bearing component: "
                        + component);
             return component;
         }
-
-        int colonIndex = colonIndexes.get(0);
 
         // Extract the min and max role parts
         String prefix = component.substring(0, openParen + 1);
@@ -556,7 +550,7 @@ public class SzRelationship {
     }
 
     /**
-     * Coverts this instance to JSON text.
+     * Converts this instance to JSON text.
      *
      * @return The JSON text describing the properties of this instance.
      */

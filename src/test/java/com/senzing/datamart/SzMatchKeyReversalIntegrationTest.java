@@ -21,6 +21,7 @@ import java.util.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static com.senzing.sdk.SzFlag.*;
 import static com.senzing.util.JsonUtilities.*;
+import static com.senzing.util.LoggingUtilities.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -216,7 +217,7 @@ public class SzMatchKeyReversalIntegrationTest {
         for (Map<Long, String> relMap : entityMatchKeys.values()) {
             totalRelationships += relMap.size();
         }
-        System.out.println("Found " + totalRelationships
+        logInfo("Found " + totalRelationships
                 + " disclosed relationships across "
                 + entityMatchKeys.size() + " entities");
     }
@@ -252,11 +253,11 @@ public class SzMatchKeyReversalIntegrationTest {
                         = SzRelationship.getReverseMatchKey(forwardKey);
 
                 if (!computedReverse.equals(reverseKey)) {
-                    System.err.println("MISMATCH for Entity " + entityA
-                            + " -> " + entityB);
-                    System.err.println("  Forward key      : " + forwardKey);
-                    System.err.println("  Engine reverse   : " + reverseKey);
-                    System.err.println("  Computed reverse : " + computedReverse);
+                    logWarning("MISMATCH for Entity " + entityA
+                            + " -> " + entityB,
+                            "  Forward key      : " + forwardKey,
+                            "  Engine reverse   : " + reverseKey,
+                            "  Computed reverse : " + computedReverse);
                     mismatches++;
                 } else {
                     verified++;
@@ -267,11 +268,11 @@ public class SzMatchKeyReversalIntegrationTest {
                         = SzRelationship.getReverseMatchKey(reverseKey);
 
                 if (!computedForward.equals(forwardKey)) {
-                    System.err.println("MISMATCH (reverse direction) for Entity "
-                            + entityB + " -> " + entityA);
-                    System.err.println("  Reverse key       : " + reverseKey);
-                    System.err.println("  Engine forward    : " + forwardKey);
-                    System.err.println("  Computed forward  : " + computedForward);
+                    logWarning("MISMATCH (reverse direction) for Entity "
+                            + entityB + " -> " + entityA,
+                            "  Reverse key       : " + reverseKey,
+                            "  Engine forward    : " + forwardKey,
+                            "  Computed forward  : " + computedForward);
                     mismatches++;
                 } else {
                     verified++;
@@ -279,7 +280,7 @@ public class SzMatchKeyReversalIntegrationTest {
             }
         }
 
-        System.out.println("Verified " + verified
+        logInfo("Verified " + verified
                 + " match key reversals, " + mismatches + " mismatches");
 
         assertEquals(0, mismatches,

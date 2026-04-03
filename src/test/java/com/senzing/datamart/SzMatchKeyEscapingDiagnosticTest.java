@@ -20,6 +20,7 @@ import java.util.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static com.senzing.sdk.SzFlag.*;
 import static com.senzing.util.JsonUtilities.*;
+import static com.senzing.util.LoggingUtilities.*;
 
 /**
  * Diagnostic test to confirm that Senzing 4.3.0+ properly escapes special
@@ -152,9 +153,7 @@ public class SzMatchKeyEscapingDiagnosticTest {
             Set<SzRecordKey> found = new HashSet<>();
             int disclosedCount = 0;
 
-            System.out.println();
-            System.out.println("=== DISCLOSED RELATIONSHIP MATCH KEYS ===");
-            System.out.println();
+            logInfo("=== DISCLOSED RELATIONSHIP MATCH KEYS ===");
 
             for (SzRecordKey recordKey : recordKeys) {
                 if (found.contains(recordKey)) continue;
@@ -194,19 +193,16 @@ public class SzMatchKeyEscapingDiagnosticTest {
 
                     if (isDisclosed == 1) {
                         disclosedCount++;
-                        System.out.println("Entity " + entityId + " (" + entityName
-                                + ") -> Entity " + relatedId);
-                        System.out.println("  MATCH_KEY       : " + matchKey);
-                        System.out.println("  MATCH_LEVEL_CODE: " + matchLevelCode);
-                        System.out.println("  ERRULE_CODE     : " + erruleCode);
-                        System.out.println();
+                        logInfo("Entity " + entityId + " (" + entityName
+                                + ") -> Entity " + relatedId,
+                                "  MATCH_KEY       : " + matchKey,
+                                "  MATCH_LEVEL_CODE: " + matchLevelCode,
+                                "  ERRULE_CODE     : " + erruleCode);
                     }
                 }
             }
 
-            System.out.println("Total disclosed relationships found: " + disclosedCount);
-            System.out.println("=== END ===");
-            System.out.println();
+            logInfo("Total disclosed relationships found: " + disclosedCount);
 
             Assertions.assertTrue(disclosedCount > 0,
                     "Expected at least one disclosed relationship in "

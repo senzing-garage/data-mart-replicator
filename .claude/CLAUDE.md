@@ -218,20 +218,20 @@ The JaCoCo profile must be activated with `-P jacoco`. The coverage report is ge
 ## Dependencies
 
 **Core:**
-- `sz-sdk` 4.1.0 - Senzing Core SDK (currently upgrading to 4.x)
-- `sz-sdk-auto` 0.4.1 - Auto-configuration
-- `senzing-commons` 4.0.0-beta.1.5 - Shared utilities
+- `sz-sdk` 4.3.0+ - Senzing Core SDK (minimum 4.3.0 for match key escaping)
+- `sz-sdk-auto` 0.5.1 - Auto-configuration
+- `senzing-commons` 4.0.0-beta.2.1 - Shared utilities
 
 **Database:**
-- `postgresql` 42.7.8 - PostgreSQL JDBC driver
-- `sqlite-jdbc` 3.50.3.0 - SQLite JDBC driver
+- `postgresql` 42.7.10 - PostgreSQL JDBC driver
+- `sqlite-jdbc` 3.51.3.0 - SQLite JDBC driver
 
 **Messaging:**
-- `amqp-client` 5.27.0 - RabbitMQ client
-- `sqs` 2.36.1 - AWS SQS SDK
+- `amqp-client` 5.29.0 - RabbitMQ client
+- `sqs` 2.42.18 - AWS SQS SDK
 
 **Serialization:**
-- `jackson-*` 2.20.x - JSON processing
+- `jackson-*` 2.21.x - JSON processing
 
 ## Important Implementation Details
 
