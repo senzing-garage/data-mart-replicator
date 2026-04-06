@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-beta.2.4] - 2026-04-06
+
+### Changed in 2.0.0-beta.2.4
+
+- Updated dependencies:
+  - Updated `netty-bom` from version `4.2.10.Final` to `4.2.12.Final`
+  - Updated `senzing-commons` from version `4.0.0-beta.2.1` to `4.0.0-beta.3.0`
+  - Updated Amazon `sqs` from version `2.42.18` to `2.42.28`
+  - Updated `embedded-postgres-binaries-darwin-arm64v8` from version `14.20.0` to `14.22.0`
+
 ## [2.0.0-beta.2.3] - 2026-04-03
 
 ### Changed in 2.0.0-beta.2.3
