@@ -8,17 +8,19 @@ import java.util.List;
 /**
  * Provides a data mart schema builder for SQLite.
  */
-public class SQLiteSchemaBuilder extends SchemaBuilder {
+public class SQLiteSchemaBuilder extends SchemaBuilder
+{
     /**
      * Default constructor.
      */
-    public SQLiteSchemaBuilder() {
+    public SQLiteSchemaBuilder()
+    {
         // do nothing
     }
 
     /**
-     * Ensures the SQLite schema exists and optionally drops the schema
-     * before creating it.
+     * Ensures the SQLite schema exists and optionally drops the schema before
+     * creating it.
      *
      * @param conn The JDBC {@link Connection} to use for creating the schema.
      *
@@ -463,7 +465,8 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
      * @param tableName The table name for the create trigger statement.
      * @return The create trigger statement.
      */
-    protected String formatCreateSQLiteInsertTrigger(String tableName) {
+    protected String formatCreateSQLiteInsertTrigger(String tableName)
+    {
         return "CREATE TRIGGER IF NOT EXISTS " + tableName + "_new "
                 + "AFTER INSERT ON " + tableName + " FOR EACH ROW "
                 + "BEGIN UPDATE " + tableName + " "
@@ -479,7 +482,8 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
      * @param tableName The table name for the drop trigger statement.
      * @return The drop trigger statement.
      */
-    protected String formatDropSQLiteInsertTrigger(String tableName) {
+    protected String formatDropSQLiteInsertTrigger(String tableName)
+    {
         return "DROP TRIGGER IF EXISTS " + tableName + "_new;";
     }
 
@@ -490,7 +494,8 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
      * @param tableName The table name for the create trigger statement.
      * @return The create trigger statement.
      */
-    protected String formatCreateSQLiteUpdateTrigger(String tableName) {
+    protected String formatCreateSQLiteUpdateTrigger(String tableName)
+    {
         return "CREATE TRIGGER IF NOT EXISTS " + tableName + "_mod "
                 + "AFTER UPDATE ON " + tableName + " FOR EACH ROW "
                 + "BEGIN UPDATE " + tableName + " "
@@ -506,7 +511,8 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
      * @param tableName The table name for the drop trigger statement.
      * @return The drop trigger statement.
      */
-    protected String formatDropSQLiteUpdateTrigger(String tableName) {
+    protected String formatDropSQLiteUpdateTrigger(String tableName)
+    {
         return "DROP TRIGGER IF EXISTS " + tableName + "_mod;";
     }
 }

@@ -9,7 +9,8 @@ import static com.senzing.datamart.SzReplicationProvider.TaskAction.*;
  *
  * @see com.senzing.datamart.model.SzReportCode#ENTITY_SIZE_BREAKDOWN
  */
-public class SizeBreakdownReportHandler extends UpdateReportHandler {
+public class SizeBreakdownReportHandler extends UpdateReportHandler
+{
   /**
    * Constructs with the specified
    * {@link SzReplicationProvider}.  This constructs the super
@@ -19,7 +20,8 @@ public class SizeBreakdownReportHandler extends UpdateReportHandler {
    *
    * @param provider The {@link SzReplicationProvider} to use.
    */
-  public SizeBreakdownReportHandler(SzReplicationProvider provider) {
+  public SizeBreakdownReportHandler(SzReplicationProvider provider)
+  {
     super(provider, UPDATE_ENTITY_SIZE_BREAKDOWN);
   }
 }

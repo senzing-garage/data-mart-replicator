@@ -23,7 +23,8 @@ import java.util.Set;
 /**
  * Provides services for the Loaded Statistics reports.
  */
-public interface LoadedStatsReportsService extends ReportsService {
+public interface LoadedStatsReportsService extends ReportsService
+{
     /**
      * The prefix path for entity size reports services.
      */
@@ -49,12 +50,10 @@ public interface LoadedStatsReportsService extends ReportsService {
     /**
      * Exposes
      * {@link LoadedStatsReports#getLoadedStatistics(Connection, Set, Timers)}
-     * as a
-     * REST/JSON service at {@link #LOADED_STATS_ENDPOINT}.
+     * as a REST/JSON service at {@link #LOADED_STATS_ENDPOINT}.
      * 
      * @param onlyLoaded Set to <code>true</code> to only consider data sources
-     *        that
-     *                   have loaded record, otherwise set this to
+     *                   that have loaded record, otherwise set this to
      *                   <code>false</code> to consider all data sources.
      * 
      * @return The {@link SzLoadedStats} describing the report.
@@ -98,8 +97,7 @@ public interface LoadedStatsReportsService extends ReportsService {
     /**
      * Exposes
      * {@link LoadedStatsReports#getSourceLoadedStatistics(Connection, String,
-     * Timers)}
-     * as a REST/JSON service at {@link #SOURCE_LOADED_STATS_ENDPOINT}.
+     * Timers)} as a REST/JSON service at {@link #SOURCE_LOADED_STATS_ENDPOINT}.
      * 
      * @param dataSource The data source code for which the report is being
      *                   requested.
@@ -142,20 +140,20 @@ public interface LoadedStatsReportsService extends ReportsService {
     /**
      * Exposes
      * {@link LoadedStatsReports#getEntityIdsForDataSource(Connection, String, 
-     * String, SzBoundType, Integer, Integer, Timers)} as a REST/JSON service 
-     * at {@link #SOURCE_LOADED_ENTITIES_ENDPOINT}.
+     * String, SzBoundType, Integer, Integer, Timers)} as a REST/JSON service at
+     * {@link #SOURCE_LOADED_ENTITIES_ENDPOINT}.
      * 
      * @param dataSource    The data source code for for the entities being
      *                      requested.
      * @param entityIdBound The bound value for the entity ID's that will be
      *                      returned.
      * @param boundType The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
      * 
      * @param sampleSize The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * 
      * @return The {@link SzEntitiesPage} describing the report.
      * 

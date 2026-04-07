@@ -21,7 +21,8 @@ import java.sql.SQLException;
 /**
  * Provides services for the Entity Relations reports.
  */
-public interface EntityRelationsReportsService extends ReportsService {
+public interface EntityRelationsReportsService extends ReportsService
+{
     /**
      * The prefix path for entity relations count reports services.
      */
@@ -47,8 +48,8 @@ public interface EntityRelationsReportsService extends ReportsService {
     /**
      * Exposes
      * {@link EntityRelationsReports#getEntityRelationsBreakdown(Connection,
-     * Timers)}
-     * as a REST/JSON service at {@link #ENTITY_RELATIONS_BREAKDOWN_ENDPOINT}.
+     * Timers)} as a REST/JSON service at {@link
+     * #ENTITY_RELATIONS_BREAKDOWN_ENDPOINT}.
      * 
      * @return The {@link SzEntityRelationsBreakdown} describing the report.
      * 
@@ -59,7 +60,9 @@ public interface EntityRelationsReportsService extends ReportsService {
     @Path(ENTITY_RELATIONS_BREAKDOWN_ENDPOINT)
     @ProducesJson
     default SzEntityRelationsBreakdown getEntityRelationsBreakdown(
-            ) throws ReportsServiceException {
+            )
+        throws ReportsServiceException
+    {
         Connection conn = null;
         try {
             conn = this.getConnection();
@@ -88,12 +91,11 @@ public interface EntityRelationsReportsService extends ReportsService {
     /**
      * Exposes
      * {@link EntityRelationsReports#getEntityRelationsCount( Connection, int,
-     * Timers)}
-     * as a REST/JSON service at {@link #ENTITY_RELATIONS_COUNT_ENDPOINT}.
+     * Timers)} as a REST/JSON service at {@link
+     * #ENTITY_RELATIONS_COUNT_ENDPOINT}.
      * 
      * @param relationCount The number of relations for which the entity count
-     *        is
-     *                      being requested.
+     *                      is being requested.
      * 
      * @return The {@link SzEntityRelationsCount} describing the report.
      * 
@@ -133,20 +135,19 @@ public interface EntityRelationsReportsService extends ReportsService {
     /**
      * Exposes
      * {@link EntityRelationsReports#getEntityIdsForRelationCount(Connection,
-     * int, String, SzBoundType, Integer, Integer, Timers)}
-     * as a REST/JSON service at {@link #ENTITY_RELATIONS_ENTITIES_ENDPOINT}.
+     * int, String, SzBoundType, Integer, Integer, Timers)} as a REST/JSON
+     * service at {@link #ENTITY_RELATIONS_ENTITIES_ENDPOINT}.
      * 
      * @param relationCount The number of relations for which the entity count
-     *        is
-     *                      being requested.
+     *                      is being requested.
      * @param entityIdBound The bound value for the entity ID's that will be
      *                      returned.
      * @param boundType The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
      * @param sampleSize The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * 
      * @return The {@link SzEntitiesPage} describing the report.
      * 

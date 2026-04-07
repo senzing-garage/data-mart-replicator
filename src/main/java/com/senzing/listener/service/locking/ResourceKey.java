@@ -41,7 +41,8 @@ public final class ResourceKey
      *                     identify the resource.
      * @throws NullPointerException If the resource type is <code>null</code>.
      */
-    public ResourceKey(String resourceType, String... components) {
+    public ResourceKey(String resourceType, String... components)
+    {
         Objects.requireNonNull(resourceType);
         this.resourceType = resourceType;
         this.components = (components == null)
@@ -54,8 +55,8 @@ public final class ResourceKey
      * <code>"REPORT"</code>) followed by zero or more key components that more
      * specifically identify the resource within the type of resource (e.g.: an
      * entity ID or a data source code followed by a record ID). This
-     * constructor
-     * version converts the one or more {@link Object} component instances to
+     * constructor version converts the one or more {@link Object} component
+     * instances to
      * {@link String} instances.
      *
      * @param resourceType The type of resource being identified.
@@ -63,7 +64,8 @@ public final class ResourceKey
      *                     identify the resource.
      * @throws NullPointerException If the resource type is <code>null</code>.
      */
-    public ResourceKey(String resourceType, Object... components) {
+    public ResourceKey(String resourceType, Object... components)
+    {
         Objects.requireNonNull(resourceType);
         this.resourceType = resourceType;
         if (components == null) {
@@ -79,28 +81,30 @@ public final class ResourceKey
 
     /**
      * Returns the resource type that identifies the type of resource. Examples
-     * may
-     * be <code>"ENTITY"</code>, <code>"RECORD"</code> or <code>"REPORT"</code>.
+     * may be <code>"ENTITY"</code>, <code>"RECORD"</code> or
+     * <code>"REPORT"</code>.
      *
      * @return The resource type that identifies the type of resource.
      */
-    public String getResourceType() {
+    public String getResourceType()
+    {
         return this.resourceType;
     }
 
     /**
      * Returns the <b>unmodifiable</b> {@link List} of {@link String} components
      * that more specifically identify the resource being locked within the
-     * resource
-     * type. The returned {@link List} may be empty, but will <b>not</b> be
+     * resource type. The returned {@link List} may be empty, but will
+     * <b>not</b> be
      * <code>null</code>; however, elements in the {@link List} may be
      * <code>null</code>.
      *
      * @return The <b>unmodifiable</b> {@link List} of {@link String} components
-     * that more specifically identify the resource being locked within the
-     *         resource type.
+     *             that more specifically identify the resource being locked
+     *             within the resource type.
      */
-    public List<String> getComponents() {
+    public List<String> getComponents()
+    {
         return this.components;
     }
 
@@ -111,23 +115,23 @@ public final class ResourceKey
      * @return The hash code for this instance.
      */
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return this.resourceType.hashCode() ^ Objects.hash(this.components);
     }
 
     /**
      * Overridden to return <code>true</code> if and only if the specified
-     * parameter
-     * is a non-null reference to an instance of the same class with an
-     * equivalent
-     * resource type and all component parts in the same order.
+     * parameter is a non-null reference to an instance of the same class with
+     * an equivalent resource type and all component parts in the same order.
      *
      * @param obj The object to compare with.
      * @return <code>true</code> if the objects are equal, otherwise
-     *         <code>false</code>.
+     *                           <code>false</code>.
      */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (obj == null) {
             return false;
         }
@@ -145,16 +149,16 @@ public final class ResourceKey
     /**
      * Overridden to return a result consistent with the {@link #equals(Object)}
      * method that orders resource keys first by their resource types and then
-     * by
-     * their component identifying parts according to
+     * by their component identifying parts according to
      * {@link String#compareTo(String)}.
      *
      * @param key The {@link ResourceKey} to compare with.
      * @return A negative number is less-than, zero (0) if equal and a positive
-     *         number if greater than the specified instance.
+     *           number if greater than the specified instance.
      */
     @Override
-    public int compareTo(ResourceKey key) {
+    public int compareTo(ResourceKey key)
+    {
         int diff = this.getResourceType().compareTo(key.getResourceType());
         if (diff != 0) {
             return diff;
@@ -192,7 +196,8 @@ public final class ResourceKey
      * @return A {@link String} representation of this instance.
      */
     @Override
-    public String toString() {
+    public String toString()
+    {
         try {
             StringBuilder sb = new StringBuilder();
             sb.append(URLEncoder.encode(this.getResourceType(), UTF_8));
@@ -207,17 +212,17 @@ public final class ResourceKey
 
     /**
      * Parses the encoded text as a {@link ResourceKey}. The encoding is done by
-     * the
-     * {@link #toString()} method. This method returns <code>null</code> if the
-     * specified parameter is <code>null</code>.
+     * the {@link #toString()} method. This method returns <code>null</code>
+     * if the specified parameter is <code>null</code>.
      *
      * @param text The text to parse.
      *
      * @return The {@link ResourceKey} parsed from the specified text, or
-     * <code>null</code> if the specified parameter is <code>null</code>.
+     *             <code>null</code> if the specified parameter is
+     *             <code>null</code>.
      * @throws IllegalArgumentException If the specified parameter is an empty
-     * string after trimming leading and trailing
-     *                                  white space.
+     *                                  string after trimming leading and
+     *                                  trailing white space.
      */
     public static ResourceKey parse(String text)
         throws IllegalArgumentException

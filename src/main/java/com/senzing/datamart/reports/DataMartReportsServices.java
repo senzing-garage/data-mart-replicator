@@ -33,14 +33,13 @@ public class DataMartReportsServices
     private ConnectionProvider connProvider = null;
 
     /**
-     * The {@link SzEnvironment} to use for obtaining 
-     * information about the configuration and entity repository.
+     * The {@link SzEnvironment} to use for obtaining information about the
+     * configuration and entity repository.
      */
     private SzEnvironment env = null;
 
     /**
-     * The data sources to exclude because they are configured 
-     * by default.
+     * The data sources to exclude because they are configured by default.
      */
     private Set<String> excludedSources = null;
 
@@ -50,12 +49,13 @@ public class DataMartReportsServices
     private final Object monitor = new Object();
 
     /**
-     * Default constructor for derived classes that may override
-     * methods so that the {@link SzEnvironment} and 
+     * Default constructor for derived classes that may override methods so that
+     * the {@link SzEnvironment} and
      * {@link ConnectionProvider} are not needed at the time of
      * construction.
      */
-    protected DataMartReportsServices() {
+    protected DataMartReportsServices()
+    {
         this.connProvider = null;
         this.env = null;
     }
@@ -67,8 +67,8 @@ public class DataMartReportsServices
      * @param env The {@link SzEnvironment} to use.
      * @param connProvider THe {@link ConnectionProvider} to use.
      * 
-     * @throws NullPointerException If either of the the specified parameters
-     *                              is <code>null</code>.
+     * @throws NullPointerException If either of the the specified parameters is
+     *                              <code>null</code>.
      */
     public DataMartReportsServices(SzEnvironment        env, 
                                    ConnectionProvider   connProvider) 
@@ -86,7 +86,8 @@ public class DataMartReportsServices
      * 
      * @return The {@link SzEnvironment} for this instance.
      */
-    protected SzEnvironment getSzEnvironment() {
+    protected SzEnvironment getSzEnvironment()
+    {
         return this.env;
     }
 
@@ -95,24 +96,25 @@ public class DataMartReportsServices
      * 
      * @return The {@link ConnectionProvider} for this instance.
      */
-    protected ConnectionProvider getConnectionProvider() {
+    protected ConnectionProvider getConnectionProvider()
+    {
         return this.connProvider;
     }
 
     /**
      * Gets the <b>unmodifiable</b> {@link Set} of {@link String} data source
-     * codes
-     * identifying the data sources that are configured by default with the
-     * Senzing
-     * template configuration.
+     * codes identifying the data sources that are configured by default with
+     * the Senzing template configuration.
      * 
      * @return The <b>unmodifiable</b> {@link Set} of {@link String} data source
-     *         codes identifying the data sources that are configured by default
-     *         with the Senzing template configuration.
+     *             codes identifying the data sources that are configured by
+     *             default with the Senzing template configuration.
      * 
      * @throws SzException If a failure occurs.
      */
-    protected Set<String> getTemplateDefaultDataSources() throws SzException {
+    protected Set<String> getTemplateDefaultDataSources()
+        throws SzException
+    {
         synchronized (this.monitor) {
             if (this.excludedSources != null) {
                 return this.excludedSources;
@@ -136,8 +138,8 @@ public class DataMartReportsServices
         } 
     }
     /**
-     * Overridden to get the configured using the {@link SzEnvironment}
-     * from {@link #getSzEnvironment()}.
+     * Overridden to get the configured using the {@link SzEnvironment} from
+     * {@link #getSzEnvironment()}.
      * 
      * {@inheritDoc}
      */
@@ -176,7 +178,9 @@ public class DataMartReportsServices
      * {@inheritDoc}
      */
     @Override
-    public Connection getConnection() throws SQLException {
+    public Connection getConnection()
+        throws SQLException
+    {
         ConnectionProvider cp = this.getConnectionProvider();
         if (cp == null) {
             throw new SQLException("No ConnectionProvider has been set");

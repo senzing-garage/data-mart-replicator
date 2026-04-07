@@ -9,17 +9,19 @@ import static com.senzing.datamart.SzReplicationProvider.TaskAction.*;
  *
  * @see com.senzing.datamart.model.SzReportCode#CROSS_SOURCE_SUMMARY
  */
-public class CrossSummaryReportHandler extends UpdateReportHandler {
+public class CrossSummaryReportHandler extends UpdateReportHandler
+{
 
   /**
-   * Constructs with the specified {@link SzReplicationProvider}.
-   * This constructs the super class with
+   * Constructs with the specified {@link SzReplicationProvider}. This
+   * constructs the super class with
    * {@link SzReplicationProvider.TaskAction#UPDATE_CROSS_SOURCE_SUMMARY
    * UPDATE_CROSS_SOURCE_SUMMARY} as the supported action.
    *
    * @param provider The {@link SzReplicationProvider} to use.
    */
-  public CrossSummaryReportHandler(SzReplicationProvider provider) {
+  public CrossSummaryReportHandler(SzReplicationProvider provider)
+  {
     super(provider, UPDATE_CROSS_SOURCE_SUMMARY);
   }
 }

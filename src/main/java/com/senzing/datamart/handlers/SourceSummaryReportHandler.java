@@ -28,7 +28,8 @@ import static java.sql.Types.*;
  *
  * @see SzReportCode#DATA_SOURCE_SUMMARY
  */
-public class SourceSummaryReportHandler extends UpdateReportHandler {
+public class SourceSummaryReportHandler extends UpdateReportHandler
+{
     /**
      * The flags to use when retrieving the entity from the Senzing repository.
      */
@@ -45,7 +46,8 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
      *
      * @param provider The {@link SzReplicationProvider} to use.
      */
-    public SourceSummaryReportHandler(SzReplicationProvider provider) {
+    public SourceSummaryReportHandler(SzReplicationProvider provider)
+    {
         super(provider, UPDATE_DATA_SOURCE_SUMMARY);
     }
 
@@ -54,9 +56,9 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
      * <p>
      * Overridden to special-case the record delta for the {@link
      * SzReportStatistic#ENTITY_COUNT} statistic so that only positive deltas
-     * from
-     * the pending updates are considered and the negative values are pulled
-     * directly from the record table where the entity ID is set to zero (0).
+     * from the pending updates are considered and the negative values are
+     * pulled directly from the record table where the entity ID is set to zero
+     * (0).
      */
     @Override
     protected int overrideRecordDelta(Connection            conn,
@@ -288,7 +290,8 @@ public class SourceSummaryReportHandler extends UpdateReportHandler {
 
                 int index = 0;
                 for (Map.Entry<SzRecordKey,
-                        SzResolvedEntity> entry : reconnectMap.entrySet()) {
+                        SzResolvedEntity> entry : reconnectMap.entrySet())
+                        {
                     int rowCount = rowCounts.get(index++);
                     if (rowCount == 0) {
                         logWarning("FAILED TO RECONNECT RECORD "

@@ -5,7 +5,8 @@ import java.util.Objects;
 /**
  * The key for a cross-source report statistic comprising two data sources.
  */
-public final class CrossSourceKey implements Comparable<CrossSourceKey> {
+public final class CrossSourceKey implements Comparable<CrossSourceKey>
+{
     /**
      * The first data source.
      */
@@ -19,11 +20,11 @@ public final class CrossSourceKey implements Comparable<CrossSourceKey> {
     /**
      * Constructs with the specified parameters.
      *
-     * @param source The non-null data source code representing both the
-     *               "from" and "to" data source.
+     * @param source The non-null data source code representing both the "from"
+     *               and "to" data source.
      * 
-     * @throws NullPointerException If the specified data source
-     *                              is <code>null</code>
+     * @throws NullPointerException If the specified data source is
+     *                              <code>null</code>
      */
     public CrossSourceKey(String source) 
         throws NullPointerException 
@@ -57,7 +58,8 @@ public final class CrossSourceKey implements Comparable<CrossSourceKey> {
      *
      * @return The first ("from") data source code.
      */
-    public String getSource1() {
+    public String getSource1()
+    {
         return this.source1;
     }
 
@@ -66,7 +68,8 @@ public final class CrossSourceKey implements Comparable<CrossSourceKey> {
      *
      * @return The second ("to") data source code.
      */
-    public String getSource2() {
+    public String getSource2()
+    {
         return this.source2;
     }
 
@@ -76,20 +79,22 @@ public final class CrossSourceKey implements Comparable<CrossSourceKey> {
      * @return The hash code for this instance.
      */
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hash(this.getSource1(), this.getSource2());
     }
 
     /**
-     * Checks if this instance is equal to the specified object.
-     * This is implemented to return <code>true</code> if and
-     * only if the specified value is a non-null reference to an
-     * object of the same class with equivalent properties.
+     * Checks if this instance is equal to the specified object. This is
+     * implemented to return <code>true</code> if and only if the specified
+     * value is a non-null reference to an object of the same class with
+     * equivalent properties.
      *
      * @param obj The object to compare with.
      */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (obj == null) {
             return false;
         }
@@ -105,19 +110,20 @@ public final class CrossSourceKey implements Comparable<CrossSourceKey> {
     }
 
     /**
-     * Implemented to handle comparing such that we sort on the first
-     * and then the second data source.   If the specified parameter 
-     * is <code>null</code> then this returns one (1).
+     * Implemented to handle comparing such that we sort on the first and then
+     * the second data source. If the specified parameter is <code>null</code>
+     * then this returns one (1).
      * 
      * @param key The {@link CrossSourceKey} to compare with.
      * 
-     * @return A negative number if this instance compares
-     *         less-than the specified parameter, a positive
-     *         number if it compares greater-than the specified
-     *         parameter and zero (0) if they compare equal.
+     * @return A negative number if this instance compares less-than the
+     *           specified parameter, a positive number if it compares
+     *           greater-than the specified parameter and zero (0) if they
+     *           compare equal.
      */
     @Override
-    public int compareTo(CrossSourceKey key) {
+    public int compareTo(CrossSourceKey key)
+    {
         if (key == null) {
             return 1;
         }
@@ -134,13 +140,14 @@ public final class CrossSourceKey implements Comparable<CrossSourceKey> {
     }
 
     /**
-     * Implemented to provide a diagnostic {@link String}
-     * describing this instance.
+     * Implemented to provide a diagnostic {@link String} describing this
+     * instance.
      *
      * @return A diagnostic {@link String} describing this instance.
      */
     @Override
-    public String toString() {
+    public String toString()
+    {
         return this.getSource1() + ":" + this.getSource2();
     }
 }

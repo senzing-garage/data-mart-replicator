@@ -12,15 +12,15 @@ import javax.json.JsonObject;
 /**
  * A factory class for creating instances of {@link MessageConsumer}.
  */
-public final class MessageConsumerFactory {
+public final class MessageConsumerFactory
+{
     /**
      * Generates a message consumer based on consumer type.
      * 
      * @param consumerType The consumer type.
      *
-     * @param config       The {@link JsonObject} describing the
-     *                     configuration for the {@link
-     *                     MessageConsumer}.
+     * @param config       The {@link JsonObject} describing the configuration
+     *                     for the {@link MessageConsumer}.
      *
      * @return The {@link MessageConsumer} that was created.
      * 
@@ -59,7 +59,8 @@ public final class MessageConsumerFactory {
     /**
      * Private constructor.
      */
-    private MessageConsumerFactory() {
+    private MessageConsumerFactory()
+    {
         // do nothing
     }
 }

@@ -27,7 +27,8 @@ import java.util.Set;
 /**
  * Provides services for the Summary Statistic reports.
  */
-public interface SummaryStatsReportsService extends ReportsService {
+public interface SummaryStatsReportsService extends ReportsService
+{
     /**
      * The prefix path for entity size reports services.
      */
@@ -82,32 +83,28 @@ public interface SummaryStatsReportsService extends ReportsService {
 
     /**
      * The endpoint for the report of entities contributing to the source
-     * summary
-     * report matches.
+     * summary report matches.
      */
     String SOURCE_SUMMARY_MATCH_ENTITIES_ENDPOINT = SOURCE_SUMMARY_ENDPOINT
             + "/matches/entities";
 
     /**
      * The endpoint for the report of entities contributing to the source
-     * summary
-     * report ambiguous matches.
+     * summary report ambiguous matches.
      */
     String SOURCE_SUMMARY_AMBIGUOUS_MATCH_ENTITIES_ENDPOINT =
             SOURCE_SUMMARY_ENDPOINT + "/ambiguous-matches/entities";
 
     /**
      * The endpoint for the report of entities contributing to the source
-     * summary
-     * report possible matches.
+     * summary report possible matches.
      */
     String SOURCE_SUMMARY_POSSIBLE_MATCH_ENTITIES_ENDPOINT =
             SOURCE_SUMMARY_ENDPOINT + "/possible-matches/entities";
 
     /**
      * The endpoint for the report of entities contributing to the source
-     * summary
-     * report possible relations.
+     * summary report possible relations.
      */
     String SOURCE_SUMMARY_POSSIBLE_RELATION_ENTITIES_ENDPOINT =
             SOURCE_SUMMARY_ENDPOINT
@@ -115,8 +112,7 @@ public interface SummaryStatsReportsService extends ReportsService {
 
     /**
      * The endpoint for the report of entities contributing to the source
-     * summary
-     * report disclosed relations.
+     * summary report disclosed relations.
      */
     String SOURCE_SUMMARY_DISCLOSED_RELATION_ENTITIES_ENDPOINT =
             SOURCE_SUMMARY_ENDPOINT
@@ -196,21 +192,20 @@ public interface SummaryStatsReportsService extends ReportsService {
     /**
      * Exposes
      * {@link SummaryStatsReports#getSummaryStatistics(Connection, String,
-     * String, Set, Timers)}
-     * as a REST/JSON service at {@link #SUMMARY_STATS_ENDPOINT}.
+     * String, Set, Timers)} as a REST/JSON service at {@link
+     * #SUMMARY_STATS_ENDPOINT}.
      * 
      * @param matchKey The optional match key for retrieving statistics specific
-     *                   to a match key, or asterisk (<code>"*"</code>) for all
-     *                   match keys, or <code>null</code> for only retrieving
-     *                   statistics that are not specific to a match key.
+     *                 to a match key, or asterisk (<code>"*"</code>) for all
+     *                 match keys, or <code>null</code> for only retrieving
+     *                 statistics that are not specific to a match key.
      * @param principle The optional principle for retrieving statistics
-     *        specific
-     *                   to a principle, or asterisk (<code>"*"</code>) for all
-     *                   principles, or <code>null</code> for only retrieving
-     *                   statistics that are not specific to a principle.
+     *                  specific to a principle, or asterisk (<code>"*"</code>)
+     *                  for all principles, or <code>null</code> for only
+     *                  retrieving statistics that are not specific to a
+     *                  principle.
      * @param onlyLoaded Set to <code>true</code> to only consider data sources
-     *        that
-     *                   have loaded record, otherwise set this to
+     *                   that have loaded record, otherwise set this to
      *                   <code>false</code> to consider all data sources.
      * 
      * @return The {@link SzSummaryStats} describing the report.
@@ -225,7 +220,8 @@ public interface SummaryStatsReportsService extends ReportsService {
             @Param("matchKey") @Nullable                    String  matchKey, 
             @Param("principle") @Nullable                   String  principle, 
             @Param("onlyLoadedSources") @Default("true")    boolean onlyLoaded) 
-        throws ReportsServiceException {
+        throws ReportsServiceException
+    {
         Connection conn = null;
         try {
             conn = this.getConnection();
@@ -256,23 +252,22 @@ public interface SummaryStatsReportsService extends ReportsService {
     /**
      * Exposes
      * {@link SummaryStatsReports#getSourceSummary(Connection, String, String,
-     * String, Set, Timers)}
-     * as a REST/JSON service at {@link #SOURCE_SUMMARY_ENDPOINT}.
+     * String, Set, Timers)} as a REST/JSON service at {@link
+     * #SOURCE_SUMMARY_ENDPOINT}.
      * 
      * @param dataSource The data source code for which the report is being
      *                   requested.
      * @param matchKey The optional match key for retrieving statistics specific
-     *                   to a match key, or asterisk (<code>"*"</code>) for all
-     *                   match keys, or <code>null</code> for only retrieving
-     *                   statistics that are not specific to a match key.
+     *                 to a match key, or asterisk (<code>"*"</code>) for all
+     *                 match keys, or <code>null</code> for only retrieving
+     *                 statistics that are not specific to a match key.
      * @param principle The optional principle for retrieving statistics
-     *        specific
-     *                   to a principle, or asterisk (<code>"*"</code>) for all
-     *                   principles, or <code>null</code> for only retrieving
-     *                   statistics that are not specific to a principle.
+     *                  specific to a principle, or asterisk (<code>"*"</code>)
+     *                  for all principles, or <code>null</code> for only
+     *                  retrieving statistics that are not specific to a
+     *                  principle.
      * @param onlyLoaded Set to <code>true</code> to only consider data sources
-     *        that
-     *                   have loaded record, otherwise set this to
+     *                   that have loaded record, otherwise set this to
      *                   <code>false</code> to consider all data sources.
      * 
      * @return The {@link SzSourceSummary} describing the report.
@@ -318,28 +313,25 @@ public interface SummaryStatsReportsService extends ReportsService {
     /**
      * Exposes
      * {@link SummaryStatsReports#getCrossSourceSummary(Connection, String,
-     * String, String, String, Timers)}
-     * as a REST/JSON service at {@link #CROSS_SOURCE_SUMMARY_ENDPOINT}.
+     * String, String, String, Timers)} as a REST/JSON service at {@link
+     * #CROSS_SOURCE_SUMMARY_ENDPOINT}.
      *
      * @param dataSource The data source code identifying the data source for
-     *        the
-     *                     cross-source report being requested.
+     *                   the cross-source report being requested.
      *
      * @param vsDataSource The data source code identifying the "versus" data
-     *        source
-     *                     for which the cross-source report being requested.
+     *                     source for which the cross-source report being
+     *                     requested.
      *
      * @param matchKey The optional match key for retrieving statistics specific
-     *                     to a match key, or asterisk (<code>"*"</code>) for
-     *                     all
-     *                     match keys, or <code>null</code> for only retrieving
-     *                     statistics that are not specific to a match key.
+     *                 to a match key, or asterisk (<code>"*"</code>) for all
+     *                 match keys, or <code>null</code> for only retrieving
+     *                 statistics that are not specific to a match key.
      * @param principle The optional principle for retrieving statistics
-     *        specific
-     *                     to a principle, or asterisk (<code>"*"</code>) for
-     *                     all
-     *                     principles, or <code>null</code> for only retrieving
-     *                     statistics that are not specific to a principle.
+     *                  specific to a principle, or asterisk (<code>"*"</code>)
+     *                  for all principles, or <code>null</code> for only
+     *                  retrieving statistics that are not specific to a
+     *                  principle.
      *
      * @return The {@link SzCrossSourceSummary} describing the report.
      *
@@ -382,26 +374,23 @@ public interface SummaryStatsReportsService extends ReportsService {
     /**
      * Exposes
      * {@link SummaryStatsReports#getCrossSourceMatchSummary( Connection,
-     * String, String, String, String, Timers)}
-     * as a REST/JSON service at {@link #CROSS_SOURCE_MATCH_SUMMARY_ENDPOINT}.
+     * String, String, String, String, Timers)} as a REST/JSON service at {@link
+     * #CROSS_SOURCE_MATCH_SUMMARY_ENDPOINT}.
      *
      * @param dataSource The data source code identifying the data source for
-     *        the
-     *                     cross-source report being requested.
+     *                   the cross-source report being requested.
      * @param vsDataSource The data source code identifying the "versus" data
-     *        source
-     *                     for which the cross-source report being requested.
+     *                     source for which the cross-source report being
+     *                     requested.
      * @param matchKey The optional match key for retrieving statistics specific
-     *                     to a match key, or asterisk (<code>"*"</code>) for
-     *                     all
-     *                     match keys, or <code>null</code> for only retrieving
-     *                     statistics that are not specific to a match key.
+     *                 to a match key, or asterisk (<code>"*"</code>) for all
+     *                 match keys, or <code>null</code> for only retrieving
+     *                 statistics that are not specific to a match key.
      * @param principle The optional principle for retrieving statistics
-     *        specific
-     *                     to a principle, or asterisk (<code>"*"</code>) for
-     *                     all
-     *                     principles, or <code>null</code> for only retrieving
-     *                     statistics that are not specific to a principle.
+     *                  specific to a principle, or asterisk (<code>"*"</code>)
+     *                  for all principles, or <code>null</code> for only
+     *                  retrieving statistics that are not specific to a
+     *                  principle.
      *
      * @return The {@link SzCrossSourceMatchCounts} describing the report.
      *
@@ -446,28 +435,25 @@ public interface SummaryStatsReportsService extends ReportsService {
     /**
      * Exposes
      * {@link SummaryStatsReports#getCrossSourceAmbiguousMatchSummary(
-     * Connection, String, String, String, String, Timers)}
-     * as a REST/JSON service at
+     * Connection, String, String, String, String, Timers)} as a REST/JSON
+     * service at
      * {@link #CROSS_SOURCE_AMBIGUOUS_MATCH_SUMMARY_ENDPOINT}.
      * 
      * @param dataSource The data source code identifying the data source for
-     *        the
-     *                     cross-source report being requested.
+     *                   the cross-source report being requested.
      * 
      * @param vsDataSource The data source code identifying the "versus" data
-     *        source
-     *                     for which the cross-source report being requested.
+     *                     source for which the cross-source report being
+     *                     requested.
      * @param matchKey The optional match key for retrieving statistics specific
-     *                     to a match key, or asterisk (<code>"*"</code>) for
-     *                     all
-     *                     match keys, or <code>null</code> for only retrieving
-     *                     statistics that are not specific to a match key.
+     *                 to a match key, or asterisk (<code>"*"</code>) for all
+     *                 match keys, or <code>null</code> for only retrieving
+     *                 statistics that are not specific to a match key.
      * @param principle The optional principle for retrieving statistics
-     *        specific
-     *                     to a principle, or asterisk (<code>"*"</code>) for
-     *                     all
-     *                     principles, or <code>null</code> for only retrieving
-     *                     statistics that are not specific to a principle.
+     *                  specific to a principle, or asterisk (<code>"*"</code>)
+     *                  for all principles, or <code>null</code> for only
+     *                  retrieving statistics that are not specific to a
+     *                  principle.
      * @return The {@link SzCrossSourceRelationCounts} describing the report.
      * 
      * @throws ReportsServiceException If a failure occurs.
@@ -508,28 +494,25 @@ public interface SummaryStatsReportsService extends ReportsService {
     /**
      * Exposes
      * {@link SummaryStatsReports#getCrossSourcePossibleMatchSummary(
-     * Connection, String, String, String, String, Timers)}
-     * as a REST/JSON service at
+     * Connection, String, String, String, String, Timers)} as a REST/JSON
+     * service at
      * {@link #CROSS_SOURCE_POSSIBLE_MATCH_SUMMARY_ENDPOINT}.
      *
      * @param dataSource The data source code identifying the data source for
-     *        the
-     *                     cross-source report being requested.
+     *                   the cross-source report being requested.
      *
      * @param vsDataSource The data source code identifying the "versus" data
-     *        source
-     *                     for which the cross-source report being requested.
+     *                     source for which the cross-source report being
+     *                     requested.
      * @param matchKey The optional match key for retrieving statistics specific
-     *                     to a match key, or asterisk (<code>"*"</code>) for
-     *                     all
-     *                     match keys, or <code>null</code> for only retrieving
-     *                     statistics that are not specific to a match key.
+     *                 to a match key, or asterisk (<code>"*"</code>) for all
+     *                 match keys, or <code>null</code> for only retrieving
+     *                 statistics that are not specific to a match key.
      * @param principle The optional principle for retrieving statistics
-     *        specific
-     *                     to a principle, or asterisk (<code>"*"</code>) for
-     *                     all
-     *                     principles, or <code>null</code> for only retrieving
-     *                     statistics that are not specific to a principle.
+     *                  specific to a principle, or asterisk (<code>"*"</code>)
+     *                  for all principles, or <code>null</code> for only
+     *                  retrieving statistics that are not specific to a
+     *                  principle.
      *
      * @return The {@link SzCrossSourceRelationCounts} describing the report.
      *
@@ -574,28 +557,25 @@ public interface SummaryStatsReportsService extends ReportsService {
     /**
      * Exposes
      * {@link SummaryStatsReports#getCrossSourcePossibleRelationSummary(
-     * Connection, String, String, String, String, Timers)}
-     * as a REST/JSON service at
+     * Connection, String, String, String, String, Timers)} as a REST/JSON
+     * service at
      * {@link #CROSS_SOURCE_POSSIBLE_RELATION_SUMMARY_ENDPOINT}.
      *
      * @param dataSource The data source code identifying the data source for
-     *        the
-     *                     cross-source report being requested.
+     *                   the cross-source report being requested.
      *
      * @param vsDataSource The data source code identifying the "versus" data
-     *        source
-     *                     for which the cross-source report being requested.
+     *                     source for which the cross-source report being
+     *                     requested.
      * @param matchKey The optional match key for retrieving statistics specific
-     *                     to a match key, or asterisk (<code>"*"</code>) for
-     *                     all
-     *                     match keys, or <code>null</code> for only retrieving
-     *                     statistics that are not specific to a match key.
+     *                 to a match key, or asterisk (<code>"*"</code>) for all
+     *                 match keys, or <code>null</code> for only retrieving
+     *                 statistics that are not specific to a match key.
      * @param principle The optional principle for retrieving statistics
-     *        specific
-     *                     to a principle, or asterisk (<code>"*"</code>) for
-     *                     all
-     *                     principles, or <code>null</code> for only retrieving
-     *                     statistics that are not specific to a principle.
+     *                  specific to a principle, or asterisk (<code>"*"</code>)
+     *                  for all principles, or <code>null</code> for only
+     *                  retrieving statistics that are not specific to a
+     *                  principle.
      *
      * @return The {@link SzCrossSourceRelationCounts} describing the report.
      *
@@ -640,28 +620,25 @@ public interface SummaryStatsReportsService extends ReportsService {
     /**
      * Exposes
      * {@link SummaryStatsReports#getCrossSourceDisclosedRelationSummary(
-     * Connection, String, String, String, String, Timers)}
-     * as a REST/JSON service at
+     * Connection, String, String, String, String, Timers)} as a REST/JSON
+     * service at
      * {@link #CROSS_SOURCE_DISCLOSED_RELATION_SUMMARY_ENDPOINT}.
      *
      * @param dataSource The data source code identifying the data source for
-     *        the
-     *                     cross-source report being requested.
+     *                   the cross-source report being requested.
      *
      * @param vsDataSource The data source code identifying the "versus" data
-     *        source
-     *                     for which the cross-source report being requested.
+     *                     source for which the cross-source report being
+     *                     requested.
      * @param matchKey The optional match key for retrieving statistics specific
-     *                     to a match key, or asterisk (<code>"*"</code>) for
-     *                     all
-     *                     match keys, or <code>null</code> for only retrieving
-     *                     statistics that are not specific to a match key.
+     *                 to a match key, or asterisk (<code>"*"</code>) for all
+     *                 match keys, or <code>null</code> for only retrieving
+     *                 statistics that are not specific to a match key.
      * @param principle The optional principle for retrieving statistics
-     *        specific
-     *                     to a principle, or asterisk (<code>"*"</code>) for
-     *                     all
-     *                     principles, or <code>null</code> for only retrieving
-     *                     statistics that are not specific to a principle.
+     *                  specific to a principle, or asterisk (<code>"*"</code>)
+     *                  for all principles, or <code>null</code> for only
+     *                  retrieving statistics that are not specific to a
+     *                  principle.
      *
      * @return The {@link SzCrossSourceRelationCounts} describing the report.
      *
@@ -706,36 +683,31 @@ public interface SummaryStatsReportsService extends ReportsService {
     /**
      * Exposes
      * {@link SummaryStatsReports#getSummaryMatchEntityIds(Connection, String,
-     * String, String, String, SzBoundType, Integer, Integer, Timers)}
-     * as a REST/JSON service at {@link
-     * #SOURCE_SUMMARY_MATCH_ENTITIES_ENDPOINT}.
+     * String, String, String, SzBoundType, Integer, Integer, Timers)} as a
+     * REST/JSON service at {@link #SOURCE_SUMMARY_MATCH_ENTITIES_ENDPOINT}.
      * 
      * @param dataSource The data source code identifying the data source for
-     *        the
-     *                      report being requested.
+     *                   the report being requested.
      * @param matchKey      The optional match key for retrieving statistics
      *                      specific to a match key, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all match keys, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      match
-     *                      key.
+     *                      (<code>"*"</code>) for all match keys, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a match key.
      * @param principle     The optional principle for retrieving statistics
      *                      specific to a principle, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all principles, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      principle.
+     *                      (<code>"*"</code>) for all principles, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a principle.
      * 
      * @param entityIdBound The bound value for the entity ID's that will be
      *                      returned.
      * @param boundType The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
      * 
      * @param sampleSize The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * 
      * @return The {@link SzEntitiesPage} describing the report.
      * 
@@ -790,31 +762,27 @@ public interface SummaryStatsReportsService extends ReportsService {
      * {@link #SOURCE_SUMMARY_AMBIGUOUS_MATCH_ENTITIES_ENDPOINT}.
      * 
      * @param dataSource The data source code identifying the data source for
-     *        the
-     *                      report being requested.
+     *                   the report being requested.
      * @param matchKey      The optional match key for retrieving statistics
      *                      specific to a match key, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all match keys, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      match
-     *                      key.
+     *                      (<code>"*"</code>) for all match keys, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a match key.
      * @param principle     The optional principle for retrieving statistics
      *                      specific to a principle, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all principles, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      principle.
+     *                      (<code>"*"</code>) for all principles, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a principle.
      * 
      * @param entityIdBound The bound value for the entity ID's that will be
      *                      returned.
      * @param boundType The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
      * 
      * @param sampleSize The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * 
      * @return The {@link SzEntitiesPage} describing the report.
      * 
@@ -869,32 +837,28 @@ public interface SummaryStatsReportsService extends ReportsService {
      * {@link #SOURCE_SUMMARY_POSSIBLE_MATCH_ENTITIES_ENDPOINT}.
      * 
      * @param dataSource The data source code identifying the data source for
-     *        the
-     *                      report being requested.
+     *                   the report being requested.
      * 
      * @param matchKey      The optional match key for retrieving statistics
      *                      specific to a match key, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all match keys, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      match
-     *                      key.
+     *                      (<code>"*"</code>) for all match keys, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a match key.
      * @param principle     The optional principle for retrieving statistics
      *                      specific to a principle, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all principles, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      principle.
+     *                      (<code>"*"</code>) for all principles, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a principle.
      * 
      * @param entityIdBound The bound value for the entity ID's that will be
      *                      returned.
      * @param boundType The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
      * 
      * @param sampleSize The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * 
      * @return The {@link SzEntitiesPage} describing the report.
      * 
@@ -950,32 +914,28 @@ public interface SummaryStatsReportsService extends ReportsService {
      * {@link #SOURCE_SUMMARY_POSSIBLE_RELATION_ENTITIES_ENDPOINT}.
      * 
      * @param dataSource The data source code identifying the data source for
-     *        the
-     *                      report being requested.
+     *                   the report being requested.
      * 
      * @param matchKey      The optional match key for retrieving statistics
      *                      specific to a match key, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all match keys, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      match
-     *                      key.
+     *                      (<code>"*"</code>) for all match keys, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a match key.
      * @param principle     The optional principle for retrieving statistics
      *                      specific to a principle, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all principles, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      principle.
+     *                      (<code>"*"</code>) for all principles, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a principle.
      * 
      * @param entityIdBound The bound value for the entity ID's that will be
      *                      returned.
      * @param boundType The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
      * 
      * @param sampleSize The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * 
      * @return The {@link SzEntitiesPage} describing the report.
      * 
@@ -1031,32 +991,28 @@ public interface SummaryStatsReportsService extends ReportsService {
      * {@link #SOURCE_SUMMARY_DISCLOSED_RELATION_ENTITIES_ENDPOINT}.
      * 
      * @param dataSource The data source code identifying the data source for
-     *        the
-     *                      report being requested.
+     *                   the report being requested.
      * 
      * @param matchKey      The optional match key for retrieving statistics
      *                      specific to a match key, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all match keys, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      match
-     *                      key.
+     *                      (<code>"*"</code>) for all match keys, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a match key.
      * @param principle     The optional principle for retrieving statistics
      *                      specific to a principle, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all principles, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      principle.
+     *                      (<code>"*"</code>) for all principles, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a principle.
      * 
      * @param entityIdBound The bound value for the entity ID's that will be
      *                      returned.
      * @param boundType The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
      * 
      * @param sampleSize The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * 
      * @return The {@link SzEntitiesPage} describing the report.
      * 
@@ -1111,8 +1067,7 @@ public interface SummaryStatsReportsService extends ReportsService {
      * {@link #CROSS_SOURCE_SUMMARY_MATCH_ENTITIES_ENDPOINT}.
      * 
      * @param dataSource The data source code identifying the data source for
-     *        the
-     *                      cross-source report being requested.
+     *                   the cross-source report being requested.
      * 
      * @param vsDataSource  The data source code identifying the "versus" data
      *                      source for which the cross-source report being
@@ -1120,27 +1075,24 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @param matchKey      The optional match key for retrieving statistics
      *                      specific to a match key, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all match keys, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      match
-     *                      key.
+     *                      (<code>"*"</code>) for all match keys, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a match key.
      * @param principle     The optional principle for retrieving statistics
      *                      specific to a principle, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all principles, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      principle.
+     *                      (<code>"*"</code>) for all principles, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a principle.
      * 
      * @param entityIdBound The bound value for the entity ID's that will be
      *                      returned.
      * @param boundType The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
      * 
      * @param sampleSize The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * 
      * @return The {@link SzEntitiesPage} describing the report.
      * 
@@ -1192,8 +1144,7 @@ public interface SummaryStatsReportsService extends ReportsService {
      * Exposes
      * {@link SummaryStatsReports#getCrossAmbiguousMatchEntityIds(Connection,
      * String, String, String, String, String, SzBoundType, Integer, Integer,
-     * Timers)}
-     * as a REST/JSON service at
+     * Timers)} as a REST/JSON service at
      * {@link #CROSS_SOURCE_SUMMARY_AMBIGUOUS_MATCH_ENTITIES_ENDPOINT}.
      * 
      * @param dataSource    The data source code identifying the data source for
@@ -1205,27 +1156,24 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @param matchKey      The optional match key for retrieving statistics
      *                      specific to a match key, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all match keys, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      match
-     *                      key.
+     *                      (<code>"*"</code>) for all match keys, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a match key.
      * @param principle     The optional principle for retrieving statistics
      *                      specific to a principle, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all principles, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      principle.
+     *                      (<code>"*"</code>) for all principles, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a principle.
      * 
      * @param entityIdBound The bound value for the entity ID's that will be
      *                      returned.
      * @param boundType The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
      * 
      * @param sampleSize The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * 
      * @return The {@link SzEntitiesPage} describing the report.
      * 
@@ -1278,8 +1226,7 @@ public interface SummaryStatsReportsService extends ReportsService {
      * Exposes
      * {@link SummaryStatsReports#getCrossPossibleMatchEntityIds(Connection,
      * String, String, String, String, String, SzBoundType, Integer, Integer,
-     * Timers)}
-     * as a REST/JSON service at
+     * Timers)} as a REST/JSON service at
      * {@link #CROSS_SOURCE_SUMMARY_POSSIBLE_MATCH_ENTITIES_ENDPOINT}.
      * 
      * @param dataSource    The data source code identifying the data source for
@@ -1291,27 +1238,24 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @param matchKey      The optional match key for retrieving statistics
      *                      specific to a match key, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all match keys, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      match
-     *                      key.
+     *                      (<code>"*"</code>) for all match keys, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a match key.
      * @param principle     The optional principle for retrieving statistics
      *                      specific to a principle, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all principles, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      principle.
+     *                      (<code>"*"</code>) for all principles, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a principle.
      * 
      * @param entityIdBound The bound value for the entity ID's that will be
      *                      returned.
      * @param boundType The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
      * 
      * @param sampleSize The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * 
      * @return The {@link SzEntitiesPage} describing the report.
      * 
@@ -1364,8 +1308,7 @@ public interface SummaryStatsReportsService extends ReportsService {
      * Exposes
      * {@link SummaryStatsReports#getCrossPossibleRelationEntityIds(Connection,
      * String, String, String, String, String, SzBoundType, Integer, Integer,
-     * Timers)}
-     * as a REST/JSON service at
+     * Timers)} as a REST/JSON service at
      * {@link #CROSS_SOURCE_SUMMARY_POSSIBLE_RELATION_ENTITIES_ENDPOINT}.
      * 
      * @param dataSource    The data source code identifying the data source for
@@ -1377,27 +1320,24 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @param matchKey      The optional match key for retrieving statistics
      *                      specific to a match key, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all match keys, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      match
-     *                      key.
+     *                      (<code>"*"</code>) for all match keys, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a match key.
      * @param principle     The optional principle for retrieving statistics
      *                      specific to a principle, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all principles, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      principle.
+     *                      (<code>"*"</code>) for all principles, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a principle.
      * 
      * @param entityIdBound The bound value for the entity ID's that will be
      *                      returned.
      * @param boundType The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
      * 
      * @param sampleSize The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * 
      * @return The {@link SzEntitiesPage} describing the report.
      * 
@@ -1450,8 +1390,7 @@ public interface SummaryStatsReportsService extends ReportsService {
      * Exposes
      * {@link SummaryStatsReports#getCrossDisclosedRelationEntityIds(Connection,
      * String, String, String, String, String, SzBoundType, Integer, Integer,
-     * Timers)}
-     * as a REST/JSON service at
+     * Timers)} as a REST/JSON service at
      * {@link #CROSS_SOURCE_SUMMARY_DISCLOSED_RELATION_ENTITIES_ENDPOINT}.
      * 
      * @param dataSource    The data source code identifying the data source for
@@ -1463,27 +1402,24 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @param matchKey      The optional match key for retrieving statistics
      *                      specific to a match key, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all match keys, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      match
-     *                      key.
+     *                      (<code>"*"</code>) for all match keys, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a match key.
      * @param principle     The optional principle for retrieving statistics
      *                      specific to a principle, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all principles, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      principle.
+     *                      (<code>"*"</code>) for all principles, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a principle.
      * 
      * @param entityIdBound The bound value for the entity ID's that will be
      *                      returned.
      * @param boundType The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
      * 
      * @param sampleSize The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * 
      * @return The {@link SzEntitiesPage} describing the report.
      * 
@@ -1548,27 +1484,24 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @param matchKey      The optional match key for retrieving statistics
      *                      specific to a match key, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all match keys, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      match
-     *                      key.
+     *                      (<code>"*"</code>) for all match keys, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a match key.
      * @param principle     The optional principle for retrieving statistics
      *                      specific to a principle, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all principles, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      principle.
+     *                      (<code>"*"</code>) for all principles, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a principle.
      * 
      * @param entityIdBound The bound value for the entity ID's that will be
      *                      returned.
      * @param boundType The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
      * 
      * @param sampleSize The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * 
      * @return The {@link SzRelationsPage} describing the report.
      * 
@@ -1633,27 +1566,24 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @param matchKey      The optional match key for retrieving statistics
      *                      specific to a match key, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all match keys, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      match
-     *                      key.
+     *                      (<code>"*"</code>) for all match keys, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a match key.
      * @param principle     The optional principle for retrieving statistics
      *                      specific to a principle, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all principles, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      principle.
+     *                      (<code>"*"</code>) for all principles, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a principle.
      * 
      * @param entityIdBound The bound value for the entity ID's that will be
      *                      returned.
      * @param boundType The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
      * 
      * @param sampleSize The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * 
      * @return The {@link SzRelationsPage} describing the report.
      * 
@@ -1706,8 +1636,7 @@ public interface SummaryStatsReportsService extends ReportsService {
      * Exposes
      * {@link SummaryStatsReports#getSummaryPossibleRelations(Connection,
      * String, String, String, String, String, SzBoundType, Integer, Integer,
-     * Timers)}
-     * as a REST/JSON service at
+     * Timers)} as a REST/JSON service at
      * {@link #CROSS_SOURCE_SUMMARY_POSSIBLE_RELATIONS_ENDPOINT}.
      * 
      * @param dataSource    The data source code identifying the data source for
@@ -1719,27 +1648,24 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @param matchKey      The optional match key for retrieving statistics
      *                      specific to a match key, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all match keys, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      match
-     *                      key.
+     *                      (<code>"*"</code>) for all match keys, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a match key.
      * @param principle     The optional principle for retrieving statistics
      *                      specific to a principle, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all principles, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      principle.
+     *                      (<code>"*"</code>) for all principles, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a principle.
      * 
      * @param entityIdBound The bound value for the entity ID's that will be
      *                      returned.
      * @param boundType The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
      * 
      * @param sampleSize The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * 
      * @return The {@link SzRelationsPage} describing the report.
      * 
@@ -1791,8 +1717,7 @@ public interface SummaryStatsReportsService extends ReportsService {
      * Exposes
      * {@link SummaryStatsReports#getSummaryDisclosedRelations(Connection,
      * String, String, String, String, String, SzBoundType, Integer, Integer,
-     * Timers)}
-     * as a REST/JSON service at
+     * Timers)} as a REST/JSON service at
      * {@link #CROSS_SOURCE_SUMMARY_DISCLOSED_RELATIONS_ENDPOINT}.
      * 
      * @param dataSource    The data source code identifying the data source for
@@ -1804,27 +1729,24 @@ public interface SummaryStatsReportsService extends ReportsService {
      * 
      * @param matchKey      The optional match key for retrieving statistics
      *                      specific to a match key, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all match keys, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      match
-     *                      key.
+     *                      (<code>"*"</code>) for all match keys, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a match key.
      * @param principle     The optional principle for retrieving statistics
      *                      specific to a principle, or asterisk
-     *                      (<code>"*"</code>)
-     *                      for all principles, or <code>null</code> for only
-     *                      retrieving statistics that are not specific to a
-     *                      principle.
+     *                      (<code>"*"</code>) for all principles, or
+     *                      <code>null</code> for only retrieving statistics
+     *                      that are not specific to a principle.
      * 
      * @param entityIdBound The bound value for the entity ID's that will be
      *                      returned.
      * @param boundType The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
      * 
      * @param sampleSize The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * 
      * @return The {@link SzRelationsPage} describing the report.
      * 

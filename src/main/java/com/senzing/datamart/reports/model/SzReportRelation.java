@@ -10,7 +10,8 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 /**
  * Describes a relationship between two entities.
  */
-public class SzReportRelation implements Serializable {
+public class SzReportRelation implements Serializable
+{
     /**
      * The {@link SzReportEntity} describing the first entity in the relation.
      */
@@ -40,7 +41,8 @@ public class SzReportRelation implements Serializable {
     /**
      * Default constructor.
      */
-    public SzReportRelation() {
+    public SzReportRelation()
+    {
         this.entity = null;
         this.relatedEntity = null;
         this.relationType = null;
@@ -53,9 +55,10 @@ public class SzReportRelation implements Serializable {
      * relationship.
      * 
      * @return The {@link SzReportEntity} describing the first entity in the
-     *         relationship.
+     *             relationship.
      */
-    public SzReportEntity getEntity() {
+    public SzReportEntity getEntity()
+    {
         return this.entity;
     }
 
@@ -64,10 +67,10 @@ public class SzReportRelation implements Serializable {
      * relationship.
      * 
      * @param entity The {@link SzReportEntity} describing the first entity in
-     *        the
-     *               relationship.
+     *               the relationship.
      */
-    public void setEntity(SzReportEntity entity) {
+    public void setEntity(SzReportEntity entity)
+    {
         this.entity = entity;
     }
 
@@ -76,9 +79,10 @@ public class SzReportRelation implements Serializable {
      * relationship.
      * 
      * @return The {@link SzReportEntity} describing the second entity in the
-     *         relationship.
+     *             relationship.
      */
-    public SzReportEntity getRelatedEntity() {
+    public SzReportEntity getRelatedEntity()
+    {
         return this.relatedEntity;
     }
 
@@ -87,10 +91,10 @@ public class SzReportRelation implements Serializable {
      * relationship.
      * 
      * @param related The {@link SzReportEntity} describing the second entity in
-     *        the
-     *                relationship.
+     *                the relationship.
      */
-    public void setRelatedEntity(SzReportEntity related) {
+    public void setRelatedEntity(SzReportEntity related)
+    {
         this.relatedEntity = related;
     }
 
@@ -99,11 +103,11 @@ public class SzReportRelation implements Serializable {
      * relation.
      * 
      * @return The {@link SzRelationType} describing the relationship type for
-     *         the
-     *         relation.
+     *             the relation.
      */
     @JsonInclude(NON_NULL)
-    public SzRelationType getRelationType() {
+    public SzRelationType getRelationType()
+    {
         return this.relationType;
     }
 
@@ -112,10 +116,10 @@ public class SzReportRelation implements Serializable {
      * relation.
      * 
      * @param relationType The {@link SzRelationType} describing the
-     *        relationship
-     *                     type for the relation.
+     *                     relationship type for the relation.
      */
-    public void setRelationType(SzRelationType relationType) {
+    public void setRelationType(SzRelationType relationType)
+    {
         this.relationType = relationType;
     }
 
@@ -125,7 +129,8 @@ public class SzReportRelation implements Serializable {
      * @return The match key for the relation.
      */
     @JsonInclude(NON_NULL)
-    public String getMatchKey() {
+    public String getMatchKey()
+    {
         return this.matchKey;
     }
 
@@ -134,7 +139,8 @@ public class SzReportRelation implements Serializable {
      * 
      * @param matchKey The match key for the relation.
      */
-    public void setMatchKey(String matchKey) {
+    public void setMatchKey(String matchKey)
+    {
         this.matchKey = matchKey;
     }
 
@@ -144,7 +150,8 @@ public class SzReportRelation implements Serializable {
      * @return The principle for the relation.
      */
     @JsonInclude(NON_NULL)
-    public String getPrinciple() {
+    public String getPrinciple()
+    {
         return this.principle;
     }
 
@@ -153,7 +160,8 @@ public class SzReportRelation implements Serializable {
      * 
      * @param principle The principle for the relation.
      */
-    public void setPrinciple(String principle) {
+    public void setPrinciple(String principle)
+    {
         this.principle = principle;
     }
 
@@ -164,7 +172,8 @@ public class SzReportRelation implements Serializable {
      * @return A diagnostic {@link String} describing this instance.
      */
     @Override
-    public String toString() {
+    public String toString()
+    {
         return "entity=[ " + this.getEntity() 
                 + " ], relatedEntity=[ " + this.getRelatedEntity()
                 + " ], relationType=[ " + this.getRelationType()
@@ -174,13 +183,13 @@ public class SzReportRelation implements Serializable {
 
     /**
      * Overridden to return a hash code consistent with the {@link
-     * #equals(Object)}
-     * implementation.
+     * #equals(Object)} implementation.
      * 
      * @return The hash code for this instance.
      */
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hash(entity, relatedEntity,
                             relationType, matchKey,
                             principle);
@@ -188,17 +197,16 @@ public class SzReportRelation implements Serializable {
 
     /**
      * Overridden to return <code>true</code> if and only if the specified
-     * parameter
-     * is an instance of the same class with equivalent properties.
+     * parameter is an instance of the same class with equivalent properties.
      * 
      * @param obj The object to compare with.
      * @return <code>true</code> if the specified parameter is an instance of
-     *         the
-     *         same class with equivalent properties, otherwise
-     *         <code>false</code>.
+     *                           the same class with equivalent properties,
+     *                           otherwise <code>false</code>.
      */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (this == obj) {
             return true;
         }

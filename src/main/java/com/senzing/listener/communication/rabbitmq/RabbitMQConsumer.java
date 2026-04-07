@@ -34,7 +34,8 @@ import static com.senzing.listener.service.ServiceUtilities.*;
  * specified)</li>
  * </ul>
  */
-public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
+public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery>
+{
     /**
      * Constant for the "auto ack" parameter.
      */
@@ -125,20 +126,22 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
      * 
      * @return The created {@link RabbitMQConsumer}.
      */
-    public static RabbitMQConsumer generateRabbitMQConsumer() {
+    public static RabbitMQConsumer generateRabbitMQConsumer()
+    {
         return new RabbitMQConsumer();
     }
 
     /**
      * Private default constructor.
      */
-    public RabbitMQConsumer() {
+    public RabbitMQConsumer()
+    {
         // do nothing
     }
 
     /**
-     * Initializes the object. It sets the object up based on
-     * configuration passed in.
+     * Initializes the object. It sets the object up based on configuration
+     * passed in.
      * <p>
      * The configuration is in JSON format:
      * 
@@ -149,8 +152,7 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
      *   "mqPort:L "&lt;port&gt;",                     # not required
      *   "mqVirtualHost": "&lt;virtual host name&gt;", # not required
      *   "mqUser": "&lt;user name&gt;",                # not required
-     *   "mqPassword": "&lt;password&gt;"              # not required
-     * }
+     * "mqPassword": "&lt;password&gt;" # not required }
      * </pre>
      * 
      * @param config Configuration string containing the needed information to
@@ -219,7 +221,8 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
      * {@inheritDoc}
      */
     @Override
-    protected Long getQueueMessageCount() {
+    protected Long getQueueMessageCount()
+    {
         try {
             return this.channel.messageCount(this.getQueueName());
 
@@ -235,7 +238,8 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
      *
      * @return The {@link ConnectionFactory} to use.
      */
-    protected ConnectionFactory createConnectionFactory() {
+    protected ConnectionFactory createConnectionFactory()
+    {
         return new ConnectionFactory();
     }
 
@@ -281,7 +285,8 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
      *
      * @return The configured queue name.
      */
-    public String getQueueName() {
+    public String getQueueName()
+    {
         return this.queueName;
     }
 
@@ -328,7 +333,8 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
      * @return The message body from the specified {@link Delivery}.
      */
     @Override
-    protected String extractMessageBody(Delivery message) {
+    protected String extractMessageBody(Delivery message)
+    {
         try {
             return new String(message.getBody(), UTF_8);
 
@@ -341,13 +347,14 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
 
     /**
      * <p>
-     * Override to do cancel consumption until the number of
-     * pending messages has decreased.
+     * Override to do cancel consumption until the number of pending messages
+     * has decreased.
      * </p>
      * {@inheritDoc}
      */
     @Override
-    protected synchronized void throttleConsumption() {
+    protected synchronized void throttleConsumption()
+    {
         // check if currently consuming
         if (this.consumerTag == null) {
             return;
@@ -403,7 +410,8 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
      * 
      */
     @Override
-    protected void disposeMessage(Delivery message) {
+    protected void disposeMessage(Delivery message)
+    {
         try {
             this.channel.basicAck(
                     message.getEnvelope().getDeliveryTag(),
@@ -421,7 +429,8 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
      * {@inheritDoc}
      */
     @Override
-    protected void doDestroy() {
+    protected void doDestroy()
+    {
         if (this.channel != null && this.consumerTag != null) {
             try {
                 this.channel.basicCancel(this.consumerTag);

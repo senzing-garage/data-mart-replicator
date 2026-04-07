@@ -12,7 +12,8 @@ import static com.senzing.io.IOUtilities.*;
 /**
  * Describes a report key for updating a statistic.
  */
-public class SzReportKey implements Serializable {
+public class SzReportKey implements Serializable
+{
     /**
      * The report code.
      */
@@ -39,7 +40,8 @@ public class SzReportKey implements Serializable {
      * @param reportCode The report code for the report.
      * @param statistic  The statistic for the report key.
      */
-    public SzReportKey(SzReportCode reportCode, String statistic) {
+    public SzReportKey(SzReportCode reportCode, String statistic)
+    {
         this(reportCode, statistic, null, null);
     }
 
@@ -49,7 +51,8 @@ public class SzReportKey implements Serializable {
      * @param reportCode The report code for the report.
      * @param statistic  The statistic for the report key.
      */
-    public SzReportKey(SzReportCode reportCode, Number statistic) {
+    public SzReportKey(SzReportCode reportCode, Number statistic)
+    {
         this(reportCode, 
              (statistic == null ? null : statistic.toString()), 
              null,
@@ -60,8 +63,8 @@ public class SzReportKey implements Serializable {
      *
      * @param reportCode The report code for the report.
      * @param statistic  The statistic for the report key.
-     * @param dataSource The data source, or <code>null</code> if
-     *                   no data source.
+     * @param dataSource The data source, or <code>null</code> if no data
+     *                   source.
      */
     public SzReportKey(SzReportCode reportCode,
                        String       statistic,
@@ -104,7 +107,8 @@ public class SzReportKey implements Serializable {
      * @param reportCode The report code for the report.
      * @param statistic  The statistic for the report key.
      */
-    public SzReportKey(SzReportCode reportCode, SzReportStatistic statistic) {
+    public SzReportKey(SzReportCode reportCode, SzReportStatistic statistic)
+    {
         this(reportCode, (statistic == null ? null : statistic.toString()));
     }
 
@@ -113,10 +117,10 @@ public class SzReportKey implements Serializable {
      *
      * @param reportCode  The report code for the report.
      * @param statistic   The statistic for the report key.
-     * @param dataSource1 The first data source, or <code>null</code> if
-     *                    no first data source.
-     * @param dataSource2 The second data source, or <code>null</code> if
-     *                    no second data source.
+     * @param dataSource1 The first data source, or <code>null</code> if no
+     *                    first data source.
+     * @param dataSource2 The second data source, or <code>null</code> if no
+     *                    second data source.
      */
     public SzReportKey(SzReportCode         reportCode,
                        SzReportStatistic    statistic,
@@ -134,7 +138,8 @@ public class SzReportKey implements Serializable {
      *
      * @return The report code.
      */
-    public SzReportCode getReportCode() {
+    public SzReportCode getReportCode()
+    {
         return this.reportCode;
     }
 
@@ -143,42 +148,45 @@ public class SzReportKey implements Serializable {
      *
      * @return The statistic.
      */
-    public String getStatistic() {
+    public String getStatistic()
+    {
         return this.statistic;
     }
 
     /**
-     * Gets the first data source, if any. This returns <code>null</code>
-     * if there is no first data source.
+     * Gets the first data source, if any. This returns <code>null</code> if
+     * there is no first data source.
      *
      * @return The first data source.
      */
-    public String getDataSource1() {
+    public String getDataSource1()
+    {
         return this.dataSource1;
     }
 
     /**
-     * Gets the second data source, if any. This returns <code>null</code>
-     * if there is no second data source.
+     * Gets the second data source, if any. This returns <code>null</code> if
+     * there is no second data source.
      *
      * @return The second data source.
      */
-    public String getDataSource2() {
+    public String getDataSource2()
+    {
         return this.dataSource2;
     }
 
     /**
-     * Overridden to return <code>true</code> if and only if the
-     * specified parameter is an instance of the same class with
-     * equivalent properties.
+     * Overridden to return <code>true</code> if and only if the specified
+     * parameter is an instance of the same class with equivalent properties.
      * 
      * @param o The object to compare with.
-     * @return <code>true</code> if the specified parameter is an instance
-     *         of the same class with equivalent properties, otherwise
-     *         <code>false</code>.
+     * @return <code>true</code> if the specified parameter is an instance of
+     *                           the same class with equivalent properties,
+     *                           otherwise <code>false</code>.
      */
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(Object o)
+    {
         if (this == o) {
             return true;
         }
@@ -201,7 +209,8 @@ public class SzReportKey implements Serializable {
      * @return The hash code for this instance.
      */
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hash(this.getReportCode(),
                             this.getStatistic(),
                             this.getDataSource1(),
@@ -209,14 +218,15 @@ public class SzReportKey implements Serializable {
     }
 
     /**
-     * Implemented to format this instance as a {@link String} in
-     * the format for persistent database storage and that can be
-     * parsed via {@link #parse(String)}.
+     * Implemented to format this instance as a {@link String} in the format for
+     * persistent database storage and that can be parsed via {@link
+     * #parse(String)}.
      * 
      * @return The formatted report key.
      */
     @Override
-    public String toString() {
+    public String toString()
+    {
         try {
             StringBuilder sb = new StringBuilder();
 
@@ -242,17 +252,17 @@ public class SzReportKey implements Serializable {
     }
 
     /**
-     * Parses the specified text as an encoded {@link SzReportKey} that
-     * has been encoded via the {@link #toString()} implementation of
-     * this class.
+     * Parses the specified text as an encoded {@link SzReportKey} that has been
+     * encoded via the {@link #toString()} implementation of this class.
      *
      * @param keyText The encoded text to parse.
-     * @return The newly created {@link SzReportKey} decoded from the
-     *         specified text.
-     * @throws IllegalArgumentException If the specified text is not
-     *                                  formatted as expected.
+     * @return The newly created {@link SzReportKey} decoded from the specified
+     *             text.
+     * @throws IllegalArgumentException If the specified text is not formatted
+     *                                  as expected.
      */
-    public static SzReportKey parse(String keyText) {
+    public static SzReportKey parse(String keyText)
+    {
         try {
             String[] tokens = keyText.split(":");
             if (tokens.length < 2 || tokens.length > 4) {

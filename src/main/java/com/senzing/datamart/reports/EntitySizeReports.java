@@ -20,24 +20,25 @@ import static com.senzing.datamart.reports.ReportUtilities.*;
 /**
  * Provides Entity Size Breakdown Report functionality.
  */
-public final class EntitySizeReports {
+public final class EntitySizeReports
+{
     /**
      * Private default constructor.
      */
-    private EntitySizeReports() {
+    private EntitySizeReports()
+    {
         // do nothing
     }
 
     /**
-     * Gets an {@link SzEntitySizeBreakdown} describing the 
-     * entity size breakdown which is the number of entities in the
-     * entity repository for each distinct entity size that exists
-     * in the entity repository.
+     * Gets an {@link SzEntitySizeBreakdown} describing the entity size
+     * breakdown which is the number of entities in the entity repository for
+     * each distinct entity size that exists in the entity repository.
      * 
      * @param conn The non-null JDBC {@link Connection} to use.
      * 
      * @param timers The optional {@link Timers} to track timing of the
-     *        operation.
+     *               operation.
      * 
      * @return The {@link SzEntitySizeBreakdown} describing the statistics.
      * 
@@ -101,8 +102,8 @@ public final class EntitySizeReports {
     }
 
     /**
-     * Gets the {@link SzEntitySizeCount} describing the number of entities 
-     * in the entity repository having the specified entity size.
+     * Gets the {@link SzEntitySizeCount} describing the number of entities in
+     * the entity repository having the specified entity size.
      * 
      * @param conn       The JDBC {@link Connection} to use.
      * @param entitySize The entity size for which the count is being requested.
@@ -170,8 +171,8 @@ public final class EntitySizeReports {
     }
 
     /**
-     * Retrieves a page of entity ID's that identifies entities having
-     * the specified entity size.
+     * Retrieves a page of entity ID's that identifies entities having the
+     * specified entity size.
      *
      * @param conn          The non-null JDBC {@link Connection} to use.
      * @param entitySize    The entity size for which the entity count is being
@@ -180,11 +181,11 @@ public final class EntitySizeReports {
      *                      formatted as an integer or the word
      *                      <code>"max"</code>.
      * @param boundType The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
      * @param sampleSize The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * @param timers        The optional {@link Timers} to track timing of the
      *                      operation.
      * 
@@ -194,10 +195,9 @@ public final class EntitySizeReports {
      *                              <code>null</code>.
      * 
      * @throws IllegalArgumentException If the specified entity size is not
-     *                                  positive, if the specified page size
-     *                                  or sample size is less than one (1), 
-     *                                  or if the sample size is specified and
-     *                                  is
+     *                                  positive, if the specified page size or
+     *                                  sample size is less than one (1), or if
+     *                                  the sample size is specified and is
      *                                  greater-than or equal to the sample
      *                                  size.
      * 

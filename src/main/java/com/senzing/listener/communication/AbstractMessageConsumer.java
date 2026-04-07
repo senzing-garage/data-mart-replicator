@@ -30,10 +30,11 @@ import static com.senzing.listener.service.ServiceUtilities.*;
  *
  * @param <M> The type for the framework-specific messages received.
  */
-public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
+public abstract class AbstractMessageConsumer<M> implements MessageConsumer
+{
     /**
-     * The default concurrency. The default is to serialize
-     * message handling in a single thread.
+     * The default concurrency. The default is to serialize message handling in
+     * a single thread.
      */
     public static final int DEFAULT_CONCURRENCY = 1;
 
@@ -49,11 +50,10 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     public static final String CONCURRENCY_KEY = "concurrency";
 
     /**
-     * The initialization parameter to specify the number of
-     * milliseconds to sleep between checking to see if message
-     * processing should cease. If not configured then the value
-     * is set to {@link #DEFAULT_TIMEOUT}. If the value is
-     * specified it should be non-negative.
+     * The initialization parameter to specify the number of milliseconds to
+     * sleep between checking to see if message processing should cease. If not
+     * configured then the value is set to {@link #DEFAULT_TIMEOUT}. If the
+     * value is specified it should be non-negative.
      */
     public static final String TIMEOUT_KEY = "timeout";
 
@@ -80,107 +80,100 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     /**
      * The various keys used for timing operations.
      */
-    public enum Stat implements Statistic {
+    public enum Stat implements Statistic
+    {
         /**
-         * The number of worker threads used to asynchronously
-         * consume the messages.
+         * The number of worker threads used to asynchronously consume the
+         * messages.
          */
         concurrency(THREAD_UNITS),
 
         /**
-         * The timeout to use when waiting for new messages to
-         * show up and to check to see if message processing has
-         * ceased.
+         * The timeout to use when waiting for new messages to show up and to
+         * check to see if message processing has ceased.
          */
         timeout(MILLISECOND_UNITS),
 
         /**
-         * The average number of milliseconds for a message to be
-         * pulled from the vendor message queue until it has been
-         * completely processed. For batches this means that every
-         * message in the batch has been processed.
+         * The average number of milliseconds for a message to be pulled from
+         * the vendor message queue until it has been completely processed. For
+         * batches this means that every message in the batch has been
+         * processed.
          */
         averageRoundTrip(MILLISECOND_UNITS),
 
         /**
-         * The longest amount of time (in milliseconds) for when
-         * a message was pulled from the vendor message queue until
-         * it was completely processed. For batches this means the
-         * number of milliseconds it took until every message in
-         * the batch was processed.
+         * The longest amount of time (in milliseconds) for when a message was
+         * pulled from the vendor message queue until it was completely
+         * processed. For batches this means the number of milliseconds it took
+         * until every message in the batch was processed.
          */
         longestRoundTrip(MILLISECOND_UNITS),
 
         /**
-         * The average number of milliseconds for an info message
-         * to be processed by the {@link MessageProcessor} via
+         * The average number of milliseconds for an info message to be
+         * processed by the {@link MessageProcessor} via
          * {@link MessageProcessor#process(JsonObject)}.
          */
         averageServiceProcess(MILLISECOND_UNITS),
 
         /**
-         * The number of messages that have made the round trip
-         * from the vendor message queue to the point where they
-         * are completely processed (for batches this means all
-         * contained info messages are processed). Some messages
-         * may make the round trip more than once if a failure
-         * occurs in processing part or all of the message.
+         * The number of messages that have made the round trip from the vendor
+         * message queue to the point where they are completely processed (for
+         * batches this means all contained info messages are processed). Some
+         * messages may make the round trip more than once if a failure occurs
+         * in processing part or all of the message.
          */
         roundTripCount(MESSAGE_UNITS),
 
         /**
-         * The number of times the {@link
-         * MessageProcessor#process(JsonObject)} method has been
-         * called to process an info message.
+         * The number of times the {@link MessageProcessor#process(JsonObject)}
+         * method has been called to process an info message.
          */
         processCount(CALL_UNITS),
 
         /**
          * The number of times that the {@link
-         * MessageProcessor#process(JsonObject)} has been called
-         * successfully (i.e.: without any exceptions).
+         * MessageProcessor#process(JsonObject)} has been called successfully
+         * (i.e.: without any exceptions).
          */
         processSuccessCount(CALL_UNITS),
 
         /**
          * The number of times that the {@link
-         * MessageProcessor#process(JsonObject)} has been called
-         * unsuccessfully (i.e.: with an exceptions being thrown).
+         * MessageProcessor#process(JsonObject)} has been called unsuccessfully
+         * (i.e.: with an exceptions being thrown).
          */
         processFailureCount(CALL_UNITS),
 
         /**
          * The number of times that the {@link
-         * MessageProcessor#process(JsonObject)} has been or will
-         * be retried for the same info message due to failures.
-         * This will be more than the number of failures since a
-         * single info message failing in a batch will trigger
-         * the whole batch to be retried.
+         * MessageProcessor#process(JsonObject)} has been or will be retried for
+         * the same info message due to failures. This will be more than the
+         * number of failures since a single info message failing in a batch
+         * will trigger the whole batch to be retried.
          */
         processRetryCount(CALL_UNITS),
 
         /**
-         * The number of messages from the vendor message queue
-         * that will be retried. The messages from the queue may
-         * be batches and a failure from one or more messages
-         * within the batch will cause the batch to be retried,
-         * so the number of message retries could actually be
-         * less than the number of failures.
+         * The number of messages from the vendor message queue that will be
+         * retried. The messages from the queue may be batches and a failure
+         * from one or more messages within the batch will cause the batch to be
+         * retried, so the number of message retries could actually be less than
+         * the number of failures.
          */
         messageRetryCount(MESSAGE_UNITS),
 
         /**
-         * The ratio of cumulative {@link MessageProcessor}
-         * processing time across all threads to actual active
-         * processing time.
+         * The ratio of cumulative {@link MessageProcessor} processing time
+         * across all threads to actual active processing time.
          */
         parallelism(null),
 
         /**
          * The ratio of the number of times the
          * {@link #dequeueMessage(MessageProcessor)} function is
-         * called and a message is ready to be returned without
-         * waiting.
+         * called and a message is ready to be returned without waiting.
          */
         dequeueHitRatio(null),
 
@@ -191,39 +184,36 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
         processMessages(MILLISECOND_UNITS),
 
         /**
-         * The cumulative time spent (in milliseconds) actively
-         * processing messages. This excludes time waiting for
-         * messages to arrive.
+         * The cumulative time spent (in milliseconds) actively processing
+         * messages. This excludes time waiting for messages to arrive.
          */
         activelyProcessing(MILLISECOND_UNITS),
 
         /**
-         * The cumulative time spent (in milliseconds) waiting
-         * for messages to arrive from the vendor message queue
-         * and get moved to the internal queue.
+         * The cumulative time spent (in milliseconds) waiting for messages to
+         * arrive from the vendor message queue and get moved to the internal
+         * queue.
          */
         waitingForMessages(MILLISECOND_UNITS),
 
         /**
-         * The time spent (in milliseconds) between handing a
-         * message off to a worker for processing and obtaining
-         * the next message to be processed.
+         * The time spent (in milliseconds) between handing a message off to a
+         * worker for processing and obtaining the next message to be processed.
          */
         betweenMessages(MILLISECOND_UNITS),
 
         /**
          * The time spent (in milliseconds) calling
          * {@link #dequeueMessage(MessageProcessor)} function to
-         * dequeue a message from the internal queue. This
-         * includes time waiting for the first message to arrive
-         * or the next message to arrive after the last message
-         * has been handled.
+         * dequeue a message from the internal queue. This includes time waiting
+         * for the first message to arrive or the next message to arrive after
+         * the last message has been handled.
          */
         dequeue(MILLISECOND_UNITS),
 
         /**
-         * The time spent (in milliseconds) waiting to obtain the
-         * synchronized lock on the consumer in order to call the
+         * The time spent (in milliseconds) waiting to obtain the synchronized
+         * lock on the consumer in order to call the
          * {@link #dequeueMessage(MessageProcessor)} function.
          */
         dequeueBlocking(MILLISECOND_UNITS),
@@ -236,14 +226,11 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
         dequeueMessageWaitLoop(MILLISECOND_UNITS),
 
         /**
-         * The time spent (in milliseconds) in the
-         * synchronization wait of {@link
-         * #dequeueMessage(MessageProcessor)} waiting for a
-         * message to become available for processing. This
-         * should be the majority of the time spent in {@link
-         * #dequeueMessageWaitLoop}, but isolates the non-busy
-         * sleeping time awaiting notification of message
-         * arrival.
+         * The time spent (in milliseconds) in the synchronization wait of
+         * {@link #dequeueMessage(MessageProcessor)} waiting for a message to
+         * become available for processing. This should be the majority of the
+         * time spent in {@link #dequeueMessageWaitLoop}, but isolates the
+         * non-busy sleeping time awaiting notification of message arrival.
          */
         dequeueMessageWait(MILLISECOND_UNITS),
 
@@ -255,36 +242,33 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
         /**
          * The number of milliseconds spent calling
          * {@link #enqueueMessages(MessageProcessor, Object)}.
-         * This can be high if we have to wait for the pending
-         * queue shrink before we can add more messages to it.
-         * This built-in wait is done to throttle pulling from
-         * the vendor message queue when we have enough messages
-         * already pending processing.
+         * This can be high if we have to wait for the pending queue shrink
+         * before we can add more messages to it. This built-in wait is done to
+         * throttle pulling from the vendor message queue when we have enough
+         * messages already pending processing.
          */
         enqueue(MILLISECOND_UNITS),
 
         /***
-         * The number of milliseconds spent waiting for the
-         * pending queue to shrink so more messages can be added
-         * to it when calling {@link
+         * The number of milliseconds spent waiting for the pending queue to
+         * shrink so more messages can be added to it when calling {@link
          * #enqueueMessages(MessageProcessor, Object)}.
          */
         throttleEnqueue(MILLISECOND_UNITS),
 
         /**
-         * A subset of {@link #throttleEnqueue}, this is
-         * specifically the number of milliseconds spent in
-         * non-busy sleep awaiting notification that the pending
-         * queue has shrunk in size and more messages can be
-         * added to it. This should be the majority of the time
-         * logged for {@link #throttleEnqueue}.
+         * A subset of {@link #throttleEnqueue}, this is specifically the number
+         * of milliseconds spent in non-busy sleep awaiting notification that
+         * the pending queue has shrunk in size and more messages can be added
+         * to it. This should be the majority of the time logged for {@link
+         * #throttleEnqueue}.
          */
         throttleWait(MILLISECOND_UNITS),
 
         /**
-         * The cumulative number of milliseconds spent waiting
-         * for an available worker thread to process an info
-         * message that has been pulled from the pending queue.
+         * The cumulative number of milliseconds spent waiting for an available
+         * worker thread to process an info message that has been pulled from
+         * the pending queue.
          */
         waitForWorker(MILLISECOND_UNITS),
 
@@ -323,7 +307,8 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
          *
          * @param units The units to construct with.
          */
-        Stat(String units) {
+        Stat(String units)
+        {
             this.units = units;
         }
 
@@ -337,7 +322,8 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
          *
          * @return The units associated with this statistic.
          */
-        public String getUnits() {
+        public String getUnits()
+        {
             return this.units;
         }
     }
@@ -381,15 +367,15 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     private Thread processingThread = null;
 
     /**
-     * The total of the number of milliseconds each of the
-     * message batches round trip from enqueueing until all
-     * contained messages in the batch have been processed.
+     * The total of the number of milliseconds each of the message batches round
+     * trip from enqueueing until all contained messages in the batch have been
+     * processed.
      */
     private long totalRoundTripMillis = 0L;
 
     /**
-     * The longest time it has taken a message to round-trip
-     * from the vendor message queue to being completed.
+     * The longest time it has taken a message to round-trip from the vendor
+     * message queue to being completed.
      */
     private long longestRoundTripMillis = 0L;
 
@@ -409,23 +395,20 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     private long processedMessageCount = 0L;
 
     /**
-     * The number of times the {@link
-     * MessageProcessor#process(JsonObject)} method has been
-     * successfully called.
+     * The number of times the {@link MessageProcessor#process(JsonObject)}
+     * method has been successfully called.
      */
     private long processSuccessCount = 0L;
 
     /**
-     * The number of times the {@link
-     * MessageProcessor#process(JsonObject)} method has been
-     * called and thrown an exception.
+     * The number of times the {@link MessageProcessor#process(JsonObject)}
+     * method has been called and thrown an exception.
      */
     private long processFailureCount = 0L;
 
     /**
-     * The number of batches that have to be retried because of
-     * a failure from at least one message contained within the
-     * batch.
+     * The number of batches that have to be retried because of a failure from
+     * at least one message contained within the batch.
      */
     private long batchRetryCount = 0L;
 
@@ -446,20 +429,20 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     private LockingService lockingService = null;
 
     /**
-     * The total number of times an attempt was made to dequeue
-     * a message and one was ready.
+     * The total number of times an attempt was made to dequeue a message and
+     * one was ready.
      */
     private long dequeueHitCount = 0L;
 
     /**
-     * The total number of times an attempt was made to dequeue
-     * a message and one was not ready to be dequeued.
+     * The total number of times an attempt was made to dequeue a message and
+     * one was not ready to be dequeued.
      */
     private long dequeueMissCount = 0L;
 
     /**
-     * The result from {@link System#nanoTime()} when the last message 
-     * was pulled from the queue.
+     * The result from {@link System#nanoTime()} when the last message was
+     * pulled from the queue.
      */
     private AtomicLong lastMessageNanoTime = new AtomicLong(-1L);
          
@@ -469,14 +452,15 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     private final Timers timers = new Timers();
 
     /**
-     * Flag to use to suppress checking if already processing
-     * when backgrounding message processing.  Initialized to
+     * Flag to use to suppress checking if already processing when backgrounding
+     * message processing. Initialized to
      * {@link Boolean#FALSE} by default.
      */
     private static final ThreadLocal<Boolean>
             SUPPRESS_PROCESSING_CHECK = new ThreadLocal<>() {
         @Override
-        protected Boolean initialValue() {
+        protected Boolean initialValue()
+        {
             return Boolean.FALSE;
         }
     };
@@ -484,7 +468,8 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     /**
      * Default constructor.
      */
-    protected AbstractMessageConsumer() {
+    protected AbstractMessageConsumer()
+    {
         // do nothing
     }
 
@@ -494,18 +479,19 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
      * @return The {@link State} of this instance.
      */
     @Override
-    public synchronized State getState() {
+    public synchronized State getState()
+    {
         return this.state;
     }
 
     /**
-     * Provides a means to set the {@link State} for this
-     * instance as a synchronized method that will notify all
-     * upon changing the state.
+     * Provides a means to set the {@link State} for this instance as a
+     * synchronized method that will notify all upon changing the state.
      *
      * @param state The {@link State} for this instance.
      */
-    protected synchronized void setState(State state) {
+    protected synchronized void setState(State state)
+    {
         Objects.requireNonNull(state, "State cannot be null");
         this.state = state;
         this.notifyAll();
@@ -516,13 +502,12 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
      * this method can be called to wait until we have transitioned to the
      * {@link State#DESTROYED} state.
      * 
-     * @throws IllegalStateException If this method is called
-     *                               when <b>NOT</b> in the
-     *                               {@link State#DESTROYED} or
-     *                               {@link State#DESTROYING}
-     *                               state.
+     * @throws IllegalStateException If this method is called when <b>NOT</b> in
+     *                               the {@link State#DESTROYED} or {@link
+     *                               State#DESTROYING} state.
      */
-    protected synchronized void waitUntilDestroyed() {
+    protected synchronized void waitUntilDestroyed()
+    {
         // check if already destroyed
         if (this.getState() == State.DESTROYED) {
             return;
@@ -547,30 +532,31 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     }
 
     /**
-     * Gets the number of queued messages that are pending.
-     * These are messages from message batches that have been
-     * pulled from the MQ framework and added to the queue.
+     * Gets the number of queued messages that are pending. These are messages
+     * from message batches that have been pulled from the MQ framework and
+     * added to the queue.
      *
      * @return The number of pending messages.
      */
-    protected synchronized int getPendingMessageCount() {
+    protected synchronized int getPendingMessageCount()
+    {
         return this.pendingMessages.size();
     }
 
     /**
-     * Override this method to return the exact or approximate
-     * number of messages still on the message queue.  This 
-     * method returns <code>null</code> if the number of messages
-     * cannot be determined.
+     * Override this method to return the exact or approximate number of
+     * messages still on the message queue. This method returns
+     * <code>null</code> if the number of messages cannot be determined.
      * <p>
      * The default implementation of this method simply returns
      * <code>null</code>.
      * 
-     * @return The exact or approximate number of messages still
-     *         on the message queue, or <code>null</code> if the
-     *         count could not be determined.
+     * @return The exact or approximate number of messages still on the message
+     *             queue, or <code>null</code> if the count could not be
+     *             determined.
      */
-    protected Long getQueueMessageCount() {
+    protected Long getQueueMessageCount()
+    {
         return null;
     }
 
@@ -578,25 +564,26 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
      * {@inheritDoc}
      */
     @Override
-    public long getLastMessageNanoTime() {
+    public long getLastMessageNanoTime()
+    {
         return this.lastMessageNanoTime.get();
     }
 
     /**
-     * Implemented to return a result which sums the values
-     * from {@link #getPendingMessageCount()} and {@link 
-     * #getQueueMessageCount()}.
+     * Implemented to return a result which sums the values from {@link
+     * #getPendingMessageCount()} and {@link #getQueueMessageCount()}.
      * <p>
-     * If {@link #getQueueMessageCount()} returns <code>null</code>
-     * and {@link #getPendingMessageCount()} is non-zero then the
-     * result from {@link #getPendingMessageCount()} is returned.
+     * If {@link #getQueueMessageCount()} returns <code>null</code> and {@link
+     * #getPendingMessageCount()} is non-zero then the result from {@link
+     * #getPendingMessageCount()} is returned.
      * <p>
-     * If {@link #getPendingMessageCount()} returns zero then the
-     * result from {@link #getQueueMessageCount()} is returned.
+     * If {@link #getPendingMessageCount()} returns zero then the result from
+     * {@link #getQueueMessageCount()} is returned.
      * {@inheritDoc}
      * 
      */
-    public Long getMessageCount() {
+    public Long getMessageCount()
+    {
         int pending = this.getPendingMessageCount();
         Long queued = this.getQueueMessageCount();
         return (pending == 0) ? queued 
@@ -604,55 +591,54 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     }
 
     /**
-     * Returns the maximum number of messages allowed in the
-     * pending queue. When this limit is reached enqueueing
-     * additional messages will be blocked until the queue
-     * reduces in size.
+     * Returns the maximum number of messages allowed in the pending queue. When
+     * this limit is reached enqueueing additional messages will be blocked
+     * until the queue reduces in size.
      *
-     * @return The maximum number of messages allowed in the
-     *         pending queue before throttling consumption.
+     * @return The maximum number of messages allowed in the pending queue
+     *             before throttling consumption.
      */
-    protected synchronized int getMaximumPendingCount() {
+    protected synchronized int getMaximumPendingCount()
+    {
         return this.concurrency * 1000;
     }
 
     /**
-     * Checks if this instance is current processing messages.
-     * This is used to synchronize destruction. The {@link
-     * #doDestroy()} method is not called until processing
-     * ceases.
+     * Checks if this instance is current processing messages. This is used to
+     * synchronize destruction. The {@link #doDestroy()} method is not called
+     * until processing ceases.
      *
-     * @return <code>true</code> if this instance is still
-     *         processing messages, otherwise
-     *         <code>false</code>.
+     * @return <code>true</code> if this instance is still processing messages,
+     *                           otherwise <code>false</code>.
      */
-    protected synchronized boolean isProcessing() {
+    protected synchronized boolean isProcessing()
+    {
         return this.processing;
     }
 
     /**
-     * The {@link Object} to synchronize on when computing and
-     * recording statistics in a thread-safe manner.
+     * The {@link Object} to synchronize on when computing and recording
+     * statistics in a thread-safe manner.
      *
-     * @return The {@link Object} to synchronize on when
-     *         computing and recording statistics in a
-     *         thread-safe manner.
+     * @return The {@link Object} to synchronize on when computing and recording
+     *             statistics in a thread-safe manner.
      */
-    protected final Object getStatisticsMonitor() {
+    protected final Object getStatisticsMonitor()
+    {
         return this.statsMonitor;
     }
 
     /**
-     * Call this to increment the number of times dequeue has
-     * been called with or without a message ready to be
-     * dequeued. This function is thread-safe with respect to
-     * other statistics.
+     * Call this to increment the number of times dequeue has been called with
+     * or without a message ready to be dequeued. This function is thread-safe
+     * with respect to other statistics.
      *
-     * @param hit <code>true</code> if we have a "hit" and
-     *            there is a message ready to be dequeued,
-     *            otherwise <code>false</code> for a "miss".
+     * @param hit <code>true</code> if we have a "hit" and there is a message
+     *            ready to be dequeued, otherwise <code>false</code> for a
+     *            "miss".
      */
-    protected void updateDequeueHitRatio(boolean hit) {
+    protected void updateDequeueHitRatio(boolean hit)
+    {
         synchronized (this.getStatisticsMonitor()) {
             if (hit) {
                 this.dequeueHitCount++;
@@ -663,21 +649,20 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     }
 
     /**
-     * Returns the "hit ratio" for attempting to dequeue a
-     * message from the internal queue and finding a message
-     * ready to be dequeued. If this is low then the internal
-     * queue needs to be filled at a faster rate from the
+     * Returns the "hit ratio" for attempting to dequeue a message from the
+     * internal queue and finding a message ready to be dequeued. If this is low
+     * then the internal queue needs to be filled at a faster rate from the
      * vendor-specific message queue. This returns
      * <code>null</code> if no attempt have been made to dequeue
      * a message.
      *
-     * @return The "hit ratio" of attempts to dequeue a message
-     *         and finding one ready to the total number of
-     *         attempts to dequeue a message, or
-     *         <code>null</code> if no attempts have been made
-     *         to dequeue a message.
+     * @return The "hit ratio" of attempts to dequeue a message and finding one
+     *             ready to the total number of attempts to dequeue a message,
+     *             or <code>null</code> if no attempts have been made to dequeue
+     *             a message.
      */
-    public Double getDequeueHitRatio() {
+    public Double getDequeueHitRatio()
+    {
         synchronized (this.getStatisticsMonitor()) {
             double hits = (double) this.dequeueHitCount;
             double misses = (double) this.dequeueMissCount;
@@ -691,10 +676,11 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
      * {@link Number} values in an atomic thread-safe manner.
      *
      * @return The {@link Map} of {@link Stat} keys to their {@link Number}
-     *         values.
+     *             values.
      */
     @Override
-    public Map<Statistic, Number> getStatistics() {
+    public Map<Statistic, Number> getStatistics()
+    {
         synchronized (this.getStatisticsMonitor()) {
             Map<String, Long> timings = this.timers.getTimings();
 
@@ -729,8 +715,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
 
     /**
      * Implemented to parse the specified {@link String} as a {@link
-     * JsonObject}.
-     * This will set up the internal {@link AsyncWorkerPool}.
+     * JsonObject}. This will set up the internal {@link AsyncWorkerPool}.
      *
      * @param config The JSON config text.
      *
@@ -738,7 +723,9 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
      *                                       initialization.
      */
     @Override
-    public void init(JsonObject config) throws MessageConsumerSetupException {
+    public void init(JsonObject config)
+        throws MessageConsumerSetupException
+    {
         synchronized (this) {
             if (this.getState() != UNINITIALIZED) {
                 throw new IllegalStateException(
@@ -785,10 +772,9 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     }
 
     /**
-     * Called by the {@link #init(JsonObject)} implementation
-     * after handling the base configuration parameters and
-     * parsing the specified {@link String} as a {@link
-     * JsonObject}.
+     * Called by the {@link #init(JsonObject)} implementation after handling the
+     * base configuration parameters and parsing the specified {@link String} as
+     * a {@link JsonObject}.
      *
      * @param config The {@link JsonObject} describing the configuration.
      *
@@ -802,11 +788,10 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
      * Implemented to verify that the state of this instance is currently
      * {@link State#INITIALIZED}, transitions to {@link State#CONSUMING}, calls
      * {@link #backgroundProcessMessages(MessageProcessor)} and then delegates
-     * to
-     * {@link #doConsume(MessageProcessor)}.
+     * to {@link #doConsume(MessageProcessor)}.
      *
      * @param processor The {@link MessageProcessor} for processing the
-     *        messages.
+     *                  messages.
      *
      * @throws MessageConsumerException If a failure occurs.
      */
@@ -838,8 +823,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     /**
      * Implement this to initiate consumption. The implementation should return
      * immediately and should not loop indefinitely while consuming messages.
-     * This
-     * may require launching a background thread to loop for message
+     * This may require launching a background thread to loop for message
      * consumption.
      *
      * @param processor The {@link MessageProcessor} to use for processing.
@@ -849,13 +833,13 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
         throws MessageConsumerException;
 
     /**
-     * Implemented as a synchronized method to {@linkplain
-     * #setState(State) set the state} to {@link
-     * State#DESTROYING}, call {@link #doDestroy()} and then
-     * perform {@link #notifyAll()} and set the state to {@link
+     * Implemented as a synchronized method to {@linkplain #setState(State) set
+     * the state} to {@link State#DESTROYING}, call {@link #doDestroy()} and
+     * then perform {@link #notifyAll()} and set the state to {@link
      * State#DESTROYED}.
      */
-    public void destroy() {
+    public void destroy()
+    {
         this.timerStart(destroy);
         synchronized (this) {
             // check if destroying
@@ -919,50 +903,46 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     protected abstract void doDestroy();
 
     /**
-     * Gets the concurrency of the consumer. The returned value
-     * will be a positive number greater than or equal to one
-     * (1).
+     * Gets the concurrency of the consumer. The returned value will be a
+     * positive number greater than or equal to one (1).
      *
      * @return The concurrency of the consumer.
      */
-    protected int getConcurrency() {
+    protected int getConcurrency()
+    {
         return this.concurrency;
     }
 
     /**
-     * Gets the number of milliseconds to sleep between checking
-     * to see if message processing should cease. This timeout
-     * is used when there are no postponed messages due to
-     * contention.
+     * Gets the number of milliseconds to sleep between checking to see if
+     * message processing should cease. This timeout is used when there are no
+     * postponed messages due to contention.
      *
-     * @return The number of milliseconds to sleep between
-     *         checking to see if message processing should
-     *         cease. This timeout is used when there are no
-     *         postponed messages due to contention.
+     * @return The number of milliseconds to sleep between checking to see if
+     *             message processing should cease. This timeout is used when
+     *             there are no postponed messages due to contention.
      */
-    protected long getTimeout() {
+    protected long getTimeout()
+    {
         return this.timeout;
     }
 
     /**
-     * Returns the average number of milliseconds required for
-     * the round trip of a message from the time it is dequeued
-     * from the vendor message queue and its info messages are
-     * enqueued for processing until they have all been
-     * processed (for non-batch messages then consider it a
-     * batch of one). This returns <code>null</code> if no
-     * batches have been completed.
+     * Returns the average number of milliseconds required for the round trip of
+     * a message from the time it is dequeued from the vendor message queue and
+     * its info messages are enqueued for processing until they have all been
+     * processed (for non-batch messages then consider it a batch of one). This
+     * returns <code>null</code> if no batches have been completed.
      *
-     * @return The average number of milliseconds required for
-     *         the round trip of a message from the time it is
-     *         dequeued from the vendor message queue and its
-     *         info messages are enqueued for processing until
-     *         they have all been processed (for non-batch
-     *         messages then consider it a batch of one), or
-     *         <code>null</code> if no batches have been
-     *         completed.
+     * @return The average number of milliseconds required for the round trip of
+     *             a message from the time it is dequeued from the vendor
+     *             message queue and its info messages are enqueued for
+     *             processing until they have all been processed (for non-batch
+     *             messages then consider it a batch of one), or
+     *             <code>null</code> if no batches have been completed.
      */
-    public Long getAverageRoundTripMillis() {
+    public Long getAverageRoundTripMillis()
+    {
         synchronized (this.getStatisticsMonitor()) {
             if (this.processedBatchCount == 0L) {
                 return null;
@@ -972,24 +952,21 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     }
 
     /**
-     * Returns the longest number of milliseconds required for
-     * the round trip of a single message from the time it is
-     * dequeued from the vendor message queue and its info
-     * messages are enqueued for processing until they have all
-     * been processed (for non-batch messages then consider it
-     * a batch of one). This returns <code>null</code> if no
-     * batches have been completed.
+     * Returns the longest number of milliseconds required for the round trip of
+     * a single message from the time it is dequeued from the vendor message
+     * queue and its info messages are enqueued for processing until they have
+     * all been processed (for non-batch messages then consider it a batch of
+     * one). This returns <code>null</code> if no batches have been completed.
      *
-     * @return longest number of milliseconds required for the
-     *         round trip of a single message from the time it
-     *         is dequeued from the vendor message queue and
-     *         its info messages are enqueued for processing
-     *         until they have all been processed (for non-batch
-     *         messages then consider it a batch of one), or
-     *         <code>null</code> if no batches have been
-     *         completed.
+     * @return longest number of milliseconds required for the round trip of a
+     *                 single message from the time it is dequeued from the
+     *                 vendor message queue and its info messages are enqueued
+     *                 for processing until they have all been processed (for
+     *                 non-batch messages then consider it a batch of one), or
+     *                 <code>null</code> if no batches have been completed.
      */
-    public Long getLongestRoundTripMillis() {
+    public Long getLongestRoundTripMillis()
+    {
         synchronized (this.getStatisticsMonitor()) {
             if (this.processedBatchCount == 0L) {
                 return null;
@@ -999,79 +976,74 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     }
 
     /**
-     * Returns the number of MQ-vendor messages that have been
-     * dequeued from the messaging service and have completed
-     * processing. Each message may or may not be a batch of
-     * info messages. For a batch to be completed, each of the
-     * info messages contained in the batch must have been
-     * processed.
+     * Returns the number of MQ-vendor messages that have been dequeued from the
+     * messaging service and have completed processing. Each message may or may
+     * not be a batch of info messages. For a batch to be completed, each of the
+     * info messages contained in the batch must have been processed.
      *
-     * @return The number of MQ-vendor messages (i.e.: batches)
-     *         that have been dequeued from the messaging
-     *         service and have completed processing.
+     * @return The number of MQ-vendor messages (i.e.: batches) that have been
+     *             dequeued from the messaging service and have completed
+     *             processing.
      */
-    public long getCompletedMessageCount() {
+    public long getCompletedMessageCount()
+    {
         synchronized (this.getStatisticsMonitor()) {
             return this.processedBatchCount;
         }
     }
 
     /**
-     * Returns the number of MQ-vendor messages that will be or
-     * have been retried because of a failure that prevents them
-     * from being acknowledged to or deleted from the MQ-vendor
-     * queue. Each message may or may not be a batch of info
-     * messages, any of which may fail and trigger retry for the
-     * entire batch when the message is not acknowledged or
-     * deleted from the MQ-vendor queue. For a batch to not be
-     * retried, then every info messages contained in the batch
-     * must have be processed without a failure.
+     * Returns the number of MQ-vendor messages that will be or have been
+     * retried because of a failure that prevents them from being acknowledged
+     * to or deleted from the MQ-vendor queue. Each message may or may not be a
+     * batch of info messages, any of which may fail and trigger retry for the
+     * entire batch when the message is not acknowledged or deleted from the
+     * MQ-vendor queue. For a batch to not be retried, then every info messages
+     * contained in the batch must have be processed without a failure.
      *
-     * @return The number of MQ-vendor messages (i.e.: batches)
-     *         that have been dequeued from the messaging
-     *         service and have had at least one failure during
-     *         the processing of the contained info messages.
+     * @return The number of MQ-vendor messages (i.e.: batches) that have been
+     *             dequeued from the messaging service and have had at least one
+     *             failure during the processing of the contained info messages.
      */
-    public long getMessageRetryCount() {
+    public long getMessageRetryCount()
+    {
         synchronized (this.getStatisticsMonitor()) {
             return this.batchRetryCount;
         }
     }
 
     /**
-     * Returns the number of info messages that will be or have
-     * been retried because of a failure in processing that info
-     * message or due to a failure in processing another info
-     * message that belongs to the same batch. This number will
-     * exceed the number of MQ-vendor messages if those messages
-     * are batches of more than one info message. Further,
-     * successfully processed messages may still be retried if
-     * another info message from the same batch experiences a
-     * processing failure that prevents the MQ-vendor message
-     * from being acknowledged to or deleted from the MQ-vendor
-     * message queue.
+     * Returns the number of info messages that will be or have been retried
+     * because of a failure in processing that info message or due to a failure
+     * in processing another info message that belongs to the same batch. This
+     * number will exceed the number of MQ-vendor messages if those messages are
+     * batches of more than one info message. Further, successfully processed
+     * messages may still be retried if another info message from the same batch
+     * experiences a processing failure that prevents the MQ-vendor message from
+     * being acknowledged to or deleted from the MQ-vendor message queue.
      *
-     * @return The number of info messages that will be have
-     *         been dequeued from the messaging service and
-     *         have had at least one failure during the
-     *         processing of the contained info messages.
+     * @return The number of info messages that will be have been dequeued from
+     *             the messaging service and have had at least one failure
+     *             during the processing of the contained info messages.
      */
-    public long getInfoMessageRetryCount() {
+    public long getInfoMessageRetryCount()
+    {
         synchronized (this.getStatisticsMonitor()) {
             return this.processRetryCount;
         }
     }
 
     /**
-     * Returns the average number of milliseconds required to
-     * process the info messages. This returns <code>null</code>
-     * if no messages have been processed.
+     * Returns the average number of milliseconds required to process the info
+     * messages. This returns <code>null</code> if no messages have been
+     * processed.
      *
-     * @return The average number of milliseconds required to
-     *         process the info messages, or <code>null</code>
-     *         if no messages have been processed.
+     * @return The average number of milliseconds required to process the info
+     *             messages, or <code>null</code> if no messages have been
+     *             processed.
      */
-    public Long getAverageProcessMillis() {
+    public Long getAverageProcessMillis()
+    {
         synchronized (this.getStatisticsMonitor()) {
             if (this.processedMessageCount == 0L) {
                 return null;
@@ -1081,17 +1053,16 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     }
 
     /**
-     * Gets the ratio of the total processing time across all
-     * threads to the total active processing of the message
-     * scheduler to indicate the level of parallelism achieved.
-     * This returns <code>null</code> if the actively processing
-     * time is zero.
+     * Gets the ratio of the total processing time across all threads to the
+     * total active processing of the message scheduler to indicate the level of
+     * parallelism achieved. This returns <code>null</code> if the actively
+     * processing time is zero.
      *
-     * @return The ratio of the total processing time across all
-     *         threads to the total active processing of the
-     *         message scheduler.
+     * @return The ratio of the total processing time across all threads to the
+     *             total active processing of the message scheduler.
      */
-    public Double getParallelism() {
+    public Double getParallelism()
+    {
         synchronized (this.getStatisticsMonitor()) {
             String timerKey = activelyProcessing.toString();
             Long activeTime = this.timers.getElapsedTime(timerKey);
@@ -1103,67 +1074,65 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     }
 
     /**
-     * Returns the number of info messages that have been
-     * processed. This may be equal to or greater than the
-     * number of MQ-vendor messages that have been completed
-     * because some MQ-vendor messages are batches of info
-     * messages.
+     * Returns the number of info messages that have been processed. This may be
+     * equal to or greater than the number of MQ-vendor messages that have been
+     * completed because some MQ-vendor messages are batches of info messages.
      *
      * @return The number of info messages that have been processed.
      */
-    public long getProcessedInfoMessageCount() {
+    public long getProcessedInfoMessageCount()
+    {
         synchronized (this.getStatisticsMonitor()) {
             return this.processedMessageCount;
         }
     }
 
     /**
-     * Returns the number of info messages that have been
-     * processed successfully without an exception. This may be
-     * equal to or greater than the number of MQ-vendor messages
-     * that have been completed because some MQ-vendor messages
-     * are batches of info messages and some messages are
-     * retried after success because they belong to a batch
-     * that gets retried.
+     * Returns the number of info messages that have been processed successfully
+     * without an exception. This may be equal to or greater than the number of
+     * MQ-vendor messages that have been completed because some MQ-vendor
+     * messages are batches of info messages and some messages are retried after
+     * success because they belong to a batch that gets retried.
      *
-     * @return The number of info messages that have been
-     *         processed successfully.
+     * @return The number of info messages that have been processed
+     *             successfully.
      */
-    public long getInfoMessageSuccessCount() {
+    public long getInfoMessageSuccessCount()
+    {
         synchronized (this.getStatisticsMonitor()) {
             return this.processSuccessCount;
         }
     }
 
     /**
-     * Returns the number of info messages that experienced a
-     * failure during processing in the form of an exception
-     * being thrown. This may be equal to or greater than the
-     * number of MQ-vendor messages that have been completed
-     * because some MQ-vendor messages are batches of info
-     * messages and failed messages will get retried eventually.
+     * Returns the number of info messages that experienced a failure during
+     * processing in the form of an exception being thrown. This may be equal to
+     * or greater than the number of MQ-vendor messages that have been completed
+     * because some MQ-vendor messages are batches of info messages and failed
+     * messages will get retried eventually.
      *
-     * @return The number of info messages that experienced a
-     *         failure during processing.
+     * @return The number of info messages that experienced a failure during
+     *             processing.
      */
-    public long getInfoMessageFailureCount() {
+    public long getInfoMessageFailureCount()
+    {
         synchronized (this.getStatisticsMonitor()) {
             return this.processFailureCount;
         }
     }
 
     /**
-     * Enqueues the one or more info messages contained in the
-     * specified framework-specific message. If the message text
-     * is <code>null</code> or empty-string then this method
-     * does nothing. If the message text contains text that
-     * cannot be parsed as JSON then the unrecognized message is
+     * Enqueues the one or more info messages contained in the specified
+     * framework-specific message. If the message text is <code>null</code> or
+     * empty-string then this method does nothing. If the message text contains
+     * text that cannot be parsed as JSON then the unrecognized message is
      * logged and no messages are enqueued.
      *
      * @param processor The {@link MessageProcessor} to enqueue with.
      * @param message   The framework-specific message that was received.
      */
-    protected void enqueueMessages(MessageProcessor processor, M message) {
+    protected void enqueueMessages(MessageProcessor processor, M message)
+    {
         if (this.getState() != CONSUMING) {
             throw new IllegalStateException(
                     "Cannot enqueue messages in not in the "
@@ -1219,10 +1188,11 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     }
 
     /**
-     * Throttles consumption until the number of pending
-     * messages is less than half the maximum pending count.
+     * Throttles consumption until the number of pending messages is less than
+     * half the maximum pending count.
      */
-    protected synchronized void throttleConsumption() {
+    protected synchronized void throttleConsumption()
+    {
         this.timerStart(throttleEnqueue);
         // wait until we work down to half the maximum pending count
         while (this.pendingMessages.size()
@@ -1242,9 +1212,8 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     }
 
     /**
-     * Calls the {@link #processMessages(MessageProcessor)}
-     * function in a background thread after validating the
-     * current state of this instance.
+     * Calls the {@link #processMessages(MessageProcessor)} function in a
+     * background thread after validating the current state of this instance.
      *
      * @param processor The {@link MessageProcessor} to use for processing.
      */
@@ -1293,20 +1262,19 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     }
 
     /**
-     * Provides a loop that continues to schedule and process
-     * messages as long as the {@link State} of this instance
-     * obtained from {@link #getState()} is {@link
-     * State#CONSUMING}. If the state transitions out of
+     * Provides a loop that continues to schedule and process messages as long
+     * as the {@link State} of this instance obtained from {@link #getState()}
+     * is {@link State#CONSUMING}. If the state transitions out of
      * {@link State#CONSUMING} then only previously postponed
-     * messages will be handled before the processing
-     * terminates. This method does not return until processing
-     * is complete.
+     * messages will be handled before the processing terminates. This method
+     * does not return until processing is complete.
      *
-     * @param processor The {@link MessageProcessor} to use for
-     *                  consuming the messages and optionally
-     *                  providing cross-process cluster locking.
+     * @param processor The {@link MessageProcessor} to use for consuming the
+     *                  messages and optionally providing cross-process cluster
+     *                  locking.
      */
-    protected void processMessages(MessageProcessor processor) {
+    protected void processMessages(MessageProcessor processor)
+    {
         // check if we should validate the current state
         if (!SUPPRESS_PROCESSING_CHECK.get()) {
             // first check if we are even consuming
@@ -1557,15 +1525,14 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     }
 
     /**
-     * Handles the {@link AsyncResult} from the {@link
-     * AsyncWorkerPool} after it is received. This extracts the
+     * Handles the {@link AsyncResult} from the {@link AsyncWorkerPool} after it
+     * is received. This extracts the
      * {@link ProcessResult} value and traps any exceptions
-     * (there should be none). It records the timings from the
-     * processing and calls {@link #postProcess(InfoMessage)}.
+     * (there should be none). It records the timings from the processing and
+     * calls {@link #postProcess(InfoMessage)}.
      *
-     * @param result The {@link AsyncResult} to handle, or
-     *               <code>null</code> if no result was
-     *               returned.
+     * @param result The {@link AsyncResult} to handle, or <code>null</code> if
+     *               no result was returned.
      */
     protected void handleAsyncResult(
             AsyncResult<ProcessResult<M>> result)
@@ -1591,14 +1558,15 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     }
 
     /**
-     * This method does nothing, but provides a hook so that it
-     * may be overridden to do any special handling on the
+     * This method does nothing, but provides a hook so that it may be
+     * overridden to do any special handling on the
      * {@link InfoMessage} after it has been processed by the
      * {@link MessageProcessor}.
      *
      * @param infoMessage The {@link InfoMessage} that was processed.
      */
-    protected void postProcess(InfoMessage<M> infoMessage) {
+    protected void postProcess(InfoMessage<M> infoMessage)
+    {
         // do nothing
     }
 
@@ -1613,23 +1581,23 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     protected abstract String extractMessageBody(M message);
 
     /**
-     * Disposes the specified framework-specific message. This
-     * method is called for framework-specific messages that
-     * have been successfully handled or failed but cannot be
-     * retried.
+     * Disposes the specified framework-specific message. This method is called
+     * for framework-specific messages that have been successfully handled or
+     * failed but cannot be retried.
      *
      * @param message The framework-specific message to dispose of.
      */
     protected abstract void disposeMessage(M message);
 
     /**
-     * Encapsulates a message for a message queue type along
-     * with the flags for each sub-message in a batch indicating
-     * if the parent message can be disposed.
+     * Encapsulates a message for a message queue type along with the flags for
+     * each sub-message in a batch indicating if the parent message can be
+     * disposed.
      *
      * @param <M> The framework-specific message type.
      */
-    protected static class MessageBatch<M> {
+    protected static class MessageBatch<M>
+    {
         /**
          * The message for the message queue type.
          */
@@ -1641,14 +1609,12 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
         private List<InfoMessage<M>> infoMessages;
 
         /**
-         * The number of {@link InfoMessage} instances still
-         * pending completion.
+         * The number of {@link InfoMessage} instances still pending completion.
          */
         private int pendingCount;
 
         /**
-         * Used to flag whether at least one message from the
-         * batch has failed.
+         * Used to flag whether at least one message from the batch has failed.
          */
         private boolean failed = false;
 
@@ -1663,13 +1629,14 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
         private long completedTimeNanos;
 
         /**
-         * Constructs with the framework-specific message object
-         * and the text of the message body.
+         * Constructs with the framework-specific message object and the text of
+         * the message body.
          *
          * @param message     The framework-specific message object.
          * @param messageText The text of the message body.
          */
-        public MessageBatch(M message, String messageText) {
+        public MessageBatch(M message, String messageText)
+        {
             this.message = message;
 
             // check if an array or an object
@@ -1713,33 +1680,35 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
          * {@link MessageBatch} instance.
          *
          * @return The framework-specific message object associated with this
-         *         {@link MessageBatch} instance.
+         *             {@link MessageBatch} instance.
          */
-        public M getMessage() {
+        public M getMessage()
+        {
             return this.message;
         }
 
         /**
-         * Gets the <b>unmodifiable</b> {@link List} of {@link
-         * InfoMessage} instances from the message batch
-         * described by the associated MQ message.
+         * Gets the <b>unmodifiable</b> {@link List} of {@link InfoMessage}
+         * instances from the message batch described by the associated MQ
+         * message.
          *
-         * @return The <b>unmodifiable</b> {@link List} of associated
-         *         {@link InfoMessage} instances. }
+         * @return The <b>unmodifiable</b> {@link List} of associated {@link
+         *             InfoMessage} instances. }
          */
-        public List<InfoMessage<M>> getInfoMessages() {
+        public List<InfoMessage<M>> getInfoMessages()
+        {
             return this.infoMessages;
         }
 
         /**
-         * Checks if the entire batch of messages has been
-         * processed and all are flagged disposable.
+         * Checks if the entire batch of messages has been processed and all are
+         * flagged disposable.
          *
          * @return <code>true</code> if the entire batch of messages is
-         *         disposable,
-         *         otherwise <code>false</code>.
+         *                           disposable, otherwise <code>false</code>.
          */
-        public synchronized boolean isDisposable() {
+        public synchronized boolean isDisposable()
+        {
             for (InfoMessage msg : this.infoMessages) {
                 if (!msg.isDisposable()) {
                     return false;
@@ -1751,24 +1720,24 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
         /**
          * Checks if any of the messages in the have not yet been processed.
          *
-         * @return <code>true</code> if any message in the batch
-         *         has not yet been processed, and
-         *         <code>false</code> if the entire batch has
-         *         been processed.
+         * @return <code>true</code> if any message in the batch has not yet
+         *                           been processed, and <code>false</code> if
+         *                           the entire batch has been processed.
          */
-        public synchronized boolean isPending() {
+        public synchronized boolean isPending()
+        {
             return (this.pendingCount > 0);
         }
 
         /**
-         * Gets the number of nanoseconds since this instance was
-         * constructed up until all messages in the batch have
-         * been processed (or failed) or up until the current
-         * time if some messages are still pending.
+         * Gets the number of nanoseconds since this instance was constructed up
+         * until all messages in the batch have been processed (or failed) or up
+         * until the current time if some messages are still pending.
          *
          * @return The number of nanoseconds
          */
-        public synchronized long getLifespanNanos() {
+        public synchronized long getLifespanNanos()
+        {
             long end = (this.completedTimeNanos < 0L)
                     ? System.nanoTime()
                     : this.completedTimeNanos;
@@ -1776,26 +1745,24 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
         }
 
         /**
-         * Decrements the pending count. This is a private
-         * message called by the {@link InfoMessage} when it is
-         * marked as processed. The return value is negative if
-         * pending info messages remain and this is the first
-         * time it is called with <code>true</code> for the
-         * failed parameter. The return value is
+         * Decrements the pending count. This is a private message called by the
+         * {@link InfoMessage} when it is marked as processed. The return value
+         * is negative if pending info messages remain and this is the first
+         * time it is called with <code>true</code> for the failed parameter.
+         * The return value is
          * <code>null</code> if there are no remaining pending
-         * info messages and this is the first time it is called
-         * with <code>true</code> for the failed parameter. In
-         * all other cases the return value is a non-negative
-         * integer indicating how many info messages remain
-         * pending.
+         * info messages and this is the first time it is called with
+         * <code>true</code> for the failed parameter. In all other cases the
+         * return value is a non-negative integer indicating how many info
+         * messages remain pending.
          *
          * @param failed <code>true</code> if the calling info message has
-         *        failed
-         *               processing, otherwise <code>false</code>.
+         *               failed processing, otherwise <code>false</code>.
          *
          * @return The pending count for the batch after decrementing.
          */
-        private synchronized Integer decrementPendingCount(boolean failed) {
+        private synchronized Integer decrementPendingCount(boolean failed)
+        {
             boolean failed0 = this.failed;
             if (failed) {
                 this.failed = true;
@@ -1814,13 +1781,13 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
     }
 
     /**
-     * Describes a single pending info message which is
-     * associated with a batch. If a single message then a
-     * batch of one.
+     * Describes a single pending info message which is associated with a batch.
+     * If a single message then a batch of one.
      *
      * @param <M> The message type.
      */
-    protected static class InfoMessage<M> {
+    protected static class InfoMessage<M>
+    {
         /**
          * The associated {@link MessageBatch}.
          */
@@ -1832,21 +1799,21 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
         private JsonObject message;
 
         /**
-         * Flag indicating if this message is processed and is
-         * now disposable. This value is <code>null</code> if
-         * the message has not yet been processed.
+         * Flag indicating if this message is processed and is now disposable.
+         * This value is <code>null</code> if the message has not yet been
+         * processed.
          */
         private Boolean disposable;
 
         /**
-         * Flag indicating if the completion of this {@link
-         * InfoMessage} completes the batch to which it belongs.
+         * Flag indicating if the completion of this {@link InfoMessage}
+         * completes the batch to which it belongs.
          */
         private boolean lastInBatch = false;
 
         /**
-         * Flag indicating if this is the first {@link
-         * InfoMessage} in the associated batch that has failed.
+         * Flag indicating if this is the first {@link InfoMessage} in the
+         * associated batch that has failed.
          */
         private boolean firstFailure = false;
 
@@ -1870,7 +1837,8 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
          *
          * @return The associated {@link MessageBatch}.
          */
-        public MessageBatch<M> getBatch() {
+        public MessageBatch<M> getBatch()
+        {
             return this.batch;
         }
 
@@ -1879,19 +1847,21 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
          *
          * @return The {@link JsonObject} describing the message.
          */
-        public JsonObject getMessage() {
+        public JsonObject getMessage()
+        {
             return this.message;
         }
 
         /**
-         * Checks if this {@link InfoMessage} was the last one
-         * that was completed in the batch to which it belongs.
+         * Checks if this {@link InfoMessage} was the last one that was
+         * completed in the batch to which it belongs.
          *
-         * @return <code>true</code> if this info message is
-         *         the last one completed in the batch to which
-         *         it belongs, and <code>false</code> if not.
+         * @return <code>true</code> if this info message is the last one
+         *                           completed in the batch to which it belongs,
+         *                           and <code>false</code> if not.
          */
-        public synchronized boolean isLastInBatch() {
+        public synchronized boolean isLastInBatch()
+        {
             return this.lastInBatch;
         }
 
@@ -1900,12 +1870,13 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
          * <b>and</b> was the first one within the associated
          * batch to fail.
          *
-         * @return <code>true</code> if this info message failed
-         *         processing <b>and</b> was the first one
-         *         within the associated batch to fail,
-         *         otherwise <code>false</code>.
+         * @return <code>true</code> if this info message failed processing
+         *                           <b>and</b> was the first one within the
+         *                           associated batch to fail, otherwise
+         *                           <code>false</code>.
          */
-        public synchronized boolean isFirstFailure() {
+        public synchronized boolean isFirstFailure()
+        {
             return this.firstFailure;
         }
 
@@ -1914,38 +1885,38 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
          * succeeded or failed).
          *
          * @return <code>true</code> if the message has been processed,
-         *         otherwise
-         *         <code>false</code>.
+         *                           otherwise <code>false</code>.
          */
-        public synchronized boolean isPending() {
+        public synchronized boolean isPending()
+        {
             return (this.disposable == null);
         }
 
         /**
-         * Checks if this message can be disposed after
-         * processing. If the message has not yet been processed
-         * (i.e.: it is still pending) then this method returns
+         * Checks if this message can be disposed after processing. If the
+         * message has not yet been processed (i.e.: it is still pending) then
+         * this method returns
          * <code>null</code>.
          *
-         * @return <code>true</code> if this message has been
-         *         processed and can be disposed, and
-         *         <code>false</code> if not yet processed or
-         *         processed and should be retried.
+         * @return <code>true</code> if this message has been processed and can
+         *                           be disposed, and <code>false</code> if not
+         *                           yet processed or processed and should be
+         *                           retried.
          */
-        public synchronized boolean isDisposable() {
+        public synchronized boolean isDisposable()
+        {
             return Boolean.TRUE.equals(this.disposable);
         }
 
         /**
-         * Marks this message as having been processed and sets
-         * whether or not it is disposable or should be retried.
+         * Marks this message as having been processed and sets whether or not
+         * it is disposable or should be retried.
          *
-         * @param disposable <code>true</code> if the message
-         *                   can be disposed of, and
-         *                   <code>false</code> if it should be
-         *                   retried.
+         * @param disposable <code>true</code> if the message can be disposed
+         *                   of, and <code>false</code> if it should be retried.
          */
-        public void markProcessed(boolean disposable) {
+        public void markProcessed(boolean disposable)
+        {
             boolean decrement = false;
             synchronized (this) {
                 decrement = (this.disposable == null);
@@ -1959,26 +1930,28 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
         }
 
         /**
-         * Overridden to return a diagnostic {@link String}
-         * describing this instance.
+         * Overridden to return a diagnostic {@link String} describing this
+         * instance.
          *
          * @return A diagnostic {@link String} describing this instance.
          */
-        public String toString() {
+        public String toString()
+        {
             return "disposable=[ " + this.isDisposable()
                     + " ]: " + toJsonText(this.getMessage());
         }
     }
 
     /**
-     * Converts the specified {@link Stat} instances to an array
-     * of {@link String} instances.
+     * Converts the specified {@link Stat} instances to an array of {@link
+     * String} instances.
      * 
      * @param statistics The {@link Stat} instances to convert.
      * @return The array of {@link String} instances describing the specified
-     *         {@link Stat} instances.
+     *             {@link Stat} instances.
      */
-    private String[] convertTimerKeys(Stat... statistics) {
+    private String[] convertTimerKeys(Stat... statistics)
+    {
         String[] names = (statistics == null
                 || statistics.length == 0)
                 ? null : new String[statistics.length];
@@ -1996,7 +1969,8 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
      * 
      * @param timers The {@link Timers} to merge.
      */
-    protected void timerMerge(Timers timers) {
+    protected void timerMerge(Timers timers)
+    {
         synchronized (this.getStatisticsMonitor()) {
             this.timers.mergeWith(timers);
         }
@@ -2007,7 +1981,7 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
      * 
      * @param pendingCount The number of pending messages.
      * @param busy <code>true</code> if the worker pool is busy, otherwise
-     *                     <code>false</code>.
+     *             <code>false</code>.
      */
     protected void toggleActiveAndWaitingTimers(
             int     pendingCount,
@@ -2038,7 +2012,8 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
      * @param statistic  The {@link Stat} to resume.
      * @param addlTimers The additional {@link Stat} instances to resume.
      */
-    protected void timerResume(Stat statistic, Stat... addlTimers) {
+    protected void timerResume(Stat statistic, Stat... addlTimers)
+    {
         String[] names = this.convertTimerKeys(addlTimers);
         synchronized (this.getStatisticsMonitor()) {
             if (names == null) {
@@ -2055,7 +2030,8 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
      * @param statistic  The {@link Stat} to start.
      * @param addlTimers The additional {@link Stat} instances to start.
      */
-    protected void timerStart(Stat statistic, Stat... addlTimers) {
+    protected void timerStart(Stat statistic, Stat... addlTimers)
+    {
         String[] names = this.convertTimerKeys(addlTimers);
         synchronized (this.getStatisticsMonitor()) {
             if (names == null) {
@@ -2072,7 +2048,8 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
      * @param statistic  The {@link Stat} to pause.
      * @param addlTimers The additional {@link Stat} instances to pause.
      */
-    protected void timerPause(Stat statistic, Stat... addlTimers) {
+    protected void timerPause(Stat statistic, Stat... addlTimers)
+    {
         String[] names = this.convertTimerKeys(addlTimers);
         synchronized (this.getStatisticsMonitor()) {
             if (names == null) {
@@ -2088,7 +2065,8 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
      * 
      * @param <M> The vendor-specific message type.
      */
-    protected static class ProcessResult<M> {
+    protected static class ProcessResult<M>
+    {
         /**
          * The {@link InfoMessage} associated with the result.
          */
@@ -2103,10 +2081,11 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
          * Constructs with the specified parameters.
          * 
          * @param infoMessage The {@link InfoMessage} to associate with the
-         *        result.
+         *                    result.
          * @param timers      The {@link Timers} to associate with the result.
          */
-        public ProcessResult(InfoMessage<M> infoMessage, Timers timers) {
+        public ProcessResult(InfoMessage<M> infoMessage, Timers timers)
+        {
             this.infoMessage = infoMessage;
             this.timers = timers;
         }
@@ -2116,7 +2095,8 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
          * 
          * @return The associated {@link InfoMessage}.
          */
-        public InfoMessage<M> getInfoMessage() {
+        public InfoMessage<M> getInfoMessage()
+        {
             return this.infoMessage;
         }
 
@@ -2125,7 +2105,8 @@ public abstract class AbstractMessageConsumer<M> implements MessageConsumer {
          * 
          * @return The associated {@link Timers}.
          */
-        public Timers getTimers() {
+        public Timers getTimers()
+        {
             return this.timers;
         }
     }

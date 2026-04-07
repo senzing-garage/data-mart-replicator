@@ -7,7 +7,8 @@ import java.util.Objects;
  * Describes a the number of entities having a specific number of entity
  * relations given by the {@linkplain #getRelationsCount() relations count}.
  */
-public class SzEntityRelationsCount implements Serializable {
+public class SzEntityRelationsCount implements Serializable
+{
     /**
      * The number of entity relations that the entities have.
      */
@@ -21,32 +22,35 @@ public class SzEntityRelationsCount implements Serializable {
     /**
      * Default constructor.
      */
-    public SzEntityRelationsCount() {
+    public SzEntityRelationsCount()
+    {
         this.relationsCount = 0;
         this.entityCount = 0L;
     }
 
     /**
-     * Gets the number of entity relations for which the entity
-     * count is provided.
+     * Gets the number of entity relations for which the entity count is
+     * provided.
      *
      * @return The number of entity relations for which the entity count is
-     *         provided.
+     *             provided.
      */
-    public int getRelationsCount() {
+    public int getRelationsCount()
+    {
         return this.relationsCount;
     }
 
     /**
-     * Sets the number of entity relations for which the entity
-     * count is provided.
+     * Sets the number of entity relations for which the entity count is
+     * provided.
      *
      * @param relationsCount The number of entity relations for which the entity
      *                       count is provided.
      * 
      * @throws IllegalArgumentException If the specified parameter is negative.
      */
-    public void setRelationsCount(int relationsCount) {
+    public void setRelationsCount(int relationsCount)
+    {
         if (relationsCount < 0) {
             throw new IllegalArgumentException(
                 "The specified relations count cannot be negative: "
@@ -59,11 +63,12 @@ public class SzEntityRelationsCount implements Serializable {
      * Gets number of entities in the entity repository having the associated
      * {@linkplain #getRelationsCount() number of entity relations}.
      *
-     * @return The number of entities in the entity repository
-     *         having the associated {@linkplain
-     *         #getRelationsCount() number of entity relations}.
+     * @return The number of entities in the entity repository having the
+     *             associated {@linkplain #getRelationsCount() number of entity
+     *             relations}.
      */
-    public long getEntityCount() {
+    public long getEntityCount()
+    {
         return this.entityCount;
     }
 
@@ -71,14 +76,14 @@ public class SzEntityRelationsCount implements Serializable {
      * Sets number of entities in the entity repository having the associated
      * {@linkplain #getRelationsCount() number of entity relations}.
      *
-     * @param entityCount The number of entities in the entity
-     *                    repository having the associated
-     *                    {@linkplain #getRelationsCount() number
+     * @param entityCount The number of entities in the entity repository having
+     *                    the associated {@linkplain #getRelationsCount() number
      *                    of entity relations}.
      * 
      * @throws IllegalArgumentException If the specified parameter is negative.
      */
-    public void setEntityCount(long entityCount) {
+    public void setEntityCount(long entityCount)
+    {
         if (entityCount < 0) {
             throw new IllegalArgumentException(
                 "The specified entity count cannot be negative: "
@@ -88,13 +93,14 @@ public class SzEntityRelationsCount implements Serializable {
     }
 
     /**
-     * Overridden to return a diagnostic {@link String} describing
-     * this instance.
+     * Overridden to return a diagnostic {@link String} describing this
+     * instance.
      * 
      * @return A diagnostic {@link String} describing this instance.
      */
     @Override
-    public String toString() {
+    public String toString()
+    {
         return "relationsCount=[ " + this.getRelationsCount() 
                 + " ], entityCount=[ " + this.getEntityCount() + " ]";
     }
@@ -106,22 +112,23 @@ public class SzEntityRelationsCount implements Serializable {
      * @return The hash code for this instance.
      */
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hash(relationsCount, entityCount);
     }
 
     /**
-     * Overridden to return <code>true</code> if and only if the
-     * specified parameter is an instance of the same class with
-     * equivalent properties.
+     * Overridden to return <code>true</code> if and only if the specified
+     * parameter is an instance of the same class with equivalent properties.
      *
      * @param obj The object to compare with.
-     * @return <code>true</code> if the specified parameter is
-     *         an instance of the same class with equivalent
-     *         properties, otherwise <code>false</code>.
+     * @return <code>true</code> if the specified parameter is an instance of
+     *                           the same class with equivalent properties,
+     *                           otherwise <code>false</code>.
      */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (this == obj) {
             return true;
         }

@@ -16,14 +16,14 @@ import static com.senzing.text.TextUtilities.urlEncodeUtf8;
 public class PostgreSqlUri extends ConnectionUri
 {
     /**
-     * The default port for the PostgreSQL database connection.
-     * The value of this constant is <code>{@value}</code>.
+     * The default port for the PostgreSQL database connection. The value of
+     * this constant is <code>{@value}</code>.
      */
     public static final int DEFAULT_PORT = 5432;
 
     /**
-     * The default schema for the PostgreSQL database connection.
-     * The value of this constant is <code>{@value}</code>.
+     * The default schema for the PostgreSQL database connection. The value of
+     * this constant is <code>{@value}</code>.
      */
     public static final String DEFAULT_SCHEMA = "public";
 
@@ -87,16 +87,16 @@ public class PostgreSqlUri extends ConnectionUri
     private String database;
 
     /**
-     * Makes a query options {@link Map} that merges the option for the
-     * schema using {@link #SCHEMA_KEY} with the other options (which may 
-     * be <code>null</code>).
+     * Makes a query options {@link Map} that merges the option for the schema
+     * using {@link #SCHEMA_KEY} with the other options (which may be
+     * <code>null</code>).
      * 
      * @param schema The non-null schema name.
-     * @param queryOptions The other query options, or <code>null</code>
-     *                     if none.
+     * @param queryOptions The other query options, or <code>null</code> if
+     *                     none.
      * 
-     * @return The merged query options {@link Map} of {@link String} keys to 
-     *         {@link String} values with the {@link #SCHEMA_KEY} first.
+     * @return The merged query options {@link Map} of {@link String} keys to
+     *             {@link String} values with the {@link #SCHEMA_KEY} first.
      */
     private static Map<String, String> makeQueryOptions(
             String              schema,
@@ -127,17 +127,17 @@ public class PostgreSqlUri extends ConnectionUri
     }
 
     /**
-     * Constructs with the specified parameters.  The port number
-     * is not specified so the {@linkplain #DEFAULT_PORT default port}
-     * will be used.  The schema is not specified so the {@linkplain
-     * #DEFAULT_SCHEMA default schema} will be used.
+     * Constructs with the specified parameters. The port number is not
+     * specified so the {@linkplain #DEFAULT_PORT default port} will be used.
+     * The schema is not specified so the {@linkplain #DEFAULT_SCHEMA default
+     * schema} will be used.
      * 
      * @param user The non-null user with which to authenticate.
      * @param password The non-null password with which to authenticate.
      * @param host THe non-null host for the database server.
      * @param database The non-null database name.
      * 
-     * @throws NullPointerException If any of the required {@link String} 
+     * @throws NullPointerException If any of the required {@link String}
      *                              parameters is <code>null</code>.
      */
     public PostgreSqlUri(String user,
@@ -149,25 +149,24 @@ public class PostgreSqlUri extends ConnectionUri
     }
 
     /**
-     * Constructs with the specified parameters.  The port number
-     * may be specified as <code>null</code> indicating that the
+     * Constructs with the specified parameters. The port number may be
+     * specified as <code>null</code> indicating that the
      * {@linkplain #DEFAULT_PORT default port} should be used.  The
-     * schema is not specified so the {@linkplain #DEFAULT_SCHEMA
-     * default schema} will be used.
+     * schema is not specified so the {@linkplain #DEFAULT_SCHEMA default
+     * schema} will be used.
      * 
      * @param user The non-null user with which to authenticate.
      * @param password The non-null password with which to authenticate.
      * @param host THe non-null host for the database server.
-     * @param port The port for the database server, or <code>null</code>
-     *             if the {@linkplain #DEFAULT_PORT default port} should
-     *             be used.
+     * @param port The port for the database server, or <code>null</code> if the
+     *             {@linkplain #DEFAULT_PORT default port} should be used.
      * @param database The non-null database name.
      * 
-     * @throws NullPointerException If any of the required {@link String} 
+     * @throws NullPointerException If any of the required {@link String}
      *                              parameters is <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified port is
-     *                                  not a positive integer.
+     * @throws IllegalArgumentException If the specified port is not a positive
+     *                                  integer.
      */
     public PostgreSqlUri(String user,
                          String password,
@@ -179,24 +178,23 @@ public class PostgreSqlUri extends ConnectionUri
     }
 
     /**
-     * Constructs with the specified parameters.  The port number
-     * is not specified so the {@linkplain #DEFAULT_PORT default port}
-     * will be used.  If the schema is <code>null</code> the {@linkplain
-     * #DEFAULT_SCHEMA default schema} will be used.
+     * Constructs with the specified parameters. The port number is not
+     * specified so the {@linkplain #DEFAULT_PORT default port} will be used. If
+     * the schema is <code>null</code> the {@linkplain #DEFAULT_SCHEMA default
+     * schema} will be used.
      * 
      * @param user The non-null user with which to authenticate.
      * @param password The non-null password with which to authenticate.
      * @param host THe non-null host for the database server.
      * @param database The non-null database name.
-     * @param schema The schema for the database, or <code>null</code>
-     *               if the {@linkplain #DEFAULT_SCHEMA default schema} should
-     *               be used.
+     * @param schema The schema for the database, or <code>null</code> if the
+     *               {@linkplain #DEFAULT_SCHEMA default schema} should be used.
      * 
-     * @throws NullPointerException If any of the required {@link String} 
+     * @throws NullPointerException If any of the required {@link String}
      *                              parameters is <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified port is
-     *                                  not a positive integer.
+     * @throws IllegalArgumentException If the specified port is not a positive
+     *                                  integer.
      */
     public PostgreSqlUri(String user,
                          String password,
@@ -208,28 +206,26 @@ public class PostgreSqlUri extends ConnectionUri
     }
 
     /**
-     * Constructs with the specified parameters.  The port number
-     * may be specified as <code>null</code> indicating that the
+     * Constructs with the specified parameters. The port number may be
+     * specified as <code>null</code> indicating that the
      * {@linkplain #DEFAULT_PORT default port} should be used.  If 
-     * the schema is <code>null</code> the {@linkplain #DEFAULT_SCHEMA
-     * default schema} will be used.
+     * the schema is <code>null</code> the {@linkplain #DEFAULT_SCHEMA default
+     * schema} will be used.
      * 
      * @param user The non-null user with which to authenticate.
      * @param password The non-null password with which to authenticate.
      * @param host THe non-null host for the database server.
-     * @param port The port for the database server, or <code>null</code>
-     *             if the {@linkplain #DEFAULT_PORT default port} should
-     *             be used.
+     * @param port The port for the database server, or <code>null</code> if the
+     *             {@linkplain #DEFAULT_PORT default port} should be used.
      * @param database The non-null database name.
-     * @param schema The schema for the database, or <code>null</code>
-     *               if the {@linkplain #DEFAULT_SCHEMA default schema} should
-     *               be used.
+     * @param schema The schema for the database, or <code>null</code> if the
+     *               {@linkplain #DEFAULT_SCHEMA default schema} should be used.
      * 
-     * @throws NullPointerException If any of the required {@link String} 
+     * @throws NullPointerException If any of the required {@link String}
      *                              parameters is <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified port is
-     *                                  not a positive integer.
+     * @throws IllegalArgumentException If the specified port is not a positive
+     *                                  integer.
      */
     public PostgreSqlUri(String user,
                          String password,
@@ -242,27 +238,26 @@ public class PostgreSqlUri extends ConnectionUri
     }
 
     /**
-     * Constructs with the specified parameters.  The port number
-     * is not specified so the {@linkplain #DEFAULT_PORT default port}
-     * will be used.  If the schema is <code>null</code> the
+     * Constructs with the specified parameters. The port number is not
+     * specified so the {@linkplain #DEFAULT_PORT default port} will be used. If
+     * the schema is <code>null</code> the
      * {@linkplain #DEFAULT_SCHEMA default schema} will be used.
      * 
      * @param user The non-null user with which to authenticate.
      * @param password The non-null password with which to authenticate.
      * @param host THe non-null host for the database server.
      * @param database The non-null database name.
-     * @param schema The schema for the database, or <code>null</code>
-     *               if the {@linkplain #DEFAULT_SCHEMA default schema} should
-     *               be used.
+     * @param schema The schema for the database, or <code>null</code> if the
+     *               {@linkplain #DEFAULT_SCHEMA default schema} should be used.
      * @param queryOptions The optional {@link Map} of {@link String} query
      *                     parameter keys to {@link String} query parameter
      *                     values, or <code>null</code> if no parameters.
      * 
-     * @throws NullPointerException If any of the required {@link String} 
+     * @throws NullPointerException If any of the required {@link String}
      *                              parameters is <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified port is
-     *                                  not a positive integer.
+     * @throws IllegalArgumentException If the specified port is not a positive
+     *                                  integer.
      */
     public PostgreSqlUri(String user,
                          String password,
@@ -275,31 +270,29 @@ public class PostgreSqlUri extends ConnectionUri
     }
 
     /**
-     * Constructs with the specified parameters.  The port number
-     * may be specified as <code>null</code> indicating that the
+     * Constructs with the specified parameters. The port number may be
+     * specified as <code>null</code> indicating that the
      * {@linkplain #DEFAULT_PORT default port} should be used.  If
-     * the schema is <code>null</code> the {@linkplain #DEFAULT_SCHEMA
-     * default schema} will be used.
+     * the schema is <code>null</code> the {@linkplain #DEFAULT_SCHEMA default
+     * schema} will be used.
      * 
      * @param user The non-null user with which to authenticate.
      * @param password The non-null password with which to authenticate.
      * @param host THe non-null host for the database server.
-     * @param port The port for the database server, or <code>null</code>
-     *             if the {@linkplain #DEFAULT_PORT default port} should
-     *             be used.
+     * @param port The port for the database server, or <code>null</code> if the
+     *             {@linkplain #DEFAULT_PORT default port} should be used.
      * @param database The non-null database name.
-     * @param schema The schema for the database, or <code>null</code>
-     *               if the {@linkplain #DEFAULT_SCHEMA default schema} should
-     *               be used.
+     * @param schema The schema for the database, or <code>null</code> if the
+     *               {@linkplain #DEFAULT_SCHEMA default schema} should be used.
      * @param queryOptions The optional {@link Map} of {@link String} query
      *                     parameter keys to {@link String} query parameter
      *                     values, or <code>null</code> if no parameters.
      * 
-     * @throws NullPointerException If any of the required {@link String} 
+     * @throws NullPointerException If any of the required {@link String}
      *                              parameters is <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified port is
-     *                                  not a positive integer.
+     * @throws IllegalArgumentException If the specified port is not a positive
+     *                                  integer.
      */
     public PostgreSqlUri(String user,
                          String password,
@@ -359,8 +352,8 @@ public class PostgreSqlUri extends ConnectionUri
     }
 
     /**
-     * Gets the port for the PostgreSQL database connection.
-     * This returns {@link #DEFAULT_PORT} if no port was provided.
+     * Gets the port for the PostgreSQL database connection. This returns {@link
+     * #DEFAULT_PORT} if no port was provided.
      * 
      * @return The port for the PostgreSQL database connection.
      */
@@ -370,13 +363,13 @@ public class PostgreSqlUri extends ConnectionUri
     }
 
     /**
-     * Checks if this instance has an explicit port number, or
-     * if the port number was omitted and the {@linkplain
-     * #DEFAULT_PORT default port} is being used.
+     * Checks if this instance has an explicit port number, or if the port
+     * number was omitted and the {@linkplain #DEFAULT_PORT default port} is
+     * being used.
      * 
-     * @return <code>true</code> if an explicit port number was
-     *         provided, or <code>false</code> if not and the 
-     *         {@linkplain #DEFAULT_PORT default port} is being used.
+     * @return <code>true</code> if an explicit port number was provided, or
+     *                           <code>false</code> if not and the {@linkplain
+     *                           #DEFAULT_PORT default port} is being used.
      */
     public boolean hasPort()
     {
@@ -394,8 +387,8 @@ public class PostgreSqlUri extends ConnectionUri
     }
 
     /**
-     * Gets the schema name for the PostgreSQL database connection.
-     * This returns {@link #DEFAULT_SCHEMA} if no schema was provided.
+     * Gets the schema name for the PostgreSQL database connection. This returns
+     * {@link #DEFAULT_SCHEMA} if no schema was provided.
      * 
      * @return The schema name for the PostgreSQL database connection.
      */
@@ -406,13 +399,13 @@ public class PostgreSqlUri extends ConnectionUri
     }
 
     /**
-     * Checks if this instance has an explicit schema, or if the
-     * schema was omitted and the {@linkplain #DEFAULT_SCHEMA
-     * default schema} is being used.
+     * Checks if this instance has an explicit schema, or if the schema was
+     * omitted and the {@linkplain #DEFAULT_SCHEMA default schema} is being
+     * used.
      * 
-     * @return <code>true</code> if an explicit schema was provided,
-     *         or <code>false</code> if not and the {@linkplain 
-     *         #DEFAULT_SCHEMA default schema} is being used.
+     * @return <code>true</code> if an explicit schema was provided, or
+     *                           <code>false</code> if not and the {@linkplain
+     *                           #DEFAULT_SCHEMA default schema} is being used.
      */
     public boolean hasSchema()
     {
@@ -420,8 +413,8 @@ public class PostgreSqlUri extends ConnectionUri
     }
 
     /**
-     * Implemented to format the URI as a {@link String} with proper
-     * URI encoding.
+     * Implemented to format the URI as a {@link String} with proper URI
+     * encoding.
      * 
      * @return The formatted URI for this instance.
      */
@@ -461,7 +454,7 @@ public class PostgreSqlUri extends ConnectionUri
      * @param obj The object to compare with.
      * 
      * @return <code>true</code> if and only if the objects are equal, otherwise
-     *         <code>false</code>.
+     *                           <code>false</code>.
      */
     public boolean equals(Object obj)
     {

@@ -9,15 +9,16 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Describes the number of entities in the entity repository at
- * each count statistics for the repository.
+ * Describes the number of entities in the entity repository at each count
+ * statistics for the repository.
  */
-public class SzEntitySizeBreakdown implements Serializable {
+public class SzEntitySizeBreakdown implements Serializable
+{
     /**
      * The {@link Map} of {@link Integer} entity size keys to
      * {@link SzEntitySizeCount} values describing the number
-     * of entities in the entity repository having that number
-     * of constituent records.
+     * of entities in the entity repository having that number of constituent
+     * records.
      */
     private Map<Integer, SzEntitySizeCount> entitySizeCounts
         = null;
@@ -25,25 +26,25 @@ public class SzEntitySizeBreakdown implements Serializable {
     /**
      * Default constructor.
      */
-    public SzEntitySizeBreakdown() {
+    public SzEntitySizeBreakdown()
+    {
         this.entitySizeCounts = new LinkedHashMap<>();
     }
 
     /**
-     * Gets the {@link List} of {@link SzEntitySizeCount}
-     * describing the number of entities having each entity
-     * size indicated by the number of constituent records for
-     * that entity. The returned value list should contain
-     * only one element for each distinct entity size that
-     * exists in the repository. The {@link List} is returned
-     * in descending order of entity size.
+     * Gets the {@link List} of {@link SzEntitySizeCount} describing the number
+     * of entities having each entity size indicated by the number of
+     * constituent records for that entity. The returned value list should
+     * contain only one element for each distinct entity size that exists in the
+     * repository. The {@link List} is returned in descending order of entity
+     * size.
      *
-     * @return The {@link List} of {@link SzEntitySizeCount}
-     *         describing the number of entities having each
-     *         entity size indicated by the number of
-     *         constituent records for that entity.
+     * @return The {@link List} of {@link SzEntitySizeCount} describing the
+     *             number of entities having each entity size indicated by the
+     *             number of constituent records for that entity.
      */
-    public List<SzEntitySizeCount> getEntitySizeCounts() {
+    public List<SzEntitySizeCount> getEntitySizeCounts()
+    {
         Collection<SzEntitySizeCount> sizeCounts
             = this.entitySizeCounts.values();
         List<SzEntitySizeCount> result
@@ -56,23 +57,20 @@ public class SzEntitySizeBreakdown implements Serializable {
     }
 
     /**
-     * Sets the {@link List} of {@link SzEntitySizeCount}
-     * describing the number of entities having each entity
-     * size indicated by the number of constituent records for
-     * that entity. This clears any existing entity size
-     * counts before setting with those specified. The
-     * specified {@link List} should contain only one element
-     * for each entity size, but if duplicates are encountered
-     * then later values in the {@link List} take precedence,
-     * overwriting prior values from the {@link List}.
-     * Specifying a <code>null</code> {@link List} is
-     * equivalent to specifying an empty {@link List}.
+     * Sets the {@link List} of {@link SzEntitySizeCount} describing the number
+     * of entities having each entity size indicated by the number of
+     * constituent records for that entity. This clears any existing entity size
+     * counts before setting with those specified. The specified {@link List}
+     * should contain only one element for each entity size, but if duplicates
+     * are encountered then later values in the {@link List} take precedence,
+     * overwriting prior values from the {@link List}. Specifying a
+     * <code>null</code> {@link List} is equivalent to specifying an empty
+     * {@link List}.
      *
-     * @param sizeCountList The {@link List} of
-     *        {@link SzEntitySizeCount} describing the number
-     *        of entities having each entity size indicated by
-     *        the number of constituent records for that
-     *        entity.
+     * @param sizeCountList The {@link List} of {@link SzEntitySizeCount}
+     *                      describing the number of entities having each entity
+     *                      size indicated by the number of constituent records
+     *                      for that entity.
      */
     public void setEntitySizeCounts(
             List<SzEntitySizeCount> sizeCountList)
@@ -92,18 +90,16 @@ public class SzEntitySizeBreakdown implements Serializable {
     }
 
     /**
-     * Adds the specified {@link SzEntitySizeCount} describing
-     * the number of entities in the entity repository having
-     * a specific entity size. If the specified
+     * Adds the specified {@link SzEntitySizeCount} describing the number of
+     * entities in the entity repository having a specific entity size. If the
+     * specified
      * {@link SzEntitySizeCount} has the same entity size as
-     * an existing {@link SzEntitySizeCount} instance then the
-     * specified value replaces the existing one for that
-     * entity size.
+     * an existing {@link SzEntitySizeCount} instance then the specified value
+     * replaces the existing one for that entity size.
      *
-     * @param sizeCount The {@link SzEntitySizeCount}
-     *                  describing the number of entities in
-     *                  the entity repository having a
-     *                  specific entity size.
+     * @param sizeCount The {@link SzEntitySizeCount} describing the number of
+     *                  entities in the entity repository having a specific
+     *                  entity size.
      */
     public void addEntitySizeCount(
             SzEntitySizeCount sizeCount)
@@ -121,14 +117,14 @@ public class SzEntitySizeBreakdown implements Serializable {
     }
 
     /**
-     * Overridden to return a diagnostic {@link String}
-     * describing this instance.
+     * Overridden to return a diagnostic {@link String} describing this
+     * instance.
      *
-     * @return A diagnostic {@link String} describing this
-     *         instance.
+     * @return A diagnostic {@link String} describing this instance.
      */
     @Override
-    public String toString() {
+    public String toString()
+    {
         return "entitySizeCounts=[ "
             + this.getEntitySizeCounts() + " ]";
     }
@@ -140,22 +136,23 @@ public class SzEntitySizeBreakdown implements Serializable {
      * @return The hash code for this instance.
      */
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hash(entitySizeCounts);
     }
 
     /**
-     * Overridden to return <code>true</code> if and only if
-     * the specified parameter is an instance of the same class
-     * with equivalent properties.
+     * Overridden to return <code>true</code> if and only if the specified
+     * parameter is an instance of the same class with equivalent properties.
      *
      * @param obj The object to compare with.
-     * @return <code>true</code> if the specified parameter is
-     *         an instance of the same class with equivalent
-     *         properties, otherwise <code>false</code>.
+     * @return <code>true</code> if the specified parameter is an instance of
+     *                           the same class with equivalent properties,
+     *                           otherwise <code>false</code>.
      */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (this == obj) {
             return true;
         }

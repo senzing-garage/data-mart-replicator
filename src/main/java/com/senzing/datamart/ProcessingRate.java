@@ -16,23 +16,22 @@ import com.senzing.listener.service.scheduling.AbstractSchedulingService;
 public enum ProcessingRate
 {
     /**
-     * The slowest rate of processing that favors batching large
-     * groups of updates together to conserve system resources for
-     * other processes or to allow the CPU to sleep between batches.
+     * The slowest rate of processing that favors batching large groups of
+     * updates together to conserve system resources for other processes or to
+     * allow the CPU to sleep between batches.
      */
     LEISURELY,
 
     /**
-     * A balance between aggressive and leisurely processing that
-     * processes updates in a timely manner while conserving 
-     * system resources.  This is the default.
+     * A balance between aggressive and leisurely processing that processes
+     * updates in a timely manner while conserving system resources. This is the
+     * default.
      */
     STANDARD,
 
     /**
-     * A setting whereby processing is handled aggressively,
-     * prioritizing frequent updates over conservation of 
-     * system resources.
+     * A setting whereby processing is handled aggressively, prioritizing
+     * frequent updates over conservation of system resources.
      */
     AGGRESSIVE;
 
@@ -47,71 +46,71 @@ public enum ProcessingRate
     private Map<String, Long> replicatorOptions = null;
 
     /**
-     * The {@linkplain AbstractSchedulingService#FOLLOW_UP_DELAY_KEY
-     * scheduling follow-up delay} for {@link #LEISURELY} processing
-     * rate.  Its value is <code>{@value}</code>.
+     * The {@linkplain AbstractSchedulingService#FOLLOW_UP_DELAY_KEY scheduling
+     * follow-up delay} for {@link #LEISURELY} processing rate. Its value is
+     * <code>{@value}</code>.
      */
     private static final long LEISURELY_FOLLOW_UP_DELAY
             = AbstractSchedulingService.DEFAULT_FOLLOW_UP_DELAY * 5;
 
     /**
      * The {@linkplain AbstractSchedulingService#FOLLOW_UP_TIMEOUT_KEY
-     * scheduling follow-up timeout} for {@link #LEISURELY} processing
-     * rate.  Its value is <code>{@value}</code>.
+     * scheduling follow-up timeout} for {@link #LEISURELY} processing rate. Its
+     * value is <code>{@value}</code>.
      */
     private static final long LEISURELY_FOLLOW_UP_TIMEOUT
             = AbstractSchedulingService.DEFAULT_FOLLOW_UP_TIMEOUT * 5;
 
     /**
-     * The {@linkplain SzReplicatorService#REPORT_UPDATE_PERIOD_KEY
-     * replicator report update period} for {@link #LEISURELY} 
-     * processing rate.  Its value is <code>{@value}</code>.
+     * The {@linkplain SzReplicatorService#REPORT_UPDATE_PERIOD_KEY replicator
+     * report update period} for {@link #LEISURELY} processing rate. Its value
+     * is <code>{@value}</code>.
      */
     private static final long LEISURELY_REPORT_UPDATE_PERIOD
             = SzReplicatorService.DEFAULT_REPORT_UPDATE_PERIOD * 5;
 
     /**
-     * The {@linkplain AbstractSchedulingService#FOLLOW_UP_DELAY_KEY
-     * scheduling follow-up delay} for {@link #STANDARD} processing
-     * rate.  Its value is <code>{@value}</code>.
+     * The {@linkplain AbstractSchedulingService#FOLLOW_UP_DELAY_KEY scheduling
+     * follow-up delay} for {@link #STANDARD} processing rate. Its value is
+     * <code>{@value}</code>.
      */
     private static final long STANDARD_FOLLOW_UP_DELAY
             = AbstractSchedulingService.DEFAULT_FOLLOW_UP_DELAY;
 
     /**
      * The {@linkplain AbstractSchedulingService#FOLLOW_UP_TIMEOUT_KEY
-     * scheduling follow-up timeout} for {@link #STANDARD} processing
-     * rate.  Its value is <code>{@value}</code>.
+     * scheduling follow-up timeout} for {@link #STANDARD} processing rate. Its
+     * value is <code>{@value}</code>.
      */
     private static final long STANDARD_FOLLOW_UP_TIMEOUT
             = AbstractSchedulingService.DEFAULT_FOLLOW_UP_TIMEOUT;
 
     /**
-     * The {@linkplain SzReplicatorService#REPORT_UPDATE_PERIOD_KEY
-     * replicator report update period} for {@link #STANDARD} 
-     * processing rate.  Its value is <code>{@value}</code>.
+     * The {@linkplain SzReplicatorService#REPORT_UPDATE_PERIOD_KEY replicator
+     * report update period} for {@link #STANDARD} processing rate. Its value is
+     * <code>{@value}</code>.
      */
     private static final long STANDARD_REPORT_UPDATE_PERIOD
             = SzReplicatorService.DEFAULT_REPORT_UPDATE_PERIOD;
 
     /**
-     * The {@linkplain AbstractSchedulingService#FOLLOW_UP_DELAY_KEY
-     * scheduling follow-up delay} for {@link #AGGRESSIVE} processing
-     * rate.  Its value is <code>{@value}</code>.
+     * The {@linkplain AbstractSchedulingService#FOLLOW_UP_DELAY_KEY scheduling
+     * follow-up delay} for {@link #AGGRESSIVE} processing rate. Its value is
+     * <code>{@value}</code>.
      */
     private static final long AGGRESSIVE_FOLLOW_UP_DELAY = 100L;
 
     /**
      * The {@linkplain AbstractSchedulingService#FOLLOW_UP_TIMEOUT_KEY
-     * scheduling follow-up timeout} for {@link #AGGRESSIVE} processing
-     * rate.  Its value is <code>{@value}</code>.
+     * scheduling follow-up timeout} for {@link #AGGRESSIVE} processing rate.
+     * Its value is <code>{@value}</code>.
      */
     private static final long AGGRESSIVE_FOLLOW_UP_TIMEOUT = 300L;
 
     /**
-     * The {@linkplain SzReplicatorService#REPORT_UPDATE_PERIOD_KEY
-     * replicator report update period} for {@link #AGGRESSIVE} 
-     * processing rate.  Its value is <code>{@value}</code>.
+     * The {@linkplain SzReplicatorService#REPORT_UPDATE_PERIOD_KEY replicator
+     * report update period} for {@link #AGGRESSIVE} processing rate. Its value
+     * is <code>{@value}</code>.
      */
     private static final long AGGRESSIVE_REPORT_UPDATE_PERIOD = 1L;
 
@@ -168,14 +167,14 @@ public enum ProcessingRate
     }
 
     /**
-     * Merges the {@link AbstractSchedulingService} options from this
-     * instance with the options described by the specified {@link 
-     * JsonObject}.  This method will <b>not</b> replace existing
-     * options specified in the specified {@link JsonObject}.
+     * Merges the {@link AbstractSchedulingService} options from this instance
+     * with the options described by the specified {@link JsonObject}. This
+     * method will <b>not</b> replace existing options specified in the
+     * specified {@link JsonObject}.
      * 
-     * @param options The {@link JsonObject} describing the original
-     *                options, or <code>null</code> if a new {@link 
-     *                JsonObject} should be created.
+     * @param options The {@link JsonObject} describing the original options, or
+     *                <code>null</code> if a new {@link JsonObject} should be
+     *                created.
      * 
      * @return The {@link JsonObject} describing the merged options.
      */
@@ -185,15 +184,15 @@ public enum ProcessingRate
     }
 
     /**
-     * Merges the {@link AbstractSchedulingService} options from this
-     * instance with the options described by the specified {@link 
-     * JsonObject}.  This method will <b>optionally</b> replace existing
-     * options specified in the specified {@link JsonObject} depending
-     * on the specified <code>overwrite</code> parameter.
+     * Merges the {@link AbstractSchedulingService} options from this instance
+     * with the options described by the specified {@link JsonObject}. This
+     * method will <b>optionally</b> replace existing options specified in the
+     * specified {@link JsonObject} depending on the specified
+     * <code>overwrite</code> parameter.
      * 
-     * @param options The {@link JsonObject} describing the original
-     *                options, or <code>null</code> if a new {@link 
-     *                JsonObject} should be created.
+     * @param options The {@link JsonObject} describing the original options, or
+     *                <code>null</code> if a new {@link JsonObject} should be
+     *                created.
      * 
      * @param overwrite <code>true</code> if existing options should be
      *                  overwritten, otherwise <code>false</code>.
@@ -217,13 +216,13 @@ public enum ProcessingRate
     }
 
     /**
-     * Adds the {@link AbstractSchedulingService} options from this
-     * instance to the specified {@link JsonObjectBuilder}, overwriting
-     * an options with the same value that may already exist.
+     * Adds the {@link AbstractSchedulingService} options from this instance to
+     * the specified {@link JsonObjectBuilder}, overwriting an options with the
+     * same value that may already exist.
      * 
-     * @param builder The {@link JsonObjectBuilder} for building the
-     *                options, or <code>null</code> if a new {@link 
-     *                JsonObjectBuilder} should be created.
+     * @param builder The {@link JsonObjectBuilder} for building the options, or
+     *                <code>null</code> if a new {@link JsonObjectBuilder}
+     *                should be created.
      * 
      * @return The {@link JsonObjectBuilder} that was modified.
      */
@@ -245,14 +244,14 @@ public enum ProcessingRate
     }
 
     /**
-     * Merges the {@link AbstractSchedulingService} options from this
-     * instance with the options described by the specified {@link
-     * JsonObject}.  This method will <b>not</b> replace existing
-     * options specified in the specified {@link JsonObject}.
+     * Merges the {@link AbstractSchedulingService} options from this instance
+     * with the options described by the specified {@link JsonObject}. This
+     * method will <b>not</b> replace existing options specified in the
+     * specified {@link JsonObject}.
      * 
-     * @param options The {@link JsonObject} describing the original
-     *                options, or <code>null</code> if a new {@link 
-     *                JsonObject} should be created.
+     * @param options The {@link JsonObject} describing the original options, or
+     *                <code>null</code> if a new {@link JsonObject} should be
+     *                created.
      * 
      * @return The {@link JsonObject} describing the merged options.
      */
@@ -262,15 +261,15 @@ public enum ProcessingRate
     }
 
     /**
-     * Merges the {@link SzReplicatorService} options from this instance 
-     * with the options described by the specified {@link JsonObject}.
-     * This method will <b>optionally</b> replace existing options
-     * specified in the specified {@link JsonObject} depending on the
-     * specified <code>overwrite</code> parameter.
+     * Merges the {@link SzReplicatorService} options from this instance with
+     * the options described by the specified {@link JsonObject}. This method
+     * will <b>optionally</b> replace existing options specified in the
+     * specified {@link JsonObject} depending on the specified
+     * <code>overwrite</code> parameter.
      * 
-     * @param options The {@link JsonObject} describing the original
-     *                options, or <code>null</code> if a new {@link 
-     *                JsonObject} should be created.
+     * @param options The {@link JsonObject} describing the original options, or
+     *                <code>null</code> if a new {@link JsonObject} should be
+     *                created.
      * 
      * @param overwrite <code>true</code> if existing options should be
      *                  overwritten, otherwise <code>false</code>.
@@ -294,13 +293,13 @@ public enum ProcessingRate
     }
 
     /**
-     * Adds the {@link AbstractSchedulingService} options from this
-     * instance to the specified {@link JsonObjectBuilder}, overwriting
-     * an options with the same value that may already exist.
+     * Adds the {@link AbstractSchedulingService} options from this instance to
+     * the specified {@link JsonObjectBuilder}, overwriting an options with the
+     * same value that may already exist.
      * 
-     * @param builder The {@link JsonObjectBuilder} for building the
-     *                options, or <code>null</code> if a new {@link 
-     *                JsonObjectBuilder} should be created.
+     * @param builder The {@link JsonObjectBuilder} for building the options, or
+     *                <code>null</code> if a new {@link JsonObjectBuilder}
+     *                should be created.
      * 
      * @return The {@link JsonObjectBuilder} that was modified.
      */

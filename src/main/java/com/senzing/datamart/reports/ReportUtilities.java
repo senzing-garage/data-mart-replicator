@@ -26,11 +26,13 @@ import static com.senzing.sql.SQLUtilities.*;
 /**
  * Provides reporting utility functions and constants.
  */
-public final class ReportUtilities {
+public final class ReportUtilities
+{
     /**
      * Private default constructor.
      */
-    private ReportUtilities() {
+    private ReportUtilities()
+    {
         // do nothing
     }
 
@@ -41,8 +43,7 @@ public final class ReportUtilities {
 
     /**
      * The multiplier to calculate the default page size from the sample size
-     * when
-     * the sample size is specified, but the page size is not specified.
+     * when the sample size is specified, but the page size is not specified.
      */
     public static final int SAMPLE_SIZE_MULTIPLIER = 20;
 
@@ -75,7 +76,8 @@ public final class ReportUtilities {
      * @param timers           The {@link Timers} instance to transition.
      * @param queryDescription A description of the query being executed.
      */
-    public static void queriedDatabase(Timers timers, String queryDescription) {
+    public static void queriedDatabase(Timers timers, String queryDescription)
+    {
         if (timers == null) {
             return;
         }
@@ -85,8 +87,7 @@ public final class ReportUtilities {
 
     /**
      * Retrieves a page of entity ID's for a specific report key with the
-     * specified
-     * bound applied.
+     * specified bound applied.
      * 
      * @param conn          The non-null JDBC {@link Connection} to use.
      * @param reportKey The non-null {@link SzReportKey} identifying the report
@@ -429,8 +430,7 @@ public final class ReportUtilities {
 
     /**
      * Retrieves a page of relations for a specific report key with the
-     * specified
-     * bound applied.
+     * specified bound applied.
      * 
      * @param conn          The non-null JDBC {@link Connection} to use.
      * @param reportKey The non-null {@link SzReportKey} identifying the report

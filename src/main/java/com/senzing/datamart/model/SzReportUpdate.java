@@ -5,7 +5,8 @@ import java.util.Objects;
 /**
  * Describes an update to a report.
  */
-public class SzReportUpdate {
+public class SzReportUpdate
+{
     /**
      * The report key for the update.
      */
@@ -42,7 +43,8 @@ public class SzReportUpdate {
      * @param reportKey The {@link SzReportKey} for the report.
      * @param entityId  The entity ID for the report update.
      */
-    public SzReportUpdate(SzReportKey reportKey, long entityId) {
+    public SzReportUpdate(SzReportKey reportKey, long entityId)
+    {
         Objects.requireNonNull(reportKey, "The report key cannot be null");
         this.reportKey = reportKey;
         this.entityId = entityId;
@@ -113,8 +115,8 @@ public class SzReportUpdate {
     }
 
     /**
-     * Constructs with the specified report key parameters, entity ID
-     * and related entity ID.
+     * Constructs with the specified report key parameters, entity ID and
+     * related entity ID.
      *
      * @param reportCode The {@link SzReportCode} for the report.
      * @param statistic  The statistic to be updated.
@@ -134,8 +136,8 @@ public class SzReportUpdate {
     }
 
     /**
-     * Constructs with the specified report key parameters, entity ID
-     * and related entity ID.
+     * Constructs with the specified report key parameters, entity ID and
+     * related entity ID.
      *
      * @param reportCode  The {@link SzReportCode} for the report.
      * @param statistic   The statistic to be updated.
@@ -182,7 +184,8 @@ public class SzReportUpdate {
      *
      * @return The {@link SzReportKey} for this instance.
      */
-    public SzReportKey getReportKey() {
+    public SzReportKey getReportKey()
+    {
         return this.reportKey;
     }
 
@@ -191,18 +194,20 @@ public class SzReportUpdate {
      *
      * @return The entity ID for this instance.
      */
-    public long getEntityId() {
+    public long getEntityId()
+    {
         return this.entityId;
     }
 
     /**
-     * Gets the entity ID for this instance. This returns <code>null</code>
-     * if there is no related entity ID.
+     * Gets the entity ID for this instance. This returns <code>null</code> if
+     * there is no related entity ID.
      *
-     * @return The entity ID for this instance, or <code>null</code> if
-     *         there is no related entity ID.
+     * @return The entity ID for this instance, or <code>null</code> if there is
+     *             no related entity ID.
      */
-    public Long getRelatedEntityId() {
+    public Long getRelatedEntityId()
+    {
         return this.relatedId;
     }
 
@@ -211,7 +216,8 @@ public class SzReportUpdate {
      *
      * @return The delta on the entity count.
      */
-    public int getEntityDelta() {
+    public int getEntityDelta()
+    {
         return this.entityDelta;
     }
 
@@ -220,7 +226,8 @@ public class SzReportUpdate {
      *
      * @param delta The delta on the entity count.
      */
-    public void setEntityDelta(int delta) {
+    public void setEntityDelta(int delta)
+    {
         this.entityDelta = delta;
     }
 
@@ -229,7 +236,8 @@ public class SzReportUpdate {
      *
      * @return The delta on the record count.
      */
-    public int getRecordDelta() {
+    public int getRecordDelta()
+    {
         return this.recordDelta;
     }
 
@@ -238,7 +246,8 @@ public class SzReportUpdate {
      *
      * @param delta The delta on the record count.
      */
-    public void setRecordDelta(int delta) {
+    public void setRecordDelta(int delta)
+    {
         this.recordDelta = delta;
     }
 
@@ -247,7 +256,8 @@ public class SzReportUpdate {
      *
      * @return The delta on the entity relationship count.
      */
-    public int getRelationDelta() {
+    public int getRelationDelta()
+    {
         return this.relationDelta;
     }
 
@@ -256,7 +266,8 @@ public class SzReportUpdate {
      *
      * @param delta The delta on entity relationship count.
      */
-    public void setRelationDelta(int delta) {
+    public void setRelationDelta(int delta)
+    {
         this.relationDelta = delta;
     }
 
@@ -264,7 +275,8 @@ public class SzReportUpdate {
      * {@inheritDoc}
      */
     @Override
-    public String toString() {
+    public String toString()
+    {
         return "SzReportUpdate{ " + "reportKey=[ " + this.getReportKey()
                 + " ], entityDelta=[ " + this.getEntityDelta()
                 + " ], recordDelta=[ " + this.getRecordDelta()
@@ -281,14 +293,15 @@ public class SzReportUpdate {
      * 
      * @return A new {@link Builder} instance using the specified parameters.
      */
-    public static Builder builder(SzReportKey reportKey, long entityId) {
+    public static Builder builder(SzReportKey reportKey, long entityId)
+    {
         Objects.requireNonNull(reportKey, "The report key cannot be null");
         return new Builder(reportKey, entityId, null);
     }
 
     /**
-     * Constructs with the specified {@link SzReportKey}, entity ID and
-     * related entity ID.
+     * Constructs with the specified {@link SzReportKey}, entity ID and related
+     * entity ID.
      *
      * @param reportKey The {@link SzReportKey} for the report.
      * @param entityId  The entity ID for the update.
@@ -347,8 +360,8 @@ public class SzReportUpdate {
     }
 
     /**
-     * Constructs with the specified report key parameters, entity ID
-     * and related entity ID.
+     * Constructs with the specified report key parameters, entity ID and
+     * related entity ID.
      *
      * @param reportCode The {@link SzReportCode} for the report.
      * @param statistic  The statistic to be updated.
@@ -368,8 +381,8 @@ public class SzReportUpdate {
     }
 
     /**
-     * Constructs with the specified report key parameters, entity ID
-     * and related entity ID.
+     * Constructs with the specified report key parameters, entity ID and
+     * related entity ID.
      *
      * @param reportCode  The {@link SzReportCode} for the report.
      * @param statistic   The statistic to be updated.
@@ -397,7 +410,8 @@ public class SzReportUpdate {
     /**
      * Provides a {@link Builder} for {@link SzReportUpdate} instances.
      */
-    public static final class Builder {
+    public static final class Builder
+    {
         /**
          * The associated {@link SzReportKey} for this instance.
          */
@@ -433,10 +447,10 @@ public class SzReportUpdate {
          *
          * @param reportKey The {@link SzReportKey} for this instance.
          * @param entityId  The entity ID for this instance.
-         * @param relatedId The related entity ID, or <code>null</code>
-         *                  if none.
+         * @param relatedId The related entity ID, or <code>null</code> if none.
          */
-        private Builder(SzReportKey reportKey, long entityId, Long relatedId) {
+        private Builder(SzReportKey reportKey, long entityId, Long relatedId)
+        {
             this.reportKey = reportKey;
             this.entityId = entityId;
             this.relatedId = relatedId;
@@ -452,7 +466,8 @@ public class SzReportUpdate {
          *
          * @return This builder instance.
          */
-        public Builder entities(int delta) {
+        public Builder entities(int delta)
+        {
             this.entityDelta = delta;
             return this;
         }
@@ -464,7 +479,8 @@ public class SzReportUpdate {
          *
          * @return This builder instance.
          */
-        public Builder records(int delta) {
+        public Builder records(int delta)
+        {
             this.recordDelta = delta;
             return this;
         }
@@ -476,7 +492,8 @@ public class SzReportUpdate {
          *
          * @return This builder instance.
          */
-        public Builder relations(int delta) {
+        public Builder relations(int delta)
+        {
             this.relationDelta = delta;
             return this;
         }
@@ -486,7 +503,8 @@ public class SzReportUpdate {
          *
          * @return The new {@link SzReportUpdate} instance.
          */
-        public SzReportUpdate build() {
+        public SzReportUpdate build()
+        {
             SzReportUpdate updater = new SzReportUpdate(this.reportKey,
                                                         this.entityId,
                                                         this.relatedId);

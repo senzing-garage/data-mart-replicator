@@ -26,15 +26,14 @@ import static com.senzing.util.LoggingUtilities.*;
 /**
  * Provides a base class for {@link ListenerService} implementations.
  */
-public abstract class AbstractListenerService implements ListenerService {
+public abstract class AbstractListenerService implements ListenerService
+{
     /**
      * The initialization parameter used by the default implementation of
      * {@link #initSchedulingService(JsonObject)} to specify the Java class name
-     * of
-     * the {@link SchedulingService} to use. If the default implementation of
+     * of the {@link SchedulingService} to use. If the default implementation of
      * {@link #initSchedulingService(JsonObject)} is overridden, then this key
-     * may
-     * have no effect in the derived implementation.
+     * may have no effect in the derived implementation.
      */
     public static final String SCHEDULING_SERVICE_CLASS_KEY
         = "schedulingService";
@@ -48,14 +47,13 @@ public abstract class AbstractListenerService implements ListenerService {
 
     /**
      * The initialization parameter referencing a JSON object or {@link String}
-     * that
-     * represents the configuration for the {@link SchedulingService} instance
-     * created by the default implementation of
+     * that represents the configuration for the {@link SchedulingService}
+     * instance created by the default implementation of
      * {@link #initSchedulingService(JsonObject)} using the
      * {@link #SCHEDULING_SERVICE_CLASS_KEY} init parameter. If the default
      * implementation of {@link #initSchedulingService(JsonObject)} is
-     * overridden,
-     * then this key may have no effect in the derived implementation.
+     * overridden, then this key may have no effect in the derived
+     * implementation.
      */
     public static final String SCHEDULING_SERVICE_CONFIG_KEY
         = "schedulingServiceConfig";
@@ -63,16 +61,14 @@ public abstract class AbstractListenerService implements ListenerService {
     /**
      * Enumerates the various parts of the info message that can be scheduled as
      * actions when parsed. These are used as keys in a {@link Map} provided by
-     * the
-     * sub-class to map the message part to a scheduled action upon
-     * construction.
-     * Any message part that is excluded from the provided map on construction
-     * will
-     * not have any associated scheduled tasks in the default implementation of
-     * the
-     * task-scheduling functions, though they can be overridden.
+     * the sub-class to map the message part to a scheduled action upon
+     * construction. Any message part that is excluded from the provided map on
+     * construction will not have any associated scheduled tasks in the default
+     * implementation of the task-scheduling functions, though they can be
+     * overridden.
      */
-    public enum MessagePart {
+    public enum MessagePart
+    {
         /**
          * The record part of the message.
          */
@@ -80,22 +76,19 @@ public abstract class AbstractListenerService implements ListenerService {
 
         /**
          * The part of the message associated with <b>each</b> affected entity
-         * (i.e.:
-         * one per affected entity).
+         * (i.e.: one per affected entity).
          */
         AFFECTED_ENTITY,
 
         /**
          * The part of the message associated with <b>each</b> interesting
-         * entity (i.e.:
-         * one per interesting entity).
+         * entity (i.e.: one per interesting entity).
          */
         INTERESTING_ENTITY,
 
         /**
          * The part of the message associated with <b>each</b> notice (i.e.: one
-         * per
-         * notice).
+         * per notice).
          */
         NOTICE;
     }
@@ -154,18 +147,19 @@ public abstract class AbstractListenerService implements ListenerService {
      * A {@link TaskHandler} implementation that simply delegates to
      * {@link AbstractListenerService#handleTask(String, Map, int, Scheduler)}.
      */
-    protected class ListenerTaskHandler implements TaskHandler {
+    protected class ListenerTaskHandler implements TaskHandler
+    {
         /**
          * Default constructor.
          */
-        public ListenerTaskHandler() {
+        public ListenerTaskHandler()
+        {
             // do nothing
         }
 
         /**
          * Overridden to call {@link
-         * AbstractListenerService#waitUntilReady(long)} on
-         * the parent object.
+         * AbstractListenerService#waitUntilReady(long)} on the parent object.
          * <p>
          * {@inheritDoc}
          */
@@ -179,8 +173,7 @@ public abstract class AbstractListenerService implements ListenerService {
         /**
          * Overridden to call
          * {@link AbstractListenerService#handleTask(String, Map, int,
-         * Scheduler)} on
-         * the parent object.
+         * Scheduler)} on the parent object.
          * <p>
          * {@inheritDoc}
          */
@@ -225,7 +218,8 @@ public abstract class AbstractListenerService implements ListenerService {
      * @param messagePartMap The {@link Map} that maps {@link MessagePart}'s to
      *                       {@link String} action keys.
      */
-    protected AbstractListenerService(Map<MessagePart, String> messagePartMap) {
+    protected AbstractListenerService(Map<MessagePart, String> messagePartMap)
+    {
         this.messagePartMap = new LinkedHashMap<>();
         this.messagePartMap.putAll(messagePartMap);
     }
@@ -235,7 +229,8 @@ public abstract class AbstractListenerService implements ListenerService {
      *
      * @return The {@link State} of this instance.
      */
-    public synchronized State getState() {
+    public synchronized State getState()
+    {
         return this.state;
     }
 
@@ -245,18 +240,19 @@ public abstract class AbstractListenerService implements ListenerService {
      * {@inheritDoc}
      */
     @Override
-    public synchronized Map<Statistic, Number> getStatistics() {
+    public synchronized Map<Statistic, Number> getStatistics()
+    {
         return this.schedulingService.getStatistics();
     }
 
     /**
      * Provides a means to set the {@link State} for this instance as a
-     * synchronized
-     * method that will notify all upon changing the state.
+     * synchronized method that will notify all upon changing the state.
      *
      * @param state The {@link State} for this instance.
      */
-    protected synchronized void setState(State state) {
+    protected synchronized void setState(State state)
+    {
         Objects.requireNonNull(state, "State cannot be null");
         this.state = state;
         this.notifyAll();
@@ -265,14 +261,16 @@ public abstract class AbstractListenerService implements ListenerService {
     /**
      * This returns the {@link TaskHandler} that was given to the backing
      * {@link SchedulingService} for handling tasks during initialization. If
-     * this
-     * is called prior to initialization then this returns <code>null</code>.
+     * this is called prior to initialization then this returns
+     * <code>null</code>.
      *
-     * @return The {@link TaskHandler} that was obtained via
-     *         {@link #initTaskHandler(JsonObject)} during initialization, or
-     *         <code>null</code> if this instance has not yet been initialized.
+     * @return The {@link TaskHandler} that was obtained via {@link
+     *             #initTaskHandler(JsonObject)} during initialization, or
+     *             <code>null</code> if this instance has not yet been
+     *             initialized.
      */
-    protected TaskHandler getTaskHandler() {
+    protected TaskHandler getTaskHandler()
+    {
         return this.taskHandler;
     }
 
@@ -283,7 +281,7 @@ public abstract class AbstractListenerService implements ListenerService {
      * {@link ListenerTaskHandler}.
      *
      * @param config The {@link JsonObject} describing the initialization
-     *        config.
+     *               config.
      * @return The {@link TaskHandler} that was created / initialized.
      * @throws ServiceExecutionException If a failure occurs in creating the
      *                                   {@link TaskHandler}.
@@ -296,23 +294,20 @@ public abstract class AbstractListenerService implements ListenerService {
 
     /**
      * Checks if this instance is ready to handle tasks and waits for it to be
-     * ready
-     * for the specified maximum number of milliseconds. Specify a negative
-     * number
-     * of milliseconds to wait indefinitely or zero (0) to simply check if ready
-     * with no waiting. This is used so the {@link SchedulingService} can delay
-     * handling tasks until ready.
+     * ready for the specified maximum number of milliseconds. Specify a
+     * negative number of milliseconds to wait indefinitely or zero (0) to
+     * simply check if ready with no waiting. This is used so the {@link
+     * SchedulingService} can delay handling tasks until ready.
      *
      * @param timeoutMillis The maximum number of milliseconds to wait for this
-     *        task
-     *                      handler to become ready, a negative number to wait
-     *                      indefinitely, or zero (0) to simply poll without
-     *                      waiting.
+     *                      task handler to become ready, a negative number to
+     *                      wait indefinitely, or zero (0) to simply poll
+     *                      without waiting.
      *
      * @return {@link Boolean#TRUE} if ready to handle tasks, {@link
-     *         Boolean#FALSE}
-     *         if not yet ready, and <code>null</code> if due to some failure we
-     *         will never be ready to handle tasks.
+     *                Boolean#FALSE} if not yet ready, and <code>null</code> if
+     *                due to some failure we will never be ready to handle
+     *                tasks.
      *
      * @throws InterruptedException If interrupted while waiting.
      */
@@ -349,22 +344,20 @@ public abstract class AbstractListenerService implements ListenerService {
      * Called to handle the specified {@link Task} with an optional
      * {@link Scheduler} for scheduling follow-up tasks if that is allowed.
      * Additionally, a multiplicity is specified which, if greater than one (1),
-     * may
-     * require that the task be handled in a different way depending on the
+     * may require that the task be handled in a different way depending on the
      * {@linkplain Task#getAction() action} associated with the {@link Task}.
      * Typically, follow-up tasks may not be allowed if the specified {@link
-     * Task}
-     * is itself a follow-up {@link Task}.
+     * Task} is itself a follow-up {@link Task}.
      *
      * @param action            The action from the {@link Task} to be handled.
-     * @param parameters The {@link Map} of parameters to use with the action
-     *                          to be taken.
+     * @param parameters The {@link Map} of parameters to use with the action to
+     *                   be taken.
      * @param multiplicity The number of times an identical task was scheduled.
      * @param followUpScheduler The {@link Scheduler} for scheduling follow-up
      *                          tasks, or <code>null</code> if follow-up tasks
      *                          cannot be scheduled.
      * @throws ServiceExecutionException If a failure occurred in handling the
-     *         task.
+     *                                   task.
      */
     protected abstract void handleTask(
             String              action,
@@ -382,7 +375,9 @@ public abstract class AbstractListenerService implements ListenerService {
      * @throws ServiceSetupException If a failure occurs.
      */
     @Override
-    public void init(JsonObject config) throws ServiceSetupException {
+    public void init(JsonObject config)
+        throws ServiceSetupException
+    {
         synchronized (this) {
             if (this.getState() != UNINITIALIZED) {
                 throw new IllegalStateException(
@@ -423,9 +418,8 @@ public abstract class AbstractListenerService implements ListenerService {
 
     /**
      * Utility method to convert the task being handled to JSON for logging
-     * purposes
-     * or for serialization. The specified {@link Map} of parameters should have
-     * values that can be converted to JSON via
+     * purposes or for serialization. The specified {@link Map} of parameters
+     * should have values that can be converted to JSON via
      * {@link com.senzing.util.JsonUtilities#toJsonObjectBuilder(Map)}
      *
      * @param action       The action for the task.
@@ -460,18 +454,15 @@ public abstract class AbstractListenerService implements ListenerService {
     /**
      * The default implementation of this method gets the class name from the
      * {@link #SCHEDULING_SERVICE_CLASS_KEY} parameter, constructs an instance
-     * of
-     * that class using the default constructor and then initializes the
+     * of that class using the default constructor and then initializes the
      * constructed
      * {@link SchedulingService} instance using the {@link JsonObject} found in
-     * the
-     * specified configuration via the {@link #SCHEDULING_SERVICE_CONFIG_KEY}
-     * JSON
-     * property. #SCHEDULING_SERVICE_CONFIG_KEY} JSON property.
+     * the specified configuration via the {@link
+     * #SCHEDULING_SERVICE_CONFIG_KEY} JSON property.
+     * #SCHEDULING_SERVICE_CONFIG_KEY} JSON property.
      *
      * @param config The {@link JsonObject} describing the configuration for
-     *        this
-     *               instance of scheduling service.
+     *               this instance of scheduling service.
      *
      * @return The {@link SchedulingService} that was created and initialized.
      * @throws ServiceSetupException If an initialization failure occurs.
@@ -539,17 +530,14 @@ public abstract class AbstractListenerService implements ListenerService {
     /**
      * Gets the default {@link SchedulingService} class name with which to
      * initialize the backing {@link SchedulingService} if one is not specified
-     * in
-     * the initialization configuration via the
+     * in the initialization configuration via the
      * {@link #SCHEDULING_SERVICE_CLASS_KEY} initialization parameter. By
-     * default,
-     * this returns the {@link #DEFAULT_SCHEDULING_SERVICE_CLASS_NAME}, but it
-     * may
-     * be overridden to return something more sensible for a derived
+     * default, this returns the {@link #DEFAULT_SCHEDULING_SERVICE_CLASS_NAME},
+     * but it may be overridden to return something more sensible for a derived
      * implementation.
      *
      * @return The default {@link SchedulingService} class name with which to
-     *         initialize.
+     *             initialize.
      *
      * @see #initSchedulingService(JsonObject)
      * @see #getDefaultSchedulingServiceConfig()
@@ -558,31 +546,29 @@ public abstract class AbstractListenerService implements ListenerService {
      * @see #DEFAULT_SCHEDULING_SERVICE_CLASS_NAME
      *
      */
-    public String getDefaultSchedulingServiceClassName() {
+    public String getDefaultSchedulingServiceClassName()
+    {
         return DEFAULT_SCHEDULING_SERVICE_CLASS_NAME;
     }
 
     /**
      * Gets the default {@link JsonObject} configuration with which to
-     * initialize
-     * the backing {@link SchedulingService} if one is not specified in the
-     * initialization configuration via the {@link
-     * #SCHEDULING_SERVICE_CONFIG_KEY}
-     * initialization parameter. By default, this returns the <code>null</code>,
-     * but
-     * it may be overridden to return something more sensible for a derived
-     * implementation.
+     * initialize the backing {@link SchedulingService} if one is not specified
+     * in the initialization configuration via the {@link
+     * #SCHEDULING_SERVICE_CONFIG_KEY} initialization parameter. By default,
+     * this returns the <code>null</code>, but it may be overridden to return
+     * something more sensible for a derived implementation.
      *
      * @return The default {@link JsonObject} configuration with which to
-     *         initialize
-     *         the backing {@link SchedulingService}.
+     *             initialize the backing {@link SchedulingService}.
      *
      * @see #initSchedulingService(JsonObject)
      * @see #getDefaultSchedulingServiceClassName()
      * @see #SCHEDULING_SERVICE_CLASS_KEY
      * @see #SCHEDULING_SERVICE_CONFIG_KEY
      */
-    public JsonObject getDefaultSchedulingServiceConfig() {
+    public JsonObject getDefaultSchedulingServiceConfig()
+    {
         return null;
     }
 
@@ -788,28 +774,26 @@ public abstract class AbstractListenerService implements ListenerService {
     /**
      * Returns the {@link String} action identifier for the specified
      * {@link MessagePart}. The default implementation of this uses the {@link
-     * Map}
-     * with which this instance was constructed.
+     * Map} with which this instance was constructed.
      *
      * @param messagePart The {@link MessagePart} for which the action is being
      *                    requested.
      * @return The associated action or <code>null</code> if no action should be
-     *         mapped to the {@link MessagePart}.
+     *             mapped to the {@link MessagePart}.
      */
-    protected String getActionForMessagePart(MessagePart messagePart) {
+    protected String getActionForMessagePart(MessagePart messagePart)
+    {
         return this.messagePartMap.get(messagePart);
     }
 
     /**
      * This method is called for the data source code and record ID found in the
      * root of the INFO message. If {@link
-     * #getActionForMessagePart(MessagePart)}
-     * returns <code>null</code> for {@link MessagePart#RECORD} then this method
-     * does nothing (but may be overridden), otherwise if there is an associated
-     * task for the {@link MessagePart#RECORD}, then a new {@link Task} is
-     * scheduled
-     * using the specified {@link Scheduler} with the associated action key and
-     * the
+     * #getActionForMessagePart(MessagePart)} returns <code>null</code> for
+     * {@link MessagePart#RECORD} then this method does nothing (but may be
+     * overridden), otherwise if there is an associated task for the {@link
+     * MessagePart#RECORD}, then a new {@link Task} is scheduled using the
+     * specified {@link Scheduler} with the associated action key and the
      * following parameters and required resources:
      * <ul>
      * <li>Parameter: {@link #DATA_SOURCE_PARAMETER_KEY} (string)</li>
@@ -819,7 +803,7 @@ public abstract class AbstractListenerService implements ListenerService {
      * </ul>
      *
      * @param dataSource The {@link String} data source code from the info
-     *        message.
+     *                   message.
      * @param recordId    The {@link String} record ID from the info message.
      * @param infoMessage The {@link SzInfoMessage} describing the INFO message.
      * @param rawMessage  The entire INFO message in its raw form.
@@ -847,26 +831,24 @@ public abstract class AbstractListenerService implements ListenerService {
      * This method is called for each entity ID in the
      * <code>AFFECTED_ENTITIES</code> found in an INFO message. If
      * {@link #getActionForMessagePart(MessagePart)} returns <code>null</code>
-     * for
-     * {@link MessagePart#AFFECTED_ENTITY} then this method does nothing (but
-     * may be
-     * overridden), otherwise if there is an associated task for the
-     * {@link MessagePart#AFFECTED_ENTITY}, then a new {@link Task} is scheduled
-     * using the specified {@link Scheduler} with the associated action key and
-     * the
-     * following parameters and required resources:
+     * for {@link MessagePart#AFFECTED_ENTITY} then this method does nothing
+     * (but may be overridden), otherwise if there is an associated task for 
+     * the {@link MessagePart#AFFECTED_ENTITY}, then a new {@link Task} is
+     * scheduled using the specified {@link Scheduler} with the associated
+     * action key and the following parameters and required resources:
      * <ul>
      * <li>Parameter: {@link #ENTITY_ID_PARAMETER_KEY} (long integer)</li>
      * <li>Resource: {@link #ENTITY_RESOURCE_KEY} (for the associated
      * entity)</li>
      * </ul>
      *
-     * @param entityId       The {@link Long} entity ID identifying the affected
-     *                       entity.
-     * @param infoMessage The {@link SzInfoMessage} describing the INFO message.
+     * @param entityId The {@link Long} entity ID identifying the affected
+     *                 entity.
+     * @param infoMessage The {@link SzInfoMessage} describing the INFO
+     *                    message.
      * @param rawMessagePart The {@link JsonObject} describing the interesting
      *                       entity in its raw JSON form.
-     * @param rawMessage     The entire INFO message in its raw form.
+     * @param rawMessage The entire INFO message in its raw form.
      * @param scheduler The {@link Scheduler} to be used to schedule the task.
      */
     protected void handleAffected(
@@ -895,15 +877,12 @@ public abstract class AbstractListenerService implements ListenerService {
      * This method is called for each element in the
      * <code>INTERESTING_ENTITIES</code> found in an INFO message. If
      * {@link #getActionForMessagePart(MessagePart)} returns <code>null</code>
-     * for
-     * {@link MessagePart#INTERESTING_ENTITY} then this method does nothing (but
-     * may
-     * be overridden), otherwise if there is an associated task for the
+     * for {@link MessagePart#INTERESTING_ENTITY} then this method does
+     * nothing (but
+     * may be overridden), otherwise if there is an associated task for the
      * {@link MessagePart#INTERESTING_ENTITY}, then a new {@link Task} is
-     * scheduled
-     * using the specified {@link Scheduler} with the associated action key and
-     * the
-     * following parameters and required resources:
+     * scheduled using the specified {@link Scheduler} with the associated
+     * action key and the following parameters and required resources:
      * <ul>
      * <li>Parameter: {@link #ENTITY_ID_PARAMETER_KEY} (long integer)</li>
      * <li>Parameter: {@link #DEGREES_PARAMETER_KEY} (integer)</li>
@@ -916,13 +895,12 @@ public abstract class AbstractListenerService implements ListenerService {
      *
      * @param interestingEntity The {@link SzInterestingEntity} describing the
      *                          interesting entity to handle.
-     * @param infoMessage       The {@link SzInfoMessage} describing the INFO
-     *                          message.
+     * @param infoMessage The {@link SzInfoMessage} describing the INFO
+     *                    message.
      * @param rawMessagePart The {@link JsonObject} describing the interesting
-     *                          entity in its raw JSON form.
-     * @param rawMessage        The entire INFO message in its raw form.
-     * @param scheduler         The {@link Scheduler} to be used to schedule the
-     *                          task.
+     *                       entity in its raw JSON form.
+     * @param rawMessage The entire INFO message in its raw form.
+     * @param scheduler The {@link Scheduler} to be used to schedule the task.
      */
     protected void handleInteresting(
             SzInterestingEntity interestingEntity,
@@ -978,15 +956,13 @@ public abstract class AbstractListenerService implements ListenerService {
     }
 
     /**
-     * This method is called for each element in the <code>NOTICES</code> array
-     * found in an INFO message. If {@link
-     * #getActionForMessagePart(MessagePart)}
-     * returns <code>null</code> for {@link MessagePart#NOTICE} then this method
-     * does nothing (but may be overridden), otherwise if there is an associated
-     * task for the {@link MessagePart#NOTICE}, then a new {@link Task} is
-     * scheduled
-     * using the specified {@link Scheduler} with the associated action key and
-     * the
+     * This method is called for each element in the <code>NOTICES</code>
+     * array found in an INFO message. If {@link
+     * #getActionForMessagePart(MessagePart)} returns <code>null</code> for
+     * {@link MessagePart#NOTICE} then this method does nothing (but may be
+     * overridden), otherwise if there is an associated task for the {@link
+     * MessagePart#NOTICE}, then a new {@link Task} is scheduled using the
+     * specified {@link Scheduler} with the associated action key and the
      * following parameters and required resources:
      * <ul>
      * <li>Parameter: {@link #CODE_PARAMETER_KEY} (string)</li>
@@ -994,12 +970,11 @@ public abstract class AbstractListenerService implements ListenerService {
      * <li>Resources: [None]</li>
      * </ul>
      *
-     * @param notice         The {@link SzNotice} describing the notice.
+     * @param notice The {@link SzNotice} describing the notice.
      * @param infoMessage The {@link SzInfoMessage} describing the INFO message.
      * @param rawMessagePart The {@link JsonObject} describing the notice in its
-     *        raw
-     *                       JSON form.
-     * @param rawMessage     The entire INFO message.
+     *                       raw JSON form.
+     * @param rawMessage The entire INFO message.
      * @param scheduler The {@link Scheduler} to be used to schedule the task.
      */
     protected void handleNotice(
@@ -1026,17 +1001,16 @@ public abstract class AbstractListenerService implements ListenerService {
 
     /**
      * Implemented as a synchronized method to {@linkplain #setState(State) set
-     * the
-     * state} to
+     * the state} to
      * {@link
      * com.senzing.listener.communication.MessageConsumer.State#DESTROYING},
      * call {@link #doDestroy()} and then perform {@link #notifyAll()} and set
-     * the
-     * state to
+     * the state to
      * {@link
      * com.senzing.listener.communication.MessageConsumer.State#DESTROYED}.
      */
-    public void destroy() {
+    public void destroy()
+    {
         synchronized (this) {
             State state = this.getState();
             if (state == DESTROYED) {
@@ -1076,7 +1050,8 @@ public abstract class AbstractListenerService implements ListenerService {
      *
      * @return The backing {@link SchedulingService} used by this instance.
      */
-    protected SchedulingService getSchedulingService() {
+    protected SchedulingService getSchedulingService()
+    {
         return this.schedulingService;
     }
 

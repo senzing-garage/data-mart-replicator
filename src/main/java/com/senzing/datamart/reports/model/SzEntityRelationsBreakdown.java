@@ -9,16 +9,17 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Describes the number of entities in the entity repository at
- * each count statistics for the repository.
+ * Describes the number of entities in the entity repository at each count
+ * statistics for the repository.
  */
-public class SzEntityRelationsBreakdown implements Serializable {
+public class SzEntityRelationsBreakdown implements Serializable
+{
     /**
-     * The {@link Map} of {@link Integer} keys indicating the
-     * number of entity relations to
+     * The {@link Map} of {@link Integer} keys indicating the number of entity
+     * relations to
      * {@link SzEntityRelationsCount} values describing the
-     * number of entities in the entity repository having that
-     * number entity relations.
+     * number of entities in the entity repository having that number entity
+     * relations.
      */
     private Map<Integer, SzEntityRelationsCount>
         relationsCounts = null;
@@ -26,23 +27,22 @@ public class SzEntityRelationsBreakdown implements Serializable {
     /**
      * Default constructor.
      */
-    public SzEntityRelationsBreakdown() {
+    public SzEntityRelationsBreakdown()
+    {
         this.relationsCounts = new LinkedHashMap<>();
     }
 
     /**
-     * Gets the {@link List} of {@link SzEntityRelationsCount}
-     * describing the number of entities having each distinct
-     * number of entity relations. The returned value list
-     * should contain only one element for each distinct number
-     * of entity relations that exists in the repository. The
+     * Gets the {@link List} of {@link SzEntityRelationsCount} describing the
+     * number of entities having each distinct number of entity relations. The
+     * returned value list should contain only one element for each distinct
+     * number of entity relations that exists in the repository. The
      * {@link List} is returned in descending order of the
      * number of entity relations.
      *
-     * @return The {@link List} of
-     *         {@link SzEntityRelationsCount} describing the
-     *         number of entities having each distinct number
-     *         of entity relations.
+     * @return The {@link List} of {@link SzEntityRelationsCount} describing the
+     *             number of entities having each distinct number of entity
+     *             relations.
      */
     public List<SzEntityRelationsCount>
         getEntityRelationsCounts()
@@ -59,22 +59,20 @@ public class SzEntityRelationsBreakdown implements Serializable {
     }
 
     /**
-     * Sets the {@link List} of {@link SzEntityRelationsCount}
-     * describing the number of entities having each distinct
-     * number of entity relations. This clears any existing
-     * entity relations counts before setting with those
-     * specified. The specified {@link List} should contain
-     * only one element for each distinct number of entity
-     * relations, but if duplicates are encountered then later
-     * values in the {@link List} take precedence, overwriting
-     * prior values from the {@link List}. Specifying a
+     * Sets the {@link List} of {@link SzEntityRelationsCount} describing the
+     * number of entities having each distinct number of entity relations. This
+     * clears any existing entity relations counts before setting with those
+     * specified. The specified {@link List} should contain only one element for
+     * each distinct number of entity relations, but if duplicates are
+     * encountered then later values in the {@link List} take precedence,
+     * overwriting prior values from the {@link List}. Specifying a
      * <code>null</code> {@link List} is equivalent to
      * specifying an empty {@link List}.
      *
-     * @param relationsCountList The {@link List} of
-     *        {@link SzEntityRelationsCount} describing the
-     *        number of entities having each distinct number
-     *        of entity relations.
+     * @param relationsCountList The {@link List} of {@link
+     *                           SzEntityRelationsCount} describing the number
+     *                           of entities having each distinct number of
+     *                           entity relations.
      */
     public void setEntityRelationsCounts(
             List<SzEntityRelationsCount> relationsCountList)
@@ -94,20 +92,18 @@ public class SzEntityRelationsBreakdown implements Serializable {
     }
 
     /**
-     * Adds the specified {@link SzEntityRelationsCount}
-     * describing the number of entities in the entity
-     * repository having a specific number of entity
+     * Adds the specified {@link SzEntityRelationsCount} describing the number
+     * of entities in the entity repository having a specific number of entity
      * relations. If the specified
      * {@link SzEntityRelationsCount} has the same entity
      * relations count as an existing
      * {@link SzEntityRelationsCount} instance then the
-     * specified value replaces the existing one for that
-     * number of entity relations.
+     * specified value replaces the existing one for that number of entity
+     * relations.
      *
-     * @param relationsCount The
-     *        {@link SzEntityRelationsCount} describing the
-     *        number of entities in the entity repository
-     *        having a specific number of entity relations.
+     * @param relationsCount The {@link SzEntityRelationsCount} describing the
+     *                       number of entities in the entity repository having
+     *                       a specific number of entity relations.
      */
     public void addEntityRelationsCount(
             SzEntityRelationsCount relationsCount)
@@ -126,14 +122,14 @@ public class SzEntityRelationsBreakdown implements Serializable {
     }
 
     /**
-     * Overridden to return a diagnostic {@link String}
-     * describing this instance.
+     * Overridden to return a diagnostic {@link String} describing this
+     * instance.
      *
-     * @return A diagnostic {@link String} describing this
-     *         instance.
+     * @return A diagnostic {@link String} describing this instance.
      */
     @Override
-    public String toString() {
+    public String toString()
+    {
         return "relationCounts=[ "
             + this.getEntityRelationsCounts() + " ]";
     }
@@ -145,22 +141,23 @@ public class SzEntityRelationsBreakdown implements Serializable {
      * @return The hash code for this instance.
      */
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hash(relationsCounts);
     }
 
     /**
-     * Overridden to return <code>true</code> if and only if
-     * the specified parameter is an instance of the same class
-     * with equivalent properties.
+     * Overridden to return <code>true</code> if and only if the specified
+     * parameter is an instance of the same class with equivalent properties.
      *
      * @param obj The object to compare with.
-     * @return <code>true</code> if the specified parameter is
-     *         an instance of the same class with equivalent
-     *         properties, otherwise <code>false</code>.
+     * @return <code>true</code> if the specified parameter is an instance of
+     *                           the same class with equivalent properties,
+     *                           otherwise <code>false</code>.
      */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (this == obj) {
             return true;
         }

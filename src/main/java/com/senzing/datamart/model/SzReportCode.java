@@ -7,7 +7,8 @@ import java.util.Map;
 /**
  * Enumerates the various report codes for the data mart.
  */
-public enum SzReportCode {
+public enum SzReportCode
+{
     /**
      * The report code for the data source summary report.
      */
@@ -39,7 +40,8 @@ public enum SzReportCode {
      *
      * @param code The short text code for the report.
      */
-    SzReportCode(String code) {
+    SzReportCode(String code)
+    {
         this.code = code;
     }
 
@@ -48,22 +50,22 @@ public enum SzReportCode {
      *
      * @return The short text code for this instance.
      */
-    public String getCode() {
+    public String getCode()
+    {
         return this.code;
     }
 
     /**
-     * Looks up the {@link SzReportCode} for the specified text
-     * code. This returns <code>null</code> if the specified code
-     * is not recognized.
+     * Looks up the {@link SzReportCode} for the specified text code. This
+     * returns <code>null</code> if the specified code is not recognized.
      *
-     * @param code The code for which the {@link SzReportCode}
-     *             is being requested.
-     * @return The {@link SzReportCode} for the specified code,
-     *         or <code>null</code> if the specified code was not
-     *         recognized.
+     * @param code The code for which the {@link SzReportCode} is being
+     *             requested.
+     * @return The {@link SzReportCode} for the specified code, or
+     *             <code>null</code> if the specified code was not recognized.
      */
-    public static SzReportCode lookup(String code) {
+    public static SzReportCode lookup(String code)
+    {
         return CODE_LOOKUP_MAP.get(code);
     }
 

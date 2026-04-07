@@ -10,7 +10,8 @@ import java.util.Objects;
  * Provides a default implementation of {@link Scheduler} that works with
  * classes that extend {@link AbstractSchedulingService}.
  */
-public class DefaultScheduler extends Scheduler {
+public class DefaultScheduler extends Scheduler
+{
   /**
    * The underlying {@link AbstractSchedulingService} to schedule the tasks
    * with.
@@ -36,7 +37,8 @@ public class DefaultScheduler extends Scheduler {
    *
    * @param service The non-null {@link AbstractSchedulingService} to use.
    */
-  protected DefaultScheduler(AbstractSchedulingService service) {
+  protected DefaultScheduler(AbstractSchedulingService service)
+  {
     this(service, null);
   }
 
@@ -59,10 +61,11 @@ public class DefaultScheduler extends Scheduler {
 
   /**
    * Checks if this {@link DefaultScheduler} has already been committed and if
-   * so then
-   * throws an {@link IllegalStateException}.
+   * so then throws an {@link IllegalStateException}.
    */
-  protected void checkState() throws IllegalStateException {
+  protected void checkState()
+      throws IllegalStateException
+  {
     if (this.service == null) {
       throw new IllegalStateException(
           "This Scheduler instance has already been committed.");
@@ -85,7 +88,8 @@ public class DefaultScheduler extends Scheduler {
    * {@inheritDoc}
    */
   @Override
-  public TaskGroup getTaskGroup() {
+  public TaskGroup getTaskGroup()
+  {
     return this.taskGroup;
   }
 
@@ -93,7 +97,8 @@ public class DefaultScheduler extends Scheduler {
    * {@inheritDoc}
    */
   @Override
-  public void schedule(Task task) {
+  public void schedule(Task task)
+  {
     if (!Objects.equals(this.getTaskGroup(), task.getTaskGroup())) {
       throw new IllegalArgumentException(
           "The specified Task must have a TaskGroup identical to the one "
@@ -106,14 +111,17 @@ public class DefaultScheduler extends Scheduler {
    * {@inheritDoc}
    */
   @Override
-  public int getPendingCount() {
+  public int getPendingCount()
+  {
     return this.pendingTasks.size();
   }
 
   /**
    * {@inheritDoc}
    */
-  public int commit() throws ServiceExecutionException {
+  public int commit()
+      throws ServiceExecutionException
+  {
     if (this.service == null) {
       return 0;
     }

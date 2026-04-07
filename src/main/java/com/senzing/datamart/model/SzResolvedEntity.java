@@ -12,7 +12,8 @@ import static com.senzing.util.LoggingUtilities.*;
  * Encapsulates the information for an entity that is replicated for the data
  * mart.
  */
-public class SzResolvedEntity extends SzEntity {
+public class SzResolvedEntity extends SzEntity
+{
     /**
      * The {@link Map} of {@link Long} entity ID keys to {@link SzRelatedEntity}
      * values describing the related entities.
@@ -22,32 +23,34 @@ public class SzResolvedEntity extends SzEntity {
     /**
      * Default constructor.
      */
-    public SzResolvedEntity() {
+    public SzResolvedEntity()
+    {
         this.relatedEntities = new LinkedHashMap<>();
     }
 
     /**
-     * Gets the <b>unmodifiable</b> {@link Map} of {@link Long}
-     * entity ID keys to {@link SzRelatedEntity} values describing
-     * the related entities.
+     * Gets the <b>unmodifiable</b> {@link Map} of {@link Long} entity ID keys
+     * to {@link SzRelatedEntity} values describing the related entities.
      *
-     * @return The <b>unmodifiable</b> {@link Map} of {@link Long}
-     *         entity ID keys to {@link SzRelatedEntity} values
-     *         describing the related entities.
+     * @return The <b>unmodifiable</b> {@link Map} of {@link Long} entity ID
+     *             keys to {@link SzRelatedEntity} values describing the related
+     *             entities.
      */
-    public Map<Long, SzRelatedEntity> getRelatedEntities() {
+    public Map<Long, SzRelatedEntity> getRelatedEntities()
+    {
         return Collections.unmodifiableMap(this.relatedEntities);
     }
 
     /**
-     * Sets the related entities for this entity to those described
-     * in the specified {@link Collection} of
+     * Sets the related entities for this entity to those described in the
+     * specified {@link Collection} of
      * {@link SzRelatedEntity} instances.
      *
-     * @param entities The {@link Collection} of
-     *                 {@link SzRelatedEntity} instances.
+     * @param entities The {@link Collection} of {@link SzRelatedEntity}
+     *                 instances.
      */
-    public void setRelatedEntities(Collection<SzRelatedEntity> entities) {
+    public void setRelatedEntities(Collection<SzRelatedEntity> entities)
+    {
         long entityId = this.getEntityId();
         for (SzRelatedEntity entity : entities) {
             if (entity.getEntityId() == entityId) {
@@ -68,11 +71,11 @@ public class SzResolvedEntity extends SzEntity {
      * {@link SzRelatedEntity} instance to the related entities
      * for this instance.
      *
-     * @param entity The {@link SzRelatedEntity} describing the
-     *               related entity to the related entities for
-     *               this instance.
+     * @param entity The {@link SzRelatedEntity} describing the related entity
+     *               to the related entities for this instance.
      */
-    public void addRelatedEntity(SzRelatedEntity entity) {
+    public void addRelatedEntity(SzRelatedEntity entity)
+    {
         if (entity.getEntityId() == this.getEntityId()) {
             throw new IllegalArgumentException(
                     "A related entity cannot have the same "
@@ -84,17 +87,19 @@ public class SzResolvedEntity extends SzEntity {
     /**
      * Removes all related entities from this entity.
      */
-    public void clearRelatedEntities() {
+    public void clearRelatedEntities()
+    {
         this.relatedEntities.clear();
     }
 
     /**
-     * Populates the specified {@link JsonObjectBuilder} with the
-     * properties of this instance.
+     * Populates the specified {@link JsonObjectBuilder} with the properties of
+     * this instance.
      *
      * @param builder The {@link JsonObjectBuilder} to populate.
      */
-    public void buildJson(JsonObjectBuilder builder) {
+    public void buildJson(JsonObjectBuilder builder)
+    {
         super.buildJson(builder);
         JsonArrayBuilder jab = Json.createArrayBuilder();
         Map<Long, SzRelatedEntity> relations = this.getRelatedEntities();
@@ -119,7 +124,8 @@ public class SzResolvedEntity extends SzEntity {
      * @return The {@link SzResolvedEntity} that was populated.
      *
      */
-    public static SzResolvedEntity parseHash(String hashText) {
+    public static SzResolvedEntity parseHash(String hashText)
+    {
         if (hashText == null) {
             return null;
         }
@@ -140,7 +146,8 @@ public class SzResolvedEntity extends SzEntity {
      * @return The {@link SzResolvedEntity} that was populated.
      *
      */
-    public static SzResolvedEntity parse(String jsonText) {
+    public static SzResolvedEntity parse(String jsonText)
+    {
         if (jsonText == null) {
             return null;
         }
@@ -155,7 +162,8 @@ public class SzResolvedEntity extends SzEntity {
      * @param jsonObject The {@link JsonObject} describing the entity.
      * @return The {@link SzResolvedEntity} that was populated.
      */
-    public static SzResolvedEntity parse(JsonObject jsonObject) {
+    public static SzResolvedEntity parse(JsonObject jsonObject)
+    {
         if (jsonObject == null) {
             return null;
         }
@@ -197,23 +205,24 @@ public class SzResolvedEntity extends SzEntity {
      *
      * @return The hash for this entity.
      */
-    public String toHash() {
+    public String toHash()
+    {
         String jsonText = this.toJsonText();
         return ZipUtilities.zipText64(jsonText);
     }
 
     /**
-     * Overridden to return <code>true</code> if and only if the
-     * specified parameter is an instance of the same class with
-     * equivalent properties.
+     * Overridden to return <code>true</code> if and only if the specified
+     * parameter is an instance of the same class with equivalent properties.
      *
      * @param o The object to compare with.
-     * @return <code>true</code> if the specified parameter is an
-     *         instance of the same class with equivalent
-     *         properties, otherwise <code>false</code>.
+     * @return <code>true</code> if the specified parameter is an instance of
+     *                           the same class with equivalent properties,
+     *                           otherwise <code>false</code>.
      */
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(Object o)
+    {
         if (this == o) {
             return true;
         }
@@ -234,7 +243,8 @@ public class SzResolvedEntity extends SzEntity {
      * @return The hash code for this instance.
      */
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hash(super.hashCode(), this.getRelatedEntities());
     }
 }

@@ -21,24 +21,26 @@ import static com.senzing.datamart.reports.ReportUtilities.*;
 /**
  * Provides Entity Relations Breakdown Report functionality.
  */
-public final class EntityRelationsReports {
+public final class EntityRelationsReports
+{
     /**
      * Private default constructor.
      */
-    private EntityRelationsReports() {
+    private EntityRelationsReports()
+    {
         // do nothing
     }
 
     /**
      * Gets an {@link SzEntityRelationsBreakdown} describing the entity
      * relations breakdown which is the number of entities in the entity
-     * repository for each distinct number of relations that exists
-     * for an entity in the repository.
+     * repository for each distinct number of relations that exists for an
+     * entity in the repository.
      * 
      * @param conn The non-null JDBC {@link Connection} to use.
      * 
      * @param timers The optional {@link Timers} to track timing of the
-     *        operation.
+     *               operation.
      * 
      * @return The {@link SzEntityRelationsBreakdown} describing the statistics.
      * 
@@ -101,13 +103,13 @@ public final class EntityRelationsReports {
     }
 
     /**
-     * Gets the {@link SzEntityRelationsCount} describing the number of
-     * entities in the entity repository having the specified entity size.
+     * Gets the {@link SzEntityRelationsCount} describing the number of entities
+     * in the entity repository having the specified entity size.
      * 
      * @param conn The JDBC {@link Connection} to use.
      * 
-     * @param relationsCount The number of relationships for the entities
-     *                       that are being counted.
+     * @param relationsCount The number of relationships for the entities that
+     *                       are being counted.
      * 
      * @param timers The optional {@link Timers} to track timing of the
      *               operation.
@@ -184,11 +186,11 @@ public final class EntityRelationsReports {
      *                       formatted as an integer or the word
      *                       <code>"max"</code>.
      * @param boundType The {@link SzBoundType} that describes how to apply the
-     *                       specified entity ID bound.
+     *                  specified entity ID bound.
      * @param pageSize       The maximum number of entity ID's to return.
      * @param sampleSize The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * @param timers         The optional {@link Timers} to track timing of the
      *                       operation.
      * 
@@ -198,10 +200,9 @@ public final class EntityRelationsReports {
      *                              <code>null</code>.
      * 
      * @throws IllegalArgumentException If the specified relations count is
-     *                                  negative, if the specified page size
-     *                                  or sample size is less than one (1), 
-     *                                  or if the sample size is specified and
-     *                                  is
+     *                                  negative, if the specified page size or
+     *                                  sample size is less than one (1), or if
+     *                                  the sample size is specified and is
      *                                  greater-than or equal to the sample
      *                                  size.
      * 

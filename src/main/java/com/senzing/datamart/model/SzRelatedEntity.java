@@ -11,7 +11,8 @@ import static com.senzing.util.LoggingUtilities.*;
 /**
  * Extends {@link SzEntity} to describe a related entity.
  */
-public class SzRelatedEntity extends SzEntity {
+public class SzRelatedEntity extends SzEntity
+{
     /**
      * The {@link SzMatchType} for this related entity.
      */
@@ -30,7 +31,8 @@ public class SzRelatedEntity extends SzEntity {
     /**
      * Default constructor.
      */
-    public SzRelatedEntity() {
+    public SzRelatedEntity()
+    {
         this.matchType = null;
         this.matchKey = null;
         this.principle = null;
@@ -42,7 +44,8 @@ public class SzRelatedEntity extends SzEntity {
      *
      * @return The relationship type for this related entity.
      */
-    public SzMatchType getMatchType() {
+    public SzMatchType getMatchType()
+    {
         return this.matchType;
     }
 
@@ -50,10 +53,11 @@ public class SzRelatedEntity extends SzEntity {
      * Sets the relationship type for this related entity to the specified
      * {@link SzMatchType}.
      *
-     * @param matchType The {@link SzMatchType} describing the
-     *                  relationship type for this related entity.
+     * @param matchType The {@link SzMatchType} describing the relationship type
+     *                  for this related entity.
      */
-    public void setMatchType(SzMatchType matchType) {
+    public void setMatchType(SzMatchType matchType)
+    {
         this.matchType = matchType;
     }
 
@@ -62,7 +66,8 @@ public class SzRelatedEntity extends SzEntity {
      *
      * @return The match key for this related entity.
      */
-    public String getMatchKey() {
+    public String getMatchKey()
+    {
         return this.matchKey;
     }
 
@@ -71,40 +76,43 @@ public class SzRelatedEntity extends SzEntity {
      *
      * @param matchKey The match key for this related entity.
      */
-    public void setMatchKey(String matchKey) {
+    public void setMatchKey(String matchKey)
+    {
         this.matchKey = normalize(matchKey);
     }
 
     /**
-     * Gets the principle code identifying the Entity Resolution
-     * Rule that created this relationship.
+     * Gets the principle code identifying the Entity Resolution Rule that
+     * created this relationship.
      *
-     * @return The principle code identifying the Entity Resolution
-     *         Rule that created this relationship.
+     * @return The principle code identifying the Entity Resolution Rule that
+     *             created this relationship.
      */
-    public String getPrinciple() {
+    public String getPrinciple()
+    {
         return this.principle;
     }
 
     /**
-     * Sets the principle code identifying the Entity Resolution
-     * Rule that created this relationship.
+     * Sets the principle code identifying the Entity Resolution Rule that
+     * created this relationship.
      *
-     * @param principle The principle code identifying the Entity
-     *                  Resolution Rule that created this
-     *                  relationship.
+     * @param principle The principle code identifying the Entity Resolution
+     *                  Rule that created this relationship.
      */
-    public void setPrinciple(String principle) {
+    public void setPrinciple(String principle)
+    {
         this.principle = normalize(principle);
     }
 
     /**
-     * Populates the specified {@link JsonObjectBuilder} with the
-     * properties of this instance.
+     * Populates the specified {@link JsonObjectBuilder} with the properties of
+     * this instance.
      *
      * @param builder The {@link JsonObjectBuilder} to populate.
      */
-    public void buildJson(JsonObjectBuilder builder) {
+    public void buildJson(JsonObjectBuilder builder)
+    {
         super.buildJson(builder);
         if (this.getMatchType() != null) {
             builder.add("matchType", this.getMatchType().getCode());
@@ -122,8 +130,8 @@ public class SzRelatedEntity extends SzEntity {
      * {@link SzRelatedEntity}.
      *
      * @param entity     The {@link SzRelatedEntity} to populate, or
-     *                   <code>null</code> if a new
-     *                   {@link SzRelatedEntity} should be created.
+     *                   <code>null</code> if a new {@link SzRelatedEntity}
+     *                   should be created.
      * @param jsonObject The {@link JsonObject} describing the entity.
      * @return The {@link SzRelatedEntity} that was populated.
      */
@@ -179,17 +187,17 @@ public class SzRelatedEntity extends SzEntity {
     }
 
     /**
-     * Overridden to return <code>true</code> if and only if the
-     * specified parameter is an instance of the same class with
-     * equivalent properties.
+     * Overridden to return <code>true</code> if and only if the specified
+     * parameter is an instance of the same class with equivalent properties.
      *
      * @param o The object to compare with.
-     * @return <code>true</code> if the specified parameter is an
-     *         instance of the same class with equivalent properties,
-     *         otherwise <code>false</code>.
+     * @return <code>true</code> if the specified parameter is an instance of
+     *                           the same class with equivalent properties,
+     *                           otherwise <code>false</code>.
      */
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(Object o)
+    {
         if (this == o) {
             return true;
         }
@@ -212,23 +220,25 @@ public class SzRelatedEntity extends SzEntity {
      * @return The hash code for this instance.
      */
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hash(super.hashCode(),
                 this.getMatchType(), this.getMatchKey(),
                 this.getPrinciple());
     }
 
     /**
-     * Normalizes the specified text value so that if <code>null</code>
-     * or empty string or purely whitespace, then <code>null</code> is
-     * returned, otherwise the value is returned with leading and trailing
-     * whitespace removed.
+     * Normalizes the specified text value so that if <code>null</code> or empty
+     * string or purely whitespace, then <code>null</code> is returned,
+     * otherwise the value is returned with leading and trailing whitespace
+     * removed.
      * 
      * @param value The value to normalize.
      * 
      * @return The normalized value.
      */
-    private static String normalize(String value) {
+    private static String normalize(String value)
+    {
         if (value != null) {
             value = value.trim();
             if (value.length() == 0) {

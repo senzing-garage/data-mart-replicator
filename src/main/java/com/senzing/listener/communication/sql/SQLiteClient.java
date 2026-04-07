@@ -10,11 +10,13 @@ import com.senzing.sql.DatabaseType;
 /**
  * Provides a SQLite implementation of {@link SQLClient}.
  */
-public class SQLiteClient implements SQLClient {
+public class SQLiteClient implements SQLClient
+{
     /**
      * Default constructor.
      */
-    public SQLiteClient() {
+    public SQLiteClient()
+    {
         // do nothing
     }
 
@@ -25,7 +27,8 @@ public class SQLiteClient implements SQLClient {
      * </p>
      */
     @Override
-    public DatabaseType getDatabaseType() {
+    public DatabaseType getDatabaseType()
+    {
         return DatabaseType.SQLITE;
     }
 

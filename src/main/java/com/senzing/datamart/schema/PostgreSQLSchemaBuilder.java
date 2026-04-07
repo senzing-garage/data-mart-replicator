@@ -8,11 +8,13 @@ import java.util.List;
 /**
  * Provides a data mart schema builder for PostgreSQL.
  */
-public class PostgreSQLSchemaBuilder extends SchemaBuilder {
+public class PostgreSQLSchemaBuilder extends SchemaBuilder
+{
     /**
      * Default constructor.
      */
-    public PostgreSQLSchemaBuilder() {
+    public PostgreSQLSchemaBuilder()
+    {
         // do nothing
     }
 
@@ -453,7 +455,8 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
      * @param tableName The table name for the create trigger statement.
      * @return The create trigger statement.
      */
-    protected String formatCreatePostgreSQLTrigger(String tableName) {
+    protected String formatCreatePostgreSQLTrigger(String tableName)
+    {
         return "CREATE TRIGGER " + tableName + "_trig "
                 + "BEFORE INSERT OR UPDATE "
                 + "ON " + tableName + " "
@@ -463,13 +466,14 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
     }
 
     /**
-     * Formats a PostgreSQL drop trigger statement for the timestamp
-     * maintenance trigger for the specified table name.
+     * Formats a PostgreSQL drop trigger statement for the timestamp maintenance
+     * trigger for the specified table name.
      *
      * @param tableName The table name for the drop trigger statement.
      * @return The drop trigger statement.
      */
-    protected String formatDropPostgreSQLTrigger(String tableName) {
+    protected String formatDropPostgreSQLTrigger(String tableName)
+    {
         return "DROP TRIGGER IF EXISTS " + tableName + "_trig ON "
                 + tableName + ";";
     }

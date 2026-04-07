@@ -8,26 +8,28 @@ import java.util.*;
  * persisting the follow-up tasks by extending
  * {@link AbstractSQLSchedulingService}.
  */
-public class PostgreSQLSchedulingService extends AbstractSQLSchedulingService {
+public class PostgreSQLSchedulingService extends AbstractSQLSchedulingService
+{
     /**
      * Default constructor.
      */
-    public PostgreSQLSchedulingService() {
+    public PostgreSQLSchedulingService()
+    {
         // do nothing
     }
 
     /**
      * Ensures the schema exists and alternatively drops the existing the schema
-     * and
-     * recreates it.
+     * and recreates it.
      *
      * @param recreate <code>true</code> if the existing schema should be
-     *        dropped,
-     *                 otherwise <code>false</code>.
+     *                 dropped, otherwise <code>false</code>.
      *
      * @throws SQLException If a failure occurs.
      */
-    protected void ensureSchema(boolean recreate) throws SQLException {
+    protected void ensureSchema(boolean recreate)
+        throws SQLException
+    {
         String createTableSql = 
             "CREATE TABLE IF NOT EXISTS sz_follow_up_tasks (" 
             + "task_id BIGSERIAL PRIMARY KEY, "

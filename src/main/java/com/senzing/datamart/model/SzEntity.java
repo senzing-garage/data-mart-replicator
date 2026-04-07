@@ -10,7 +10,8 @@ import static com.senzing.util.JsonUtilities.*;
 /**
  * Provides a base class to describe an entity comprised of records.
  */
-public class SzEntity {
+public class SzEntity
+{
     /**
      * The entity ID for this entity.
      */
@@ -34,7 +35,8 @@ public class SzEntity {
     /**
      * Default constructor.
      */
-    public SzEntity() {
+    public SzEntity()
+    {
         this.sourceSummary = new LinkedHashMap<>();
         this.records = new LinkedHashMap<>();
     }
@@ -44,7 +46,8 @@ public class SzEntity {
      *
      * @return The entity ID for this instance.
      */
-    public long getEntityId() {
+    public long getEntityId()
+    {
         return entityId;
     }
 
@@ -53,7 +56,8 @@ public class SzEntity {
      *
      * @param entityId The entity ID for this instance.
      */
-    public void setEntityId(long entityId) {
+    public void setEntityId(long entityId)
+    {
         this.entityId = entityId;
     }
 
@@ -62,7 +66,8 @@ public class SzEntity {
      *
      * @return The entity name for the entity.
      */
-    public String getEntityName() {
+    public String getEntityName()
+    {
         return entityName;
     }
 
@@ -71,20 +76,22 @@ public class SzEntity {
      *
      * @param entityName The name for the entity.
      */
-    public void setEntityName(String entityName) {
+    public void setEntityName(String entityName)
+    {
         this.entityName = entityName;
     }
 
     /**
-     * Gets the associated data sources and the number of records for each
-     * data source as an <b>unmodifiable</b> {@link Map} of {@link String}
-     * data source codes to {@link Integer} values.
+     * Gets the associated data sources and the number of records for each data
+     * source as an <b>unmodifiable</b> {@link Map} of {@link String} data
+     * source codes to {@link Integer} values.
      *
-     * @return The <b>unmodifiable</b> {@link Map} of data source keys to
-     *         {@link Integer} values representing the number of records
-     *         for that data source.
+     * @return The <b>unmodifiable</b> {@link Map} of data source keys to {@link
+     *             Integer} values representing the number of records for that
+     *             data source.
      */
-    public Map<String, Integer> getSourceSummary() {
+    public Map<String, Integer> getSourceSummary()
+    {
         return Collections.unmodifiableMap(this.sourceSummary);
     }
 
@@ -92,11 +99,12 @@ public class SzEntity {
      * Gets the associated records as an <b>unmodifiable</b> {@link Map} of
      * {@link SzRecordKey} keys to {@link SzRecord} values.
      *
-     * @return An <b>unmodifiable</b> {@link Map} of {@link SzRecordKey}
-     *         keys to {@link SzRecord} values describing the records for
-     *         this entity.
+     * @return An <b>unmodifiable</b> {@link Map} of {@link SzRecordKey} keys to
+     *            {@link SzRecord} values describing the records for this
+     *            entity.
      */
-    public Map<SzRecordKey, SzRecord> getRecords() {
+    public Map<SzRecordKey, SzRecord> getRecords()
+    {
         return Collections.unmodifiableMap(this.records);
     }
 
@@ -107,7 +115,8 @@ public class SzEntity {
      * @param records The {@link Collection} of {@link SzRecord} instances
      *                describing the records to associate with this entity.
      */
-    public void setRecords(Collection<SzRecord> records) {
+    public void setRecords(Collection<SzRecord> records)
+    {
         this.records.clear();
         this.sourceSummary.clear();
         records.forEach(record -> {
@@ -116,12 +125,13 @@ public class SzEntity {
     }
 
     /**
-     * Adds the record described by the specified {@link SzRecord}
-     * to this entity.
+     * Adds the record described by the specified {@link SzRecord} to this
+     * entity.
      *
      * @param record The {@link SzRecord} describing the record to add.
      */
-    public void addRecord(SzRecord record) {
+    public void addRecord(SzRecord record)
+    {
         if (this.records.containsKey(record.getRecordKey())) {
             return;
         }
@@ -139,18 +149,20 @@ public class SzEntity {
     /**
      * Removes all associated records from this entity.
      */
-    public void clearRecords() {
+    public void clearRecords()
+    {
         this.sourceSummary.clear();
         this.records.clear();
     }
 
     /**
-     * Populates the specified {@link JsonObjectBuilder} with the
-     * properties of this instance.
+     * Populates the specified {@link JsonObjectBuilder} with the properties of
+     * this instance.
      *
      * @param builder The {@link JsonObjectBuilder} to populate.
      */
-    public void buildJson(JsonObjectBuilder builder) {
+    public void buildJson(JsonObjectBuilder builder)
+    {
         builder.add("id", this.getEntityId());
         if (this.getEntityName() != null) {
             builder.add("name", this.getEntityName());
@@ -174,7 +186,8 @@ public class SzEntity {
      *
      * @return This instance as a {@link JsonObject}.
      */
-    public JsonObject toJsonObject() {
+    public JsonObject toJsonObject()
+    {
         JsonObjectBuilder job = Json.createObjectBuilder();
         this.buildJson(job);
         return job.build();
@@ -187,7 +200,8 @@ public class SzEntity {
      *                    printed, otherwise <code>false</code>.
      * @return The JSON text for this instance.
      */
-    public String toJsonText(boolean prettyPrint) {
+    public String toJsonText(boolean prettyPrint)
+    {
         return JsonUtilities.toJsonText(this.toJsonObject(), prettyPrint);
     }
 
@@ -196,7 +210,8 @@ public class SzEntity {
      *
      * @return The JSON text for this instance.
      */
-    public String toJsonText() {
+    public String toJsonText()
+    {
         return this.toJsonText(false);
     }
 
@@ -206,10 +221,10 @@ public class SzEntity {
      *
      * @param jsonObject The {@link JsonObject} describing the entity.
      * 
-     * @return The {@link SzEntity} that was parsed from
-     *         the {@link JsonObject}.
+     * @return The {@link SzEntity} that was parsed from the {@link JsonObject}.
      */
-    public static SzEntity parse(JsonObject jsonObject) {
+    public static SzEntity parse(JsonObject jsonObject)
+    {
         return parse(new SzEntity(), jsonObject);
     }
 
@@ -262,12 +277,13 @@ public class SzEntity {
      * parameter is an instance of the same class with equivalent properties.
      * 
      * @param o The object to compare with.
-     * @return <code>true</code> if the specified parameter is an instance
-     *         of the same class with equivalent properties, otherwise
-     *         <code>false</code>.
+     * @return <code>true</code> if the specified parameter is an instance of
+     *                           the same class with equivalent properties,
+     *                           otherwise <code>false</code>.
      */
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(Object o)
+    {
         if (this == o) {
             return true;
         }
@@ -288,7 +304,8 @@ public class SzEntity {
      * @return The hash code for this instance.
      */
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hash(this.getEntityId(),
                             this.getEntityName(),
                             this.getSourceSummary(),
@@ -302,7 +319,8 @@ public class SzEntity {
      * @return The result from {@link #toJsonText()}.
      */
     @Override
-    public String toString() {
+    public String toString()
+    {
         return this.toJsonText();
     }
 }

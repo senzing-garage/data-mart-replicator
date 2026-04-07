@@ -22,8 +22,8 @@ public enum SzReplicatorOption
 {
     /**
      * <p>
-     * Option for displaying help/usage for the replicator. This option
-     * can only be provided by itself and has no parameters.
+     * Option for displaying help/usage for the replicator. This option can only
+     * be provided by itself and has no parameters.
      * <p>
      * This option can be specified in the following ways:
      * <ul>
@@ -34,8 +34,8 @@ public enum SzReplicatorOption
 
     /**
      * <p>
-     * Option for displaying the version number of the replicator. This
-     * option can only be provided by itself and has no parameters.
+     * Option for displaying the version number of the replicator. This option
+     * can only be provided by itself and has no parameters.
      * <p>
      * This option can be specified in the following ways:
      * <ul>
@@ -77,10 +77,9 @@ public enum SzReplicatorOption
 
     /**
      * <p>
-     * Option for specifying the core settings JSON with which to initialize
-     * the Core Senzing SDK. The parameter to this option should be the
-     * settings as a JSON object <b>or</b> the path to a file containing the
-     * settings JSON.
+     * Option for specifying the core settings JSON with which to initialize the
+     * Core Senzing SDK. The parameter to this option should be the settings as
+     * a JSON object <b>or</b> the path to a file containing the settings JSON.
      * <p>
      * This option requires {@link #DATABASE_URI} and one of the following info
      * queue options to be specified:
@@ -148,8 +147,8 @@ public enum SzReplicatorOption
     /**
      * <p>
      * This option sets the number of threads available for executing Core
-     * Senzing SDK functions. The single parameter to this option should be
-     * a positive integer. If not specified, then this defaults to
+     * Senzing SDK functions. The single parameter to this option should be a
+     * positive integer. If not specified, then this defaults to
      * {@link SzReplicatorConstants#DEFAULT_CORE_CONCURRENCY},
      * <p>
      * This option can be specified in the following ways:
@@ -199,10 +198,10 @@ public enum SzReplicatorOption
 
     /**
      * <p>
-     * Use this option to balance the message consumption and processing
-     * between aggressively keeping the data mart closely in sync with the
-     * entity repository and less frequent batch processing to conserve
-     * system resources. The value to this option is one of the following:
+     * Use this option to balance the message consumption and processing between
+     * aggressively keeping the data mart closely in sync with the entity
+     * repository and less frequent batch processing to conserve system
+     * resources. The value to this option is one of the following:
      * <ul>
      * <li><code>leisurely</code> -- This setting allows for longer gaps
      * between updating the data mart, favoring less frequent batch processing
@@ -247,10 +246,10 @@ public enum SzReplicatorOption
 
     /**
      * <p>
-     * This option is used to specify the URL to the RabbitMQ server for
-     * finding the RabbitMQ info queue. The single parameter to this option is
-     * an AMQP URL. If this option is specified then the SQS info queue
-     * parameter is not allowed.
+     * This option is used to specify the URL to the RabbitMQ server for finding
+     * the RabbitMQ info queue. The single parameter to this option is an AMQP
+     * URL. If this option is specified then the SQS info queue parameter is not
+     * allowed.
      * <p>
      * This option can be specified in the following ways:
      * <ul>
@@ -270,12 +269,11 @@ public enum SzReplicatorOption
 
     /**
      * <p>
-     * This option is used to specify the routing key for connecting to
-     * RabbitMQ as part of specifying a RabbitMQ info queue. The single
-     * parameter to this option is a routing key. If this option is specified
-     * then the other options required for a RabbitMQ info queue are required
-     * and the info queue parameters pertaining to SQS and Kafka are not
-     * allowed.
+     * This option is used to specify the routing key for connecting to RabbitMQ
+     * as part of specifying a RabbitMQ info queue. The single parameter to this
+     * option is a routing key. If this option is specified then the other
+     * options required for a RabbitMQ info queue are required and the info
+     * queue parameters pertaining to SQS and Kafka are not allowed.
      * <p>
      * This option can be specified in the following ways:
      * <ul>
@@ -290,22 +288,22 @@ public enum SzReplicatorOption
 
     /**
      * <p>
-     * This presence of this option causes the data mart replicator to utilize
-     * a database table message queue instead of Rabbit MQ or Amazon SQS. The
-     * data mart replicator will use the same database that is configured for
-     * the data mart to find the <code>sz_message_queue</code> table from which
-     * to consume messages. The absence of this parameter will causes the data
-     * mart to require additional options for configuring the message queue for
+     * This presence of this option causes the data mart replicator to utilize a
+     * database table message queue instead of Rabbit MQ or Amazon SQS. The data
+     * mart replicator will use the same database that is configured for the
+     * data mart to find the <code>sz_message_queue</code> table from which to
+     * consume messages. The absence of this parameter will causes the data mart
+     * to require additional options for configuring the message queue for
      * Rabbit MQ or Amazon SQS. A single parameter may optionally be specified
      * as <code>true</code> or <code>false</code> with <code>false</code>
      * simulating the absence of the option.
      * <p>
      * <b>NOTE:</b> If using SQLite then only a single database connection from
      * a single process is allowed at any one time, and therefore either a
-     * process embedding the data mart must be populating the queue
-     * concurrently or population of the queue by another process must occur
-     * while the data mart replicator is <b>not</b> consuming the messages from
-     * the <code>sz_message_queue</code> table.
+     * process embedding the data mart must be populating the queue concurrently
+     * or population of the queue by another process must occur while the data
+     * mart replicator is <b>not</b> consuming the messages from the
+     * <code>sz_message_queue</code> table.
      * <p>
      * This option can be specified in the following ways:
      * <ul>
@@ -319,10 +317,10 @@ public enum SzReplicatorOption
                         null, 0, "false"),
 
     /**
-     * This option is used to specify the database connection for the data
-     * mart. The single parameter to this option is the SQLite or PostgreSQL
-     * database URL specifying the database connection. Possible database URL
-     * formats are:
+     * This option is used to specify the database connection for the data mart.
+     * The single parameter to this option is the SQLite or PostgreSQL database
+     * URL specifying the database connection. Possible database URL formats
+     * are:
      * <ul>
      * <li><code>{@value PostgreSqlUri#SUPPORTED_FORMAT_1}</code></li>
      * <li><code>{@value PostgreSqlUri#SUPPORTED_FORMAT_2}</code></li>
@@ -474,8 +472,8 @@ public enum SzReplicatorOption
     private List<String> defaultParameters = null;
 
     /**
-     * The {@link Map} of option keys to values that are sets of
-     * dependency sets.
+     * The {@link Map} of option keys to values that are sets of dependency
+     * sets.
      */
     private static final Map<SzReplicatorOption, Set<Set<CommandLineOption>>> DEPENDENCIES;
 
@@ -688,7 +686,8 @@ public enum SzReplicatorOption
     /**
      * The {@link ParameterProcessor} implementation for this class.
      */
-    private static class ParamProcessor implements ParameterProcessor {
+    private static class ParamProcessor implements ParameterProcessor
+    {
         /**
          * Processes the parameters for the specified option.
          *
@@ -701,7 +700,8 @@ public enum SzReplicatorOption
          *                                  SzReplicatorOption} or is otherwise
          *                                  unrecognized.
          */
-        public Object process(CommandLineOption option, List<String> params) {
+        public Object process(CommandLineOption option, List<String> params)
+        {
             if (!(option instanceof SzReplicatorOption)) {
                 throw new IllegalArgumentException(
                         "Unhandled command line option: " 
@@ -867,7 +867,8 @@ public enum SzReplicatorOption
      * 
      * @return The {@link ConnectionUri} that was parsed.
      */
-    public static ProcessingRate parseProcessingRate(String paramValue) {
+    public static ProcessingRate parseProcessingRate(String paramValue)
+    {
         Objects.requireNonNull(paramValue, "Parameter value cannot be null");
         try {
             return ProcessingRate.valueOf(paramValue.trim().toUpperCase());
@@ -892,7 +893,8 @@ public enum SzReplicatorOption
      * 
      * @return The {@link ConnectionUri} that was parsed.
      */
-    public static ConnectionUri parseDatabaseUri(String paramValue) {
+    public static ConnectionUri parseDatabaseUri(String paramValue)
+    {
         Objects.requireNonNull(paramValue, "Parameter value cannot be null");
 
         ConnectionUri uri = ConnectionUri.parse(paramValue);

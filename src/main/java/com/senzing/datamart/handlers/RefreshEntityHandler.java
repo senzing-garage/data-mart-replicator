@@ -30,7 +30,8 @@ import static com.senzing.sdk.SzFlag.*;
 /**
  * Provides a handler for refreshing an affected entity.
  */
-public class RefreshEntityHandler extends AbstractTaskHandler {
+public class RefreshEntityHandler extends AbstractTaskHandler
+{
     /**
      * The parameter key for the entity ID.
      */
@@ -67,12 +68,12 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
     /**
      * Constructs with the specified {@link SzReplicationProvider} to use to
-     * access
-     * the data mart replicator functions.
+     * access the data mart replicator functions.
      *
      * @param provider The {@link SzReplicationProvider} to use.
      */
-    public RefreshEntityHandler(SzReplicationProvider provider) {
+    public RefreshEntityHandler(SzReplicationProvider provider)
+    {
         super(provider, REFRESH_ENTITY);
     }
 
@@ -295,21 +296,17 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
     /**
      * Prepares the entity row for deletion and retrieves the current entity
-     * state
-     * from the previous hash using the specified JDBC {@link Connection},
-     * specified
-     * entity ID and unique operation ID that can later be used to actually
-     * delete
-     * the entity row. This returns <code>null</code> if the entity row is
-     * already
-     * deleted.
+     * state from the previous hash using the specified JDBC {@link Connection},
+     * specified entity ID and unique operation ID that can later be used to
+     * actually delete the entity row. This returns <code>null</code> if the
+     * entity row is already deleted.
      *
      * @param conn        The JDBC {@link Connection} to use.
      * @param entityId    The entity ID for the entity.
      * @param operationId The unique operation ID previously used to prepare the
      *                    entity row for delete.
      * @return The {@link String} entity hash describing the previous state, or
-     *         <code>null</code> if not found.
+     *             <code>null</code> if not found.
      * @throws SQLException If a failure occurs.
      */
     protected String prepareEntityDelete(Connection conn,
@@ -376,8 +373,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
     /**
      * Deletes an entity row that was previously prepared for delete using the
      * specified JDBC {@link Connection}, entity ID and the operation ID that
-     * was
-     * previously used to prepare the delete.
+     * was previously used to prepare the delete.
      *
      * @param conn        The JDBC {@link Connection} to use.
      * @param entityId    The entity ID for the entity.
@@ -425,10 +421,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
      * @param conn      The JDBC {@link Connection} to use.
      * @param newEntity The {@link SzResolvedEntity} describing the entity.
      * @return The previous entity hash if updated, <code>null</code> if
-     *         inserted,
-     *         or empty-string if nothing was changed because the entity hashes
-     *         were
-     *         the same.
+     *             inserted, or empty-string if nothing was changed because the
+     *             entity hashes were the same.
      * @throws SQLException If a JDBC failure occurs.
      */
     protected String ensureEntityRow(Connection conn,
@@ -646,12 +640,11 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
      *
      * @param conn              The JDBC {@link Connection} to use.
      * @param entityDelta The {@link EntityDelta} to use to obtain the removed
-     *                          records.
+     *                    records.
      * @param followUpScheduler The {@link Scheduler} to use for scheduling
      *                          follow-up tasks.
      * @return The number of records actually modified (i.e.: those that have
-     *         not
-     *         already been claimed by other entities).
+     *             not already been claimed by other entities).
      * @throws SQLException If a JDBC failure occurs.
      */
     protected int orphanRemovedRecords(Connection   conn, 
@@ -734,14 +727,13 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
     /**
      * Ensures the added and changed relationship rows exist in the database
-     * with
-     * the correct match type and data source summaries and that the removed
-     * relations are deleted. Additionally, this will track all rows that were
-     * actually inserted or updated using the
+     * with the correct match type and data source summaries and that the
+     * removed relations are deleted. Additionally, this will track all rows
+     * that were actually inserted or updated using the
      * {@link EntityDelta#trackStoredRelationship(SzRelationship)} function on 
      * the specified {@link EntityDelta} and all rows that were deleted using
-     * the
-     * {@link EntityDelta#trackDeletedRelationship(SzRelationship)} method.
+     * the {@link EntityDelta#trackDeletedRelationship(SzRelationship)}
+     * method.
      *
      * @param conn              The JDBC {@link Connection} to use.
      * @param entityDelta       The {@link EntityDelta} to use.
@@ -817,21 +809,18 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
     /**
      * Ensures the added and changed relationship rows exist in the database
-     * with
-     * the correct match type and data source summaries. Additionally, this will
-     * track all rows that were actually inserted or updated using the
+     * with the correct match type and data source summaries. Additionally, this
+     * will track all rows that were actually inserted or updated using the
      * {@link EntityDelta#trackStoredRelationship(SzRelationship)} function on
-     * the
-     * specified {@link EntityDelta}.
+     * the specified {@link EntityDelta}.
      *
      * @param conn              The JDBC {@link Connection} to use.
      * @param entityDelta       The {@link EntityDelta} to use.
      * @param followUpScheduler The {@link Scheduler} to use for scheduling
      *                          follow-up tasks.
      * @param followUpSet The {@link Set} to populate with {@link Long} entity
-     *                          ID's for which a relationship refresh follow-up
-     *                          was
-     *                          scheduled.
+     *                    ID's for which a relationship refresh follow-up was
+     *                    scheduled.
      *
      * @return The number of relationships modified or created.
      * @throws SQLException If a JDBC failure occurs.
@@ -975,7 +964,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
      *
      * @param followUpScheduler The {@link Scheduler} to use for scheduling
      *                          follow-up tasks.
-     * @param followUpSet       The {@link Set} to populate with {@link Long} 
+     * @param followUpSet       The {@link Set} to populate with {@link Long}
      *                          entity ID's for each scheduled follow-up.
      * @param triggerId         The entity ID of the entity triggering the
      *                          refresh follow-up.
@@ -1004,10 +993,9 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
     /**
      * Ensures the removed relationship rows no longer exist in the database.
-     * Additionally,
-     * this will track all rows that were actually deleted using the {@link 
-     * EntityDelta#trackDeletedRelationship(SzRelationship)} function on the
-     * specified
+     * Additionally, this will track all rows that were actually deleted using
+     * the {@link EntityDelta#trackDeletedRelationship(SzRelationship)} function
+     * on the specified
      * {@link EntityDelta}.
      *
      * @param conn              The JDBC {@link Connection} to use.
@@ -1015,9 +1003,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
      * @param followUpScheduler The {@link Scheduler} to use for scheduling
      *                          follow-up tasks.
      * @param followUpSet The {@link Set} to populate with {@link Long} entity
-     *                          ID's for which a relationship refresh follow-up
-     *                          was
-     *                          scheduled.
+     *                    ID's for which a relationship refresh follow-up was
+     *                    scheduled.
      *
      * @return The number of relationships deleted.
      * @throws SQLException If a JDBC failure occurs.
@@ -1179,19 +1166,16 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
     /**
      * Ensures the related entities connected by stale relationships to this
-     * entity
-     * are followed up on and removed relationships in the mart are also
-     * followed up
-     * on.
+     * entity are followed up on and removed relationships in the mart are also
+     * followed up on.
      *
      * @param conn              The JDBC {@link Connection} to use.
      * @param entityDelta       The {@link EntityDelta} to use.
      * @param followUpScheduler The {@link Scheduler} to use for scheduling
      *                          follow-up tasks.
      * @param followUpSet The {@link Set} to populate with {@link Long} entity
-     *                          ID's for which a relationship refresh follow-up
-     *                          was
-     *                          scheduled.
+     *                    ID's for which a relationship refresh follow-up was
+     *                    scheduled.
      *
      * @throws SQLException If a JDBC failure occurs.
      */
@@ -1207,19 +1191,16 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
     }
     /**
      * Ensures the related entities connected by stale relationships to this
-     * entity
-     * are followed up on and removed relationships in the mart are also
-     * followed up
-     * on.
+     * entity are followed up on and removed relationships in the mart are also
+     * followed up on.
      *
      * @param conn              The JDBC {@link Connection} to use.
      * @param entityId          The entity ID of the entity.
      * @param followUpScheduler The {@link Scheduler} to use for scheduling
      *                          follow-up tasks.
      * @param followUpSet The {@link Set} to populate with {@link Long} entity
-     *                          ID's for which a relationship refresh follow-up
-     *                          was
-     *                          scheduled.
+     *                    ID's for which a relationship refresh follow-up was
+     *                    scheduled.
      *
      * @throws SQLException If a JDBC failure occurs.
      */
@@ -1235,21 +1216,18 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
     /**
      * Ensures the related entities connected by stale relationships to this
-     * entity
-     * are followed up on and removed relationships in the mart are also
-     * followed up
-     * on.
+     * entity are followed up on and removed relationships in the mart are also
+     * followed up on.
      *
      * @param conn              The JDBC {@link Connection} to use.
      * @param entityId          The entity ID of the entity.
      * @param entityDelta The {@link EntityDelta} to use, or <code>null</code>
-     *                          if a deleted entity was never replicated.
+     *                    if a deleted entity was never replicated.
      * @param followUpScheduler The {@link Scheduler} to use for scheduling
      *                          follow-up tasks.
      * @param followUpSet The {@link Set} to populate with {@link Long} entity
-     *                          ID's for which a relationship refresh follow-up
-     *                          was
-     *                          scheduled.
+     *                    ID's for which a relationship refresh follow-up was
+     *                    scheduled.
      *
      * @throws SQLException If a JDBC failure occurs.
      */
@@ -1328,13 +1306,14 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
      *
      * @param conn  The JDBC {@link Connection} to use.
      * @param delta The {@link EntityDelta} that has accumulated the report
-     *        updates.
+     *              updates.
      * @return The number of rows inserted.
      * @throws SQLException If a JDBC failure occurs.
      */
     protected int insertReportDeltaUpdates(Connection conn,
                                            EntityDelta delta)
-                                           throws SQLException {
+                                           throws SQLException
+    {
         // get the updates
         List<SzReportUpdate> updates = delta.getReportUpdates();
         if (updates.size() == 0) {
@@ -1395,11 +1374,12 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
      * follow-up tasks for the modified reports.
      *
      * @param entityDelta The {@link EntityDelta} to get the pending updates
-     *        from.
+     *                    from.
      *
      * @return The number of unique follow-up tasks scheduled.
      */
-    protected int followUpOnReports(EntityDelta entityDelta) {
+    protected int followUpOnReports(EntityDelta entityDelta)
+    {
         // get the updates
         List<SzReportUpdate> updates = entityDelta.getReportUpdates();
         Set<SzReportKey> reportKeys = new LinkedHashSet<>();
@@ -1429,7 +1409,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
      */
     protected void enrollLockingRows(Connection conn,
                                      EntityDelta entityDelta)
-                                     throws SQLException {
+                                     throws SQLException
+    {
         PreparedStatement ps = null;
 
         String operationId =

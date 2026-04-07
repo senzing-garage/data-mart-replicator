@@ -58,15 +58,13 @@ public enum SzMatchType
     }
 
     /**
-     * Gets the {@link SzMatchType} for the specified two-letter
-     * code. This returns <code>null</code> if the specified code
-     * is not recognized.
+     * Gets the {@link SzMatchType} for the specified two-letter code. This
+     * returns <code>null</code> if the specified code is not recognized.
      *
-     * @param code The code for which the {@link SzMatchType} is
-     *             being requested.
+     * @param code The code for which the {@link SzMatchType} is being
+     *             requested.
      * @return The {@link SzMatchType} for the specified code, or
-     *         <code>null</code> if the specified code is not
-     *         recognized.
+     *             <code>null</code> if the specified code is not recognized.
      */
     public static SzMatchType lookup(String code)
     {

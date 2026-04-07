@@ -22,10 +22,8 @@ public class SzInterestingEntity implements Serializable
 
     /**
      * The JSON property key for deserializing the {@linkplain
-     * #setEntityId(Long)
-     * entity ID property} when parsing raw Senzing INFO message JSON to
-     * construct
-     * instances of this class.
+     * #setEntityId(Long) entity ID property} when parsing raw Senzing INFO
+     * message JSON to construct instances of this class.
      */
     public static final String RAW_ENTITY_ID_KEY = "ENTITY_ID";
 
@@ -37,9 +35,8 @@ public class SzInterestingEntity implements Serializable
 
     /**
      * The JSON property key for deserializing the {@linkplain
-     * #setDegrees(Integer)
-     * degrees property} when parsing raw Senzing INFO message JSON to construct
-     * instances of this class.
+     * #setDegrees(Integer) degrees property} when parsing raw Senzing INFO
+     * message JSON to construct instances of this class.
      */
     public static final String RAW_DEGREES_KEY = "DEGREES";
 
@@ -51,9 +48,8 @@ public class SzInterestingEntity implements Serializable
 
     /**
      * The JSON property key for deserializing the {@linkplain
-     * #setFlags(Collection)
-     * flags property} when parsing raw Senzing INFO message JSON to construct
-     * instances of this class.
+     * #setFlags(Collection) flags property} when parsing raw Senzing INFO
+     * message JSON to construct instances of this class.
      */
     public static final String RAW_FLAGS_KEY = "FLAGS";
 
@@ -89,8 +85,7 @@ public class SzInterestingEntity implements Serializable
 
     /**
      * The {@link List} of {@link SzSampleRecord} instances describing the
-     * sample
-     * records.
+     * sample records.
      */
     private List<SzSampleRecord> sampleRecords;
 
@@ -174,8 +169,8 @@ public class SzInterestingEntity implements Serializable
      * Gets the flags for the sample record as an <b>unmodifiable</b> {@link
      * Set}.
      *
-     * @return The flags for the sample record as an <b>unmodifiable</b>
-     *         {@link Set}.
+     * @return The flags for the sample record as an <b>unmodifiable</b> {@link
+     *             Set}.
      */
     public Set<String> getFlags()
     {
@@ -216,7 +211,7 @@ public class SzInterestingEntity implements Serializable
      * {@link List} of {@link SzSampleRecord}.
      *
      * @return The sample records for the interesting entity as an
-     *         <b>unmodifiable</b> {@link List} of {@link SzSampleRecord}.
+     *             <b>unmodifiable</b> {@link List} of {@link SzSampleRecord}.
      */
     public List<SzSampleRecord> getSampleRecords()
     {
@@ -244,8 +239,7 @@ public class SzInterestingEntity implements Serializable
      * instance.
      *
      * @param sampleRecord The {@link SzSampleRecord} describing the sample
-     *        record
-     *                     to add to this interesting entity.
+     *                     record to add to this interesting entity.
      */
     public void addSampleRecord(SzSampleRecord sampleRecord)
     {
@@ -256,13 +250,12 @@ public class SzInterestingEntity implements Serializable
 
     /**
      * Overridden to return <code>true</code> if and only if the specified
-     * parameter
-     * is an instance of the same class with equivalent properties.
+     * parameter is an instance of the same class with equivalent properties.
      * 
      * @param o The object to compare with.
      * @return <code>true</code> if the specified parameter is an instance of
-     *         the
-     * same class with equivalent properties, otherwise <code>false</code>.
+     *                           the same class with equivalent properties,
+     *                           otherwise <code>false</code>.
      */
     @Override
     public boolean equals(Object o)
@@ -279,8 +272,7 @@ public class SzInterestingEntity implements Serializable
 
     /**
      * Overridden to return a hash code consistent with the {@link
-     * #equals(Object)}
-     * implementation.
+     * #equals(Object)} implementation.
      * 
      * @return The hash code for this instance.
      */
@@ -293,10 +285,9 @@ public class SzInterestingEntity implements Serializable
 
     /**
      * Serializes this instance as JSON to the specified {@link
-     * JsonObjectBuilder}.
-     * If the specified {@link JsonObjectBuilder} is <code>null</code> then a
-     * new
-     * instance is created, populated and then returned.
+     * JsonObjectBuilder}. If the specified {@link JsonObjectBuilder} is
+     * <code>null</code> then a new instance is created, populated and then
+     * returned.
      *
      * @param builder The optional {@link JsonObjectBuilder} to use, or
      *                <code>null</code> if a new instance should be created.
@@ -348,12 +339,10 @@ public class SzInterestingEntity implements Serializable
 
     /**
      * Serializes this instance as JSON to a new {@link JsonObject} and returns
-     * the
-     * created {@link JsonObject}.
+     * the created {@link JsonObject}.
      *
      * @return The {@link JsonObject} that was created to describe the
-     *         serialized
-     *         form of this instance.
+     *             serialized form of this instance.
      *
      * @see #toJsonObjectBuilder(JsonObjectBuilder)
      * @see #toJsonObjectBuilder()
@@ -365,12 +354,11 @@ public class SzInterestingEntity implements Serializable
 
     /**
      * Serializes this instance as JSON text and returns the JSON text,
-     * optionally
-     * pretty-printing the generated JSON.
+     * optionally pretty-printing the generated JSON.
      *
      * @param prettyPrint <code>true</code> if the JSON should be
-     *        pretty-printed,
-     *                    otherwise <code>false</code> for more efficient JSON.
+     *                    pretty-printed, otherwise <code>false</code> for more
+     *                    efficient JSON.
      * @return The JSON text that was generated.
      */
     public String toJsonText(boolean prettyPrint)
@@ -380,8 +368,7 @@ public class SzInterestingEntity implements Serializable
 
     /**
      * Serializes this instance as JSON text and returns the JSON text. The
-     * returned
-     * JSON should <b>not</b> be pretty-printed.
+     * returned JSON should <b>not</b> be pretty-printed.
      *
      * @return The JSON text that was generated.
      */
@@ -393,19 +380,16 @@ public class SzInterestingEntity implements Serializable
     /**
      * Parses the specified JSON text that is formatted as if generated by
      * {@linkplain #toJsonText() serializing} an instance of this class and
-     * creates
-     * a new instance of this class as described by the JSON. If the required
-     * JSON
-     * properties are not found then an exception is thrown.
+     * creates a new instance of this class as described by the JSON. If the
+     * required JSON properties are not found then an exception is thrown.
      *
      * @param jsonText The JSON text to parse.
      *
      * @return The created {@link SzInterestingEntity} instance, or
-     *         <code>null</code> if the specified text is <code>null</code>.
+     *             <code>null</code> if the specified text is <code>null</code>.
      *
      * @throws IllegalArgumentException If the specified text is not valid JSON
-     *         or
-     *                                  does not contain the required JSON
+     *                                  or does not contain the required JSON
      *                                  properties.
      */
     public static SzInterestingEntity fromJson(String jsonText)
@@ -417,23 +401,19 @@ public class SzInterestingEntity implements Serializable
 
     /**
      * Parses the JSON described by the specified {@link JsonObject} where that
-     * JSON
-     * is formatted as if generated by {@linkplain #toJsonObject() serializing}
-     * an
-     * instance of this class and creates a new instance of this class as
-     * described
-     * by the JSON. If the required JSON properties are not found then an
-     * exception
-     * is thrown.
+     * JSON is formatted as if generated by {@linkplain #toJsonObject()
+     * serializing} an instance of this class and creates a new instance of this
+     * class as described by the JSON. If the required JSON properties are not
+     * found then an exception is thrown.
      *
      * @param jsonObject The {@link JsonObject} describing the JSON to parse.
      *
      * @return The created {@link SzInterestingEntity} instance, or
-     * <code>null</code> if the specified parameter is <code>null</code>.
+     *             <code>null</code> if the specified parameter is
+     *             <code>null</code>.
      *
      * @throws IllegalArgumentException If the specified text is not valid JSON
-     *         or
-     *                                  does not contain the required JSON
+     *                                  or does not contain the required JSON
      *                                  properties.
      *
      */
@@ -453,11 +433,10 @@ public class SzInterestingEntity implements Serializable
      * @param jsonText The JSON text to parse.
      *
      * @return The created {@link SzInterestingEntity} instance, or
-     *         <code>null</code> if the specified text is <code>null</code>.
+     *             <code>null</code> if the specified text is <code>null</code>.
      *
      * @throws IllegalArgumentException If the specified text is not valid JSON
-     *         or
-     *                                  does not contain the required JSON
+     *                                  or does not contain the required JSON
      *                                  properties.
      */
     public static SzInterestingEntity fromRawJson(String jsonText)
@@ -469,21 +448,18 @@ public class SzInterestingEntity implements Serializable
 
     /**
      * Parses the JSON described by the specified {@link JsonObject} where that
-     * JSON
-     * is formatted as a raw Senzing INFO message part and creates a new
-     * instance of
-     * this class as described by the JSON. If the required JSON properties are
-     * not
-     * found then an exception is thrown.
+     * JSON is formatted as a raw Senzing INFO message part and creates a new
+     * instance of this class as described by the JSON. If the required JSON
+     * properties are not found then an exception is thrown.
      *
      * @param jsonObject The {@link JsonObject} describing the JSON to parse.
      *
      * @return The created {@link SzInterestingEntity} instance, or
-     * <code>null</code> if the specified parameter is <code>null</code>.
+     *             <code>null</code> if the specified parameter is
+     *             <code>null</code>.
      *
      * @throws IllegalArgumentException If the specified text is not valid JSON
-     *         or
-     *                                  does not contain the required JSON
+     *                                  or does not contain the required JSON
      *                                  properties.
      *
      */
@@ -511,15 +487,15 @@ public class SzInterestingEntity implements Serializable
      *                         property.
      *
      * @param rawJson          <code>true</code> if parsing raw Senzing INFO
-     *                         message JSON, <code>false</code> if parsing
-     *                         the serialized form from this class.
+     *                         message JSON, <code>false</code> if parsing the
+     *                         serialized form from this class.
      *
      * @return The created {@link SzInterestingEntity} instance, or
-     * <code>null</code> if the specified parameter is <code>null</code>.
+     *             <code>null</code> if the specified parameter is
+     *             <code>null</code>.
      *
      * @throws IllegalArgumentException If the specified text is not valid JSON
-     *         or
-     *                                  does not contain the required JSON
+     *                                  or does not contain the required JSON
      *                                  properties.
      *
      */

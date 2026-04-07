@@ -7,25 +7,26 @@ import java.util.Objects;
  * Enumerates the various types of bounds that can be applied as criteria for a
  * value having an ordering.
  */
-public enum SzBoundType {
+public enum SzBoundType
+{
     /**
-     * Describes a bound that is a lower bound that includes the
-     * bound value. Values that satisfy such a bound are greater
-     * than or equal to the bound value.
+     * Describes a bound that is a lower bound that includes the bound value.
+     * Values that satisfy such a bound are greater than or equal to the bound
+     * value.
      */
     INCLUSIVE_LOWER(true, true),
 
     /**
-     * Describes a bound that is a lower bound that excludes the
-     * bound value. Values that satisfy such a bound are strictly
-     * greater than the bound value.
+     * Describes a bound that is a lower bound that excludes the bound value.
+     * Values that satisfy such a bound are strictly greater than the bound
+     * value.
      */
     EXCLUSIVE_LOWER(false, true),
 
     /**
      * Describes a bound that is an upper bound that includes the bound value.
-     * Values that satisfy such a bound are less than or equal
-     * to the bound value.
+     * Values that satisfy such a bound are less than or equal to the bound
+     * value.
      */
     INCLUSIVE_UPPER(true, false),
 
@@ -50,15 +51,16 @@ public enum SzBoundType {
     private boolean lower = false;
 
     /**
-     * Private constructor that constructs with the inclusivity
-     * and direction of the bound type.
+     * Private constructor that constructs with the inclusivity and direction of
+     * the bound type.
      * 
      * @param inclusive <code>true</code> if the bound is inclusive, and
      *                  <code>false</code> if it is exclusive.
      * @param lower     <code>true</code> if the bound is a lower bound, and
      *                  <code>false</code> if it is an upper bound.
      */
-    SzBoundType(boolean inclusive, boolean lower) {
+    SzBoundType(boolean inclusive, boolean lower)
+    {
         this.inclusive = inclusive;
         this.lower = lower;
     }
@@ -67,9 +69,10 @@ public enum SzBoundType {
      * Checks if this instance describes an inclusive bound.
      * 
      * @return <code>true</code> if this instance describes an inclusive bound,
-     *         otherwise <code>false</code>
+     *                           otherwise <code>false</code>
      */
-    public boolean isInclusive() {
+    public boolean isInclusive()
+    {
         return this.inclusive;
     }
 
@@ -77,37 +80,40 @@ public enum SzBoundType {
      * Checks if this instance describes an exclusive bound.
      * 
      * @return <code>true</code> if this instance describes an exclusive bound,
-     *         otherwise <code>false</code>
+     *                           otherwise <code>false</code>
      */
-    public boolean isExclusive() {
+    public boolean isExclusive()
+    {
         return (!this.isInclusive());
     }
 
     /**
      * Checks if this instance describes a lower bound.
      * 
-     * @return <code>true</code> if this instance describes a
-     *         lower bound, otherwise <code>false</code>.
+     * @return <code>true</code> if this instance describes a lower bound,
+     *                           otherwise <code>false</code>.
      */
-    public boolean isLower() {
+    public boolean isLower()
+    {
         return this.lower;
     }
 
     /**
      * Checks if this instance describes an upper bound.
      * 
-     * @return <code>true</code> if this instance describes an
-     *         upper bound, otherwise <code>false</code>.
+     * @return <code>true</code> if this instance describes an upper bound,
+     *                           otherwise <code>false</code>.
      */
-    public boolean isUpper() {
+    public boolean isUpper()
+    {
         return (!this.isLower());
     }
 
     /**
      * Compares the two specified values and returns
      * <code>true</code> if the specified value satisfies the
-     * bound the defined by this {@link SzBoundType} instance
-     * and the specified bound value.
+     * bound the defined by this {@link SzBoundType} instance and the specified
+     * bound value.
      *
      * @param <T> The type of the bound value.
      * @param value      The value to check if it satisfies the bound.
@@ -115,7 +121,7 @@ public enum SzBoundType {
      *                   instance to define the bound.
      * 
      * @return <code>true</code> if the value satisfies the bound, otherwise
-     *         <code>false</code>
+     *                           <code>false</code>
      * 
      * @throws NullPointerException If either of the specified values is
      *                              <code>null</code>.
@@ -141,8 +147,8 @@ public enum SzBoundType {
     /**
      * Compares the two specified values and returns
      * <code>true</code> if the specified value satisfies the
-     * bound the defined by this {@link SzBoundType} instance
-     * and the specified bound value.
+     * bound the defined by this {@link SzBoundType} instance and the specified
+     * bound value.
      *
      * @param value      The value to check if it satisfies the bound.
      * @param boundValue The bound value to couple with this {@link SzBoundType}
@@ -152,11 +158,11 @@ public enum SzBoundType {
      * @param <T>        The type of the objects being compared.
      * 
      * @return <code>true</code> if the value satisfies the bound, otherwise
-     *         <code>false</code>
+     *                           <code>false</code>
      * 
      * @throws NullPointerException If either of the specified values is
-     *                              <code>null</code> or if the specified
-     *                              {@link Comparator} is <code>null</code>.
+     *                              <code>null</code> or if the specified {@link
+     *                              Comparator} is <code>null</code>.
      */
     public <T> boolean checkSatisfies(
             T value, T boundValue,

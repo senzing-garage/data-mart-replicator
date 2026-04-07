@@ -1,8 +1,8 @@
 package com.senzing.datamart.model;
 
 /**
- * Enumerates the report statistics for various reports (though some
- * reports have statistics that cannot be enumerated here).
+ * Enumerates the report statistics for various reports (though some reports
+ * have statistics that cannot be enumerated here).
  */
 public enum SzReportStatistic
 {
@@ -17,41 +17,39 @@ public enum SzReportStatistic
     UNMATCHED_COUNT,
 
     /**
-     * Describes the number of entities for which two records matched
-     * for two specific data sources (possibly the same data source).
+     * Describes the number of entities for which two records matched for two
+     * specific data sources (possibly the same data source).
      */
     MATCHED_COUNT,
 
     /**
-     * Describes the number of entities for which there is an
-     * ambiguous match.
+     * Describes the number of entities for which there is an ambiguous match.
      */
     AMBIGUOUS_MATCH_COUNT,
 
     /**
-     * Describes the number of related entity pairs that are possible
-     * matches for two specific data sources (possibly the same data
-     * source).
+     * Describes the number of related entity pairs that are possible matches
+     * for two specific data sources (possibly the same data source).
      */
     POSSIBLE_MATCH_COUNT,
 
     /**
-     * Describes the number of related entity pairs that are related
-     * by disclosed relationships for two specific data sources
-     * (possibly the same data source).
+     * Describes the number of related entity pairs that are related by
+     * disclosed relationships for two specific data sources (possibly the same
+     * data source).
      */
     DISCLOSED_RELATION_COUNT,
 
     /**
-     * Describes the number of related entity pairs that are related
-     * by possible relationships for two specific data sources
-     * (possibly the same data source).
+     * Describes the number of related entity pairs that are related by possible
+     * relationships for two specific data sources (possibly the same data
+     * source).
      */
     POSSIBLE_RELATION_COUNT;
 
     /**
-     * Provides a formatter to format {@link SzReportStatistic}
-     * instances with optional principles and match keys.
+     * Provides a formatter to format {@link SzReportStatistic} instances with
+     * optional principles and match keys.
      */
     public static final class Formatter
     {
@@ -59,8 +57,7 @@ public enum SzReportStatistic
          * Constructs a new formatter with the specified
          * {@link SzReportStatistic}.
          *
-         * @param statistic The {@link SzReportStatistic} to be
-         *                  formatted.
+         * @param statistic The {@link SzReportStatistic} to be formatted.
          */
         private Formatter(SzReportStatistic statistic)
         {
@@ -68,8 +65,7 @@ public enum SzReportStatistic
         }
 
         /**
-         * The {@link SzReportStatistic} associated with the
-         * formatter.
+         * The {@link SzReportStatistic} associated with the formatter.
          */
         private SzReportStatistic statistic;
 
@@ -86,8 +82,7 @@ public enum SzReportStatistic
         /**
          * Adds a principle to format with the statistic.
          *
-         * @param principle The principle to format with the
-         *                  statistic.
+         * @param principle The principle to format with the statistic.
          *
          * @return This {@link Formatter} instance.
          */
@@ -106,8 +101,7 @@ public enum SzReportStatistic
         /**
          * Adds a match key to format with the statistic.
          *
-         * @param matchKey The match key to format with the
-         *                 statistic.
+         * @param matchKey The match key to format with the statistic.
          *
          * @return This {@link Formatter} instance.
          */
@@ -134,11 +128,10 @@ public enum SzReportStatistic
         }
 
         /**
-         * Gets the associated principle (if any). If no associated
-         * principle then this returns <code>null</code>.
+         * Gets the associated principle (if any). If no associated principle
+         * then this returns <code>null</code>.
          *
-         * @return The associated principle, or <code>null</code>
-         *         if none.
+         * @return The associated principle, or <code>null</code> if none.
          */
         public String getPrinciple()
         {
@@ -146,11 +139,10 @@ public enum SzReportStatistic
         }
 
         /**
-         * Gets the associated match key (if any). If no associated
-         * match key then this returns <code>null</code>.
+         * Gets the associated match key (if any). If no associated match key
+         * then this returns <code>null</code>.
          *
-         * @return The associated match key, or <code>null</code>
-         *         if none.
+         * @return The associated match key, or <code>null</code> if none.
          */
         public String getMatchKey()
         {
@@ -158,21 +150,20 @@ public enum SzReportStatistic
         }
 
         /**
-         * Parses an encoded statistic as an instance of {@link
-         * Formatter}. If the specified parameter is
+         * Parses an encoded statistic as an instance of {@link Formatter}. If
+         * the specified parameter is
          * <code>null</code> or an empty string after trimming
-         * leading and trailing whitespace then <code>null</code>
-         * is returned.
+         * leading and trailing whitespace then <code>null</code> is returned.
          *
          * @param encodedStatistic The encoded statistic.
          *
-         * @return The parsed statistic as a {@link Formatter},
-         *         or <code>null</code> if the specified parameter
-         *         is <code>null</code> or empty string.
+         * @return The parsed statistic as a {@link Formatter}, or
+         *             <code>null</code> if the specified parameter is
+         *             <code>null</code> or empty string.
          *
-         * @throws IllegalArgumentException If the specified
-         *         encoded statistic is not a properly formatted
-         *         statistic.
+         * @throws IllegalArgumentException If the specified encoded statistic
+         *                                  is not a properly formatted
+         *                                  statistic.
          */
         public static Formatter parse(String encodedStatistic)
         {
@@ -243,8 +234,7 @@ public enum SzReportStatistic
         /**
          * Converts this instance to a {@link String} statistic.
          *
-         * @return The formatted {@link String} statistic for
-         *         this instance.
+         * @return The formatted {@link String} statistic for this instance.
          */
         public String format()
         {
@@ -280,8 +270,8 @@ public enum SzReportStatistic
      * Creates a {@link Formatter} that will format this {@link
      * SzReportStatistic} instance with the specified principle.
      *
-     * @param principle The principle to format with this
-     *                  {@link SzReportStatistic}.
+     * @param principle The principle to format with this {@link
+     *                  SzReportStatistic}.
      *
      * @return The created {@link Formatter} instance.
      */
@@ -295,8 +285,8 @@ public enum SzReportStatistic
      * Creates a {@link Formatter} that will format this {@link
      * SzReportStatistic} instance with the specified match key.
      *
-     * @param matchKey The match key to format with this
-     *                 {@link SzReportStatistic}.
+     * @param matchKey The match key to format with this {@link
+     *                 SzReportStatistic}.
      *
      * @return The created {@link Formatter} instance.
      */

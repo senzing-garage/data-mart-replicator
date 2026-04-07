@@ -7,14 +7,16 @@ import com.senzing.util.Quantified;
 import javax.json.JsonObject;
 
 /**
- * Defines an interface for a {@link ListenerService} that can process
- * messages that are received.
+ * Defines an interface for a {@link ListenerService} that can process messages
+ * that are received.
  */
-public interface ListenerService extends MessageProcessor, Quantified {
+public interface ListenerService extends MessageProcessor, Quantified
+{
   /**
    * Enumerates the states of a {@link ListenerService}.
    */
-  enum State {
+  enum State
+  {
     /**
      * The {@link ListenerService} has not yet been initialized.
      */
@@ -27,8 +29,8 @@ public interface ListenerService extends MessageProcessor, Quantified {
     INITIALIZING,
 
     /**
-     * The {@link ListenerService} has completed initialization, and is ready
-     * to process messages.
+     * The {@link ListenerService} has completed initialization, and is ready to
+     * process messages.
      */
     AVAILABLE,
 
@@ -39,8 +41,8 @@ public interface ListenerService extends MessageProcessor, Quantified {
     DESTROYING,
 
     /**
-     * The {@link ListenerService} is no longer processing messages and has
-     * been destroyed.
+     * The {@link ListenerService} is no longer processing messages and has been
+     * destroyed.
      */
     DESTROYED;
   }
@@ -62,8 +64,8 @@ public interface ListenerService extends MessageProcessor, Quantified {
   void init(JsonObject config) throws ServiceSetupException;
 
   /**
-   * This method is called by the consumer.  Processes the message passed to
-   * the service from the consumer.
+   * This method is called by the consumer. Processes the message passed to the
+   * service from the consumer.
    * 
    * @param message The message to process.
    *

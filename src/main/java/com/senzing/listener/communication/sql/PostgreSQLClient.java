@@ -11,11 +11,13 @@ import com.senzing.sql.DatabaseType;
 /**
  * Provides a PostgreSQL implementation of {@link SQLClient}.
  */
-public class PostgreSQLClient implements SQLClient {
+public class PostgreSQLClient implements SQLClient
+{
     /**
      * Default constructor.
      */
-    public PostgreSQLClient() {
+    public PostgreSQLClient()
+    {
         // do nothing   
         
     }
@@ -26,7 +28,8 @@ public class PostgreSQLClient implements SQLClient {
      * </p>
      */
     @Override
-    public DatabaseType getDatabaseType() {
+    public DatabaseType getDatabaseType()
+    {
         return DatabaseType.POSTGRESQL;
     }
 

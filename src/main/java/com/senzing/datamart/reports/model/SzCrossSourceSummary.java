@@ -11,7 +11,8 @@ import java.util.TreeMap;
 /**
  * Describes the cross-source statistics between two data sources.
  */
-public class SzCrossSourceSummary implements Serializable {
+public class SzCrossSourceSummary implements Serializable
+{
     /**
      * The primary data source in the cross comparison.
      */
@@ -24,69 +25,58 @@ public class SzCrossSourceSummary implements Serializable {
 
     /**
      * The {@link SortedMap} of {@link SzCountsKey} keys to {@link
-     * SzMatchCounts}
-     * values for each requested match-key/principle combination that describe
-     * the
-     * entity and record counts for matches between records from the primary
-     * data
-     * source to at least one record from the "versus" data source.
+     * SzMatchCounts} values for each requested match-key/principle combination
+     * that describe the entity and record counts for matches between records
+     * from the primary data source to at least one record from the "versus"
+     * data source.
      */
     private SortedMap<SzCountsKey, SzMatchCounts> matches = null;
 
     /**
      * The {@link SortedMap} of {@link SzCountsKey} keys to {@link
-     * SzRelationCounts}
-     * values for each requested match-key/principle combination that describes
-     * the
-     * entity, record and relationship counts for ambiguous-match relationships
-     * between entities having at least one record from the primary data source
-     * and
-     * entities having at least one record from the "versus" data source.
+     * SzRelationCounts} values for each requested match-key/principle
+     * combination that describes the entity, record and relationship counts for
+     * ambiguous-match relationships between entities having at least one record
+     * from the primary data source and entities having at least one record from
+     * the "versus" data source.
      */
     private SortedMap<SzCountsKey, SzRelationCounts> ambiguousMatches = null;
 
     /**
      * The {@link SortedMap} of {@link SzCountsKey} keys to {@link
-     * SzRelationCounts}
-     * values for each requested match-key/principle combination that describes
-     * the
-     * entity, record and relationship counts for possible-match relationships
-     * between entities having at least one record from the primary data source
-     * and
-     * entities having at least one record from the "versus" data source.
+     * SzRelationCounts} values for each requested match-key/principle
+     * combination that describes the entity, record and relationship counts for
+     * possible-match relationships between entities having at least one record
+     * from the primary data source and entities having at least one record from
+     * the "versus" data source.
      */
     private SortedMap<SzCountsKey, SzRelationCounts> possibleMatches = null;
 
     /**
      * The {@link SortedMap} of {@link SzCountsKey} keys to {@link
-     * SzRelationCounts}
-     * values for each requested match-key/principle combination that describes
-     * the
-     * entity, record and relationship counts for possible-relation
-     * relationships
-     * between entities having at least one record from the primary data source
-     * and
-     * entities having at least one record from the "versus" data source.
+     * SzRelationCounts} values for each requested match-key/principle
+     * combination that describes the entity, record and relationship counts for
+     * possible-relation relationships between entities having at least one
+     * record from the primary data source and entities having at least one
+     * record from the "versus" data source.
      */
     private SortedMap<SzCountsKey, SzRelationCounts> possibleRelations = null;
 
     /**
      * The {@link SortedMap} of {@link SzCountsKey} keys to {@link
-     * SzRelationCounts}
-     * values for each requested match-key/principle combination that describes
-     * the
-     * entity, record and relationship counts for disclosed-relation
-     * relationships
-     * between entities having at least one record from the primary data source
-     * and
-     * entities having at least one record from the "versus" data source.
+     * SzRelationCounts} values for each requested match-key/principle
+     * combination that describes the entity, record and relationship counts for
+     * disclosed-relation relationships between entities having at least one
+     * record from the primary data source and entities having at least one
+     * record from the "versus" data source.
      */
     private SortedMap<SzCountsKey, SzRelationCounts> disclosedRelations = null;
 
     /**
      * Default constructor.
      */
-    public SzCrossSourceSummary() {
+    public SzCrossSourceSummary()
+    {
         this.dataSource = null;
         this.versusDataSource = null;
         this.matches = new TreeMap<>();
@@ -102,7 +92,8 @@ public class SzCrossSourceSummary implements Serializable {
      * @param dataSource   The data source code for the primary data source.
      * @param vsDataSource The data source code for the "versus" data source.
      */
-    public SzCrossSourceSummary(String dataSource, String vsDataSource) {
+    public SzCrossSourceSummary(String dataSource, String vsDataSource)
+    {
         this.dataSource = dataSource;
         this.versusDataSource = vsDataSource;
         this.matches = new TreeMap<>();
@@ -117,7 +108,8 @@ public class SzCrossSourceSummary implements Serializable {
      *
      * @return The primary data source in the cross comparison.
      */
-    public String getDataSource() {
+    public String getDataSource()
+    {
         return this.dataSource;
     }
 
@@ -125,12 +117,13 @@ public class SzCrossSourceSummary implements Serializable {
      * Sets the primary data source in the cross comparison.
      *
      * @param dataSource The non-null primary data source in the cross
-     *        comparison.
+     *                   comparison.
      * 
      * @throws NullPointerException If the specified data source code is
      *                              <code>null</code>.
      */
-    public void setDataSource(String dataSource) {
+    public void setDataSource(String dataSource)
+    {
         this.dataSource = dataSource;
     }
 
@@ -139,7 +132,8 @@ public class SzCrossSourceSummary implements Serializable {
      *
      * @return The versus data source in the cross comparison.
      */
-    public String getVersusDataSource() {
+    public String getVersusDataSource()
+    {
         return this.versusDataSource;
     }
 
@@ -147,28 +141,28 @@ public class SzCrossSourceSummary implements Serializable {
      * Sets the versus data source in the cross comparison.
      *
      * @param dataSource The non-null versus data source in the cross
-     *        comparison.
+     *                   comparison.
      * 
      * @throws NullPointerException If the specified data source code is
      *                              <code>null</code>.
      */
-    public void setVersusDataSource(String dataSource) {
+    public void setVersusDataSource(String dataSource)
+    {
         this.versusDataSource = dataSource;
     }
 
     /**
      * Gets the {@link List} of {@link SzMatchCounts} instances for each
-     * requested
-     * match key and principle combination that describe the entity and record
-     * counts for matches between records from the primary data source to at
-     * least
-     * one record from the "versus" data source.
+     * requested match key and principle combination that describe the entity
+     * and record counts for matches between records from the primary data
+     * source to at least one record from the "versus" data source.
      *
      * @return The {@link List} of {@link SzMatchCounts} instances for each
-     *         requested match key and principle combination that describe the
-     *         entity and record counts for matches for this instance.
+     *             requested match key and principle combination that describe
+     *             the entity and record counts for matches for this instance.
      */
-    public List<SzMatchCounts> getMatches() {
+    public List<SzMatchCounts> getMatches()
+    {
         return new ArrayList<>(this.matches.values());
     }
 
@@ -176,17 +170,15 @@ public class SzCrossSourceSummary implements Serializable {
      * Sets the {@link SzMatchCounts} instances for this instance using the
      * specified {@link Collection} of {@link SzMatchCounts}. Any current
      * {@link SzMatchCounts} are removed and replaced with the specified
-     * instances.
-     * If any of the {@link SzMatchCounts} instances have the same
+     * instances. If any of the {@link SzMatchCounts} instances have the same
      * match-key/principle pairs then the last one wins out replacing any
-     * previously
-     * added ones.
+     * previously added ones.
      * 
      * @param matchCounts The {@link Collection} of {@link SzMatchCounts}
-     *        instances
-     *                    to set.
+     *                    instances to set.
      */
-    public void setMatches(Collection<SzMatchCounts> matchCounts) {
+    public void setMatches(Collection<SzMatchCounts> matchCounts)
+    {
         this.matches.clear();
         if (matchCounts != null) {
             matchCounts.forEach(counts -> {
@@ -205,7 +197,8 @@ public class SzCrossSourceSummary implements Serializable {
      * 
      * @param matchCounts The {@link SzMatchCounts} instance to add.
      */
-    public void addMatches(SzMatchCounts matchCounts) {
+    public void addMatches(SzMatchCounts matchCounts)
+    {
         if (matchCounts == null) {
             return;
         }
@@ -216,20 +209,17 @@ public class SzCrossSourceSummary implements Serializable {
 
     /**
      * Removes the {@link SzMatchCounts} describing the match statistics
-     * associated
-     * with the optionally specified match key and principle.
+     * associated with the optionally specified match key and principle.
      * 
      * @param matchKey The match key for the {@link SzMatchCounts} to remove, or
-     *                  <code>null</code> if removing the statistics associated
-     *                  with
-     *                  any match key.
+     *                 <code>null</code> if removing the statistics associated
+     *                 with any match key.
      * @param principle The principle for the {@link SzMatchCounts} to remove,
-     *        or
-     *                  <code>null</code> if removing the statistics associated
-     *                  with
-     *                  any principle.
+     *                  or <code>null</code> if removing the statistics
+     *                  associated with any principle.
      */
-    public void removeMatches(String matchKey, String principle) {
+    public void removeMatches(String matchKey, String principle)
+    {
         this.matches.remove(new SzCountsKey(matchKey, principle));
     }
 
@@ -237,7 +227,8 @@ public class SzCrossSourceSummary implements Serializable {
      * Removes all the {@link SzMatchCounts} describing all the match statistics
      * associated with every combination of match key and principle.
      */
-    public void removeAllMatches() {
+    public void removeAllMatches()
+    {
         this.matches.clear();
     }
 
@@ -246,34 +237,34 @@ public class SzCrossSourceSummary implements Serializable {
      * requested match key and principle combination that describe the entity,
      * record and relationship counts for ambiguous-match relationships between
      * entities having at least one record from the primary data source and
-     * entities
-     * having at least one record from the "versus" data source.
+     * entities having at least one record from the "versus" data source.
      *
      * @return The {@link List} of {@link SzRelationCounts} instances for each
-     *         requested match key and principle combination describing the
-     *         ambiguous-match entity, record and relationship counts for this
-     *         instance.
+     *             requested match key and principle combination describing the
+     *             ambiguous-match entity, record and relationship counts for
+     *             this instance.
      */
-    public List<SzRelationCounts> getAmbiguousMatches() {
+    public List<SzRelationCounts> getAmbiguousMatches()
+    {
         return new ArrayList<>(this.ambiguousMatches.values());
     }
 
     /**
      * Sets the {@link SzRelationCounts} instances describing the ambiguous
-     * match
-     * relation counts for one or more match-key/principle combination using the
-     * specified {@link Collection} of {@link SzRelationCounts}. Any current
+     * match relation counts for one or more match-key/principle combination
+     * using the specified {@link Collection} of {@link SzRelationCounts}. Any
+     * current
      * {@link SzRelationCounts} are removed and replaced with the specified
      * instances. If any of the {@link SzRelationCounts} instances have the same
      * match-key/principle pairs then the last one wins out replacing any
-     * previously
-     * added ones.
+     * previously added ones.
      * 
      * @param relationCounts The {@link Collection} of {@link SzRelationCounts}
      *                       instances to set.
      */
     public void setAmbiguousMatches(
-            Collection<SzRelationCounts> relationCounts) {
+            Collection<SzRelationCounts> relationCounts)
+    {
         this.ambiguousMatches.clear();
         if (relationCounts != null) {
             relationCounts.forEach(counts -> {
@@ -288,12 +279,12 @@ public class SzCrossSourceSummary implements Serializable {
      * Adds the specified {@link SzRelationCounts} instance to the list of
      * {@link SzRelationCounts} instances describing the ambiguous-match
      * relationship counts for this instance, replacing any existing instance
-     * with
-     * the same match key and principle combination.
+     * with the same match key and principle combination.
      * 
      * @param relationCounts The {@link SzRelationCounts} instance to add.
      */
-    public void addAmbiguousMatches(SzRelationCounts relationCounts) {
+    public void addAmbiguousMatches(SzRelationCounts relationCounts)
+    {
         if (relationCounts == null) {
             return;
         }
@@ -307,25 +298,25 @@ public class SzCrossSourceSummary implements Serializable {
      * statistics associated with the optionally specified match key and
      * principle.
      * 
-     * @param matchKey  The match key for the ambiguous match
-     *                  {@link SzRelationCounts} to remove, or <code>null</code>
-     *                  if
+     * @param matchKey  The match key for the ambiguous match {@link
+     *                  SzRelationCounts} to remove, or <code>null</code> if
      *                  removing the statistics associated with any match key.
-     * @param principle The principle for the ambiguous match
-     *                  {@link SzRelationCounts} to remove, or <code>null</code>
-     *                  if
+     * @param principle The principle for the ambiguous match {@link
+     *                  SzRelationCounts} to remove, or <code>null</code> if
      *                  removing the statistics associated with any principle.
      */
-    public void removeAmbiguousMatches(String matchKey, String principle) {
+    public void removeAmbiguousMatches(String matchKey, String principle)
+    {
         this.ambiguousMatches.remove(new SzCountsKey(matchKey, principle));
     }
 
     /**
      * Removes all the {@link SzRelationCounts} describing all the ambiguous
-     * match
-     * statistics associated with every combination of match key and principle.
+     * match statistics associated with every combination of match key and
+     * principle.
      */
-    public void removeAllAmbiguousMatches() {
+    public void removeAllAmbiguousMatches()
+    {
         this.ambiguousMatches.clear();
     }
 
@@ -334,15 +325,15 @@ public class SzCrossSourceSummary implements Serializable {
      * requested match key and principle combination that describe the entity,
      * record and relationship counts for possible-match relationships between
      * entities having at least one record from the primary data source and
-     * entities
-     * having at least one record from the "versus" data source.
+     * entities having at least one record from the "versus" data source.
      *
      * @return The {@link List} of {@link SzRelationCounts} instances for each
-     *         requested match key and principle combination describing the
-     *         possible-match entity, record and relationship counts for this
-     *         instance.
+     *             requested match key and principle combination describing the
+     *             possible-match entity, record and relationship counts for
+     *             this instance.
      */
-    public List<SzRelationCounts> getPossibleMatches() {
+    public List<SzRelationCounts> getPossibleMatches()
+    {
         return new ArrayList<>(this.possibleMatches.values());
     }
 
@@ -353,14 +344,14 @@ public class SzCrossSourceSummary implements Serializable {
      * {@link SzRelationCounts} are removed and replaced with the specified
      * instances. If any of the {@link SzRelationCounts} instances have the same
      * match-key/principle pairs then the last one wins out replacing any
-     * previously
-     * added ones.
+     * previously added ones.
      * 
      * @param relationCounts The {@link Collection} of {@link SzRelationCounts}
      *                       instances to set.
      */
     public void setPossibleMatches(
-            Collection<SzRelationCounts> relationCounts) {
+            Collection<SzRelationCounts> relationCounts)
+    {
         this.possibleMatches.clear();
         if (relationCounts != null) {
             relationCounts.forEach(counts -> {
@@ -374,14 +365,13 @@ public class SzCrossSourceSummary implements Serializable {
     /**
      * Adds the specified {@link SzRelationCounts} instance to the list of
      * {@link SzRelationCounts} instances describing the possible-match
-     * relationship
-     * counts for this instance, replacing any existing instance with the same
-     * match
-     * key and principle combination.
+     * relationship counts for this instance, replacing any existing instance
+     * with the same match key and principle combination.
      * 
      * @param relationCounts The {@link SzRelationCounts} instance to add.
      */
-    public void addPossibleMatches(SzRelationCounts relationCounts) {
+    public void addPossibleMatches(SzRelationCounts relationCounts)
+    {
         if (relationCounts == null) {
             return;
         }
@@ -392,28 +382,28 @@ public class SzCrossSourceSummary implements Serializable {
 
     /**
      * Removes the {@link SzRelationCounts} describing the possible match
-     * statistics
-     * associated with the optionally specified match key and principle.
+     * statistics associated with the optionally specified match key and
+     * principle.
      * 
-     * @param matchKey  The match key for the possible match
-     *                  {@link SzRelationCounts} to remove, or <code>null</code>
-     *                  if
+     * @param matchKey  The match key for the possible match {@link
+     *                  SzRelationCounts} to remove, or <code>null</code> if
      *                  removing the statistics associated with any match key.
-     * @param principle The principle for the possible match
-     *                  {@link SzRelationCounts} to remove, or <code>null</code>
-     *                  if
+     * @param principle The principle for the possible match {@link
+     *                  SzRelationCounts} to remove, or <code>null</code> if
      *                  removing the statistics associated with any principle.
      */
-    public void removePossibleMatches(String matchKey, String principle) {
+    public void removePossibleMatches(String matchKey, String principle)
+    {
         this.possibleMatches.remove(new SzCountsKey(matchKey, principle));
     }
 
     /**
      * Removes all the {@link SzRelationCounts} describing all the possible
-     * match
-     * statistics associated with every combination of match key and principle.
+     * match statistics associated with every combination of match key and
+     * principle.
      */
-    public void removeAllPossibleMatches() {
+    public void removeAllPossibleMatches()
+    {
         this.possibleMatches.clear();
     }
 
@@ -421,37 +411,35 @@ public class SzCrossSourceSummary implements Serializable {
      * Gets the {@link List} of {@link SzRelationCounts} instances for each
      * requested match key and principle combination that describe the entity,
      * record and relationship counts for possible-relation relationships
-     * between
-     * entities having at least one record from the primary data source and
-     * entities
-     * having at least one record from the "versus" data source.
+     * between entities having at least one record from the primary data source
+     * and entities having at least one record from the "versus" data source.
      *
      * @return The {@link List} of {@link SzRelationCounts} instances for each
-     *         requested match key and principle combination describing the
-     *         possible-relation entity, record and relationship counts for this
-     *         instance.
+     *             requested match key and principle combination describing the
+     *             possible-relation entity, record and relationship counts for
+     *             this instance.
      */
-    public List<SzRelationCounts> getPossibleRelations() {
+    public List<SzRelationCounts> getPossibleRelations()
+    {
         return new ArrayList<>(this.possibleRelations.values());
     }
 
     /**
      * Sets the {@link SzRelationCounts} instances describing the
-     * possible-relation
-     * counts for one or more match-key/principle combination using the
-     * specified
+     * possible-relation counts for one or more match-key/principle combination
+     * using the specified
      * {@link Collection} of {@link SzRelationCounts}. Any current
      * {@link SzRelationCounts} are removed and replaced with the specified
      * instances. If any of the {@link SzRelationCounts} instances have the same
      * match-key/principle pairs then the last one wins out replacing any
-     * previously
-     * added ones.
+     * previously added ones.
      * 
      * @param relationCounts The {@link Collection} of {@link SzRelationCounts}
      *                       instances to set.
      */
     public void setPossibleRelations(
-            Collection<SzRelationCounts> relationCounts) {
+            Collection<SzRelationCounts> relationCounts)
+    {
         this.possibleRelations.clear();
         if (relationCounts != null) {
             relationCounts.forEach(counts -> {
@@ -466,12 +454,12 @@ public class SzCrossSourceSummary implements Serializable {
      * Adds the specified {@link SzRelationCounts} instance to the list of
      * {@link SzRelationCounts} instances describing the possible-relation
      * relationship counts for this instance, replacing any existing instance
-     * with
-     * the same match key and principle combination.
+     * with the same match key and principle combination.
      * 
      * @param relationCounts The {@link SzRelationCounts} instance to add.
      */
-    public void addPossibleRelations(SzRelationCounts relationCounts) {
+    public void addPossibleRelations(SzRelationCounts relationCounts)
+    {
         if (relationCounts == null) {
             return;
         }
@@ -485,25 +473,25 @@ public class SzCrossSourceSummary implements Serializable {
      * statistics associated with the optionally specified match key and
      * principle.
      * 
-     * @param matchKey  The match key for the possible relations
-     *                  {@link SzRelationCounts} to remove, or <code>null</code>
-     *                  if
+     * @param matchKey  The match key for the possible relations {@link
+     *                  SzRelationCounts} to remove, or <code>null</code> if
      *                  removing the statistics associated with any match key.
-     * @param principle The principle for the possible relations
-     *                  {@link SzRelationCounts} to remove, or <code>null</code>
-     *                  if
+     * @param principle The principle for the possible relations {@link
+     *                  SzRelationCounts} to remove, or <code>null</code> if
      *                  removing the statistics associated with any principle.
      */
-    public void removePossibleRelations(String matchKey, String principle) {
+    public void removePossibleRelations(String matchKey, String principle)
+    {
         this.possibleRelations.remove(new SzCountsKey(matchKey, principle));
     }
 
     /**
      * Removes all the {@link SzRelationCounts} describing all the possible
-     * relation
-     * statistics associated with every combination of match key and principle.
+     * relation statistics associated with every combination of match key and
+     * principle.
      */
-    public void removeAllPossibleRelations() {
+    public void removeAllPossibleRelations()
+    {
         this.possibleRelations.clear();
     }
 
@@ -511,38 +499,35 @@ public class SzCrossSourceSummary implements Serializable {
      * Gets the {@link List} of {@link SzRelationCounts} instances for each
      * requested match key and principle combination that describe the entity,
      * record and relationship counts for disclosed-relation relationships
-     * between
-     * entities having at least one record from the primary data source and
-     * entities
-     * having at least one record from the "versus" data source.
+     * between entities having at least one record from the primary data source
+     * and entities having at least one record from the "versus" data source.
      *
      * @return The {@link List} of {@link SzRelationCounts} instances for each
-     *         requested match key and principle combination describing the
-     *         disclosed-relation entity, record and relationship counts for
-     *         this
-     *         instance.
+     *             requested match key and principle combination describing the
+     *             disclosed-relation entity, record and relationship counts for
+     *             this instance.
      */
-    public List<SzRelationCounts> getDisclosedRelations() {
+    public List<SzRelationCounts> getDisclosedRelations()
+    {
         return new ArrayList<>(this.disclosedRelations.values());
     }
 
     /**
      * Sets the {@link SzRelationCounts} instances describing the
-     * disclosed-relation
-     * counts for one or more match-key/principle combination using the
-     * specified
+     * disclosed-relation counts for one or more match-key/principle combination
+     * using the specified
      * {@link Collection} of {@link SzRelationCounts}. Any current
      * {@link SzRelationCounts} are removed and replaced with the specified
      * instances. If any of the {@link SzRelationCounts} instances have the same
      * match-key/principle pairs then the last one wins out replacing any
-     * previously
-     * added ones.
+     * previously added ones.
      * 
      * @param relationCounts The {@link Collection} of {@link SzRelationCounts}
      *                       instances to set.
      */
     public void setDisclosedRelations(
-            Collection<SzRelationCounts> relationCounts) {
+            Collection<SzRelationCounts> relationCounts)
+    {
         this.disclosedRelations.clear();
         if (relationCounts != null) {
             relationCounts.forEach(counts -> {
@@ -557,12 +542,12 @@ public class SzCrossSourceSummary implements Serializable {
      * Adds the specified {@link SzRelationCounts} instance to the list of
      * {@link SzRelationCounts} instances describing the disclosed-relation
      * relationship counts for this instance, replacing any existing instance
-     * with
-     * the same match key and principle combination.
+     * with the same match key and principle combination.
      * 
      * @param relationCounts The {@link SzRelationCounts} instance to add.
      */
-    public void addDisclosedRelations(SzRelationCounts relationCounts) {
+    public void addDisclosedRelations(SzRelationCounts relationCounts)
+    {
         if (relationCounts == null) {
             return;
         }
@@ -576,16 +561,15 @@ public class SzCrossSourceSummary implements Serializable {
      * statistics associated with the optionally specified match key and
      * principle.
      * 
-     * @param matchKey  The match key for the disclosed relations
-     *                  {@link SzRelationCounts} to remove, or <code>null</code>
-     *                  if
+     * @param matchKey  The match key for the disclosed relations {@link
+     *                  SzRelationCounts} to remove, or <code>null</code> if
      *                  removing the statistics associated with any match key.
-     * @param principle The principle for the disclosed relations
-     *                  {@link SzRelationCounts} to remove, or <code>null</code>
-     *                  if
+     * @param principle The principle for the disclosed relations {@link
+     *                  SzRelationCounts} to remove, or <code>null</code> if
      *                  removing the statistics associated with any principle.
      */
-    public void removeDisclosedRelations(String matchKey, String principle) {
+    public void removeDisclosedRelations(String matchKey, String principle)
+    {
         this.disclosedRelations.remove(new SzCountsKey(matchKey, principle));
     }
 
@@ -594,7 +578,8 @@ public class SzCrossSourceSummary implements Serializable {
      * relation statistics associated with every combination of match key and
      * principle.
      */
-    public void removeAllDisclosedRelations() {
+    public void removeAllDisclosedRelations()
+    {
         this.disclosedRelations.clear();
     }
 
@@ -605,7 +590,8 @@ public class SzCrossSourceSummary implements Serializable {
      * @return A diagnostic {@link String} describing this instance.
      */
     @Override
-    public String toString() {
+    public String toString()
+    {
         return "dataSource=[ " + this.getDataSource() 
                 + " ], versusDataSource=[ " + this.getVersusDataSource()
                 + " ], matches=[ " + this.getMatches()
@@ -618,13 +604,13 @@ public class SzCrossSourceSummary implements Serializable {
 
     /**
      * Overridden to return a hash code consistent with the {@link
-     * #equals(Object)}
-     * implementation.
+     * #equals(Object)} implementation.
      * 
      * @return The hash code for this instance.
      */
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hash(dataSource, versusDataSource, matches,
                 ambiguousMatches, possibleMatches, possibleRelations,
                 disclosedRelations);
@@ -632,17 +618,16 @@ public class SzCrossSourceSummary implements Serializable {
 
     /**
      * Overridden to return <code>true</code> if and only if the specified
-     * parameter
-     * is an instance of the same class with equivalent properties.
+     * parameter is an instance of the same class with equivalent properties.
      * 
      * @param obj The object to compare with.
      * @return <code>true</code> if the specified parameter is an instance of
-     *         the
-     *         same class with equivalent properties, otherwise
-     *         <code>false</code>.
+     *                           the same class with equivalent properties,
+     *                           otherwise <code>false</code>.
      */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (this == obj) {
             return true;
         }

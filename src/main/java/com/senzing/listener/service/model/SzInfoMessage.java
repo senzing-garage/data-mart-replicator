@@ -8,8 +8,8 @@ import java.util.*;
 
 /**
  * Simple class to represent an element from the <code>SAMPLE_RECORDS</code>
- * array inside an element of the <code>INTERESTING_ENTITIES</code> array of
- * an INFO message.
+ * array inside an element of the <code>INTERESTING_ENTITIES</code> array of an
+ * INFO message.
  */
 public class SzInfoMessage implements Serializable
 {
@@ -21,8 +21,8 @@ public class SzInfoMessage implements Serializable
 
   /**
    * The JSON property key for deserializing the {@linkplain
-   * #setDataSource(String) data source property} when parsing raw Senzing
-   * INFO message JSON to construct instances of this class.
+   * #setDataSource(String) data source property} when parsing raw Senzing INFO
+   * message JSON to construct instances of this class.
    */
   public static final String RAW_DATA_SOURCE_KEY = "DATA_SOURCE";
 
@@ -34,8 +34,8 @@ public class SzInfoMessage implements Serializable
 
   /**
    * The JSON property key for deserializing the {@linkplain
-   * #setRecordId(String) record ID property} when parsing raw Senzing
-   * INFO message JSON to construct instances of this class.
+   * #setRecordId(String) record ID property} when parsing raw Senzing INFO
+   * message JSON to construct instances of this class.
    */
   public static final String RAW_RECORD_ID_KEY = "RECORD_ID";
 
@@ -60,8 +60,8 @@ public class SzInfoMessage implements Serializable
 
   /**
    * The JSON property key for deserializing the {@linkplain
-   * #setAffectedEntities(Collection) affected entities property} when
-   * parsing raw Senzing INFO message JSON to construct instances of this class.
+   * #setAffectedEntities(Collection) affected entities property} when parsing
+   * raw Senzing INFO message JSON to construct instances of this class.
    */
   public static final String RAW_AFFECTED_ENTITIES_KEY = "AFFECTED_ENTITIES";
 
@@ -74,24 +74,23 @@ public class SzInfoMessage implements Serializable
 
   /**
    * The JSON property key for deserializing the {@linkplain
-   * #setInterestingEntities(Collection) interesting
-   * entities property} when parsing raw Senzing INFO message JSON to construct
-   * instances of this class.
+   * #setInterestingEntities(Collection) interesting entities property} when
+   * parsing raw Senzing INFO message JSON to construct instances of this class.
    */
   public static final String RAW_INTERESTING_ENTITIES_KEY
           = "INTERESTING_ENTITIES";
 
   /**
-   * The JSON property key for serializing and deserializing the entities
-   * from the {@linkplain #getInterestingEntities() interesting entities
-   * property} for instances of this class.
+   * The JSON property key for serializing and deserializing the entities from
+   * the {@linkplain #getInterestingEntities() interesting entities property}
+   * for instances of this class.
    */
   public static final String ENTITIES_KEY = "entities";
 
   /**
-   * The JSON property key for serializing and deserializing the entities
-   * from the {@linkplain #getInterestingEntities() interesting entities
-   * property} for instances of this class.
+   * The JSON property key for serializing and deserializing the entities from
+   * the {@linkplain #getInterestingEntities() interesting entities property}
+   * for instances of this class.
    */
   public static final String RAW_ENTITIES_KEY = "ENTITIES";
 
@@ -103,8 +102,8 @@ public class SzInfoMessage implements Serializable
 
   /**
    * The JSON property key for deserializing the {@linkplain
-   * #setNotices(Collection) notices property} when parsing raw
-   * Senzing INFO message JSON to construct instances of this class.
+   * #setNotices(Collection) notices property} when parsing raw Senzing INFO
+   * message JSON to construct instances of this class.
    */
   public static final String RAW_NOTICES_KEY = "NOTICES";
 
@@ -149,13 +148,12 @@ public class SzInfoMessage implements Serializable
    * @param dataSource          The data source for this instance.
    * @param recordId            The record ID for this instance.
    * @param affectedEntities The {@link Collection} of {@link Long} entity ID's
-   *                            identifying the affected entities.
+   *                         identifying the affected entities.
    * @param interestingEntities The {@link Collection} of {@link
    *                            SzInterestingEntity} instances describing the
    *                            associated interesting entities.
    * @param notices             The {@link Collection} of {@link SzNotice}
-   *                            instances
-   *                            describing the associated notices.
+   *                            instances describing the associated notices.
    */
   public SzInfoMessage(String dataSource,
                        String recordId,
@@ -225,7 +223,7 @@ public class SzInfoMessage implements Serializable
    * identifying the affected entities.
    *
    * @return The <b>unmodifiable</b> {@link Set} of {@link Long} entity ID's
-   *         identifying the affected entities.
+   *             identifying the affected entities.
    */
   public Set<Long> getAffectedEntities()
   {
@@ -233,8 +231,8 @@ public class SzInfoMessage implements Serializable
   }
 
   /**
-   * Sets the affected entities to those in the specified {@link Collection}
-   * of {@link Long} entity ID's.
+   * Sets the affected entities to those in the specified {@link Collection} of
+   * {@link Long} entity ID's.
    *
    * @param affectedEntities The {@link Collection} of {@link Long} entity ID's.
    */
@@ -264,7 +262,8 @@ public class SzInfoMessage implements Serializable
    * <b>unmodifiable</b> {@link List} of {@link SzInterestingEntity}.
    *
    * @return The interesting entities for the INFO message as an
-   *         <b>unmodifiable</b> {@link List} of {@link SzInterestingEntity}.
+   *             <b>unmodifiable</b> {@link List} of {@link
+   *             SzInterestingEntity}.
    */
   public List<SzInterestingEntity> getInterestingEntities()
   {
@@ -290,8 +289,8 @@ public class SzInfoMessage implements Serializable
 
   /**
    * Adds the interesting entity described by the specified {@link
-   * SzInterestingEntity} to the {@link List} of interesting entities for
-   * this instance.
+   * SzInterestingEntity} to the {@link List} of interesting entities for this
+   * instance.
    *
    * @param interestingEntity The {@link SzInterestingEntity} describing the
    *                          interesting entity to add to this INFO message.
@@ -308,7 +307,8 @@ public class SzInfoMessage implements Serializable
    * {@link List} of {@link SzNotice} instances.
    *
    * @return The sample records for the interesting entity as an
-   *         <b>unmodifiable</b> {@link List} of {@link SzInterestingEntity}.
+   *             <b>unmodifiable</b> {@link List} of {@link
+   *             SzInterestingEntity}.
    */
   public List<SzNotice> getNotices()
   {
@@ -334,8 +334,8 @@ public class SzInfoMessage implements Serializable
    * Adds the notice described by the specified {@link SzNotice} to the
    * {@link List} of notices for this instance.
    *
-   * @param notice The {@link SzNotice} describing the notice to add to
-   *               this INFO message.
+   * @param notice The {@link SzNotice} describing the notice to add to this
+   *               INFO message.
    */
   public void addNotice(SzNotice notice)
   {
@@ -345,12 +345,12 @@ public class SzInfoMessage implements Serializable
 
   /**
    * Overridden to return <code>true</code> if and only if the specified
-   * parameter
-   * is an instance of the same class with equivalent properties.
+   * parameter is an instance of the same class with equivalent properties.
    * 
    * @param o The object to compare with.
-   * @return <code>true</code> if the specified parameter is an instance of the 
-   * same class with equivalent properties, otherwise <code>false</code>.
+   * @return <code>true</code> if the specified parameter is an instance of the
+   *                           same class with equivalent properties, otherwise
+   *                           <code>false</code>.
    */
   @Override
   public boolean equals(Object o)
@@ -369,8 +369,7 @@ public class SzInfoMessage implements Serializable
 
   /**
    * Overridden to return a hash code consistent with the {@link
-   * #equals(Object)}
-   * implementation.
+   * #equals(Object)} implementation.
    * 
    * @return The hash code for this instance.
    */
@@ -440,8 +439,8 @@ public class SzInfoMessage implements Serializable
   }
 
   /**
-   * Serializes this instance as JSON to a new {@link
-   * JsonObjectBuilder} and returns the {@link JsonObjectBuilder}.
+   * Serializes this instance as JSON to a new {@link JsonObjectBuilder} and
+   * returns the {@link JsonObjectBuilder}.
    *
    * @return The {@link JsonObjectBuilder} that was populated.
    *
@@ -458,7 +457,7 @@ public class SzInfoMessage implements Serializable
    * the created {@link JsonObject}.
    *
    * @return The {@link JsonObject} that was created to describe the serialized
-   *         form of this instance.
+   *             form of this instance.
    *
    * @see #toJsonObjectBuilder(JsonObjectBuilder)
    * @see #toJsonObjectBuilder()
@@ -469,8 +468,8 @@ public class SzInfoMessage implements Serializable
   }
 
   /**
-   * Serializes this instance as JSON text and returns the JSON text,
-   * optionally pretty-printing the generated JSON.
+   * Serializes this instance as JSON text and returns the JSON text, optionally
+   * pretty-printing the generated JSON.
    *
    * @param prettyPrint <code>true</code> if the JSON should be pretty-printed,
    *                    otherwise <code>false</code> for more efficient JSON.
@@ -500,11 +499,11 @@ public class SzInfoMessage implements Serializable
    *
    * @param jsonText The JSON text to parse.
    *
-   * @return The created {@link SzInfoMessage} instance, or <code>null</code>
-   *         if the specified text is <code>null</code>.
+   * @return The created {@link SzInfoMessage} instance, or <code>null</code> if
+   *             the specified text is <code>null</code>.
    *
-   * @throws IllegalArgumentException If the specified text is not valid JSON
-   *                                  or does not contain the required JSON
+   * @throws IllegalArgumentException If the specified text is not valid JSON or
+   *                                  does not contain the required JSON
    *                                  properties.
    */
   public static SzInfoMessage fromJson(String jsonText)
@@ -523,11 +522,11 @@ public class SzInfoMessage implements Serializable
    *
    * @param jsonObject The {@link JsonObject} describing the JSON to parse.
    *
-   * @return The created {@link SzInfoMessage} instance, or <code>null</code>
-   *         if the specified parameter is <code>null</code>.
+   * @return The created {@link SzInfoMessage} instance, or <code>null</code> if
+   *             the specified parameter is <code>null</code>.
    *
-   * @throws IllegalArgumentException If the specified text is not valid JSON
-   *                                  or does not contain the required JSON
+   * @throws IllegalArgumentException If the specified text is not valid JSON or
+   *                                  does not contain the required JSON
    *                                  properties.
    *
    */
@@ -547,11 +546,11 @@ public class SzInfoMessage implements Serializable
    *
    * @param jsonText The JSON text to parse.
    *
-   * @return The created {@link SzInfoMessage} instance, or <code>null</code>
-   *         if the specified text is <code>null</code>.
+   * @return The created {@link SzInfoMessage} instance, or <code>null</code> if
+   *             the specified text is <code>null</code>.
    *
-   * @throws IllegalArgumentException If the specified text is not valid JSON
-   *                                  or does not contain the required JSON
+   * @throws IllegalArgumentException If the specified text is not valid JSON or
+   *                                  does not contain the required JSON
    *                                  properties.
    */
   public static SzInfoMessage fromRawJson(String jsonText)
@@ -569,11 +568,11 @@ public class SzInfoMessage implements Serializable
    *
    * @param jsonObject The {@link JsonObject} describing the JSON to parse.
    *
-   * @return The created {@link SzInfoMessage} instance, or <code>null</code>
-   *         if the specified parameter is <code>null</code>.
+   * @return The created {@link SzInfoMessage} instance, or <code>null</code> if
+   *             the specified parameter is <code>null</code>.
    *
-   * @throws IllegalArgumentException If the specified text is not valid JSON
-   *                                  or does not contain the required JSON
+   * @throws IllegalArgumentException If the specified text is not valid JSON or
+   *                                  does not contain the required JSON
    *                                  properties.
    *
    */
@@ -598,7 +597,7 @@ public class SzInfoMessage implements Serializable
    *                               property.
    *
    * @param affectedEntitiesKey The JSON property key for the affected entities
-   *                               property.
+   *                            property.
    *
    * @param interestingEntitiesKey The JSON property key for the interesting
    *                               entities property.
@@ -612,11 +611,11 @@ public class SzInfoMessage implements Serializable
    *                               message JSON, <code>false</code> if parsing
    *                               the serialized form from this class.
    *
-   * @return The created {@link SzInfoMessage} instance, or <code>null</code>
-   *         if the specified parameter is <code>null</code>.
+   * @return The created {@link SzInfoMessage} instance, or <code>null</code> if
+   *             the specified parameter is <code>null</code>.
    *
-   * @throws IllegalArgumentException If the specified text is not valid JSON
-   *                                  or does not contain the required JSON
+   * @throws IllegalArgumentException If the specified text is not valid JSON or
+   *                                  does not contain the required JSON
    *                                  properties.
    */
   private static SzInfoMessage fromJson(JsonObject jsonObject,

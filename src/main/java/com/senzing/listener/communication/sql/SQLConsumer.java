@@ -32,17 +32,19 @@ import static com.senzing.listener.service.ServiceUtilities.*;
  * A consumer for a SQL-based message queue using a database table to hold the
  * pending messages.
  */
-public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
+public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage>
+{
     /**
      * Provides an interface for interacting with the message queue used by the
      * associated {@link SQLConsumer}.
      */
-    public interface MessageQueue {
+    public interface MessageQueue
+    {
         /**
          * Checks if the message queue is empty.
          * 
          * @return <code>true</code> if the queue is empty, otherwise
-         *         <code>false</code>.
+         *                           <code>false</code>.
          * 
          * @throws SQLException If a database failure occurs.
          */
@@ -50,11 +52,10 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
 
         /**
          * Gets the number of messages currently in the message queue. The
-         * returned
-         * value will include leased messages.
+         * returned value will include leased messages.
          * 
          * @return The number of messages in the message queue (including leased
-         *         messages).
+         *             messages).
          * 
          * @throws SQLException If a database failure occurs.
          */
@@ -83,7 +84,8 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
      * {@link SQLClient} for the associated {@link SQLConsumer}.
      * 
      */
-    protected class SimpleMessageQueue implements MessageQueue {
+    protected class SimpleMessageQueue implements MessageQueue
+    {
         /**
          * The {@link SQLClient} backing this instance.
          */
@@ -94,7 +96,8 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
          * 
          * @param client The {@link SQLClient} to use.
          */
-        protected SimpleMessageQueue(SQLClient client) {
+        protected SimpleMessageQueue(SQLClient client)
+        {
             this.client = client;
         }
 
@@ -106,7 +109,9 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
          * {@link SQLClient}.
          * </p>
          */
-        public boolean isEmpty() throws SQLException {
+        public boolean isEmpty()
+            throws SQLException
+        {
             Connection conn = null;
             try {
                 conn = SQLConsumer.this.getConnection();
@@ -122,11 +127,12 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
          * {@inheritDoc}
          * <p>
          * Implemented to call {@link SQLClient#getMessageCount(Connection)} on
-         * the
-         * backing {@link SQLClient}.
+         * the backing {@link SQLClient}.
          * </p>
          */
-        public long getMessageCount() throws SQLException {
+        public long getMessageCount()
+            throws SQLException
+        {
             Connection conn = null;
             try {
                 conn = SQLConsumer.this.getConnection();
@@ -142,11 +148,13 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
          * {@inheritDoc}
          * <p>
          * Implemented to call {@link
-         * SQLClient#insertMessage(Connection,String)} on the
-         * backing {@link SQLClient}.
+         * SQLClient#insertMessage(Connection,String)} on the backing {@link
+         * SQLClient}.
          * </p>
          */
-        public void enqueueMessage(String message) throws SQLException {
+        public void enqueueMessage(String message)
+            throws SQLException
+        {
             Connection conn = null;
             try {
                 conn = SQLConsumer.this.getConnection();
@@ -163,7 +171,8 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
         /**
          * {@inheritDoc}
          */
-        public SQLConsumer getSQLConsumer() {
+        public SQLConsumer getSQLConsumer()
+        {
             return SQLConsumer.this;
         }
     }
@@ -180,15 +189,11 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
     /**
      * The initialization parameter key used to obtain the name for binding the
      * {@link MessageQueue} instance for interacting with the backing message
-     * queue
-     * of the {@link SQLConsumer} in the {@link #MESSAGE_QUEUE_REGISTRY}. There
-     * is
-     * no default value for this initialization parameter, if it is not
-     * specified
-     * then the {@link MessageQueue} is not registered in the
+     * queue of the {@link SQLConsumer} in the {@link #MESSAGE_QUEUE_REGISTRY}.
+     * There is no default value for this initialization parameter, if it is not
+     * specified then the {@link MessageQueue} is not registered in the
      * {@link #MESSAGE_QUEUE_REGISTRY}. The {@link MessageQueue} is unbound when
-     * the
-     * {@link SQLConsumer} is destroyed.
+     * the {@link SQLConsumer} is destroyed.
      */
     public static final String QUEUE_REGISTRY_NAME_KEY = "queueRegistryName";
 
@@ -201,8 +206,7 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
 
     /**
      * The initialization parameter key for obtaining the {@link
-     * ConnectionProvider}
-     * to use for connecting to the database from the
+     * ConnectionProvider} to use for connecting to the database from the
      * {@link ConnectionProvider#REGISTRY}.
      */
     public static final String CONNECTION_PROVIDER_KEY = "connectionProvider";
@@ -210,15 +214,14 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
     /**
      * The initialization parameter to configure the maximum number of times to
      * retry a failed attempt to select messages from the database before
-     * aborting
-     * consumption.
+     * aborting consumption.
      */
     public static final String MAXIMUM_RETRIES_KEY = "maximumRetries";
 
     /**
      * The initialization parameter to configure the number of milliseconds to
-     * wait
-     * to retry when a failure occurs. This is only matters if the configured
+     * wait to retry when a failure occurs. This is only matters if the
+     * configured
      * {@linkplain #MAXIMUM_RETRIES_KEY failure threshold} is greater than one
      * (1).
      */
@@ -228,34 +231,27 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
      * The initialization parameter to configure the number of <b>seconds</b>
      * messages are leased on the database table before they become available to
      * another consumer instance. If not configured then {@link
-     * #DEFAULT_LEASE_TIME}
-     * is used. Specifying this initialization parameter allows the clients to
-     * override.
+     * #DEFAULT_LEASE_TIME} is used. Specifying this initialization parameter
+     * allows the clients to override.
      */
     public static final String LEASE_TIME_KEY = "leaseTime";
 
     /**
      * The initialization parameter to configure the maximum number of messages
-     * to
-     * be leased from the database table at one time. If not configured then
+     * to be leased from the database table at one time. If not configured then
      * {@link #DEFAULT_MAXIMUM_LEASE_COUNT} is used. Specifying this
-     * initialization
-     * parameter allows clients to override.
+     * initialization parameter allows clients to override.
      */
     public static final String MAXIMUM_LEASE_COUNT_KEY = "maximumLeaseCount";
 
     /**
      * The initialization parameter to configure the maximum number of
      * <b>seconds</b> to sleep when the database queue is found to be empty in
-     * order
-     * to avoid a busy loop of constant queries. The actual amount of time used
-     * for
-     * sleep will progressively increase as the message queue continues to be
-     * empty
-     * until it equals the configured maximum number of seconds. If not
-     * configured
-     * then {@link #DEFAULT_MAXIMUM_SLEEP_TIME} is used. Specifying this
-     * initialization parameter allows clients to override.
+     * order to avoid a busy loop of constant queries. The actual amount of time
+     * used for sleep will progressively increase as the message queue continues
+     * to be empty until it equals the configured maximum number of seconds. If
+     * not configured then {@link #DEFAULT_MAXIMUM_SLEEP_TIME} is used.
+     * Specifying this initialization parameter allows clients to override.
      */
     public static final String MAXIMUM_SLEEP_TIME_KEY = "maximumSleepTime";
 
@@ -271,8 +267,7 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
      * The default number of milliseconds to wait before retrying reading from
      * the database queue if the previous attempt failed. The default value is 
      * {@value}. A different value can be set via the {@link
-     * #RETRY_WAIT_TIME_KEY}
-     * initialization parameter.
+     * #RETRY_WAIT_TIME_KEY} initialization parameter.
      */
     public static final long DEFAULT_RETRY_WAIT_TIME = 1000L;
 
@@ -286,10 +281,8 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
 
     /**
      * The default maximum number of messages to be leased from the database
-     * table
-     * at one time. The default value is {@value}. A different value can be set
-     * via
-     * the {@link #MAXIMUM_LEASE_COUNT_KEY} initialization parameter.
+     * table at one time. The default value is {@value}. A different value can
+     * be set via the {@link #MAXIMUM_LEASE_COUNT_KEY} initialization parameter.
      */
     public static final int DEFAULT_MAXIMUM_LEASE_COUNT = 100;
 
@@ -298,10 +291,9 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
      * encountered in order to avoid a busy loop of querying the database. The
      * actual amount of time used for sleep will progressively increase as the
      * message queue continues to be empty until it equals the configured
-     * maximum
-     * number of seconds. The default value is {@value}. A different value can
-     * be
-     * set via the {@link #MAXIMUM_SLEEP_TIME_KEY} initialization parameter.
+     * maximum number of seconds. The default value is {@value}. A different
+     * value can be set via the {@link #MAXIMUM_SLEEP_TIME_KEY} initialization
+     * parameter.
      */
     public static final int DEFAULT_MAXIMUM_SLEEP_TIME = 10;
 
@@ -349,21 +341,20 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
     private Thread joiningThread = null;
 
     /**
-     * The maximum number of times to retry reading from the database
-     * queue before aborting consumption.
+     * The maximum number of times to retry reading from the database queue
+     * before aborting consumption.
      */
     private int maximumRetries = DEFAULT_MAXIMUM_RETRIES;
 
     /**
-     * The number of milliseconds to wait before we retry reading from
-     * the database queue if the previous attempt failed.
+     * The number of milliseconds to wait before we retry reading from the
+     * database queue if the previous attempt failed.
      */
     private long retryWaitTime = DEFAULT_RETRY_WAIT_TIME;
 
     /**
      * The configured number of seconds to lease messages from the database
-     * queue
-     * before they become available to other consumers.
+     * queue before they become available to other consumers.
      */
     private int leaseTime = DEFAULT_LEASE_TIME;
 
@@ -378,22 +369,21 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
      * encountered in order to avoid a busy loop of querying the database. The
      * actual amount of time used for sleep will progressively increase as the
      * message queue continues to be empty until it equals the configured
-     * maximum
-     * number of seconds.
+     * maximum number of seconds.
      */
     private int maximumSleepTime = DEFAULT_MAXIMUM_SLEEP_TIME;
 
     /**
      * Private default constructor.
      */
-    public SQLConsumer() {
+    public SQLConsumer()
+    {
         // do nothing
     }
 
     /**
      * Initializes the object. It sets the object up based on configuration
-     * passed
-     * in.
+     * passed in.
      * <p>
      * The configuration is in JSON format:
      * 
@@ -405,16 +395,15 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
      *   "retryWaitTime": "&lt;pause-milliseconds&gt;",
      *   "leaseTime": "&lt;lease-time-seconds&gt;",
      *   "maximumLeaseCount": "&lt;message-count&gt;",
-     *   "maximumSleepTime": "&lt;sleep-time-seconds&gt;"
-     * }
+     * "maximumSleepTime": "&lt;sleep-time-seconds&gt;" }
      * </pre>
      *
      * @param config Configuration string containing the needed information to
-     * connect to connect to the backing database to lease messages
-     *               and consume them.
+     *               connect to connect to the backing database to lease
+     *               messages and consume them.
      *
      * @throws MessageConsumerSetupException If an initialization failure
-     *         occurs.
+     *                                       occurs.
      */
     @Override
     protected void doInit(JsonObject config)
@@ -499,31 +488,32 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
 
     /**
      * Gets a JDBC {@link Connection} to use. Typically these are obtained from
-     * a
-     * backing pool so repeated calls to this function without closing the
+     * a backing pool so repeated calls to this function without closing the
      * previously obtained {@link Connection} instances could exhaust the pool.
-     * This
-     * may block until a {@link Connection} is available.
+     * This may block until a {@link Connection} is available.
      *
      * @return The {@link Connection} that was obtained.
      *
      * @throws SQLException If a JDBC failure occurs.
      */
-    protected Connection getConnection() throws SQLException {
+    protected Connection getConnection()
+        throws SQLException
+    {
         return this.connectionProvider.getConnection();
     }
 
     /**
      * Determines the {@link SQLClient} to use from the metadata obtained from
-     * the
-     * JDBC {@link Connection} via {@link #getConnection()} and returns the
+     * the JDBC {@link Connection} via {@link #getConnection()} and returns the
      * {@link SQLClient} instance.
      * 
      * @return The {@link SQLClient} to use.
      * 
      * @throws MessageConsumerSetupException If a failure occurs.
      */
-    protected SQLClient initSQLClient() throws MessageConsumerSetupException {
+    protected SQLClient initSQLClient()
+        throws MessageConsumerSetupException
+    {
         Connection conn = null;
         try {
             // get a connection
@@ -560,14 +550,13 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
     /**
      * Gets the {@link SQLClient} used by this instance for interacting with the
      * backing database. This returns <code>null</code> if the {@link SQLClient}
-     * has
-     * not yet been initialized.
+     * has not yet been initialized.
      * 
      * @return The {@link SQLClient} used by this instance for interacting with
-     *         the
-     *         backing database.
+     *             the backing database.
      */
-    protected SQLClient getSQLClient() {
+    protected SQLClient getSQLClient()
+    {
         return this.sqlClient;
     }
 
@@ -577,10 +566,10 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
      * {@link SQLConsumer}.
      * 
      * @return The {@link MessageQueue} instance that was created to be used
-     *         with
-     *         this {@link SQLConsumer}.
+     *             with this {@link SQLConsumer}.
      */
-    protected MessageQueue initMessageQueue() {
+    protected MessageQueue initMessageQueue()
+    {
         return new SimpleMessageQueue(this.getSQLClient());
     }
 
@@ -589,23 +578,23 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
      * message queue for this {@link SQLConsumer}.
      * 
      * @return The {@link MessageQueue} interface for interacting with the
-     *         backing
-     *         message queue for this {@link SQLConsumer}.
+     *             backing message queue for this {@link SQLConsumer}.
      */
-    public MessageQueue getMessageQueue() {
+    public MessageQueue getMessageQueue()
+    {
         return this.messageQueue;
     }
 
     /**
      * Implemented to return the result from {@link
-     * MessageQueue#getMessageCount()}
-     * after calling {@link #getMessageQueue()}.
+     * MessageQueue#getMessageCount()} after calling {@link #getMessageQueue()}.
      * 
      * <p>
      * {@inheritDoc}
      */
     @Override
-    protected Long getQueueMessageCount() {
+    protected Long getQueueMessageCount()
+    {
         try {
             return this.getMessageQueue().getMessageCount();
 
@@ -617,16 +606,16 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
 
     /**
      * Ensures the schema exists and alternatively drops the existing the schema
-     * and
-     * recreates it. This is called from {@link #doInit(JsonObject)}.
+     * and recreates it. This is called from {@link #doInit(JsonObject)}.
      *
      * @param recreate <code>true</code> if the existing schema should be
-     *        dropped,
-     *                 otherwise <code>false</code>.
+     *                 dropped, otherwise <code>false</code>.
      *
      * @throws SQLException If a failure occurs.
      */
-    protected void ensureSchema(boolean recreate) throws SQLException {
+    protected void ensureSchema(boolean recreate)
+        throws SQLException
+    {
         Connection conn = null;
         try {
             // get the connection
@@ -645,57 +634,56 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
 
     /**
      * Returns the maximum number times failed attempts to connect to the
-     * database
-     * will be retried before aborting message consumption. This defaults to
+     * database will be retried before aborting message consumption. This
+     * defaults to
      * {@link #DEFAULT_MAXIMUM_RETRIES} and can be configured via the
      * {@link #MAXIMUM_RETRIES_KEY} configuration parameter.
      *
      * @return The maximum number of times failed attempts to connect to the
-     *         database will be retried before aborting message consumption.
+     *             database will be retried before aborting message consumption.
      */
-    public int getMaximumRetries() {
+    public int getMaximumRetries()
+    {
         return this.maximumRetries;
     }
 
     /**
      * Returns the number of milliseconds to wait between database query retries
      * when a failure occurs. This defaults to {@link #DEFAULT_RETRY_WAIT_TIME}
-     * and
-     * can be configured via the {@link #RETRY_WAIT_TIME_KEY} configuration
+     * and can be configured via the {@link #RETRY_WAIT_TIME_KEY} configuration
      * parameter.
      *
      * @return The number of milliseconds to wait between database query retries
-     *         when a failure occurs.
+     *             when a failure occurs.
      */
-    public long getRetryWaitTime() {
+    public long getRetryWaitTime()
+    {
         return this.retryWaitTime;
     }
 
     /**
      * Gets the number of <b>seconds</b> messages will be leased from the
-     * database
-     * queue, preventing other processors from consuming those same messages
-     * until
-     * the lease has expired.
+     * database queue, preventing other processors from consuming those same
+     * messages until the lease has expired.
      *
      * @return The number of <b>seconds</b> messages will be leased from the
-     * database queue, preventing other processors from consuming those same
-     *         messages until the lease has expired.
+     *             database queue, preventing other processors from consuming
+     *             those same messages until the lease has expired.
      */
-    public int getLeaseTime() {
+    public int getLeaseTime()
+    {
         return this.leaseTime;
     }
 
     /**
      * Gets the maximum number of messages to lease from the database queue at
-     * one
-     * time.
+     * one time.
      * 
      * @return The maximum number of messages to lease from the database queue
-     *         at
-     *         one time.
+     *             at one time.
      */
-    public int getMaximumLeaseCount() {
+    public int getMaximumLeaseCount()
+    {
         return this.maximumLeaseCount;
     }
 
@@ -706,10 +694,10 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
      * configured maximum number of seconds.
      * 
      * @return The maximum number of <b>seconds</b> to sleep when an empty queue
-     *         is
-     *         encountered.
+     *             is encountered.
      */
-    public int getMaximumSleepTime() {
+    public int getMaximumSleepTime()
+    {
         return this.maximumSleepTime;
     }
 
@@ -718,7 +706,8 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
      *
      * @return A new lease ID to use.
      */
-    protected String generateLeaseId() {
+    protected String generateLeaseId()
+    {
         long pid = ProcessHandle.current().pid();
         StringBuilder sb = new StringBuilder();
         sb.append(pid).append("|").append(Instant.now().toString()).append("|");
@@ -733,9 +722,10 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
      * @param failure      The {@link Exception} that was thrown if available,
      *                     otherwise <code>null</code>.
      * @return <code>true</code> if consumption should abort, otherwise
-     *         <code>false</code>.
+     *                           <code>false</code>.
      */
-    protected boolean handleFailure(int failureCount, Exception failure) {
+    protected boolean handleFailure(int failureCount, Exception failure)
+    {
         // get the maximum number of retries
         int maxRetries = this.getMaximumRetries();
 
@@ -762,8 +752,7 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
 
     /**
      * Implemented to launch a background thread that will read messages from
-     * the
-     * database queue and process them.
+     * the database queue and process them.
      * 
      * @param processor Processes messages
      * 
@@ -919,7 +908,8 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
      * 
      * {@inheritDoc}
      */
-    protected synchronized void waitUntilDestroyed() {
+    protected synchronized void waitUntilDestroyed()
+    {
         // check if already destroyed
         if (this.getState() == State.DESTROYED) {
             return;
@@ -1004,7 +994,8 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
      * {@inheritDoc}
      */
     @Override
-    protected String extractMessageBody(LeasedMessage message) {
+    protected String extractMessageBody(LeasedMessage message)
+    {
         return message.getMessageText();
     }
 
@@ -1012,7 +1003,8 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
      * {@inheritDoc}
      */
     @Override
-    protected void disposeMessage(LeasedMessage message) {
+    protected void disposeMessage(LeasedMessage message)
+    {
         Connection conn = null;
         try {
             // get the connection
@@ -1046,7 +1038,8 @@ public class SQLConsumer extends AbstractMessageConsumer<LeasedMessage> {
      * {@inheritDoc}
      */
     @Override
-    protected void doDestroy() {
+    protected void doDestroy()
+    {
         // join to the consumption thread
         try {
             Thread consumeThread = null;

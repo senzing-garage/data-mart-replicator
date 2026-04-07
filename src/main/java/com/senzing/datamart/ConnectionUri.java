@@ -13,8 +13,8 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Abstract base class for a URI that defines a connection to 
- * an external system such as a database or message queue.
+ * Abstract base class for a URI that defines a connection to an external system
+ * such as a database or message queue.
  */
 public abstract class ConnectionUri
 {
@@ -55,12 +55,12 @@ public abstract class ConnectionUri
      * @param urlClass The {@link ConnectionUri} implementation to register.
      * 
      * @throws NullPointerException If either parameter is <code>null</code>.
-     * @throws IllegalStateException If specified scheme prefix is already 
+     * @throws IllegalStateException If specified scheme prefix is already
      *                               registered.
      * @throws IllegalArgumentException If the specified {@link Class} does not
-     *                                  have a parse method with a single
-     *                                  {@link String} parameter and returns
-     *                                  the specified {@link Class}.
+     *                                  have a parse method with a single {@link
+     *                                  String} parameter and returns the
+     *                                  specified {@link Class}.
      */
     protected static void registerConnectionType(
             String                          schemePrefix,
@@ -100,8 +100,8 @@ public abstract class ConnectionUri
     /**
      * Constructs with the specified URI protocol.
      * 
-     * @param schemePrefix The scheme prefix for database
-     *                       connection URI's of this type.
+     * @param schemePrefix The scheme prefix for database connection URI's of
+     *                     this type.
      */
     protected ConnectionUri(String schemePrefix)
     {
@@ -136,11 +136,11 @@ public abstract class ConnectionUri
     }
 
     /**
-     * Gets the <b>unmodifiable</b> {@link Map} of query-string options
-     * for this database connection URI.
+     * Gets the <b>unmodifiable</b> {@link Map} of query-string options for this
+     * database connection URI.
      * 
-     * @return The <b>unmodifiable</b> {@link Map} of query-string
-     *         options for this database connection URI.
+     * @return The <b>unmodifiable</b> {@link Map} of query-string options for
+     *             this database connection URI.
      */
     public Map<String, String> getQueryOptions()
     {
@@ -148,15 +148,15 @@ public abstract class ConnectionUri
     }
 
     /**
-     * Parses the specified URI according to the registered
-     * implementations of this class.
+     * Parses the specified URI according to the registered implementations of
+     * this class.
      * 
      * @param uri The URI to parse.
      * 
      * @return The {@link ConnectionUri} that was parsed.
      * 
      * @throws NullPointerException If the specified URI is <code>null</code>.
-     * @throws IllegalArgumentException If the specified URI is not properly 
+     * @throws IllegalArgumentException If the specified URI is not properly
      *                                  formatted.
      */
     public static ConnectionUri parse(String uri)
@@ -214,10 +214,10 @@ public abstract class ConnectionUri
      * 
      * @param queryString The query string to parse.
      * 
-     * @return The {@link Map} of {@link String} parameter names to
-     *         {@link String} parameter values, or <code>null</code> if
-     *         the specified parameter is <code>null</code> or contains
-     *         no parameters.
+     * @return The {@link Map} of {@link String} parameter names to {@link
+     *             String} parameter values, or <code>null</code> if the
+     *             specified parameter is <code>null</code> or contains no
+     *             parameters.
      */
     protected static Map<String, String> parseQueryOptions(String queryString)
     {
@@ -264,8 +264,8 @@ public abstract class ConnectionUri
 
     /**
      * Gets the {@linkplain #getQueryOptions() query options} converted to a
-     * URL-encoded query string with the <code>"?"</code> prefix.  This
-     * returns empty string if there are no query options.
+     * URL-encoded query string with the <code>"?"</code> prefix. This returns
+     * empty string if there are no query options.
      * 
      * @return The encoded query string, or empty-string if no query options.
      */

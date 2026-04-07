@@ -17,7 +17,8 @@ import static com.senzing.util.LoggingUtilities.*;
  * old state or new state may be that the entity does not exist, however, the
  * both states should not be non-existent or else no difference exists.
  */
-public class EntityDelta {
+public class EntityDelta
+{
     /**
      * The lookup {@link Map} of {@link SzMatchType} keys to
      * {@link SzReportStatistic} values.
@@ -30,9 +31,9 @@ public class EntityDelta {
             POSSIBLE_RELATION, POSSIBLE_RELATION_COUNT);
 
     /**
-     * The {@link SzResolvedEntity} describing the old version
-     * of the entity, or <code>null</code> if the entity did not
-     * previously exist in the data mart.
+     * The {@link SzResolvedEntity} describing the old version of the entity, or
+     * <code>null</code> if the entity did not previously exist in the data
+     * mart.
      */
     private SzResolvedEntity oldEntity;
 
@@ -43,14 +44,14 @@ public class EntityDelta {
     private SzResolvedEntity newEntity;
 
     /**
-     * The difference between old and new for the number of
-     * records that the entity is comprised of.
+     * The difference between old and new for the number of records that the
+     * entity is comprised of.
      */
     private int recordDelta;
 
     /**
-     * The difference between old and new for the number of
-     * relationships the entity has.
+     * The difference between old and new for the number of relationships the
+     * entity has.
      */
     private int relationDelta;
 
@@ -85,9 +86,9 @@ public class EntityDelta {
     private Map<SzRecordKey, SzRecord> deletedRecords;
 
     /**
-     * The {@link Map} of {@link SzRecordKey} keys to {@link SzRecord}
-     * values describing the records that have changed how they match 
-     * against the entity.
+     * The {@link Map} of {@link SzRecordKey} keys to {@link SzRecord} values
+     * describing the records that have changed how they match against the
+     * entity.
      */
     private Map<SzRecordKey, SzRecord> changedRecords;
 
@@ -99,24 +100,21 @@ public class EntityDelta {
     /**
      * The {@link Map} of {@link Long} entity ID keys to
      * {@link SzRelatedEntity} values describing the related
-     * entities that related to the entity, but previously
-     * were not.
+     * entities that related to the entity, but previously were not.
      */
     private Map<Long, SzRelatedEntity> addedRelations;
 
     /**
      * The {@link Map} of {@link Long} entity ID keys to
      * {@link SzRelatedEntity} values describing the previously
-     * related entities that are no longer related to the
-     * entity.
+     * related entities that are no longer related to the entity.
      */
     private Map<Long, SzRelatedEntity> removedRelations;
 
     /**
      * The {@link Map} of {@link Long} entity ID keys to
      * {@link SzRelatedEntity} values describing the related
-     * entities for which a change in the relationship
-     * occurred.
+     * entities for which a change in the relationship occurred.
      */
     private Map<Long, SzRelatedEntity> changedRelations;
 
@@ -127,8 +125,8 @@ public class EntityDelta {
     private List<SzReportUpdate> reportUpdates;
 
     /**
-     * Constructs with the specified {@link SzResolvedEntity}
-     * instances to find the deltas between.
+     * Constructs with the specified {@link SzResolvedEntity} instances to find
+     * the deltas between.
      *
      * @param oldEntity The {@link SzResolvedEntity} describing the old entity
      *                  state.
@@ -302,7 +300,8 @@ public class EntityDelta {
      *
      * @return The entity ID for the entity that the delta was performed on.
      */
-    public long getEntityId() {
+    public long getEntityId()
+    {
         return getEntityId(this.getOldEntity(), this.getNewEntity());
     }
 
@@ -311,7 +310,8 @@ public class EntityDelta {
      *
      * @return The {@link SzResolvedEntity} describing the old entity.
      */
-    public SzResolvedEntity getOldEntity() {
+    public SzResolvedEntity getOldEntity()
+    {
         return this.oldEntity;
     }
 
@@ -320,25 +320,26 @@ public class EntityDelta {
      *
      * @return The {@link SzResolvedEntity} describing the new entity.
      */
-    public SzResolvedEntity getNewEntity() {
+    public SzResolvedEntity getNewEntity()
+    {
         return this.newEntity;
     }
 
     /**
      * Gets the {@link Map} of {@link SzRecordKey} keys to
      * {@link SzRecord} values describing the records for the
-     * old version of the entity. If the entity did not
-     * previously exist (i.e.: the old entity is
+     * old version of the entity. If the entity did not previously exist (i.e.:
+     * the old entity is
      * <code>null</code>) then this returns an empty
      * {@link Map}.
      *
-     * @return The {@link Map} of {@link SzRecordKey} keys to
-     *         {@link SzRecord} values describing the records
-     *         for the old version of the entity, or an empty
-     *         {@link Map} if the entity did not previously
-     *         exist.
+     * @return The {@link Map} of {@link SzRecordKey} keys to {@link SzRecord}
+     *             values describing the records for the old version of the
+     *             entity, or an empty {@link Map} if the entity did not
+     *             previously exist.
      */
-    public Map<SzRecordKey, SzRecord> getOldRecords() {
+    public Map<SzRecordKey, SzRecord> getOldRecords()
+    {
         SzResolvedEntity entity = this.getOldEntity();
         return (entity == null) ? Collections.emptyMap() : entity.getRecords();
     }
@@ -346,16 +347,15 @@ public class EntityDelta {
     /**
      * Gets the {@link Map} of {@link SzRecordKey} keys to
      * {@link SzRecord} values describing the records for the
-     * new version of the entity. If the entity was deleted
-     * (i.e.: the new entity is <code>null</code>) then this
-     * returns an empty {@link Map}.
+     * new version of the entity. If the entity was deleted (i.e.: the new
+     * entity is <code>null</code>) then this returns an empty {@link Map}.
      *
-     * @return The {@link Map} of {@link SzRecordKey} keys to
-     *         {@link SzRecord} values describing the records
-     *         for the new version of the entity, or
-     *         an empty {@link Map} if the entity was deleted.
+     * @return The {@link Map} of {@link SzRecordKey} keys to {@link SzRecord}
+     *             values describing the records for the new version of the
+     *             entity, or an empty {@link Map} if the entity was deleted.
      */
-    public Map<SzRecordKey, SzRecord> getNewRecords() {
+    public Map<SzRecordKey, SzRecord> getNewRecords()
+    {
         SzResolvedEntity entity = this.getNewEntity();
         return (entity == null) ? Collections.emptyMap() : entity.getRecords();
     }
@@ -363,16 +363,15 @@ public class EntityDelta {
     /**
      * Gets the {@link Map} of {@link String} data source code keys to
      * {@link Integer} describing the record counts per data source for the old
-     * version of the entity. If the entity did not previously
-     * exist (i.e.: the old
-     * entity is <code>null</code>) then this returns an empty {@link Map}.
+     * version of the entity. If the entity did not previously exist (i.e.: the
+     * old entity is <code>null</code>) then this returns an empty {@link Map}.
      *
-     * @return The {@link Map} of {@link String} data source code keys to
-     *         {@link Integer} describing the record counts
-     *         per data source for the
-     *         old version of the entity.
+     * @return The {@link Map} of {@link String} data source code keys to {@link
+     *             Integer} describing the record counts per data source for the
+     *             old version of the entity.
      */
-    public Map<String, Integer> getOldSourceSummary() {
+    public Map<String, Integer> getOldSourceSummary()
+    {
         return getSourceSummary(this.getOldEntity());
     }
 
@@ -382,27 +381,26 @@ public class EntityDelta {
      * version of the entity. If the entity was deleted (i.e.: the new entity is
      * <code>null</code>) then this returns an empty {@link Map}.
      *
-     * @return The {@link Map} of {@link String} data source code keys to
-     *         {@link Integer} describing the record counts
-     *         per data source for the
-     *         new version of the entity.
+     * @return The {@link Map} of {@link String} data source code keys to {@link
+     *             Integer} describing the record counts per data source for the
+     *             new version of the entity.
      */
-    public Map<String, Integer> getNewSourceSummary() {
+    public Map<String, Integer> getNewSourceSummary()
+    {
         return getSourceSummary(this.getNewEntity());
     }
 
     /**
-     * Gets the {@link SortedMap} of {@link SzMatchType}
-     * keys to {@link SortedSet} values containing data
-     * source codes for the data sources of the records in
-     * all entities related to the old entity. If the entity
-     * did not previously exist (i.e.: the old entity is
+     * Gets the {@link SortedMap} of {@link SzMatchType} keys to {@link
+     * SortedSet} values containing data source codes for the data sources of
+     * the records in all entities related to the old entity. If the entity did
+     * not previously exist (i.e.: the old entity is
      * <code>null</code>) then this returns an empty
      * {@link Set}.
      *
-     * @return The {@link Set} of {@link String} data source
-     *         codes for the data sources of the records in
-     *         all entities related to the old entity.
+     * @return The {@link Set} of {@link String} data source codes for the data
+     *             sources of the records in all entities related to the old
+     *             entity.
      */
     public SortedMap<SourceRelationKey, SortedSet<String>>
         getOldRelatedSources()
@@ -411,16 +409,15 @@ public class EntityDelta {
     }
 
     /**
-     * Gets the {@link Set} of {@link String} data source
-     * codes for the data sources of the records in all
-     * entities related to the new entity. If the entity no
-     * longer exists (i.e.: the new entity is
+     * Gets the {@link Set} of {@link String} data source codes for the data
+     * sources of the records in all entities related to the new entity. If the
+     * entity no longer exists (i.e.: the new entity is
      * <code>null</code>) then this returns an empty
      * {@link Set}.
      *
-     * @return The {@link Set} of {@link String} data source
-     *         codes for the data sources of the records in
-     *         all entities related to the new entity.
+     * @return The {@link Set} of {@link String} data source codes for the data
+     *             sources of the records in all entities related to the new
+     *             entity.
      */
     public SortedMap<SourceRelationKey, SortedSet<String>>
         getNewRelatedSources()
@@ -429,17 +426,15 @@ public class EntityDelta {
     }
 
     /**
-     * Gets the {@link Map} of {@link Long} entity ID keys
-     * to {@link SzRelatedEntity} instances describing the
-     * entities previously related to this entity. If the
-     * entity previously did not exist (i.e.: the old entity
+     * Gets the {@link Map} of {@link Long} entity ID keys to {@link
+     * SzRelatedEntity} instances describing the entities previously related to
+     * this entity. If the entity previously did not exist (i.e.: the old entity
      * is <code>null</code>) then this returns an empty
      * {@link Map}.
      *
-     * @return The {@link Map} of {@link Long} entity ID
-     *         keys to {@link SzRelatedEntity} instances
-     *         describing the entities previously related
-     *         to this entity.
+     * @return The {@link Map} of {@link Long} entity ID keys to {@link
+     *             SzRelatedEntity} instances describing the entities previously
+     *             related to this entity.
      */
     public Map<Long, SzRelatedEntity> getOldRelatedEntities()
     {
@@ -447,17 +442,15 @@ public class EntityDelta {
     }
 
     /**
-     * Gets the {@link Map} of {@link Long} entity ID keys
-     * to {@link SzRelatedEntity} instances describing the
-     * currently related entities to this entity. If the
-     * entity no longer exists (i.e.: the new entity is
+     * Gets the {@link Map} of {@link Long} entity ID keys to {@link
+     * SzRelatedEntity} instances describing the currently related entities to
+     * this entity. If the entity no longer exists (i.e.: the new entity is
      * <code>null</code>) then this returns an empty
      * {@link Map}.
      *
-     * @return The {@link Map} of {@link Long} entity ID
-     *         keys to {@link SzRelatedEntity} instances
-     *         describing the entities currently related
-     *         to this entity.
+     * @return The {@link Map} of {@link Long} entity ID keys to {@link
+     *             SzRelatedEntity} instances describing the entities currently
+     *             related to this entity.
      */
     public Map<Long, SzRelatedEntity>
         getNewRelatedEntities()
@@ -470,7 +463,8 @@ public class EntityDelta {
      *
      * @return The delta for the record count.
      */
-    public int getRecordDelta() {
+    public int getRecordDelta()
+    {
         return this.recordDelta;
     }
 
@@ -479,7 +473,8 @@ public class EntityDelta {
      *
      * @return The delta for the relationship count.
      */
-    public int getRelationDelta() {
+    public int getRelationDelta()
+    {
         return this.relationDelta;
     }
 
@@ -488,12 +483,13 @@ public class EntityDelta {
      * {@link Integer} values describing the deltas in the record counts by data
      * source between the old and the new version of the entity.
      *
-     * @return The {@link Map} of {@link String} data source code keys to
-     *         {@link Integer} values describing the deltas
-     *         in the record counts by
-     *         data source between the old and the new version of the entity.
+     * @return The {@link Map} of {@link String} data source code keys to {@link
+     *             Integer} values describing the deltas in the record counts by
+     *             data source between the old and the new version of the
+     *             entity.
      */
-    public Map<String, Integer> getDataSourceDeltas() {
+    public Map<String, Integer> getDataSourceDeltas()
+    {
         return this.dataSourceDeltas;
     }
 
@@ -501,33 +497,29 @@ public class EntityDelta {
      * Gets the {@link Set} of {@link SzRecord} instances describing the records
      * that were added at the entity.
      *
-     * @return The {@link Set} of {@link SzRecord} instances
-     *         describing the records that were added to the
-     *         entity.
+     * @return The {@link Set} of {@link SzRecord} instances describing the
+     *             records that were added to the entity.
      */
-    public Map<SzRecordKey, SzRecord> getAddedRecords() {
+    public Map<SzRecordKey, SzRecord> getAddedRecords()
+    {
         return Collections.unmodifiableMap(this.addedRecords);
     }
 
     /**
-     * Indicates that the specified record that was added to
-     * the entity had to be created new in the data mart.
+     * Indicates that the specified record that was added to the entity had to
+     * be created new in the data mart.
      *
-     * @param record The {@link SzRecord} describing the
-     *               record that was newly created.
-     * @throws NullPointerException If the specified
-     *                              {@link SzRecord} is
+     * @param record The {@link SzRecord} describing the record that was newly
+     *               created.
+     * @throws NullPointerException If the specified {@link SzRecord} is
      *                              <code>null</code>.
-     * @throws IllegalArgumentException If the specified
-     *                                  {@link SzRecord} is
-     *                                  not one of the
-     *                                  {@linkplain
-     *                                  #getAddedRecords()
-     *                                  added records} or has
-     *                                  already been marked
-     *                                  as created.
+     * @throws IllegalArgumentException If the specified {@link SzRecord} is not
+     *                                  one of the {@linkplain
+     *                                  #getAddedRecords() added records} or has
+     *                                  already been marked as created.
      */
-    public void createdRecord(SzRecord record) {
+    public void createdRecord(SzRecord record)
+    {
         logDebug("ENTITY " + this.getEntityId()
                  + " RECORD CREATED: " + record);
         Objects.requireNonNull(record, "The record cannot be null");
@@ -559,47 +551,46 @@ public class EntityDelta {
 
     /**
      * Gets the {@link Map} of {@link SzRecordKey} keys to {@link SzRecord}
-     * values
-     * describing the records that were removed from the entity.
+     * values describing the records that were removed from the entity.
      *
      * @return The {@link Map} of {@link SzRecordKey} keys to {@link SzRecord}
-     *         values describing the records that were removed from the entity.
+     *             values describing the records that were removed from the
+     *             entity.
      */
-    public Map<SzRecordKey, SzRecord> getRemovedRecords() {
+    public Map<SzRecordKey, SzRecord> getRemovedRecords()
+    {
         return Collections.unmodifiableMap(this.removedRecords);
     }
 
     /**
      * Gets the {@link Map} of {@link SzRecordKey} keys to {@link SzRecord}
-     * values
-     * describing the records that have changed how they match against the
-     * entity.
+     * values describing the records that have changed how they match against
+     * the entity.
      * 
      * @return The {@link Map} of {@link SzRecordKey} keys to {@link SzRecord}
-     *         values describing the records that have changed how they match 
-     *         against the entity.
+     *             values describing the records that have changed how they
+     *             match against the entity.
      */
-    public Map<SzRecordKey, SzRecord> getChangedRecords() {
+    public Map<SzRecordKey, SzRecord> getChangedRecords()
+    {
         return Collections.unmodifiableMap(this.changedRecords);
     }
 
     /**
      * Indicates that the specified record that was added to the entity had to
-     * be
-     * created new in the data mart.
+     * be created new in the data mart.
      *
      * @param record The {@link SzRecord} describing the record that was newly
      *               created.
      * @throws NullPointerException     If the specified {@link SzRecord} is
      *                                  <code>null</code>.
      * @throws IllegalArgumentException If the specified {@link SzRecord} is not
-     *         one
-     *                                  of the {@linkplain #getAddedRecords()
-     *                                  added
-     *                                  records} or has already been marked as
-     *                                  created.
+     *                                  one of the {@linkplain
+     *                                  #getAddedRecords() added records} or has
+     *                                  already been marked as created.
      */
-    public void orphanedRecord(SzRecord record) {
+    public void orphanedRecord(SzRecord record)
+    {
         logDebug("ENTITY " + this.getEntityId() + " RECORD ORPHANED: "
                 + record);
         Objects.requireNonNull(record, "The record cannot be null");
@@ -629,53 +620,49 @@ public class EntityDelta {
     /**
      * Gets the {@link Map} of {@link Long} entity ID keys to
      * {@link SzRelatedEntity} values describing the related entities that are
-     * now
-     * related to the entity, but previously were not related.
+     * now related to the entity, but previously were not related.
      *
-     * @return The {@link Map} of {@link Long} entity ID keys to
-     *         {@link SzRelatedEntity} values describing the related entities
-     *         that
-     *         are now related to the entity, but previously were not related.
+     * @return The {@link Map} of {@link Long} entity ID keys to {@link
+     *             SzRelatedEntity} values describing the related entities that
+     *             are now related to the entity, but previously were not
+     *             related.
      */
-    public Map<Long, SzRelatedEntity> getAddedRelations() {
+    public Map<Long, SzRelatedEntity> getAddedRelations()
+    {
         return Collections.unmodifiableMap(this.addedRelations);
     }
 
     /**
      * Gets the {@link Map} of {@link Long} entity ID keys to
      * {@link SzRelatedEntity} values describing the related entities for which
-     * the
-     * relationship has changed in some way (e.g.: new data sources for this
-     * entity
-     * or the other).
+     * the relationship has changed in some way (e.g.: new data sources for this
+     * entity or the other).
      *
-     * @return The {@link Map} of {@link Long} entity ID keys to
-     *         {@link SzRelatedEntity} values describing the related entities
-     *         that
-     *         are no longer related to the entity, but previously were related.
+     * @return The {@link Map} of {@link Long} entity ID keys to {@link
+     *             SzRelatedEntity} values describing the related entities that
+     *             are no longer related to the entity, but previously were
+     *             related.
      */
-    public Map<Long, SzRelatedEntity> getChangedRelations() {
+    public Map<Long, SzRelatedEntity> getChangedRelations()
+    {
         return Collections.unmodifiableMap(this.changedRelations);
     }
 
     /**
      * Marks the relationship to the specified related entity as having been
-     * stored
-     * in the database. The relationship may have been created or updated or
-     * found
-     * to already exist.
+     * stored in the database. The relationship may have been created or updated
+     * or found to already exist.
      *
      * @param newRelationship The new {@link SzRelationship} to track.
      * 
      * @return The {@link SzRelationship} describing how the relationship was
-     *         previously defined, or <code>null</code> if no such relationship
-     *         previously existed.
+     *             previously defined, or <code>null</code> if no such
+     *             relationship previously existed.
      * 
      * @throws IllegalArgumentException If the {@link SzRelationship} has
-     *         neither an
-     *                                  entity ID or related entity ID that
-     *                                  matches
-     *                                  the entity ID for this instance.
+     *                                  neither an entity ID or related entity
+     *                                  ID that matches the entity ID for this
+     *                                  instance.
      */
     public SzRelationship trackStoredRelationship(
             SzRelationship newRelationship)
@@ -936,35 +923,31 @@ public class EntityDelta {
     /**
      * Gets the {@link Map} of {@link Long} entity ID keys to
      * {@link SzRelatedEntity} values describing the related entities that are
-     * no
-     * longer related to the entity, but previously were related.
+     * no longer related to the entity, but previously were related.
      *
-     * @return The {@link Map} of {@link Long} entity ID keys to
-     *         {@link SzRelatedEntity} values describing the related entities
-     *         that
-     *         are no longer related to the entity, but previously were related.
+     * @return The {@link Map} of {@link Long} entity ID keys to {@link
+     *             SzRelatedEntity} values describing the related entities that
+     *             are no longer related to the entity, but previously were
+     *             related.
      */
-    public Map<Long, SzRelatedEntity> getRemovedRelations() {
+    public Map<Long, SzRelatedEntity> getRemovedRelations()
+    {
         return Collections.unmodifiableMap(this.removedRelations);
     }
 
     /**
      * Marks the relationship to the specified related entity as having been
-     * deleted
-     * or found to be already deleted from the database. The relationship must
-     * have
-     * previously existed.
+     * deleted or found to be already deleted from the database. The
+     * relationship must have previously existed.
      *
      * @param oldRelationship The previously existing relationship that no
-     *        longer
-     *                        exists.
+     *                        longer exists.
      * 
      * @throws NullPointerException If the specified parameter is
-     *         <code>null</code>.
+     *                              <code>null</code>.
      * @throws IllegalArgumentException If neither of the entity ID's for the
-     *         specified
-     *                                  relationship matches the entity ID for
-     *                                  this instance.
+     *                                  specified relationship matches the
+     *                                  entity ID for this instance.
      */
     public void trackDeletedRelationship(SzRelationship oldRelationship) 
         throws NullPointerException, IllegalArgumentException 
@@ -1112,30 +1095,29 @@ public class EntityDelta {
      * Get all required report updates that have been detected so far.
      *
      * @return The {@link List} of {@link SzReportUpdate} instances describing
-     *         the
-     *         updates detected thus far.
+     *             the updates detected thus far.
      */
-    public List<SzReportUpdate> getReportUpdates() {
+    public List<SzReportUpdate> getReportUpdates()
+    {
         return Collections.unmodifiableList(this.reportUpdates);
     }
 
     /**
      * Gets the {@link Map} of {@link String} data source codes to {@link
-     * Integer}
-     * record counts describing the data source summary for the specified
+     * Integer} record counts describing the data source summary for the
+     * specified
      * {@link SzEntity}. If the specified {@link SzEntity} is <code>null</code>
-     * then
-     * this returns an empty {@link Map}.
+     * then this returns an empty {@link Map}.
      *
      * @param entity The {@link SzEntity} from which to obtain the data source
      *               summary.
-     * @return The {@link Map} of {@link String} data source codes to
-     *         {@link Integer} record counts describing the data source summary
-     *         for
-     *         the specified {@link SzEntity}, or an empty {@link Map} if the
-     *         specified {@link SzEntity} is <code>null</code>.
+     * @return The {@link Map} of {@link String} data source codes to {@link
+     *             Integer} record counts describing the data source summary for
+     *             the specified {@link SzEntity}, or an empty {@link Map} if
+     *             the specified {@link SzEntity} is <code>null</code>.
      */
-    private static Map<String, Integer> getSourceSummary(SzEntity entity) {
+    private static Map<String, Integer> getSourceSummary(SzEntity entity)
+    {
         return (entity == null) ? Collections.emptyMap() : entity
                 .getSourceSummary();
 
@@ -1149,18 +1131,17 @@ public class EntityDelta {
      * <code>null</code> then this returns an empty {@link SortedMap}.
      *
      * @param entity The {@link SzResolvedEntity} from which to obtain the
-     *        related
-     *               sources.
+     *               related sources.
      *
-     * @return The {@link SortedMap} of {@link SourceRelationKey} keys to
-     *         {@link SortedSet} values containing {@link String} data source
-     *         codes
-     *         describing the data sources related by the respective
-     *         {@link SourceRelationKey}, or an empty {@link SortedMap} if the
-     *         specified {@link SzResolvedEntity} is <code>null</code>.
+     * @return The {@link SortedMap} of {@link SourceRelationKey} keys to {@link
+     *             SortedSet} values containing {@link String} data source codes
+     *             describing the data sources related by the respective {@link
+     *             SourceRelationKey}, or an empty {@link SortedMap} if the
+     *             specified {@link SzResolvedEntity} is <code>null</code>.
      */
     public static SortedMap<SourceRelationKey,
-            SortedSet<String>> getRelatedSources(SzResolvedEntity entity) {
+            SortedSet<String>> getRelatedSources(SzResolvedEntity entity)
+            {
         SortedMap<SourceRelationKey,
                 SortedSet<String>> result = new TreeMap<>();
         if (entity == null) {
@@ -1190,45 +1171,39 @@ public class EntityDelta {
 
     /**
      * Gets the {@link Set} of {@link SzRecord} instances describing the records
-     * for
-     * the specified {@link SzEntity}. If the specified {@link SzEntity} is
+     * for the specified {@link SzEntity}. If the specified {@link SzEntity} is
      * <code>null</code> then this returns an empty {@link Map}.
      *
      * @param entity The {@link SzEntity} from which obtain the data sources.
      * @return The {@link Set} of {@link SzRecord} instances describing the
-     *         records
-     *         for the specified {@link SzEntity}, or an empty {@link Set} if
-     *         the
-     *         specified {@link SzEntity} is <code>null</code>.
+     *             records for the specified {@link SzEntity}, or an empty
+     *             {@link Set} if the specified {@link SzEntity} is
+     *             <code>null</code>.
      */
-    private static Map<SzRecordKey, SzRecord> getRecords(SzEntity entity) {
+    private static Map<SzRecordKey, SzRecord> getRecords(SzEntity entity)
+    {
         return (entity == null) ? Collections
                 .emptyMap() : new LinkedHashMap<>(entity.getRecords());
     }
 
     /**
      * Gets the entity ID associated with the specified old and new {@link
-     * SzEntity}
-     * instances, at least one of which must <b>not</b> be <code>null</code>. It
-     * is
-     * assumed that both describe the same entity at different points in time if
-     * both are non-null.
+     * SzEntity} instances, at least one of which must <b>not</b> be
+     * <code>null</code>. It is assumed that both describe the same entity at
+     * different points in time if both are non-null.
      *
      * @param oldEntity The {@link SzEntity} describing the old state of the
-     *        entity,
-     *                  or <code>null</code> if the entity did not previously
-     *                  exist
-     *                  in the data mart.
+     *                  entity, or <code>null</code> if the entity did not
+     *                  previously exist in the data mart.
      * @param newEntity The {@link SzEntity} describing the new state of the
-     *        entity,
-     *                  or <code>null</code> if the entity no longer exists in
-     *                  the
-     *                  entity repository.
+     *                  entity, or <code>null</code> if the entity no longer
+     *                  exists in the entity repository.
      * @return The associated entity ID.
      * @throws IllegalArgumentException If both parameters are
-     *         <code>null</code>.
+     *                                  <code>null</code>.
      */
-    private static long getEntityId(SzEntity oldEntity, SzEntity newEntity) {
+    private static long getEntityId(SzEntity oldEntity, SzEntity newEntity)
+    {
         if (oldEntity != null) {
             return oldEntity.getEntityId();
         }
@@ -1245,16 +1220,15 @@ public class EntityDelta {
      * <code>null</code> then an empty {@link Map} is returned.
      *
      * @param entity The {@link SzEntity} for which the related entities are
-     *        being
-     *               requested.
-     * @return The {@link Map} of {@link Long} entity ID keys to
-     *         {@link SzRelatedEntity} values describing the related entities
-     *         for
-     *         the specified {@link SzEntity}, or an empty {@link Map} if the
-     *         specified {@link SzEntity} is <code>null</code>.
+     *               being requested.
+     * @return The {@link Map} of {@link Long} entity ID keys to {@link
+     *             SzRelatedEntity} values describing the related entities for
+     *             the specified {@link SzEntity}, or an empty {@link Map} if
+     *             the specified {@link SzEntity} is <code>null</code>.
      */
     private static Map<Long,
-            SzRelatedEntity> getRelatedEntities(SzResolvedEntity entity) {
+            SzRelatedEntity> getRelatedEntities(SzResolvedEntity entity)
+            {
         return (entity == null) ? Collections.emptyMap() : entity
                 .getRelatedEntities();
     }
@@ -1264,14 +1238,12 @@ public class EntityDelta {
      * {@link Set}'s of old and new records.
      *
      * @param oldRecords The {@link Set} of {@link SzRecord} instances
-     *        describing
-     *                   the records that were previously recorded in the
-     *                   entity.
+     *                   describing the records that were previously recorded in
+     *                   the entity.
      * @param newRecords The {@link Set} of {@link SzRecord} instances
-     *        describing
-     *                   the records that are now part of the entity.
+     *                   describing the records that are now part of the entity.
      * @return The {@link Set} of {@link SzRecord} instances that are new to the
-     *         entity.
+     *             entity.
      */
     private static Map<SzRecordKey, SzRecord> findAddedRecords(
         Map<SzRecordKey, SzRecord> oldRecords,
@@ -1291,15 +1263,13 @@ public class EntityDelta {
      * {@link Set}'s of old and new records.
      *
      * @param oldRecords The {@link Set} of {@link SzRecord} instances
-     *        describing
-     *                   the records that were previously recorded in the
-     *                   entity.
+     *                   describing the records that were previously recorded in
+     *                   the entity.
      * @param newRecords The {@link Set} of {@link SzRecord} instances
-     *        describing
-     *                   the records that are now part of the entity.
+     *                   describing the records that are now part of the entity.
      * @return The {@link Set} of {@link SzRecord} instances that were
-     *         previously
-     *         part of the entity, but are no longer part of the entity.
+     *             previously part of the entity, but are no longer part of the
+     *             entity.
      */
     private static Map<SzRecordKey, SzRecord> findRemovedRecords(
         Map<SzRecordKey, SzRecord> oldRecords,
@@ -1322,13 +1292,13 @@ public class EntityDelta {
      * old records, but also exist and are different in the new records.
      *
      * @param oldRecords    The {@link Map} of {@link SzRecordKey} keys to
-     *                      {@link SzRecord} instances describing the
-     *                      records that entity previous had.
+     *                      {@link SzRecord} instances describing the records
+     *                      that entity previous had.
      * @param newRecords    The {@link Map} of {@link SzRecordKey} keys to
-     *                      {@link SzRecord} instances describing the
-     *                      records that the entity now has.
+     *                      {@link SzRecord} instances describing the records
+     *                      that the entity now has.
      * @return The {@link Map} of {@link SzRecordKey} keys to {@link SzRecord}
-     *         values describing the records that have changed.
+     *             values describing the records that have changed.
      */
     private static Map<SzRecordKey, SzRecord> findChangedRecords(
         Map<SzRecordKey, SzRecord> oldRecords,
@@ -1368,9 +1338,9 @@ public class EntityDelta {
      * @param newRelations The {@link Map} of {@link Long} entity ID keys to
      *                     {@link SzRelatedEntity} instances describing the
      *                     relationships that the entity now has.
-     * @return The {@link Map} of {@link Long} entity ID keys to
-     *         {@link SzRelatedEntity} values describing the newly added
-     *         relationships.
+     * @return The {@link Map} of {@link Long} entity ID keys to {@link
+     *             SzRelatedEntity} values describing the newly added
+     *             relationships.
      */
     private static Map<Long, SzRelatedEntity> findAddedRelations(
         Map<Long, SzRelatedEntity> oldRelations,
@@ -1396,9 +1366,8 @@ public class EntityDelta {
      * @param newRelations The {@link Map} of {@link Long} entity ID keys to
      *                     {@link SzRelatedEntity} instances describing the
      *                     relationships that the entity now has.
-     * @return The {@link Map} of {@link Long} entity ID keys to
-     *         {@link SzRelatedEntity} values describing the removed
-     *         relationships.
+     * @return The {@link Map} of {@link Long} entity ID keys to {@link
+     *             SzRelatedEntity} values describing the removed relationships.
      */
     private static Map<Long, SzRelatedEntity> findRemovedRelations(
         Map<Long, SzRelatedEntity> oldRelations,
@@ -1421,16 +1390,13 @@ public class EntityDelta {
      * Determines which relationships were changed for the entity given the
      * specified {@link Map}'s describing the old and new relationships. All the
      * relationships in the returned {@link Map} were present in the {@link Map}
-     * of
-     * old relations, but also exist and are different in the new relations. In
-     * some
-     * cases, the only difference is the data sources have changed for the
-     * entity.
+     * of old relations, but also exist and are different in the new relations.
+     * In some cases, the only difference is the data sources have changed for
+     * the entity.
      *
      * @param oldDataSources The {@link Set} of {@link String} data source codes
      *                       describing the data sources that the entity
-     *                       previously
-     *                       had.
+     *                       previously had.
      * @param newDataSources The {@link Set} of {@link String} data source codes
      *                       describing the data sources that the entity now
      *                       has.
@@ -1440,10 +1406,9 @@ public class EntityDelta {
      * @param newRelations   The {@link Map} of {@link Long} entity ID keys to
      *                       {@link SzRelatedEntity} instances describing the
      *                       relationships that the entity now has.
-     * @return The {@link Map} of {@link Long} entity ID keys to
-     *         {@link SzRelatedEntity} values describing the entity
-     *         relationships
-     *         that have changed.
+     * @return The {@link Map} of {@link Long} entity ID keys to {@link
+     *             SzRelatedEntity} values describing the entity relationships
+     *             that have changed.
      */
     private static Map<Long, SzRelatedEntity> findChangedRelations(
         Set<String>                 oldDataSources, 
@@ -1501,14 +1466,12 @@ public class EntityDelta {
      * Determines which relationships were changed for the entity given the
      * specified {@link Map}'s describing the old and new relationships. All the
      * relationships in the returned {@link Map} were present in the {@link Map}
-     * of
-     * old relations, but also exist and are different in the new relations. In
-     * some
-     * cases, the only difference is the data sources have changed for the
-     * entity.
+     * of old relations, but also exist and are different in the new relations.
+     * In some cases, the only difference is the data sources have changed for
+     * the entity.
      *
      * @param reportUpdates The {@link List} of {@link SzReportUpdate}
-     *        instances.
+     *                      instances.
      * @param oldEntity The {@link SzResolvedEntity} describing the old entity.
      * @param newEntity The {@link SzResolvedEntity} describing the new entity.
      */
@@ -1616,11 +1579,9 @@ public class EntityDelta {
      * @param sourceSummary  The source summary for the entity.
      * @param relatedSources The {@link Map} of {@link SzMatchType} keys to
      *                       {@link SortedSet} values describing the related
-     *                       sources
-     *                       by match type.
+     *                       sources by match type.
      * @return The {@link Map} of {@link CrossRelationKey} keys to {@link
-     *         Integer}
-     *         values describing the record count for that key.
+     *             Integer} values describing the record count for that key.
      */
     private static Map<CrossRelationKey, Integer> crossSourceRelations(
         Map<String, Integer>                        sourceSummary,
@@ -1647,17 +1608,15 @@ public class EntityDelta {
      * report.
      *
      * @param reportUpdates The {@link List} of {@link SzReportUpdate}
-     *        instances.
+     *                      instances.
      * @param oldEntity     The old version of the entity, which may be
      *                      <code>null</code>.
      * @param newEntity     The new version of the entity, which may be
      *                      <code>null</code>.
      * @param oldRecords The {@link Set} of {@link SzRecord} instances
-     *        describing
-     *                      the old records.
+     *                   describing the old records.
      * @param newRecords The {@link Set} of {@link SzRecord} instances
-     *        describing
-     *                      the new records.
+     *                   describing the new records.
      */
     private static void findEntitySizeChanges(
         List<SzReportUpdate>        reportUpdates,
@@ -1699,7 +1658,7 @@ public class EntityDelta {
      * report.
      *
      * @param reportUpdates The {@link List} of {@link SzReportUpdate}
-     *        instances.
+     *                      instances.
      * @param oldEntity     The old version of the entity, which may be
      *                      <code>null</code>.
      * @param newEntity     The new version of the entity, which may be
@@ -1756,28 +1715,23 @@ public class EntityDelta {
 
     /**
      * Finds the {@linkplain SzReportCode#DATA_SOURCE_SUMMARY data source
-     * summary}
-     * report updates that can be determined without knowing the relationship
-     * updates.
+     * summary} report updates that can be determined without knowing the
+     * relationship updates.
      *
      * @param reportUpdates The {@link List} of {@link SzReportUpdate} instances
-     *                         to be populated.
+     *                      to be populated.
      * @param oldEntity The {@link SzEntity} describing the old state for the
-     *                         entity.
+     *                  entity.
      * @param newEntity The {@link SzEntity} describing the new state for the
-     *                         entity.
+     *                  entity.
      * @param oldSourceSummary The {@link Map} of {@link String} data source
-     *        code
-     *                         keys to {@link Integer} values indicating the
-     *                         number
-     *                         of records previously from that source in the
-     *                         entity.
+     *                         code keys to {@link Integer} values indicating
+     *                         the number of records previously from that source
+     *                         in the entity.
      * @param newSourceSummary The {@link Map} of {@link String} data source
-     *        code
-     *                         keys to {@link Integer} values indicating the
-     *                         number
-     *                         of records currently from that source in the
-     *                         entity.
+     *                         code keys to {@link Integer} values indicating
+     *                         the number of records currently from that source
+     *                         in the entity.
      */
     private static void findSourceSummaryChanges(
         List<SzReportUpdate>    reportUpdates,
@@ -1991,29 +1945,23 @@ public class EntityDelta {
 
     /**
      * Finds the {@linkplain SzReportCode#CROSS_SOURCE_SUMMARY cross source
-     * summary
-     * match} report updates that can be determined without knowing the
-     * relationship
-     * updates.
+     * summary match} report updates that can be determined without knowing the
+     * relationship updates.
      *
      * @param reportUpdates The {@link List} of {@link SzReportUpdate} instances
-     *                         to be populated.
+     *                      to be populated.
      * @param oldEntity The {@link SzEntity} describing the old state for the
-     *                         entity.
+     *                  entity.
      * @param newEntity The {@link SzEntity} describing the new state for the
-     *                         entity.
+     *                  entity.
      * @param oldSourceSummary The {@link Map} of {@link String} data source
-     *        code
-     *                         keys to {@link Integer} values indicating the
-     *                         number
-     *                         of records previously from that source in the
-     *                         entity.
+     *                         code keys to {@link Integer} values indicating
+     *                         the number of records previously from that source
+     *                         in the entity.
      * @param newSourceSummary The {@link Map} of {@link String} data source
-     *        code
-     *                         keys to {@link Integer} values indicating the
-     *                         number
-     *                         of records currently from that source in the
-     *                         entity.
+     *                         code keys to {@link Integer} values indicating
+     *                         the number of records currently from that source
+     *                         in the entity.
      */
     private static void findCrossMatchChanges(
         List<SzReportUpdate>    reportUpdates,
@@ -2120,24 +2068,24 @@ public class EntityDelta {
 
     /**
      * Counts the number of matched records of each data source to each other
-     * data
-     * source and returns a {@link Map} of {@link CrossMatchKey} keys to
+     * data source and returns a {@link Map} of {@link CrossMatchKey} keys to
      * {@link Integer} values for the count.
      *
      * @param summary The {@link Map} of {@link String} data source code keys to
      *                {@link Integer} values describing the record counts per
-     *                data
-     *                source for the entity.
+     *                data source for the entity.
      * 
      * @param entity  The {@link SzEntity} for which to count the matches.
      *
      * @return The {@link Map} of {@link List} values containing exactly two
-     *         {@link String} data source codes (the "from" data source code,
-     *         followed by the "to" data source code) and {@link Integer} values
-     *         describing the number of records in the first data source.
+     *             {@link String} data source codes (the "from" data source
+     *             code, followed by the "to" data source code) and {@link
+     *             Integer} values describing the number of records in the first
+     *             data source.
      */
     private static Map<CrossMatchKey, Integer> countMatches(Map<String,
-            Integer> summary, SzEntity entity) {
+            Integer> summary, SzEntity entity)
+    {
         // create the result map
         Map<CrossMatchKey, Integer> matchCounts = new TreeMap<>();
 
@@ -2171,17 +2119,17 @@ public class EntityDelta {
 
     /**
      * Gets the distinct set of {@link MatchPairKey} instances describing the
-     * match
-     * keys, principles and pairs of match keys and principles for the entity
-     * described by the specified {@link SzEntity}.
+     * match keys, principles and pairs of match keys and principles for the
+     * entity described by the specified {@link SzEntity}.
      * 
      * @param entity The {@link SzEntity} from which to extract the distinct
      *               {@link SortedSet} of {@link MatchPairKey} instances.
      * 
      * @return The {@link SortedSet} of {@link MatchPairKey} instances for the
-     *         records in the specified {@link SzEntity}.
+     *             records in the specified {@link SzEntity}.
      */
-    private static SortedSet<MatchPairKey> getMatchPairs(SzEntity entity) {
+    private static SortedSet<MatchPairKey> getMatchPairs(SzEntity entity)
+    {
         // create the result map
         SortedSet<MatchPairKey> result = new TreeSet<>();
 
@@ -2219,22 +2167,21 @@ public class EntityDelta {
      * the first data source code in the pair.
      *
      * @param summary1 The first {@link Map} of {@link String} data source code
-     *        keys
-     *                 to {@link Integer} values describing the record counts
-     *                 per
-     *                 data source.
+     *                 keys to {@link Integer} values describing the record
+     *                 counts per data source.
      * @param summary2 The second {@link Map} of {@link String} data source code
      *                 keys to {@link Integer} values describing the record
-     *                 counts
-     *                 per data source.
+     *                 counts per data source.
      *
      * @return The {@link Map} of {@link List} values containing exactly two
-     *         {@link String} data source codes and {@link RelationshipCounts}
-     *         values describing the counts for the relationships.
+     *             {@link String} data source codes and {@link
+     *             RelationshipCounts} values describing the counts for the
+     *             relationships.
      */
     private static Map<CrossSourceKey,
             RelationshipCounts> countRelationships(Map<String,
-                    Integer> summary1, Map<String, Integer> summary2) {
+                    Integer> summary1, Map<String, Integer> summary2)
+            {
         Map<CrossSourceKey, RelationshipCounts> result = new LinkedHashMap<>();
 
         // get the forward counts
@@ -2261,22 +2208,21 @@ public class EntityDelta {
     /**
      * Gets the <b>unmodifiable</b> {@link SortedSet} of {@link ResourceKey}
      * instances identifying the resources that need to be locked during
-     * database
-     * updated.
+     * database updated.
      *
      * @return The <b>unmodifiable</b> {@link SortedSet} of {@link ResourceKey}
-     *         instances identifying the resources that need to be locked during
-     *         database updated.
+     *             instances identifying the resources that need to be locked
+     *             during database updated.
      */
-    public SortedSet<ResourceKey> getResourceKeys() {
+    public SortedSet<ResourceKey> getResourceKeys()
+    {
         return this.resourceKeys;
     }
 
     /**
      * Creates the variant combinations of the specified {@link Statistic}
-     * formatted
-     * by itself, with only the principle, only the match key and with both the
-     * principle and match key.
+     * formatted by itself, with only the principle, only the match key and with
+     * both the principle and match key.
      * 
      * @param statistic The {@link SzReportStatistic} to use.
      * @param principle The principle to use for the variant combinations.
@@ -2335,8 +2281,7 @@ public class EntityDelta {
     /**
      * Creates the {@link Set} of variant statistic combinations that need to be
      * decremented based on the change in relationship match type, principle,
-     * and/or
-     * match key.
+     * and/or match key.
      * 
      * @param oldMatchType The old match type for the relationship, or
      *                     <code>null</code> if this is a new relationship.
@@ -2355,7 +2300,7 @@ public class EntityDelta {
      *                     exists.
      * 
      * @return The {@link Set} of {@link String} statistics that need to be
-     *         decremented.
+     *             decremented.
      */
     private static Set<String> decrementStatVariants(
             SzMatchType oldMatchType,
@@ -2425,8 +2370,7 @@ public class EntityDelta {
     /**
      * Creates the {@link Set} of variant statistic combinations that need to be
      * incremented based on the change in relationship match type, principle,
-     * and/or
-     * match key.
+     * and/or match key.
      * 
      * @param oldMatchType The old match type for the relationship, or
      *                     <code>null</code> if this is a new relationship.
@@ -2445,7 +2389,7 @@ public class EntityDelta {
      *                     exists.
      * 
      * @return The {@link Set} of {@link String} statistics that need to be
-     *         decremented.
+     *             decremented.
      */
     private static Set<String> incrementStatVariants(SzMatchType oldMatchType,
                                                      SzMatchType newMatchType,
@@ -2512,9 +2456,8 @@ public class EntityDelta {
 
     /**
      * Creates the {@link Set} of variant statistic combinations that require
-     * deltas
-     * to be handled for data source combinations when the match type, principle
-     * and/or match key are the same.
+     * deltas to be handled for data source combinations when the match type,
+     * principle and/or match key are the same.
      * 
      * @param oldMatchType The old match type for the relationship, or
      *                     <code>null</code> if this is a new relationship.
@@ -2533,7 +2476,7 @@ public class EntityDelta {
      *                     exists.
      * 
      * @return The {@link Set} of {@link String} statistics that need to be
-     *         decremented.
+     *             decremented.
      */
     private static Set<String> deltaStatVariants(SzMatchType    oldMatchType, 
                                                  SzMatchType    newMatchType, 
@@ -2603,8 +2546,7 @@ public class EntityDelta {
 
     /**
      * Checks for sanity in the match type, principle and match key parameters
-     * for
-     * when computing the stat variants.
+     * for when computing the stat variants.
      * 
      * @param oldMatchType The old match type for the relationship, or
      *                     <code>null</code> if this is a new relationship.

@@ -12,7 +12,8 @@ import static com.senzing.listener.service.locking.LockingService.State.*;
 /**
  * Provides an abstract implementation of {@link LockingService}.
  */
-public abstract class AbstractLockingService implements LockingService {
+public abstract class AbstractLockingService implements LockingService
+{
     /**
      * The {@link State} for this instance.
      */
@@ -21,7 +22,8 @@ public abstract class AbstractLockingService implements LockingService {
     /**
      * Default constructor.
      */
-    protected AbstractLockingService() {
+    protected AbstractLockingService()
+    {
         // do nothing
     }
 
@@ -30,7 +32,8 @@ public abstract class AbstractLockingService implements LockingService {
      *
      * @return The {@link State} for this instance.
      */
-    public synchronized State getState() {
+    public synchronized State getState()
+    {
         return this.state;
     }
 
@@ -40,7 +43,8 @@ public abstract class AbstractLockingService implements LockingService {
      *
      * @param state The {@link State} for this instance.
      */
-    protected synchronized void setState(State state) {
+    protected synchronized void setState(State state)
+    {
         Objects.requireNonNull(state, "State cannot be null");
         this.state = state;
         this.notifyAll();
@@ -54,7 +58,9 @@ public abstract class AbstractLockingService implements LockingService {
      *
      * @throws ServiceSetupException If a failure occurs.
      */
-    public void init(JsonObject config) throws ServiceSetupException {
+    public void init(JsonObject config)
+        throws ServiceSetupException
+    {
         synchronized (this) {
             if (this.getState() != UNINITIALIZED) {
                 throw new IllegalStateException(
@@ -90,12 +96,13 @@ public abstract class AbstractLockingService implements LockingService {
             throws ServiceSetupException;
 
     /**
-     * Implemented as a synchronized method to {@linkplain #setState(State)
-     * set the state} to {@link State#DESTROYING}, call {@link #doDestroy()} and
+     * Implemented as a synchronized method to {@linkplain #setState(State) set
+     * the state} to {@link State#DESTROYING}, call {@link #doDestroy()} and
      * then perform {@link #notifyAll()} and set the state to {@link
      * State#DESTROYED}.
      */
-    public void destroy() {
+    public void destroy()
+    {
         synchronized (this) {
             this.setState(DESTROYING);
         }
@@ -124,16 +131,17 @@ public abstract class AbstractLockingService implements LockingService {
      * @param resourceKeys The {@link Set} of resource keys
      * @param wait         The number of milliseconds to wait for the locks.
      * @return The {@link LockToken} associated with the acquired locks, or
-     *         <code>null</code> if the resources could not all be locked within
-     *         the allotted time.
+     *             <code>null</code> if the resources could not all be locked
+     *             within the allotted time.
      * @throws ServiceExecutionException If a failure occurs in attempting to
      *                                   acquire the locks.
      * @throws IllegalStateException If the {@link State} of this instance is
-     *                                   not {@link State#INITIALIZED}.
+     *                               not {@link State#INITIALIZED}.
      */
     @Override
     public LockToken acquireLocks(Set<ResourceKey> resourceKeys, long wait)
-            throws ServiceExecutionException, IllegalStateException {
+            throws ServiceExecutionException, IllegalStateException
+    {
         // validate the arguments
         Objects.requireNonNull(
                 resourceKeys, "Set of resource keys cannot be null");
@@ -171,8 +179,8 @@ public abstract class AbstractLockingService implements LockingService {
      * @param resourceKeys The sorted {@link List} of unique resource keys
      * @param wait         The number of milliseconds to wait for the locks.
      * @return The {@link LockToken} associated with the acquired locks, or
-     *         <code>null</code> if the resources could not all be locked within
-     *         the allotted time.
+     *             <code>null</code> if the resources could not all be locked
+     *             within the allotted time.
      * @throws ServiceExecutionException If a failure occurs in attempting to
      *                                   acquire the locks.
      */
@@ -192,13 +200,12 @@ public abstract class AbstractLockingService implements LockingService {
      * @throws NullPointerException      If the specified {@link LockToken} is
      *                                   <code>null</code>.
      * @throws IllegalArgumentException If the specified {@link LockToken} is
-     *         not
-     *                                   recognized.
+     *                                  not recognized.
      * @throws ServiceExecutionException If a failure occurs in attempting to
      *                                   acquire the locks.
      * @throws IllegalStateException If the {@link State} of this instance is
-     *                                   not {@link State#INITIALIZED} or {@link
-     *                                   State#DESTROYING}.
+     *                               not {@link State#INITIALIZED} or {@link
+     *                               State#DESTROYING}.
      */
     @Override
     public int releaseLocks(LockToken lockToken)
@@ -231,8 +238,7 @@ public abstract class AbstractLockingService implements LockingService {
      * @return The number of resources whose locks were released.
      *
      * @throws IllegalArgumentException If the specified {@link LockToken} is
-     *         not
-     *                                   recognized.
+     *                                  not recognized.
      * @throws ServiceExecutionException If a failure occurs in attempting to
      *                                   acquire the locks.
      */

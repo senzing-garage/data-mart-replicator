@@ -9,8 +9,8 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * Simple class to represent an element from the <code>NOTICES</code> array
- * in an INFO message.
+ * Simple class to represent an element from the <code>NOTICES</code> array in
+ * an INFO message.
  */
 public class SzNotice implements Serializable
 {
@@ -21,9 +21,9 @@ public class SzNotice implements Serializable
     public static final String CODE_KEY = "code";
 
     /**
-     * The JSON property key for deserializing the {@linkplain
-     * #setCode(String) code property} when parsing raw Senzing INFO message
-     * JSON to construct instances of this class.
+     * The JSON property key for deserializing the {@linkplain #setCode(String)
+     * code property} when parsing raw Senzing INFO message JSON to construct
+     * instances of this class.
      */
     public static final String RAW_CODE_KEY = "CODE";
 
@@ -111,13 +111,12 @@ public class SzNotice implements Serializable
 
     /**
      * Overridden to return <code>true</code> if and only if the specified
-     * parameter
-     * is an instance of the same class with equivalent properties.
+     * parameter is an instance of the same class with equivalent properties.
      * 
      * @param o The object to compare with.
      * @return <code>true</code> if the specified parameter is an instance of
-     *         the
-     * same class with equivalent properties, otherwise <code>false</code>.
+     *                           the same class with equivalent properties,
+     *                           otherwise <code>false</code>.
      */
     @Override
     public boolean equals(Object o)
@@ -131,8 +130,7 @@ public class SzNotice implements Serializable
 
     /**
      * Overridden to return a hash code consistent with the {@link
-     * #equals(Object)}
-     * implementation.
+     * #equals(Object)} implementation.
      * 
      * @return The hash code for this instance.
      */
@@ -168,8 +166,8 @@ public class SzNotice implements Serializable
     }
 
     /**
-     * Serializes this instance as JSON to a new {@link
-     * JsonObjectBuilder} and returns the {@link JsonObjectBuilder}.
+     * Serializes this instance as JSON to a new {@link JsonObjectBuilder} and
+     * returns the {@link JsonObjectBuilder}.
      *
      * @return The {@link JsonObjectBuilder} that was populated.
      *
@@ -186,8 +184,7 @@ public class SzNotice implements Serializable
      * the created {@link JsonObject}.
      *
      * @return The {@link JsonObject} that was created to describe the
-     *         serialized
-     *         form of this instance.
+     *             serialized form of this instance.
      *
      * @see #toJsonObjectBuilder(JsonObjectBuilder)
      * @see #toJsonObjectBuilder()
@@ -199,12 +196,11 @@ public class SzNotice implements Serializable
 
     /**
      * Serializes this instance as JSON text and returns the JSON text,
-     * optionally
-     * pretty-printing the generated JSON.
+     * optionally pretty-printing the generated JSON.
      *
      * @param prettyPrint <code>true</code> if the JSON should be
-     *        pretty-printed,
-     *                    otherwise <code>false</code> for more efficient JSON.
+     *                    pretty-printed, otherwise <code>false</code> for more
+     *                    efficient JSON.
      * @return The JSON text that was generated.
      */
     public String toJsonText(boolean prettyPrint)
@@ -232,12 +228,10 @@ public class SzNotice implements Serializable
      * @param jsonText The JSON text to parse.
      *
      * @return The created {@link SzNotice} instance, or <code>null</code> if
-     *         the
-     *         specified text is <code>null</code>.
+     *             the specified text is <code>null</code>.
      *
      * @throws IllegalArgumentException If the specified text is not valid JSON
-     *         or
-     *                                  does not contain the required JSON
+     *                                  or does not contain the required JSON
      *                                  properties.
      */
     public static SzNotice fromJson(String jsonText)
@@ -257,12 +251,10 @@ public class SzNotice implements Serializable
      * @param jsonObject The {@link JsonObject} describing the JSON to parse.
      *
      * @return The created {@link SzNotice} instance, or <code>null</code> if
-     *         the
-     *         specified parameter is <code>null</code>.
+     *             the specified parameter is <code>null</code>.
      *
      * @throws IllegalArgumentException If the specified text is not valid JSON
-     *         or
-     *                                  does not contain the required JSON
+     *                                  or does not contain the required JSON
      *                                  properties.
      *
      */
@@ -281,12 +273,10 @@ public class SzNotice implements Serializable
      * @param jsonText The JSON text to parse.
      *
      * @return The created {@link SzNotice} instance, or <code>null</code> if
-     *         the
-     *         specified text is <code>null</code>.
+     *             the specified text is <code>null</code>.
      *
      * @throws IllegalArgumentException If the specified text is not valid JSON
-     *         or
-     *                                  does not contain the required JSON
+     *                                  or does not contain the required JSON
      *                                  properties.
      */
     public static SzNotice fromRawJson(String jsonText)
@@ -305,12 +295,10 @@ public class SzNotice implements Serializable
      * @param jsonObject The {@link JsonObject} describing the JSON to parse.
      *
      * @return The created {@link SzNotice} instance, or <code>null</code> if
-     *         the
-     *         specified parameter is <code>null</code>.
+     *             the specified parameter is <code>null</code>.
      *
      * @throws IllegalArgumentException If the specified text is not valid JSON
-     *         or
-     *                                  does not contain the required JSON
+     *                                  or does not contain the required JSON
      *                                  properties.
      *
      */
@@ -331,12 +319,10 @@ public class SzNotice implements Serializable
      * @param descriptionKey The JSON property key for the description property.
      *
      * @return The created {@link SzNotice} instance, or <code>null</code> if
-     *         the
-     *         specified parameter is <code>null</code>.
+     *             the specified parameter is <code>null</code>.
      *
      * @throws IllegalArgumentException If the specified text is not valid JSON
-     *         or
-     *                                  does not contain the required JSON
+     *                                  or does not contain the required JSON
      *                                  properties.
      *
      */

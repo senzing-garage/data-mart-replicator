@@ -13,7 +13,8 @@ import static com.senzing.listener.service.locking.LockScope.*;
  * Provides a {@link LockingService} implementation that locks resources within
  * the scope of the current process using in-memory data constructs.
  */
-public class ProcessScopeLockingService extends AbstractLockingService {
+public class ProcessScopeLockingService extends AbstractLockingService
+{
     /**
      * The {@link Map} of {@link LockToken} instances to the {@link Set} of
      * {@link ResourceKey} instances that have locks associated with that token.
@@ -30,7 +31,8 @@ public class ProcessScopeLockingService extends AbstractLockingService {
      * Dumps the state of the current locks to standard error.
      *
      */
-    public synchronized void dumpLocks() {
+    public synchronized void dumpLocks()
+    {
         System.err.println();
         // CSOFF
         System.err.println("***************************************************");
@@ -64,7 +66,8 @@ public class ProcessScopeLockingService extends AbstractLockingService {
     /**
      * Default constructor.
      */
-    public ProcessScopeLockingService() {
+    public ProcessScopeLockingService()
+    {
         // do nothing
     }
 
@@ -72,7 +75,9 @@ public class ProcessScopeLockingService extends AbstractLockingService {
      * Implemented to do nothing since no additional initialization is required.
      */
     @Override
-    protected void doInit(JsonObject config) throws ServiceSetupException {
+    protected void doInit(JsonObject config)
+        throws ServiceSetupException
+    {
         this.locksToResourcesMap = new HashMap<>();
         this.resourceToLockMap = new HashMap<>();
     }
@@ -82,7 +87,8 @@ public class ProcessScopeLockingService extends AbstractLockingService {
      * return once all are released.
      */
     @Override
-    protected void doDestroy() {
+    protected void doDestroy()
+    {
         synchronized (this) {
             // wait for all locks to be released
             while (this.locksToResourcesMap.size() > 0) {
@@ -99,7 +105,8 @@ public class ProcessScopeLockingService extends AbstractLockingService {
      * Implemented to return {@link LockScope#PROCESS}.
      */
     @Override
-    public LockScope getScope() {
+    public LockScope getScope()
+    {
         return PROCESS;
     }
 

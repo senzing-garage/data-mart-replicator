@@ -22,14 +22,14 @@ public class SQSUri extends ConnectionUri
     public static final int DEFAULT_SECURE_PORT = 443;
 
     /**
-     * The prefix for the URI when using insecure communication including
-     * the <code>"://sqs."</code>.
+     * The prefix for the URI when using insecure communication including the
+     * <code>"://sqs."</code>.
      */
     public static final String SCHEME_PREFIX = "http://sqs.";
 
     /**
-     * The prefix for the URI when using secure communication including 
-     * the <code>"://sqs."</code>.
+     * The prefix for the URI when using secure communication including the
+     * <code>"://sqs."</code>.
      */
     public static final String SECURE_SCHEME_PREFIX = "https://sqs.";
 
@@ -79,11 +79,11 @@ public class SQSUri extends ConnectionUri
      * 
      * @param uri The non-null {@link URI} with which to connect.
      * 
-     * @throws NullPointerException If the specified {@link URI}
-     *                              is <code>null</code>.
+     * @throws NullPointerException If the specified {@link URI} is
+     *                              <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified port is
-     *                                  not a positive integer.
+     * @throws IllegalArgumentException If the specified port is not a positive
+     *                                  integer.
      */
     public SQSUri(URI uri)
     {
@@ -114,8 +114,8 @@ public class SQSUri extends ConnectionUri
     /**
      * Checks if this instance describes a secure connection to SQS.
      * 
-     * @return <code>true</code> if this instance describes a secure
-     *         connection to SQS, otherwise <code>false</code>.
+     * @return <code>true</code> if this instance describes a secure connection
+     *                           to SQS, otherwise <code>false</code>.
      */
     public boolean isSecure()
     {
@@ -133,11 +133,10 @@ public class SQSUri extends ConnectionUri
     }
 
     /**
-     * Gets the port for the SQS connection.
-     * If the port number was not provided during construction
-     * then this returns {@link #DEFAULT_PORT} for insecure
-     * communication and {@link #DEFAULT_SECURE_PORT} for secure
-     * communication as determined by {@link #isSecure()}.
+     * Gets the port for the SQS connection. If the port number was not provided
+     * during construction then this returns {@link #DEFAULT_PORT} for insecure
+     * communication and {@link #DEFAULT_SECURE_PORT} for secure communication
+     * as determined by {@link #isSecure()}.
      * 
      * @return The port for the SQS connection.
      */
@@ -148,16 +147,16 @@ public class SQSUri extends ConnectionUri
     }
 
     /**
-     * Checks if this instance had an explicit port specified or
-     * if no port was provided, indicating the {@linkplain #DEFAULT_PORT
-     * default port} or {@linkplain #DEFAULT_SECURE_PORT default secure 
-     * port} should be used.
+     * Checks if this instance had an explicit port specified or if no port was
+     * provided, indicating the {@linkplain #DEFAULT_PORT default port} or
+     * {@linkplain #DEFAULT_SECURE_PORT default secure port} should be used.
      * 
-     * @return <code>true</code> if this instance had explicit port
-     *         specified, or <code>false</code> if the port number is
-     *         excluded, indicating the {@linkplain #DEFAULT_PORT
-     *         default port} or {@linkplain #DEFAULT_SECURE_PORT 
-     *         default secure port} should be used.
+     * @return <code>true</code> if this instance had explicit port specified,
+     *                           or <code>false</code> if the port number is
+     *                           excluded, indicating the {@linkplain
+     *                           #DEFAULT_PORT default port} or {@linkplain
+     *                           #DEFAULT_SECURE_PORT default secure port}
+     *                           should be used.
      */
     public boolean hasPort()
     {
@@ -185,8 +184,8 @@ public class SQSUri extends ConnectionUri
     }
 
     /**
-     * Implemented to format the URI as a {@link String} with proper
-     * URI encoding.
+     * Implemented to format the URI as a {@link String} with proper URI
+     * encoding.
      * 
      * @return The formatted URI for this instance.
      */
@@ -209,20 +208,19 @@ public class SQSUri extends ConnectionUri
     }
 
     /**
-     * Implemented to return <code>true</code> if and only if the
-     * specified parameter is a non-null reference to an object of the
-     * same class with equivalent properties.
+     * Implemented to return <code>true</code> if and only if the specified
+     * parameter is a non-null reference to an object of the same class with
+     * equivalent properties.
      * 
      * <p>
      * <b>NOTE:</b> An explicitly specified default port is <b>NOT</b>
-     * considered equal to excluded/unspecified (<code>null</code>) 
-     * port number.
+     * considered equal to excluded/unspecified (<code>null</code>) port number.
      * </p>
      *  
      * @param obj The object to compare with.
      * 
-     * @return <code>true</code> if and only if the objects are equal,
-     *         otherwise <code>false</code>.
+     * @return <code>true</code> if and only if the objects are equal, otherwise
+     *                           <code>false</code>.
      */
     public boolean equals(Object obj)
     {
@@ -239,8 +237,8 @@ public class SQSUri extends ConnectionUri
     }
 
     /**
-     * Provides a static factory method for parsing an SQS
-     * connection URI formatted as a {@link String}.
+     * Provides a static factory method for parsing an SQS connection URI
+     * formatted as a {@link String}.
      * 
      * @param uri The URI to parse.
      * 

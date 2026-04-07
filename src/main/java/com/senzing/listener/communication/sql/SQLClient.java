@@ -18,7 +18,8 @@ import static com.senzing.util.LoggingUtilities.logError;
 /**
  * Interface for adapting the {@link SQLConsumer} to a specific database.
  */
-public interface SQLClient {
+public interface SQLClient
+{
   /**
    * Gets the {@link DatabaseType} for this client implementation.
    * 
@@ -32,8 +33,8 @@ public interface SQLClient {
    * @param conn     The {@link Connection} to use.
    * 
    * @param recreate <code>true</code> if the schema should be dropped and
-   *                 recreated, <code>false</code> if it should just be
-   *                 created if it does not exist.
+   *                 recreated, <code>false</code> if it should just be created
+   *                 if it does not exist.
    * 
    * @throws SQLException If a database failure occurs.
    */
@@ -44,12 +45,14 @@ public interface SQLClient {
    * 
    * @param conn The {@link Connection} to use.
    * 
-   * @return <code>true</code> if the queue is empty,
-   *         otherwise <code>false</code>.
+   * @return <code>true</code> if the queue is empty, otherwise
+   *                           <code>false</code>.
    * 
    * @throws SQLException If a database failure occurs.
    */
-  default boolean isQueueEmpty(Connection conn) throws SQLException {
+  default boolean isQueueEmpty(Connection conn)
+      throws SQLException
+  {
     PreparedStatement ps = null;
     ResultSet rs = null;
     try {
@@ -96,17 +99,19 @@ public interface SQLClient {
   }
 
   /**
-   * Gets the number of messages currently in the message queue. The
-   * returned value will include leased messages.
+   * Gets the number of messages currently in the message queue. The returned
+   * value will include leased messages.
    * 
    * @param conn The {@link Connection} to use.
    * 
    * @return The number of messages in the message queue (including leased
-   *         messages).
+   *             messages).
    * 
    * @throws SQLException If a database failure occurs.
    */
-  default long getMessageCount(Connection conn) throws SQLException {
+  default long getMessageCount(Connection conn)
+      throws SQLException
+  {
     PreparedStatement ps = null;
     ResultSet rs = null;
     try {
@@ -168,14 +173,13 @@ public interface SQLClient {
    * @param leaseId       The lease ID to use.
    * 
    * @param leaseTime     The number of <b>seconds</b> for which the messages
-   *                      should be
-   *                      leased.
+   *                      should be leased.
    * 
    * @param maxLeaseCount The maximum number of info message rows to lease.
    * 
    * @return The number of message rows that were leased using the specified
-   *         lease ID and lease time in seconds. This returns zero (0) if
-   *         no rows were leased.
+   *             lease ID and lease time in seconds. This returns zero (0) if no
+   *             rows were leased.
    * 
    * @throws SQLException If a database failure occurs.
    */
@@ -183,7 +187,8 @@ public interface SQLClient {
       String leaseId,
       int leaseTime,
       int maxLeaseCount)
-      throws SQLException {
+      throws SQLException
+  {
     PreparedStatement ps = null;
     DatabaseType dbType = this.getDatabaseType();
 
@@ -216,8 +221,8 @@ public interface SQLClient {
   }
 
   /**
-   * Selects the info message rows that were previously leased
-   * with the specified lease ID and returns a {@link List} of
+   * Selects the info message rows that were previously leased with the
+   * specified lease ID and returns a {@link List} of
    * {@link LeasedMessage} instances describing the info message
    * rows.
    * 
@@ -226,12 +231,13 @@ public interface SQLClient {
    * @param leaseId The lease ID to use.
    * 
    * @return The {@link List} of {@link LeasedMessage} instances that were
-   *         selected.
+   *             selected.
    * 
    * @throws SQLException If a database failure occurs.
    */
   default List<LeasedMessage> getLeasedMessages(Connection conn, String leaseId)
-      throws SQLException {
+      throws SQLException
+  {
     Objects.requireNonNull(leaseId, "Lease ID cannot be null");
 
     PreparedStatement ps = null;
@@ -275,8 +281,8 @@ public interface SQLClient {
   }
 
   /**
-   * Releases any expired leases in the database to make them available to
-   * this client for consumption.
+   * Releases any expired leases in the database to make them available to this
+   * client for consumption.
    * 
    * @param conn      The {@link Connection} to use.
    * 
@@ -287,7 +293,8 @@ public interface SQLClient {
    * @throws SQLException If a database failure occurs.
    */
   default int releaseExpiredLeases(Connection conn, int leaseTime)
-      throws SQLException {
+      throws SQLException
+  {
     PreparedStatement ps = null;
     DatabaseType dbType = this.getDatabaseType();
     try {
@@ -312,28 +319,29 @@ public interface SQLClient {
   }
 
   /**
-   * Renews the lease on the specified {@link LeasedMessage}. If the lease
-   * has already expired or the message is leased by another client then
-   * this method returns negative-one <code>-1</code>, otherwise this method
-   * returns the UTC millisecond time for the new lease expiration. The
-   * specified {@link LeasedMessage} will also be modified with the new lease
-   * expiration by having its {@link LeasedMessage#extendLease(long)} method
-   * called.
+   * Renews the lease on the specified {@link LeasedMessage}. If the lease has
+   * already expired or the message is leased by another client then this method
+   * returns negative-one <code>-1</code>, otherwise this method returns the UTC
+   * millisecond time for the new lease expiration. The specified {@link
+   * LeasedMessage} will also be modified with the new lease expiration by
+   * having its {@link LeasedMessage#extendLease(long)} method called.
    * 
    * @param conn      The {@link Connection} to use.
    * 
    * @param message   The {@link LeasedMessage} for which to renew the lease.
    * 
-   * @param leaseTime The number of <b>seconds</b> to lease the message from
-   *                  the point of renewal.
+   * @param leaseTime The number of <b>seconds</b> to lease the message from the
+   *                  point of renewal.
    * 
    * @return The new UTC millisecond time for the new lease expiration, or
-   *         negative-one (<code>-1</code>) if the lease could not be renewed.
+   *             negative-one (<code>-1</code>) if the lease could not be
+   *             renewed.
    * 
    * @throws SQLException If a database failure occurs.
    */
   default long renewLease(Connection conn, LeasedMessage message, int leaseTime)
-      throws SQLException {
+      throws SQLException
+  {
     PreparedStatement ps = null;
     DatabaseType dbType = this.getDatabaseType();
     try {
@@ -388,16 +396,16 @@ public interface SQLClient {
    * 
    * @param leaseId   The optional lease ID to prevent deletion if the lease ID
    *                  on the message has changed, or <code>null</code> if the
-   *                  message
-   *                  should be deleted regardless of the lease ID.
+   *                  message should be deleted regardless of the lease ID.
    * 
    * @return <code>true</code> if a message was deleted, otherwise
-   *         <code>false</code>.
+   *                           <code>false</code>.
    * 
    * @throws SQLException If a database failure occurs.
    */
   default boolean deleteMessage(Connection conn, long messageId, String leaseId)
-      throws SQLException {
+      throws SQLException
+  {
     PreparedStatement ps = null;
     try {
       ps = conn.prepareStatement(

@@ -8,12 +8,13 @@ import java.util.Map;
  * An interface for converting messages into scheduled tasks and then handling
  * those tasks.
  */
-public interface TaskHandler {
+public interface TaskHandler
+{
   /**
    * Checks if this {@link TaskHandler} is ready to handle tasks and waits for
-   * it to be ready for the specified maximum number of milliseconds.  Specify
-   * a negative number of milliseconds to wait indefinitely or zero (0) to
-   * simply check if ready with no waiting.  This is used by the {@link
+   * it to be ready for the specified maximum number of milliseconds. Specify a
+   * negative number of milliseconds to wait indefinitely or zero (0) to simply
+   * check if ready with no waiting. This is used by the {@link
    * SchedulingService} to know when to begin handling tasks.
    *
    * @param timeoutMillis The maximum number of milliseconds to wait for this
@@ -22,8 +23,8 @@ public interface TaskHandler {
    *                      waiting.
    *
    * @return {@link Boolean#TRUE} if ready to handle tasks, {@link
-   *         Boolean#FALSE} if not yet ready, and <code>null</code> if due to
-   *         some failure we will never be ready to handle tasks.
+   *                Boolean#FALSE} if not yet ready, and <code>null</code> if
+   *                due to some failure we will never be ready to handle tasks.
    *
    * @throws InterruptedException If interrupted while waiting.
    */
@@ -31,9 +32,9 @@ public interface TaskHandler {
 
   /**
    * Called to handle the specified {@link Task} with an optional {@link
-   * Scheduler} for scheduling follow-up tasks if that is allowed.
-   * Additionally, a multiplicity is specified which, if greater than one (1),
-   * may require that the task be handled in a different way depending on the
+   * Scheduler} for scheduling follow-up tasks if that is allowed. Additionally,
+   * a multiplicity is specified which, if greater than one (1), may require
+   * that the task be handled in a different way depending on the
    * {@linkplain Task#getAction() action} associated with the {@link Task}.
    * Typically, follow-up tasks may not be allowed if the specified
    * {@link Task} is itself a follow-up {@link Task}.

@@ -11,10 +11,11 @@ import java.util.*;
 
 /**
  * Simple class to represent an element from the <code>SAMPLE_RECORDS</code>
- * array inside an element of the <code>INTERESTING_ENTITIES</code> array of
- * an INFO message.
+ * array inside an element of the <code>INTERESTING_ENTITIES</code> array of an
+ * INFO message.
  */
-public class SzSampleRecord implements Serializable {
+public class SzSampleRecord implements Serializable
+{
   /**
    * The JSON property key for serializing and deserializing the {@linkplain
    * #getFlags() flags property} for instances of this class.
@@ -23,8 +24,8 @@ public class SzSampleRecord implements Serializable {
 
   /**
    * The JSON property key for deserializing the {@linkplain
-   * #setFlags(Collection) flags property} when parsing raw Senzing
-   * INFO message JSON to construct instances of this class.
+   * #setFlags(Collection) flags property} when parsing raw Senzing INFO message
+   * JSON to construct instances of this class.
    */
   public static final String RAW_FLAGS_KEY = "FLAGS";
 
@@ -36,8 +37,8 @@ public class SzSampleRecord implements Serializable {
 
   /**
    * The JSON property key for deserializing the {@linkplain
-   * #setDataSource(String) data source property} when parsing raw Senzing
-   * INFO message JSON to construct instances of this class.
+   * #setDataSource(String) data source property} when parsing raw Senzing INFO
+   * message JSON to construct instances of this class.
    */
   public static final String RAW_DATA_SOURCE_KEY = "DATA_SOURCE";
 
@@ -49,8 +50,8 @@ public class SzSampleRecord implements Serializable {
 
   /**
    * The JSON property key for deserializing the {@linkplain
-   * #setRecordId(String) record ID property} when parsing raw Senzing
-   * INFO message JSON to construct instances of this class.
+   * #setRecordId(String) record ID property} when parsing raw Senzing INFO
+   * message JSON to construct instances of this class.
    */
   public static final String RAW_RECORD_ID_KEY = "RECORD_ID";
 
@@ -72,7 +73,8 @@ public class SzSampleRecord implements Serializable {
   /**
    * Default constructor.
    */
-  public SzSampleRecord() {
+  public SzSampleRecord()
+  {
     this(null, null, null);
   }
 
@@ -100,7 +102,8 @@ public class SzSampleRecord implements Serializable {
    *
    * @return The data source for the sample record.
    */
-  public String getDataSource() {
+  public String getDataSource()
+  {
     return this.dataSource;
   }
 
@@ -109,7 +112,8 @@ public class SzSampleRecord implements Serializable {
    *
    * @param dataSource The data source for the sample record.
    */
-  public void setDataSource(String dataSource) {
+  public void setDataSource(String dataSource)
+  {
     this.dataSource = dataSource;
   }
 
@@ -118,7 +122,8 @@ public class SzSampleRecord implements Serializable {
    *
    * @return The record ID for the sample record.
    */
-  public String getRecordId() {
+  public String getRecordId()
+  {
     return this.recordId;
   }
 
@@ -127,17 +132,19 @@ public class SzSampleRecord implements Serializable {
    *
    * @param recordId The record ID for the sample record.
    */
-  public void setRecordId(String recordId) {
+  public void setRecordId(String recordId)
+  {
     this.recordId = recordId;
   }
 
   /**
    * Gets the flags for the sample record as an <b>unmodifiable</b> {@link Set}.
    *
-   * @return The flags for the sample record as an <b>unmodifiable</b>
-   *         {@link Set}.
+   * @return The flags for the sample record as an <b>unmodifiable</b> {@link
+   *             Set}.
    */
-  public Set<String> getFlags() {
+  public Set<String> getFlags()
+  {
     return Collections.unmodifiableSet(this.flags);
   }
 
@@ -147,7 +154,8 @@ public class SzSampleRecord implements Serializable {
    *
    * @param flags The {@link Collection} of flags.
    */
-  public void setFlags(Collection<String> flags) {
+  public void setFlags(Collection<String> flags)
+  {
     this.flags.clear();
     if (flags != null) {
       this.flags.addAll(flags);
@@ -160,7 +168,8 @@ public class SzSampleRecord implements Serializable {
    * @param flag The flag to add to the {@link Set} of flags for this sample
    *             record.
    */
-  public void addFlag(String flag) {
+  public void addFlag(String flag)
+  {
     Objects.requireNonNull(
         flag, "The specified flag cannot be null");
     this.flags.add(flag);
@@ -168,15 +177,16 @@ public class SzSampleRecord implements Serializable {
 
   /**
    * Overridden to return <code>true</code> if and only if the specified
-   * parameter
-   * is an instance of the same class with equivalent properties.
+   * parameter is an instance of the same class with equivalent properties.
    * 
    * @param obj The object to compare with.
-   * @return <code>true</code> if the specified parameter is an instance of the 
-   * same class with equivalent properties, otherwise <code>false</code>.
+   * @return <code>true</code> if the specified parameter is an instance of the
+   *                           same class with equivalent properties, otherwise
+   *                           <code>false</code>.
    */
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(Object obj)
+  {
     if (this == obj) {
       return true;
     }
@@ -191,13 +201,13 @@ public class SzSampleRecord implements Serializable {
 
     /**
      * Overridden to return a hash code consistent with the {@link
-     * #equals(Object)}
-     * implementation.
+     * #equals(Object)} implementation.
      * 
      * @return The hash code for this instance.
      */
   @Override
-  public int hashCode() {
+  public int hashCode()
+  {
     return Objects.hash(this.getDataSource(),
                         this.getRecordId(),
                         this.getFlags());
@@ -217,7 +227,8 @@ public class SzSampleRecord implements Serializable {
    * @see #toJsonObjectBuilder()
    * @see #toJsonObject()
    */
-  public JsonObjectBuilder toJsonObjectBuilder(JsonObjectBuilder builder) {
+  public JsonObjectBuilder toJsonObjectBuilder(JsonObjectBuilder builder)
+  {
     if (builder == null) {
       builder = Json.createObjectBuilder();
     }
@@ -234,15 +245,16 @@ public class SzSampleRecord implements Serializable {
   }
 
   /**
-   * Serializes this instance as JSON to a new {@link
-   * JsonObjectBuilder} and returns the {@link JsonObjectBuilder}.
+   * Serializes this instance as JSON to a new {@link JsonObjectBuilder} and
+   * returns the {@link JsonObjectBuilder}.
    *
    * @return The {@link JsonObjectBuilder} that was populated.
    *
    * @see #toJsonObjectBuilder(JsonObjectBuilder)
    * @see #toJsonObject()
    */
-  public JsonObjectBuilder toJsonObjectBuilder() {
+  public JsonObjectBuilder toJsonObjectBuilder()
+  {
     return this.toJsonObjectBuilder(null);
   }
 
@@ -251,12 +263,13 @@ public class SzSampleRecord implements Serializable {
    * the created {@link JsonObject}.
    *
    * @return The {@link JsonObject} that was created to describe the serialized
-   *         form of this instance.
+   *             form of this instance.
    *
    * @see #toJsonObjectBuilder(JsonObjectBuilder)
    * @see #toJsonObjectBuilder()
    */
-  public JsonObject toJsonObject() {
+  public JsonObject toJsonObject()
+  {
     return this.toJsonObjectBuilder().build();
   }
 
@@ -268,7 +281,8 @@ public class SzSampleRecord implements Serializable {
    *                    otherwise <code>false</code> for more efficient JSON.
    * @return The JSON text that was generated.
    */
-  public String toJsonText(boolean prettyPrint) {
+  public String toJsonText(boolean prettyPrint)
+  {
     return JsonUtilities.toJsonText(this.toJsonObject(), prettyPrint);
   }
 
@@ -278,7 +292,8 @@ public class SzSampleRecord implements Serializable {
    *
    * @return The JSON text that was generated.
    */
-  public String toJsonText() {
+  public String toJsonText()
+  {
     return this.toJsonText(false);
   }
 
@@ -291,8 +306,7 @@ public class SzSampleRecord implements Serializable {
    * @param jsonText The JSON text to parse.
    *
    * @return The created {@link SzSampleRecord} instance, or <code>null</code>
-   *         if the
-   *         specified text is <code>null</code>.
+   *             if the specified text is <code>null</code>.
    *
    * @throws IllegalArgumentException If the specified text is not valid JSON or
    *                                  does not contain the required JSON
@@ -317,8 +331,7 @@ public class SzSampleRecord implements Serializable {
    * @param jsonObject The {@link JsonObject} describing the JSON to parse.
    *
    * @return The created {@link SzSampleRecord} instance, or <code>null</code>
-   *         if the
-   *         specified parameter is <code>null</code>.
+   *             if the specified parameter is <code>null</code>.
    *
    * @throws IllegalArgumentException If the specified text is not valid JSON or
    *                                  does not contain the required JSON
@@ -340,8 +353,7 @@ public class SzSampleRecord implements Serializable {
    * @param jsonText The JSON text to parse.
    *
    * @return The created {@link SzSampleRecord} instance, or <code>null</code>
-   *         if the
-   *         specified text is <code>null</code>.
+   *             if the specified text is <code>null</code>.
    *
    * @throws IllegalArgumentException If the specified text is not valid JSON or
    *                                  does not contain the required JSON
@@ -365,8 +377,7 @@ public class SzSampleRecord implements Serializable {
    * @param jsonObject The {@link JsonObject} describing the JSON to parse.
    *
    * @return The created {@link SzSampleRecord} instance, or <code>null</code>
-   *         if the
-   *         specified parameter is <code>null</code>.
+   *             if the specified parameter is <code>null</code>.
    *
    * @throws IllegalArgumentException If the specified text is not valid JSON or
    *                                  does not contain the required JSON
@@ -395,8 +406,7 @@ public class SzSampleRecord implements Serializable {
    * @param flagsKey The JSON property key for the flags property.
    *
    * @return The created {@link SzSampleRecord} instance, or <code>null</code>
-   *         if the
-   *         specified parameter is <code>null</code>.
+   *             if the specified parameter is <code>null</code>.
    *
    * @throws IllegalArgumentException If the specified text is not valid JSON or
    *                                  does not contain the required JSON
@@ -435,7 +445,8 @@ public class SzSampleRecord implements Serializable {
    *
    * @return The result from {@link #toJsonText()}.
    */
-  public String toString() {
+  public String toString()
+  {
     return this.toJsonText();
   }
 }

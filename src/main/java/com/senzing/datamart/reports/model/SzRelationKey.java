@@ -7,7 +7,8 @@ import java.util.Objects;
  * Provides a key for uniquely identifying relationships and preventing
  * duplication.
  */
-public class SzRelationKey implements Comparable<SzRelationKey>, Serializable {
+public class SzRelationKey implements Comparable<SzRelationKey>, Serializable
+{
     /**
      * The first entity ID.
      */
@@ -24,7 +25,8 @@ public class SzRelationKey implements Comparable<SzRelationKey>, Serializable {
      * @param entityId  The first entity ID.
      * @param relatedId The related entity ID.
      */
-    public SzRelationKey(long entityId, long relatedId) {
+    public SzRelationKey(long entityId, long relatedId)
+    {
         this.entityId = entityId;
         this.relatedId = relatedId;
     }
@@ -34,7 +36,8 @@ public class SzRelationKey implements Comparable<SzRelationKey>, Serializable {
      * 
      * @return The first entity ID of the relationship.
      */
-    public long getEntityId() {
+    public long getEntityId()
+    {
         return this.entityId;
     }
 
@@ -43,7 +46,8 @@ public class SzRelationKey implements Comparable<SzRelationKey>, Serializable {
      * 
      * @return The related entity ID of the relationship.
      */
-    public long getRelatedId() {
+    public long getRelatedId()
+    {
         return this.relatedId;
     }
 
@@ -54,10 +58,11 @@ public class SzRelationKey implements Comparable<SzRelationKey>, Serializable {
      * 
      * @param obj The object to compare with.
      * @return <code>true</code> if the objects are equal, otherwise
-     *         <code>false</code>.
+     *                           <code>false</code>.
      */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (obj == null) {
             return false;
         }
@@ -79,7 +84,8 @@ public class SzRelationKey implements Comparable<SzRelationKey>, Serializable {
      * @return The hash code for this instance.
      */
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hash(this.getEntityId(), this.getRelatedId());
     }
 
@@ -88,13 +94,13 @@ public class SzRelationKey implements Comparable<SzRelationKey>, Serializable {
      * entity ID (both in ascending order) with <code>null</code> values sorted
      * before non-null values.
      * 
-     * @return A negative number, zero (0) or a positive number
-     *         depending on whether this instance compares
-     *         less-than, equal-to or greater-than the specified
-     *         instance, respectively.
+     * @return A negative number, zero (0) or a positive number depending on
+     *           whether this instance compares less-than, equal-to or
+     *           greater-than the specified instance, respectively.
      */
     @Override
-    public int compareTo(SzRelationKey key) {
+    public int compareTo(SzRelationKey key)
+    {
         if (key == null) {
             return 1;
         }
@@ -117,33 +123,33 @@ public class SzRelationKey implements Comparable<SzRelationKey>, Serializable {
     }
 
     /**
-     * Implemented to format this instance as a relation bound
-     * value with the entity ID followed by the related ID,
-     * separated by a colon.
+     * Implemented to format this instance as a relation bound value with the
+     * entity ID followed by the related ID, separated by a colon.
      *
-     * @return A relation bound value with the entity ID
-     *         followed by the related ID, separated by a colon.
+     * @return A relation bound value with the entity ID followed by the related
+     *           ID, separated by a colon.
      */
-    public String toString() {
+    public String toString()
+    {
         return this.getEntityId() + ":" + this.getRelatedId();
     }
 
     /**
-     * Parses an {@link SzRelationKey} formatted as two long integer
-     * entity ID bounds separated by a colon character.  Either or both
-     * entity ID bounds can be specified as <code>"max"</code> for using
+     * Parses an {@link SzRelationKey} formatted as two long integer entity ID
+     * bounds separated by a colon character. Either or both entity ID bounds
+     * can be specified as <code>"max"</code> for using
      * {@link Long#MAX_VALUE}.  This function is tolerant of white space
      * preceding or trailing either entity ID bound token.
      * 
      * @param text The text to parse.
      * 
-     * @return The parsed {@link SzRelationKey} instance, or 
-     *         <code>null</code> if the specified parameter is
-     *         <code>null</code>.
+     * @return The parsed {@link SzRelationKey} instance, or <code>null</code>
+     *             if the specified parameter is <code>null</code>.
      * 
      * @throws IllegalArgumentException If the text is improperly formatted.
      */
-    public static SzRelationKey parse(String text) {
+    public static SzRelationKey parse(String text)
+    {
         // check for null
         if (text == null) {
             return null;

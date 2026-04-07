@@ -15,7 +15,8 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 /**
  * Describes a page of relations from the data mart.
  */
-public class SzRelationsPage implements Serializable {
+public class SzRelationsPage implements Serializable
+{
     /**
      * The relation bound value that bounds the included relations.
      */
@@ -28,8 +29,7 @@ public class SzRelationsPage implements Serializable {
 
     /**
      * The requested page size representing the maximum number of entity ID's
-     * that
-     * were requested to be included in the page.
+     * that were requested to be included in the page.
      */
     private int pageSize = 0;
 
@@ -51,8 +51,7 @@ public class SzRelationsPage implements Serializable {
 
     /**
      * The total number of relations representing the set of all possible
-     * results
-     * across all pages.
+     * results across all pages.
      */
     private long totalRelationCount = 0L;
 
@@ -68,17 +67,16 @@ public class SzRelationsPage implements Serializable {
 
     /**
      * The {@link SortedMap} of {@link String} encoded relationship entity ID's
-     * keys
-     * identifying the related entities to {@link SzReportRelation} values for
-     * those
-     * entities.
+     * keys identifying the related entities to {@link SzReportRelation} values
+     * for those entities.
      */
     private SortedMap<SzRelationKey, SzReportRelation> relations = null;
 
     /**
      * Default constructor.
      */
-    public SzRelationsPage() {
+    public SzRelationsPage()
+    {
         this.bound = "0:0";
         this.boundType = null;
         this.pageSize = 0;
@@ -95,13 +93,13 @@ public class SzRelationsPage implements Serializable {
      * Gets the relation bound value that bounds the included relations. The
      * relationship bound value contains two (2) entity ID values separated by a
      * colon (e.g.: <code>1000:5005</code>). The first entity ID value
-     * identifies
-     * the first entity in the relationship and the second entity ID value
-     * identifies the related entity in the relationship.
+     * identifies the first entity in the relationship and the second entity ID
+     * value identifies the related entity in the relationship.
      *
      * @return The relations bound value that bounds the included relations.
      */
-    public String getBound() {
+    public String getBound()
+    {
         return this.bound;
     }
 
@@ -109,14 +107,14 @@ public class SzRelationsPage implements Serializable {
      * Sets the relation bound value that bounds the included relations. The
      * relationship bound value contains two (2) entity ID values separated by a
      * colon (e.g.: <code>1000:5005</code>). The first entity ID value
-     * identifies
-     * the first entity in the relationship and the second entity ID value
-     * identifies the related entity in the relationship.
+     * identifies the first entity in the relationship and the second entity ID
+     * value identifies the related entity in the relationship.
      *
      * @param bound The encoded relations bound value that bounds the included
      *              relations.
      */
-    public void setBound(String bound) {
+    public void setBound(String bound)
+    {
         this.bound = bound;
     }
 
@@ -125,9 +123,10 @@ public class SzRelationsPage implements Serializable {
      * {@linkplain #getBound() bound value} was applied.
      *
      * @return The the {@link SzBoundType} that describes how the associated
-     *         {@linkplain #getBound() bound value} was applied.
+     *             {@linkplain #getBound() bound value} was applied.
      */
-    public SzBoundType getBoundType() {
+    public SzBoundType getBoundType()
+    {
         return this.boundType;
     }
 
@@ -139,33 +138,33 @@ public class SzRelationsPage implements Serializable {
      *                  associated {@linkplain #getBound() bound value} was
      *                  applied.
      */
-    public void setBoundType(SzBoundType boundType) {
+    public void setBoundType(SzBoundType boundType)
+    {
         this.boundType = boundType;
     }
 
     /**
      * Gets requested page size representing the maximum number of relations
-     * that
-     * were requested to be included in the page.
+     * that were requested to be included in the page.
      * 
      * @return The requested page size representing the maximum number of
-     *         relations
-     *         that were requested to be included in the page.
+     *             relations that were requested to be included in the page.
      */
-    public int getPageSize() {
+    public int getPageSize()
+    {
         return this.pageSize;
     }
 
     /**
      * Sets requested page size representing the maximum number of relations
-     * that
-     * were requested to be included in the page.
+     * that were requested to be included in the page.
      * 
      * @param pageSize The requested page size representing the maximum number
-     *        of
-     *                 relations that were requested to be included in the page.
+     *                 of relations that were requested to be included in the
+     *                 page.
      */
-    public void setPageSize(int pageSize) {
+    public void setPageSize(int pageSize)
+    {
         this.pageSize = pageSize;
     }
 
@@ -174,11 +173,11 @@ public class SzRelationsPage implements Serializable {
      * randomly selected from the page of results.
      * 
      * @return The requested page size representing the number of relations to
-     *         be
-     *         randomly selected from the page of results.
+     *             be randomly selected from the page of results.
      */
     @JsonInclude(NON_NULL)
-    public Integer getSampleSize() {
+    public Integer getSampleSize()
+    {
         return this.sampleSize;
     }
 
@@ -190,29 +189,26 @@ public class SzRelationsPage implements Serializable {
      *                   relations to be randomly selected from the page of
      *                   results.
      */
-    public void setSampleSize(Integer sampleSize) {
+    public void setSampleSize(Integer sampleSize)
+    {
         this.sampleSize = sampleSize;
     }
 
     /**
      * Gets the minimum relation value of the returned results. This is encoded
-     * the
-     * same as the {@linkplain #getBound() bound} value with two (2) entity ID
-     * values separated by a colon (e.g.: <code>1000:5005</code>). The first
-     * entity
-     * ID value identifies the least value of first entity in the relationship
-     * and
-     * the second entity ID value identifies the least value of those entity
-     * ID's
-     * related to the first entity. This returns <code>null</code> if there are
-     * no
-     * results.
+     * the same as the {@linkplain #getBound() bound} value with two (2) entity
+     * ID values separated by a colon (e.g.: <code>1000:5005</code>). The first
+     * entity ID value identifies the least value of first entity in the
+     * relationship and the second entity ID value identifies the least value of
+     * those entity ID's related to the first entity. This returns
+     * <code>null</code> if there are no results.
      * 
      * @return The minimum relation value of the returned results, or
-     *         <code>null</code> if there are no results.
+     *             <code>null</code> if there are no results.
      */
     @JsonInclude(NON_NULL)
-    public String getMinimumValue() {
+    public String getMinimumValue()
+    {
         if (this.relations.size() == 0) {
             return null;
         }
@@ -222,23 +218,19 @@ public class SzRelationsPage implements Serializable {
 
     /**
      * Gets the maximum relation value of the returned results. This is encoded
-     * the
-     * same as the {@linkplain #getBound() bound} value with two (2) entity ID
-     * values separated by a colon (e.g.: <code>1000:5005</code>). The first
-     * entity
-     * ID value identifies the greatest value of first entity in the
-     * relationship
-     * and the second entity ID value identifies the greatest value of those
-     * entity
-     * ID's related to the first entity. This returns <code>null</code> if there
-     * are
-     * no results.
+     * the same as the {@linkplain #getBound() bound} value with two (2) entity
+     * ID values separated by a colon (e.g.: <code>1000:5005</code>). The first
+     * entity ID value identifies the greatest value of first entity in the
+     * relationship and the second entity ID value identifies the greatest value
+     * of those entity ID's related to the first entity. This returns
+     * <code>null</code> if there are no results.
      *
      * @return The maximum relation value of the returned results, or
-     *         <code>null</code> if there are no results.
+     *             <code>null</code> if there are no results.
      */
     @JsonInclude(NON_NULL)
-    public String getMaximumValue() {
+    public String getMaximumValue()
+    {
         if (this.relations.size() == 0) {
             return null;
         }
@@ -248,32 +240,24 @@ public class SzRelationsPage implements Serializable {
 
     /**
      * Gets the minimum relation value of the entire relations page. This will
-     * be
-     * the same as {@linkplain #getMinimumValue() minimum value} if
+     * be the same as {@linkplain #getMinimumValue() minimum value} if
      * {@linkplain #getSampleSize() sample size} was not specified, however, if
-     * the
-     * sample size was specified then this will be the minimum relation value of
-     * all
-     * the candidate relations on the page that were used for random sample
-     * selection even if that relation was not randomly selected. This is
-     * encoded
-     * the same as the {@linkplain #getBound() bound} value with two (2) entity
-     * ID
-     * values separated by a colon (e.g.: <code>1000:5005</code>). The first
-     * entity
-     * ID value identifies the least value of first entity in the relationship
-     * and
-     * the second entity ID value identifies the least value of those entity
-     * ID's
-     * related to the first entity. This returns <code>null</code> if there are
-     * no
-     * results.
+     * the sample size was specified then this will be the minimum relation
+     * value of all the candidate relations on the page that were used for
+     * random sample selection even if that relation was not randomly selected.
+     * This is encoded the same as the {@linkplain #getBound() bound} value with
+     * two (2) entity ID values separated by a colon (e.g.:
+     * <code>1000:5005</code>). The first entity ID value identifies the least
+     * value of first entity in the relationship and the second entity ID value
+     * identifies the least value of those entity ID's related to the first
+     * entity. This returns <code>null</code> if there are no results.
      * 
      * @return The minimum relation value of the entire relations page, or
-     *         <code>null</code> if there are no results.
+     *             <code>null</code> if there are no results.
      */
     @JsonInclude(NON_NULL)
-    public String getPageMinimumValue() {
+    public String getPageMinimumValue()
+    {
         if (this.getSampleSize() == null || this.pageMinimumValue == null) {
             return this.getMinimumValue();
         }
@@ -282,61 +266,48 @@ public class SzRelationsPage implements Serializable {
 
     /**
      * Sets the minimum relation value of the entire relations page. This should
-     * be
-     * the same as {@linkplain #getMinimumValue() minimum value} if
+     * be the same as {@linkplain #getMinimumValue() minimum value} if
      * {@linkplain #getSampleSize() sample size} was not specified, however, if
-     * the
-     * sample size was specified then this will be the minimum relation value of
-     * all
-     * the candidate relations on the page that were used for random sample
-     * selection even if that relation was not randomly selected. This is
-     * encoded
-     * the same as the {@linkplain #getBound() bound} value with two (2) entity
-     * ID
-     * values separated by a colon (e.g.: <code>1000:5005</code>). The first
-     * entity
-     * ID value identifies the least value of the first entity in the
-     * relationship
-     * and the second entity ID value identifies the least value of those entity
-     * ID's related to the first entity. Set this to <code>null</code> if there
-     * are
-     * no results.
+     * the sample size was specified then this will be the minimum relation
+     * value of all the candidate relations on the page that were used for
+     * random sample selection even if that relation was not randomly selected.
+     * This is encoded the same as the {@linkplain #getBound() bound} value with
+     * two (2) entity ID values separated by a colon (e.g.:
+     * <code>1000:5005</code>). The first entity ID value identifies the least
+     * value of the first entity in the relationship and the second entity ID
+     * value identifies the least value of those entity ID's related to the
+     * first entity. Set this to <code>null</code> if there are no results.
      * 
      * @param minValue The minimum relation value of the entire relations page,
-     *        or
-     *                 <code>null</code> if there are no results.
+     *                 or <code>null</code> if there are no results.
      */
-    public void setPageMinimumValue(String minValue) {
+    public void setPageMinimumValue(String minValue)
+    {
         this.pageMinimumValue = minValue;
     }
 
     /**
      * Gets the maximum relation value of the entire relations page. This will
-     * be
-     * the same as {@linkplain #getMaximumValue() maximum value} if
+     * be the same as {@linkplain #getMaximumValue() maximum value} if
      * {@linkplain #getSampleSize() sample size} was not specified, however, if
-     * the
-     * sample size was specified then this will be the maximum relation value of
-     * all
-     * the candidate relations on the page that were used for random sample
-     * selection even if that relation was not randomly selected. This is
-     * encoded
-     * the same as the {@linkplain #getBound() bound} value with two (2) entity
-     * ID
-     * values separated by a colon (e.g.: <code>1000:5005</code>). The first
-     * entity
-     * ID value identifies the greatest value of the first entity in the
-     * relationship and the second entity ID value identifies the greatest value
-     * of
-     * those entity ID's related to the first entity. This returns
+     * the sample size was specified then this will be the maximum relation
+     * value of all the candidate relations on the page that were used for
+     * random sample selection even if that relation was not randomly selected.
+     * This is encoded the same as the {@linkplain #getBound() bound} value with
+     * two (2) entity ID values separated by a colon (e.g.:
+     * <code>1000:5005</code>). The first entity ID value identifies the
+     * greatest value of the first entity in the relationship and the second
+     * entity ID value identifies the greatest value of those entity ID's
+     * related to the first entity. This returns
      * <code>null</code>
      * if there are no results.
      * 
      * @return The maximum relation value of the entire relations page, or
-     *         <code>null</code> if there are no results.
+     *             <code>null</code> if there are no results.
      */
     @JsonInclude(NON_NULL)
-    public String getPageMaximumValue() {
+    public String getPageMaximumValue()
+    {
         if (this.getSampleSize() == null || this.pageMaximumValue == null) {
             return this.getMaximumValue();
         }
@@ -345,31 +316,25 @@ public class SzRelationsPage implements Serializable {
 
     /**
      * Sets the maximum relation value of the entire relations page. This should
-     * be
-     * the same as {@linkplain #getMaximumValue() maximum value} if
+     * be the same as {@linkplain #getMaximumValue() maximum value} if
      * {@linkplain #getSampleSize() sample size} was not specified, however, if
-     * the
-     * sample size was specified then this should be the maximum relation value
-     * of
-     * all the candidate relations on the page that were used for random sample
-     * selection even if that relation was not randomly selected. This is
-     * encoded
-     * the same as the {@linkplain #getBound() bound} value with two (2) entity
-     * ID
-     * values separated by a colon (e.g.: <code>1000:5005</code>). The first
-     * entity
-     * ID value identifies the greatest value of the first entity in the
-     * relationship and the second entity ID value identifies the greatest value
-     * of
-     * those entity ID's related to the first entity. Set this to
+     * the sample size was specified then this should be the maximum relation
+     * value of all the candidate relations on the page that were used for
+     * random sample selection even if that relation was not randomly selected.
+     * This is encoded the same as the {@linkplain #getBound() bound} value with
+     * two (2) entity ID values separated by a colon (e.g.:
+     * <code>1000:5005</code>). The first entity ID value identifies the
+     * greatest value of the first entity in the relationship and the second
+     * entity ID value identifies the greatest value of those entity ID's
+     * related to the first entity. Set this to
      * <code>null</code>
      * if there are no results.
      * 
      * @param maxValue The maximum relation value of the entire relations page,
-     *        or
-     *                 <code>null</code> if there are no results.
+     *                 or <code>null</code> if there are no results.
      */
-    public void setPageMaximumValue(String maxValue) {
+    public void setPageMaximumValue(String maxValue)
+    {
         this.pageMaximumValue = maxValue;
     }
 
@@ -378,10 +343,10 @@ public class SzRelationsPage implements Serializable {
      * possible results across all pages.
      *
      * @return The the total number of relations in the set representing the set
-     *         of
-     *         all possible results across all pages.
+     *             of all possible results across all pages.
      */
-    public long getTotalRelationCount() {
+    public long getTotalRelationCount()
+    {
         return this.totalRelationCount;
     }
 
@@ -389,79 +354,74 @@ public class SzRelationsPage implements Serializable {
      * Sets the total number of relations in the set representing the set of all
      * possible results across all pages.
      *
-     * @param relationCount The the total number of relations in the set 
+     * @param relationCount The the total number of relations in the set
      *                      representing the set of all possible results across
      *                      all pages.
      */
-    public void setTotalRelationCount(long relationCount) {
+    public void setTotalRelationCount(long relationCount)
+    {
         this.totalRelationCount = relationCount;
     }
 
     /**
      * Gets the number of entities in the set that exist on pages that occur
-     * before
-     * this page.
+     * before this page.
      * 
      * @return The the number of entities in the set that exist on pages that
-     *         occur
-     *         before this page.
+     *             occur before this page.
      */
-    public long getBeforePageCount() {
+    public long getBeforePageCount()
+    {
         return this.beforePageCount;
     }
 
     /**
      * Sets the number of entities in the set that exist on pages that occur
-     * before
-     * this page.
+     * before this page.
      * 
      * @param entityCount The the number of entities in the set that exist on
-     *        pages
-     *                    that occur before this page.
+     *                    pages that occur before this page.
      */
-    public void setBeforePageCount(long entityCount) {
+    public void setBeforePageCount(long entityCount)
+    {
         this.beforePageCount = entityCount;
     }
 
     /**
      * Gets the number of entities in the set that exist on pages that occur
-     * after
-     * this page.
+     * after this page.
      * 
      * @return The the number of entities in the set that exist on pages that
-     *         occur
-     *         after this page.
+     *             occur after this page.
      */
-    public long getAfterPageCount() {
+    public long getAfterPageCount()
+    {
         return this.afterPageCount;
     }
 
     /**
      * Sets the number of entities in the set that exist on pages that occur
-     * after
-     * this page.
+     * after this page.
      * 
      * @param entityCount The the number of entities in the set that exist on
-     *        pages
-     *                    that occur after this page.
+     *                    pages that occur after this page.
      */
-    public void setAfterPageCount(long entityCount) {
+    public void setAfterPageCount(long entityCount)
+    {
         this.afterPageCount = entityCount;
     }
 
     /**
      * Gets the {@link List} of {@link SzReportRelation} instances describing
-     * the
-     * relationships for the page. The {@link SzReportRelation} instances will
-     * be in
-     * ascending order of the first entity ID and then the second related entity
-     * ID.
+     * the relationships for the page. The {@link SzReportRelation} instances
+     * will be in ascending order of the first entity ID and then the second
+     * related entity ID.
      * 
      * @return The {@link List} of {@link SzReportRelation} instances describing
-     *         the
-     *         relationships for the page.
+     *             the relationships for the page.
      */
-    public List<SzReportRelation> getRelations() {
+    public List<SzReportRelation> getRelations()
+    {
         List<SzReportRelation> relations =
                 new ArrayList<>(this.relations.values());
         return relations;
@@ -469,17 +429,15 @@ public class SzRelationsPage implements Serializable {
 
     /**
      * Sets the {@link List} of {@link SzReportRelation} instances describing
-     * the
-     * relationships for the page. The {@link SzReportRelation} instances will
-     * be in
-     * ascending order of the first entity ID and then the second related entity
-     * ID.
+     * the relationships for the page. The {@link SzReportRelation} instances
+     * will be in ascending order of the first entity ID and then the second
+     * related entity ID.
      * 
      * @param relations The {@link List} of {@link SzReportRelation} instances
-     *        describing
-     *                  the relationships for the page.
+     *                  describing the relationships for the page.
      */
-    public void setRelations(Collection<SzReportRelation> relations) {
+    public void setRelations(Collection<SzReportRelation> relations)
+    {
         this.relations.clear();
         if (relations != null) {
             relations.forEach(relation -> {
@@ -496,18 +454,15 @@ public class SzRelationsPage implements Serializable {
 
     /**
      * Adds the specified {@link SzReportRelation} to the list of relations for
-     * this page.
-     * If an {@link SzReportRelation} is already included for the same entity ID
-     * and
-     * related ID then the specified {@link SzReportRelation} replaces the
-     * already
-     * existing one.
+     * this page. If an {@link SzReportRelation} is already included for the
+     * same entity ID and related ID then the specified {@link SzReportRelation}
+     * replaces the already existing one.
      * 
      * @param relation The {@link SzReportRelation} to add to the list of
-     *        relations
-     *                 entities for this page.
+     *                 relations entities for this page.
      */
-    public void addRelation(SzReportRelation relation) {
+    public void addRelation(SzReportRelation relation)
+    {
         long entityId = relation.getEntity().getEntityId();
         long relatedId = relation.getRelatedEntity().getEntityId();
         SzRelationKey key = new SzRelationKey(entityId, relatedId);
@@ -522,7 +477,8 @@ public class SzRelationsPage implements Serializable {
      * @return A diagnostic {@link String} describing this instance.
      */
     @Override
-    public String toString() {
+    public String toString()
+    {
         return "bound=[ " + this.getBound() + " ], boundType=[ "
                 + this.getBoundType() + " ], pageSize=[ "
                 + this.getPageSize() + " ], sampleSize=[ "
@@ -538,13 +494,13 @@ public class SzRelationsPage implements Serializable {
 
     /**
      * Overridden to return a hash code consistent with the {@link
-     * #equals(Object)}
-     * implementation.
+     * #equals(Object)} implementation.
      * 
      * @return The hash code for this instance.
      */
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hash(bound, boundType, pageSize, sampleSize,
                 pageMinimumValue, pageMaximumValue,
                 totalRelationCount, beforePageCount, afterPageCount, relations);
@@ -552,17 +508,16 @@ public class SzRelationsPage implements Serializable {
 
     /**
      * Overridden to return <code>true</code> if and only if the specified
-     * parameter
-     * is an instance of the same class with equivalent properties.
+     * parameter is an instance of the same class with equivalent properties.
      * 
      * @param obj The object to compare with.
      * @return <code>true</code> if the specified parameter is an instance of
-     *         the
-     *         same class with equivalent properties, otherwise
-     *         <code>false</code>.
+     *                           the same class with equivalent properties,
+     *                           otherwise <code>false</code>.
      */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (this == obj) {
             return true;
         }

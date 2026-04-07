@@ -27,48 +27,41 @@ import static com.senzing.util.LoggingUtilities.*;
 /**
  * Provides Loaded Statistics Report functionality.
  */
-public final class LoadedStatsReports {
+public final class LoadedStatsReports
+{
     /**
      * Private default constructor.
      */
-    private LoadedStatsReports() {
+    private LoadedStatsReports()
+    {
         // do nothing
     }
 
     /**
      * Gets all the count stats including total record count, total entity count
-     * and
-     * total unmatched record count along with a breakdown of record count,
-     * entity
-     * count and unmatched record count by data source.
+     * and total unmatched record count along with a breakdown of record count,
+     * entity count and unmatched record count by data source.
      * 
      * <p>
      * The statistics for data sources with loaded records are <b>ALWAYS</b>
-     * included
-     * in the report. However, a {@link Set} of {@link String} data source codes
-     * can
-     * be specified for those data sources for which "zero" statistics should be
-     * included
-     * even if no records are loaded for those data sources. <b>NOTE:</b> this
-     * will
+     * included in the report. However, a {@link Set} of {@link String} data
+     * source codes can be specified for those data sources for which "zero"
+     * statistics should be included even if no records are loaded for those
+     * data sources. <b>NOTE:</b> this will
      * <b>NOT</b> filter statistics so that statistics for data sources with
-     * loaded
-     * records can be excluded.
+     * loaded records can be excluded.
      *
      * @param conn The non-null JDBC {@link Connection} to use.
      * 
      * @param dataSources The optional {@link Set} of {@link String} data source
-     *        codes
-     *                    for those data sources to be included in the
-     *                    statistics even
-     *                    if they have no records loaded, or <code>null</code>
-     *                    if the
-     *                    results should simply include statistics for data
-     *                    sources for
-     *                    which records have been loaded.
+     *                    codes for those data sources to be included in the
+     *                    statistics even if they have no records loaded, or
+     *                    <code>null</code> if the results should simply include
+     *                    statistics for data sources for which records have
+     *                    been loaded.
      * 
      * @param timers The optional {@link Timers} to track timing of the
-     *        operation.
+     *               operation.
      * 
      * @return The {@link SzLoadedStats} describing the statistics.
      * 
@@ -264,8 +257,8 @@ public final class LoadedStatsReports {
     }
 
     /**
-     * Gets the {@link SzSourceLoadedStats} describing the record counts,
-     * entity counts and unmatched records for a specific data source.
+     * Gets the {@link SzSourceLoadedStats} describing the record counts, entity
+     * counts and unmatched records for a specific data source.
      * 
      * @param conn The non-null JDBC {@link Connection} to use.
      * 
@@ -274,11 +267,11 @@ public final class LoadedStatsReports {
      *                   requested.
      * 
      * @param timers The optional {@link Timers} to track timing of the
-     *        operation.
+     *               operation.
      * 
-     * @return The {@link SzSourceLoadedStats} describing the record counts, 
-     *         entity counts and unmatched record counts for the specified 
-     *         data source.
+     * @return The {@link SzSourceLoadedStats} describing the record counts,
+     *             entity counts and unmatched record counts for the specified
+     *             data source.
      * 
      * @throws NullPointerException If either of the specified parameters is
      *                              <code>null</code>.
@@ -382,21 +375,20 @@ public final class LoadedStatsReports {
 
     /**
      * Retrieves a page of entity ID's for entities that have records loaded
-     * from
-     * the specified data source.
+     * from the specified data source.
      *
      * @param conn          The non-null JDBC {@link Connection} to use.
-     * @param dataSource    The non-null data source for which the entities
-     *                      are being retrieved.
+     * @param dataSource    The non-null data source for which the entities are
+     *                      being retrieved.
      * @param entityIdBound The bounded value for the returned entity ID's,
      *                      formatted as an integer or the word
      *                      <code>"max"</code>.
      * @param boundType The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
      * @param sampleSize The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * @param timers        The optional {@link Timers} to track timing of the
      *                      operation.
      * 
@@ -406,12 +398,10 @@ public final class LoadedStatsReports {
      *                              <code>null</code>.
      * 
      * @throws IllegalArgumentException If the specified page size or sample
-     *         size
-     *                                  is less than one (1), or if the sample
-     *                                  size
-     *                                  is specified and is greater-than or
-     *                                  equal
-     *                                  to the sample size.
+     *                                  size is less than one (1), or if the
+     *                                  sample size is specified and is
+     *                                  greater-than or equal to the sample
+     *                                  size.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */

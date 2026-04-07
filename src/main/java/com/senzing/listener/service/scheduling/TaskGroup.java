@@ -9,12 +9,13 @@ import static com.senzing.listener.service.scheduling.Task.State.STARTED;
 import static com.senzing.listener.service.scheduling.TaskGroup.State.*;
 
 /**
- * Describes a group of tasks that pertain to the same message. This is used
- * for tracking when all tasks associated with the message have been completed.
+ * Describes a group of tasks that pertain to the same message. This is used for
+ * tracking when all tasks associated with the message have been completed.
  * Synchronizing and waiting on an instance of this class will allow for
  * periodic non-busy waiting for completion.
  */
-public class TaskGroup implements Quantified {
+public class TaskGroup implements Quantified
+{
   /**
    * Constant used for converting between nanoseconds and milliseconds.
    */
@@ -23,7 +24,8 @@ public class TaskGroup implements Quantified {
   /**
    * The various states of a {@link TaskGroup}.
    */
-  public enum State {
+  public enum State
+  {
     /**
      * The {@link TaskGroup} is open to have more tasks added to it.
      */
@@ -50,10 +52,10 @@ public class TaskGroup implements Quantified {
 
     /**
      * The {@link TaskGroup} cannot have any more tasks added to it <b>and</b>
-     * at least one of the associated tasks has been scheduled and experienced
-     * a failure in its handling. This state does <b>NOT</b> imply or
-     * guarantee completion since more tasks may remain that are scheduled to
-     * be handled or are being handled.
+     * at least one of the associated tasks has been scheduled and experienced a
+     * failure in its handling. This state does <b>NOT</b> imply or guarantee
+     * completion since more tasks may remain that are scheduled to be handled
+     * or are being handled.
      *
      * @see #isFastFail()
      * @see #setFastFail(boolean)
@@ -75,7 +77,8 @@ public class TaskGroup implements Quantified {
   /**
    * Enumerates the statistics available for a {@link TaskGroup}.
    */
-  public enum Stat implements Statistic {
+  public enum Stat implements Statistic
+  {
     /**
      * The number of milliseconds from the point in time from when this task
      * group was created until it was {@linkplain #close() closed} to further
@@ -92,28 +95,28 @@ public class TaskGroup implements Quantified {
     unscheduledTime,
 
     /**
-     * The number of milliseconds between scheduling the first associated
-     * task and the handling of the first associated task being started (NOTE:
-     * these may be different tasks). If the first associated task has not yet
-     * been scheduled then the statistic is not available. If the first has
-     * been scheduled, but no associated tasks have yet been started then the
+     * The number of milliseconds between scheduling the first associated task
+     * and the handling of the first associated task being started (NOTE: these
+     * may be different tasks). If the first associated task has not yet been
+     * scheduled then the statistic is not available. If the first has been
+     * scheduled, but no associated tasks have yet been started then the
      * duration is from the first scheduled time to the current timestamp.
      */
     pendingTime,
 
     /**
-     * The total number of milliseconds spent handling each of the tasks in
-     * the group. For those tasks that have been started this duration
-     * includes the time spent thus far. The returned time does not account
-     * for concurrency (i.e.: overlapping time spent in concurrent threads).
+     * The total number of milliseconds spent handling each of the tasks in the
+     * group. For those tasks that have been started this duration includes the
+     * time spent thus far. The returned time does not account for concurrency
+     * (i.e.: overlapping time spent in concurrent threads).
      */
     totalHandlingTime,
 
     /**
      * The total number of milliseconds spent handling any task in the group.
-     * For those tasks that have been started the handling time for that task
-     * is taken to be the time spent thus far. If no tasks have been started
-     * for the group then the statistic is unavailable.
+     * For those tasks that have been started the handling time for that task is
+     * taken to be the time spent thus far. If no tasks have been started for
+     * the group then the statistic is unavailable.
      */
     longestHandlingTime,
 
@@ -128,8 +131,7 @@ public class TaskGroup implements Quantified {
     /**
      * The number of milliseconds from the point in time from when the task
      * group was created until the time it was considered to be {@linkplain
-     * #isCompleted() completed} or if not yet completed until the current
-     * time.
+     * #isCompleted() completed} or if not yet completed until the current time.
      */
     lifespan,
 
@@ -154,13 +156,14 @@ public class TaskGroup implements Quantified {
     failureCount;
 
     /**
-     * Gets the unit of measure for this statistic. This is the unit that
-     * the {@link Number} value is measured in when calling {@link
+     * Gets the unit of measure for this statistic. This is the unit that the
+     * {@link Number} value is measured in when calling {@link
      * Task#getStatistics()}}
      *
      * @return The unit of measure for this statistic.
      */
-    public String getUnits() {
+    public String getUnits()
+    {
       switch (this) {
         case taskCount:
         case pendingCount:
@@ -188,7 +191,8 @@ public class TaskGroup implements Quantified {
    * 
    * @return The next unique group ID.
    */
-  private static synchronized long getNextGroupId() {
+  private static synchronized long getNextGroupId()
+  {
     return nextGroupId++;
   }
 
@@ -203,8 +207,8 @@ public class TaskGroup implements Quantified {
   private int scheduledCount = 0;
 
   /**
-   * The number of tasks associated wit this task group that have started
-   * being handled.
+   * The number of tasks associated wit this task group that have started being
+   * handled.
    */
   private int startedCount = 0;
 
@@ -295,7 +299,8 @@ public class TaskGroup implements Quantified {
   /**
    * Constructs a new task group with the next sequential group ID.
    */
-  protected TaskGroup() {
+  protected TaskGroup()
+  {
     this.groupId = getNextGroupId();
     this.taskStateMap = new IdentityHashMap<>();
     this.successCount = 0;
@@ -312,7 +317,8 @@ public class TaskGroup implements Quantified {
    *
    * @return The {@link State} for this {@link TaskGroup} instance.
    */
-  public synchronized State getState() {
+  public synchronized State getState()
+  {
     return this.state;
   }
 
@@ -321,7 +327,8 @@ public class TaskGroup implements Quantified {
    *
    * @param state The {@link State} for this {@link TaskGroup} instance.
    */
-  protected synchronized void setState(State state) {
+  protected synchronized void setState(State state)
+  {
     if (this.state != state) {
       this.state = state;
       this.notifyAll();
@@ -333,7 +340,8 @@ public class TaskGroup implements Quantified {
    *
    * @return The group ID for this task group.
    */
-  public long getGroupId() {
+  public long getGroupId()
+  {
     return this.groupId;
   }
 
@@ -345,7 +353,9 @@ public class TaskGroup implements Quantified {
    * @throws IllegalStateException If this {@link TaskGroup} is no longer in the
    *                               {@link State#OPEN} state.
    */
-  protected void addTask(Task task) throws IllegalStateException {
+  protected void addTask(Task task)
+      throws IllegalStateException
+  {
     // get the task state
     Task.State taskState = task.getState();
 
@@ -391,11 +401,13 @@ public class TaskGroup implements Quantified {
    * {@link TaskGroup}.
    *
    * @return <code>true</code> if the failure of a single task associated with
-   *         this {@link TaskGroup} should trigger the attempted abort of other
-   *         associated tasks that have not already been handled, otherwise
-   *         <code>false</code>.
+   *                           this {@link TaskGroup} should trigger the
+   *                           attempted abort of other associated tasks that
+   *                           have not already been handled, otherwise
+   *                           <code>false</code>.
    */
-  public synchronized boolean isFastFail() {
+  public synchronized boolean isFastFail()
+  {
     return this.fastFail;
   }
 
@@ -415,7 +427,8 @@ public class TaskGroup implements Quantified {
    *                               the {@link State#OPEN} state.
    * @see #getState()
    */
-  public synchronized void setFastFail(boolean failFast) {
+  public synchronized void setFastFail(boolean failFast)
+  {
     if (this.getState() != OPEN) {
       throw new IllegalStateException(
           "The fast-fail property can only be set while the TaskGroup is in "
@@ -449,7 +462,8 @@ public class TaskGroup implements Quantified {
    *                                  added to this {@link TaskGroup}.
    */
   protected synchronized void ensureTaskPresent(Task task)
-      throws IllegalArgumentException, IllegalStateException {
+      throws IllegalArgumentException, IllegalStateException
+  {
     // check the task group for the task
     if (task.getTaskGroup() != this) {
       throw new IllegalArgumentException(
@@ -479,7 +493,8 @@ public class TaskGroup implements Quantified {
    *                                  inconsistent.
    *
    */
-  protected void taskScheduled(Task task) {
+  protected void taskScheduled(Task task)
+  {
     // check the task state
     Task.State taskState = task.getState();
     if (taskState != Task.State.SCHEDULED) {
@@ -557,7 +572,8 @@ public class TaskGroup implements Quantified {
    *                                  states of this task group or the task are
    *                                  inconsistent.
    */
-  protected void taskStarted(Task task) {
+  protected void taskStarted(Task task)
+  {
     // get the task state
     Task.State taskState = task.getState();
     // check if the task is started
@@ -610,13 +626,13 @@ public class TaskGroup implements Quantified {
    * @throws IllegalArgumentException If the {@link TaskGroup} of the specified
    *                                  {@link Task} is not this instance.
    * @throws IllegalStateException If the specified {@link Task} is not in the
-   *                                  {@link Task.State#SUCCESSFUL} state or if
-   *                                  the
-   *                                  previous record state for the task is not
-   *                                  a valid predecessor for {@link
-   *                                  Task.State#SUCCESSFUL}.
+   *                               {@link Task.State#SUCCESSFUL} state or if the
+   *                               previous record state for the task is not a
+   *                               valid predecessor for {@link
+   *                               Task.State#SUCCESSFUL}.
    */
-  protected void taskSucceeded(Task task) {
+  protected void taskSucceeded(Task task)
+  {
     // check if the task is successful
     Task.State taskState = task.getState();
     if (taskState != Task.State.SUCCESSFUL) {
@@ -685,12 +701,13 @@ public class TaskGroup implements Quantified {
    * @throws IllegalArgumentException If the {@link TaskGroup} of the specified
    *                                  {@link Task} is not this instance.
    * @throws IllegalStateException If the specified {@link Task} is not in the
-   *                                  {@link Task.State#FAILED} state or if the
-   *                                  previous record state for the task is not
-   *                                  a valid predecessor for {@link
-   *                                  Task.State#FAILED}.
+   *                               {@link Task.State#FAILED} state or if the
+   *                               previous record state for the task is not a
+   *                               valid predecessor for {@link
+   *                               Task.State#FAILED}.
    */
-  protected void taskFailed(Task task) {
+  protected void taskFailed(Task task)
+  {
     // check the task state
     Task.State taskState = task.getState();
     if (taskState != Task.State.FAILED) {
@@ -762,12 +779,13 @@ public class TaskGroup implements Quantified {
    * @throws IllegalArgumentException If the {@link TaskGroup} of the specified
    *                                  {@link Task} is not this instance.
    * @throws IllegalStateException If the specified {@link Task} is not in the
-   *                                  {@link Task.State#ABORTED} state or if the
-   *                                  previous record state for the task is not
-   *                                  a valid predecessor for {@link
-   *                                  Task.State#ABORTED}.
+   *                               {@link Task.State#ABORTED} state or if the
+   *                               previous record state for the task is not a
+   *                               valid predecessor for {@link
+   *                               Task.State#ABORTED}.
    */
-  protected void taskAborted(Task task) {
+  protected void taskAborted(Task task)
+  {
     // check the task state
     Task.State taskState = task.getState();
     if (taskState != Task.State.ABORTED) {
@@ -819,10 +837,11 @@ public class TaskGroup implements Quantified {
   }
 
   /**
-   * Checks the number of completed tasks and records timestamps and sets
-   * state appropriately.
+   * Checks the number of completed tasks and records timestamps and sets state
+   * appropriately.
    */
-  private synchronized void checkCompletion() {
+  private synchronized void checkCompletion()
+  {
     // check if this the first or last completed
     int taskCount = this.getTaskCount();
     int completedCount = this.getCompletedCount();
@@ -856,9 +875,10 @@ public class TaskGroup implements Quantified {
    * scheduled to be handled.
    *
    * @return The number of tasks associated with this task group that have been
-   *         scheduled to be handled.
+   *             scheduled to be handled.
    */
-  public synchronized int getScheduledCount() {
+  public synchronized int getScheduledCount()
+  {
     return this.scheduledCount;
   }
 
@@ -866,10 +886,11 @@ public class TaskGroup implements Quantified {
    * Gets the number of tasks associated with this task group that have begun
    * being handled (some may have completed as well).
    *
-   * @return The number of tasks associated with this task group that have
-   *         begun being handled.
+   * @return The number of tasks associated with this task group that have begun
+   *             being handled.
    */
-  public synchronized int getStartedCount() {
+  public synchronized int getStartedCount()
+  {
     return this.startedCount;
   }
 
@@ -878,7 +899,8 @@ public class TaskGroup implements Quantified {
    *
    * @return The number of associated tasks that completed successfully.
    */
-  public synchronized int getSuccessCount() {
+  public synchronized int getSuccessCount()
+  {
     return this.successCount;
   }
 
@@ -887,7 +909,8 @@ public class TaskGroup implements Quantified {
    *
    * @return The number of associated tasks that completed with failures.
    */
-  public synchronized int getFailureCount() {
+  public synchronized int getFailureCount()
+  {
     return this.failureCount;
   }
 
@@ -896,7 +919,8 @@ public class TaskGroup implements Quantified {
    *
    * @return The number of associated tasks that have been aborted.
    */
-  public synchronized int getAbortedCount() {
+  public synchronized int getAbortedCount()
+  {
     return this.abortedCount;
   }
 
@@ -905,9 +929,10 @@ public class TaskGroup implements Quantified {
    * or with failures. This does <b>not</b> include aborted tasks.
    *
    * @return The number of associated tasks that have completed either
-   *         successfully or with failures.
+   *             successfully or with failures.
    */
-  public synchronized int getCompletedCount() {
+  public synchronized int getCompletedCount()
+  {
     return this.getSuccessCount() + this.getFailureCount();
   }
 
@@ -916,17 +941,19 @@ public class TaskGroup implements Quantified {
    *
    * @return The total number of tasks in the group.
    */
-  public synchronized int getTaskCount() {
+  public synchronized int getTaskCount()
+  {
     return this.taskStateMap.size();
   }
 
   /**
-   * Gets the number of tasks pending completion. Tasks that have been
-   * aborted are <b>not</b> considered to be pending.
+   * Gets the number of tasks pending completion. Tasks that have been aborted
+   * are <b>not</b> considered to be pending.
    *
    * @return The number of tasks pending completion.
    */
-  public synchronized int getPendingCount() {
+  public synchronized int getPendingCount()
+  {
     int pendingCount = this.getTaskCount();
     pendingCount -= this.getCompletedCount();
     pendingCount -= this.getAbortedCount();
@@ -934,16 +961,17 @@ public class TaskGroup implements Quantified {
   }
 
   /**
-   * Checks if this {@link TaskGroup} should be considered completed. This
-   * can mean that the associated tasks have been scheduled and all have
-   * completed successfully, but it can also mean that at least one associated
-   * task has been scheduled and at least one failed to be handled and the
+   * Checks if this {@link TaskGroup} should be considered completed. This can
+   * mean that the associated tasks have been scheduled and all have completed
+   * successfully, but it can also mean that at least one associated task has
+   * been scheduled and at least one failed to be handled and the
    * {@linkplain #isFastFail() fast-fail} property is set to <code>true</code>.
    *
-   * @return <code>true</code> if the {@link TaskGroup} should be considered
-   *         to be completed, otherwise <code>false</code>.
+   * @return <code>true</code> if the {@link TaskGroup} should be considered to
+   *                           be completed, otherwise <code>false</code>.
    */
-  public synchronized boolean isCompleted() {
+  public synchronized boolean isCompleted()
+  {
     State state = this.getState();
     int pendingCount = this.getPendingCount();
     int failureCount = this.getFailureCount();
@@ -976,7 +1004,8 @@ public class TaskGroup implements Quantified {
    * {@linkplain #isFastFail() fail fast} then the first failure will trigger
    * the completion state.
    */
-  public void awaitCompletion() {
+  public void awaitCompletion()
+  {
     this.awaitCompletion(DEFAULT_MAXIMUM_INTERVAL, -1L);
   }
 
@@ -992,9 +1021,10 @@ public class TaskGroup implements Quantified {
    * @param maxWait     The maximum number of milliseconds to await completion.
    *
    * @return <code>true</code> if all associated tasks have completed, otherwise
-   *         <code>false</code>.
+   *                           <code>false</code>.
    */
-  public boolean awaitCompletion(long maxInterval, long maxWait) {
+  public boolean awaitCompletion(long maxInterval, long maxWait)
+  {
     long startTime = System.nanoTime();
     synchronized (this) {
       long elapsed = (System.nanoTime() - startTime) / ONE_MILLION;
@@ -1019,26 +1049,28 @@ public class TaskGroup implements Quantified {
   }
 
   /**
-   * Gets an <b>unmodifiable</b> {@link List} of the associated {@link
-   * Task} instances.
+   * Gets an <b>unmodifiable</b> {@link List} of the associated {@link Task}
+   * instances.
    *
    * @return An <b>unmodifiable</b> {@link List} of the associated {@link Task}
-   *         instances.
+   *            instances.
    */
-  public synchronized List<Task> getTasks() {
+  public synchronized List<Task> getTasks()
+  {
     List<Task> result = new ArrayList<>(this.taskStateMap.size());
     result.addAll(this.taskStateMap.keySet());
     return Collections.unmodifiableList(result);
   }
 
   /**
-   * Gets an <b>unmodifiable</b> {@link List} of the associated {@link
-   * Task} instances that experienced a failure in handling.
+   * Gets an <b>unmodifiable</b> {@link List} of the associated {@link Task}
+   * instances that experienced a failure in handling.
    *
    * @return An <b>unmodifiable</b> {@link List} of the associated {@link Task}
-   *         instances that experienced a failure in handling.
+   *            instances that experienced a failure in handling.
    */
-  public synchronized List<Task> getFailedTasks() {
+  public synchronized List<Task> getFailedTasks()
+  {
     List<Task> result = new ArrayList<>(this.getFailureCount());
     this.taskStateMap.forEach((task, info) -> {
       if (info.getTaskState() == Task.State.FAILED) {
@@ -1049,13 +1081,14 @@ public class TaskGroup implements Quantified {
   }
 
   /**
-   * Gets an <b>unmodifiable</b> {@link List} of the associated {@link
-   * Task} instances that have been aborted.
+   * Gets an <b>unmodifiable</b> {@link List} of the associated {@link Task}
+   * instances that have been aborted.
    *
    * @return An <b>unmodifiable</b> {@link List} of the associated {@link Task}
-   *         instances that have been aborted before being handled.
+   *            instances that have been aborted before being handled.
    */
-  public synchronized List<Task> getAbortedTasks() {
+  public synchronized List<Task> getAbortedTasks()
+  {
     List<Task> result = new ArrayList<>(this.getAbortedCount());
     this.taskStateMap.forEach((task, info) -> {
       if (info.getTaskState() == Task.State.ABORTED) {
@@ -1066,15 +1099,15 @@ public class TaskGroup implements Quantified {
   }
 
   /**
-   * Gets the number of milliseconds from the point in time from when this
-   * task group was scheduled until the time it was considered to be {@linkplain
-   * #isCompleted() completed} or if not yet completed until the current
-   * time.
+   * Gets the number of milliseconds from the point in time from when this task
+   * group was scheduled until the time it was considered to be {@linkplain
+   * #isCompleted() completed} or if not yet completed until the current time.
    *
    * @return The duration of the round-trip of this task group in milliseconds
-   *         from scheduling to completion.
+   *             from scheduling to completion.
    */
-  public synchronized long getRoundTripTime() {
+  public synchronized long getRoundTripTime()
+  {
     if (this.completedTimeNanos < 0L) {
       return (System.nanoTime() - this.firstScheduledTimeNanos) / ONE_MILLION;
     } else {
@@ -1085,14 +1118,14 @@ public class TaskGroup implements Quantified {
   }
 
   /**
-   * Gets the number of milliseconds from the point in time from when this
-   * task group was created until the time it was considered to be {@linkplain
-   * #isCompleted() completed} or if not yet completed until the current
-   * time.
+   * Gets the number of milliseconds from the point in time from when this task
+   * group was created until the time it was considered to be {@linkplain
+   * #isCompleted() completed} or if not yet completed until the current time.
    *
    * @return The duration of the lifespan of this task group in milliseconds.
    */
-  public synchronized long getLifespan() {
+  public synchronized long getLifespan()
+  {
     if (this.completedTimeNanos < 0L) {
       return (System.nanoTime() - this.createdTimeNanos) / ONE_MILLION;
     } else {
@@ -1101,13 +1134,14 @@ public class TaskGroup implements Quantified {
   }
 
   /**
-   * Gets the number of milliseconds from the point in time from when this
-   * task group was created until it was {@linkplain #close() closed} to further
+   * Gets the number of milliseconds from the point in time from when this task
+   * group was created until it was {@linkplain #close() closed} to further
    * tasks being added to it or if still open then until the current timestamp.
    *
    * @return The duration of the open time for this task group in milliseconds.
    */
-  public synchronized long getOpenTime() {
+  public synchronized long getOpenTime()
+  {
     if (this.closedTimeNanos < 0L) {
       return (System.nanoTime() - this.createdTimeNanos) / ONE_MILLION;
     } else {
@@ -1116,14 +1150,15 @@ public class TaskGroup implements Quantified {
   }
 
   /**
-   * Gets the number of milliseconds from the point in time from when this
-   * task group was created until its first task was scheduled or if no tasks
-   * for the group have been scheduled then until the current timestamp.
+   * Gets the number of milliseconds from the point in time from when this task
+   * group was created until its first task was scheduled or if no tasks for the
+   * group have been scheduled then until the current timestamp.
    *
    * @return The duration of the unscheduled time for this task group in
-   *         milliseconds.
+   *             milliseconds.
    */
-  public synchronized long getUnscheduledTime() {
+  public synchronized long getUnscheduledTime()
+  {
     if (this.firstScheduledTimeNanos < 0L) {
       return (System.nanoTime() - this.createdTimeNanos) / ONE_MILLION;
     } else {
@@ -1135,16 +1170,17 @@ public class TaskGroup implements Quantified {
 
   /**
    * Gets the number of milliseconds between scheduling the first associated
-   * task and the last associated task. If the first associated task has not
-   * yet been scheduled then a negative number is returned. If the first has
-   * been scheduled, but the last has not yet been scheduled then the duration
-   * is from the first scheduled time to the current timestamp.
+   * task and the last associated task. If the first associated task has not yet
+   * been scheduled then a negative number is returned. If the first has been
+   * scheduled, but the last has not yet been scheduled then the duration is
+   * from the first scheduled time to the current timestamp.
    *
    * @return The number of milliseconds between scheduling the first associated
-   *         task and the last associated task, or negative-one (-1) if the
-   *         first associated task has not yet been scheduled.
+   *             task and the last associated task, or negative-one (-1) if the
+   *             first associated task has not yet been scheduled.
    */
-  public synchronized long getSchedulingTime() {
+  public synchronized long getSchedulingTime()
+  {
     if (this.firstScheduledTimeNanos < 0L) {
       return -1L;
     }
@@ -1166,11 +1202,12 @@ public class TaskGroup implements Quantified {
    * is from the first scheduled time to the current timestamp.
    *
    * @return The number of milliseconds between scheduling the first associated
-   *         task and the start of handling the first associated task, or
-   *         negative-one (-1) if the first associated task has not yet been
-   *         scheduled.
+   *             task and the start of handling the first associated task, or
+   *             negative-one (-1) if the first associated task has not yet been
+   *             scheduled.
    */
-  public synchronized long getPendingTime() {
+  public synchronized long getPendingTime()
+  {
     if (this.firstScheduledTimeNanos < 0L) {
       return -1L;
     }
@@ -1186,13 +1223,14 @@ public class TaskGroup implements Quantified {
   /**
    * Gets the total number of milliseconds spent handling each of the tasks in
    * this group. For those tasks that have been started this duration includes
-   * the time spent thus far. The returned time does not account for
-   * concurrency (i.e.: overlapping time spent in concurrent threads).
+   * the time spent thus far. The returned time does not account for concurrency
+   * (i.e.: overlapping time spent in concurrent threads).
    *
    * @return The total number of milliseconds spent handling each of the tasks
-   *         in this group.
+   *             in this group.
    */
-  public synchronized long getTotalHandlingTime() {
+  public synchronized long getTotalHandlingTime()
+  {
     long now = System.nanoTime();
     long result = this.handlingDuration;
     for (TaskInfo taskInfo : this.taskStateMap.values()) {
@@ -1210,10 +1248,11 @@ public class TaskGroup implements Quantified {
    * or completed then this returns a negative number.
    *
    * @return The longest number of milliseconds spent handling any of the tasks
-   *         in this group, or negative-one (-1) if no tasks in this group have
-   *         been started.
+   *             in this group, or negative-one (-1) if no tasks in this group
+   *             have been started.
    */
-  public synchronized long getLongestHandlingTime() {
+  public synchronized long getLongestHandlingTime()
+  {
     long now = System.nanoTime();
     long result = this.longestHandlingTime;
     for (TaskInfo taskInfo : this.taskStateMap.values()) {
@@ -1230,15 +1269,17 @@ public class TaskGroup implements Quantified {
   }
 
   /**
-   * Checks if the specified {@link Task} is the first failure in the group.
-   * If the group has not failed then this always returns <code>false</code>.
+   * Checks if the specified {@link Task} is the first failure in the group. If
+   * the group has not failed then this always returns <code>false</code>.
    *
    * @param task The {@link Task} to check to see if it is the first failure.
    *
    * @return <code>true</code> if this task group has failed and the specified
-   *         task is the first failure, otherwise <code>false</code>.
+   *                           task is the first failure, otherwise
+   *                           <code>false</code>.
    */
-  protected synchronized boolean isFirstFailure(Task task) {
+  protected synchronized boolean isFirstFailure(Task task)
+  {
     return (task != null && this.firstFailure == task);
   }
 
@@ -1248,25 +1289,28 @@ public class TaskGroup implements Quantified {
    *
    * @param task The {@link Task} to check.
    *
-   * @return <code>true</code> if and only if there are no pending tasks and
-   *         the specified {@link Task} was the last one to be marked as
-   *         successful, failed, or aborted, otherwise <code>false</code>.
+   * @return <code>true</code> if and only if there are no pending tasks and the
+   *                           specified {@link Task} was the last one to be
+   *                           marked as successful, failed, or aborted,
+   *                           otherwise <code>false</code>.
    */
-  protected synchronized boolean isConcludingTask(Task task) {
+  protected synchronized boolean isConcludingTask(Task task)
+  {
     int pendingCount = this.getPendingCount();
     return (task != null && pendingCount == 0 && this.lastInGroup == task);
   }
 
   /**
-   * Returns the statistics for this {@link Task} instance. The statistics
-   * are returned as a {@link Map} of {@link Task.Statistic} keys to
+   * Returns the statistics for this {@link Task} instance. The statistics are
+   * returned as a {@link Map} of {@link Task.Statistic} keys to
    * {@link Number}
    * values whose units are measured in the associated units for the given the
    * key found via {@link Task.Statistic#getUnits()}.
    *
    * @return The statistics for this {@link Task}.
    */
-  public Map<Statistic, Number> getStatistics() {
+  public Map<Statistic, Number> getStatistics()
+  {
     Map<Statistic, Number> result = new LinkedHashMap<>();
     synchronized (this) {
       result.put(Stat.openTime, this.getOpenTime());
@@ -1293,7 +1337,8 @@ public class TaskGroup implements Quantified {
   /**
    * The {@link TaskInfo} recorded for the associated task.
    */
-  private static class TaskInfo {
+  private static class TaskInfo
+  {
     /**
      * The {@link Task.State} for this instance.
      */
@@ -1309,7 +1354,8 @@ public class TaskGroup implements Quantified {
      *
      * @param state The {@link Task.State} to set for this instance.
      */
-    TaskInfo(Task.State state) {
+    TaskInfo(Task.State state)
+    {
       this.taskState = state;
       this.stateChangedTimeNanos = System.nanoTime();
     }
@@ -1319,18 +1365,20 @@ public class TaskGroup implements Quantified {
      *
      * @return The current recorded {@link Task.State}.
      */
-    public synchronized Task.State getTaskState() {
+    public synchronized Task.State getTaskState()
+    {
       return this.taskState;
     }
 
     /**
-     * Returns the System nanosecond time recorded when the associated
-     * Task state was changed.
+     * Returns the System nanosecond time recorded when the associated Task
+     * state was changed.
      *
-     * @return The System nanosecond time recorded when the associated
-     *         Task state was changed.
+     * @return The System nanosecond time recorded when the associated Task
+     *             state was changed.
      */
-    public long getStateChangedTimeNanos() {
+    public long getStateChangedTimeNanos()
+    {
       return this.stateChangedTimeNanos;
     }
 
@@ -1341,7 +1389,8 @@ public class TaskGroup implements Quantified {
      *
      * @param state The {@link Task.State} to set.
      */
-    public synchronized void setTaskState(Task.State state) {
+    public synchronized void setTaskState(Task.State state)
+    {
       if (this.taskState != state) {
         this.taskState = state;
         this.stateChangedTimeNanos = System.nanoTime();

@@ -13,7 +13,8 @@ import java.util.*;
 /**
  * Identifies a lock that has been obtained.
  */
-public final class LockToken implements Serializable {
+public final class LockToken implements Serializable
+{
     /**
      * The pattern for parsing the date values returned from the native API.
      */
@@ -26,8 +27,7 @@ public final class LockToken implements Serializable {
 
     /**
      * The {@link DateTimeFormatter} for interpreting the timestamps from the
-     * native
-     * API.
+     * native API.
      */
     private static final DateTimeFormatter DATE_TIME_FORMATTER
             = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
@@ -49,8 +49,7 @@ public final class LockToken implements Serializable {
 
     /**
      * The key that identifies the process on the server/host on where the lock
-     * was
-     * obtained.
+     * was obtained.
      */
     private String processKey;
 
@@ -80,7 +79,8 @@ public final class LockToken implements Serializable {
      * 
      * @return The next unique token ID.
      */
-    private synchronized long getNextTokenId() {
+    private synchronized long getNextTokenId()
+    {
         return nextTokenId++;
     }
 
@@ -89,7 +89,8 @@ public final class LockToken implements Serializable {
      *
      * @param scope The {@link LockScope} for the token.
      */
-    public LockToken(LockScope scope) {
+    public LockToken(LockScope scope)
+    {
         Objects.requireNonNull(scope, "The scope cannot be null");
         this.scope = scope;
         ProcessHandle procHandle = ProcessHandle.current();
@@ -147,7 +148,8 @@ public final class LockToken implements Serializable {
      *
      * @return The server key encoding the IP and MAC addresses for the server.
      */
-    private static String formatHostKey() {
+    private static String formatHostKey()
+    {
         try {
             LinkedHashMap<String, Integer> macAddrMap = new LinkedHashMap<>();
             LinkedList<NetworkInterface> interfaces = new LinkedList<>();
@@ -217,10 +219,10 @@ public final class LockToken implements Serializable {
      * this lock token.
      *
      * @return The {@link LockScope} describing the scope of the lock identified
-     *         by
-     *         this lock token.
+     *             by this lock token.
      */
-    public LockScope getScope() {
+    public LockScope getScope()
+    {
         return this.scope;
     }
 
@@ -228,9 +230,10 @@ public final class LockToken implements Serializable {
      * Gets the unique (within process) sequential token ID for this instance.
      *
      * @return The unique (within process) sequential token ID for this
-     *         instance.
+     *             instance.
      */
-    public long getTokenId() {
+    public long getTokenId()
+    {
         return this.tokenId;
     }
 
@@ -239,19 +242,20 @@ public final class LockToken implements Serializable {
      *
      * @return The {@link Instant} timestamp when this instance was constructed.
      */
-    public Instant getTimestamp() {
+    public Instant getTimestamp()
+    {
         return this.timestamp;
     }
 
     /**
      * Gets the encoded {@link String} key for the process in which the lock
-     * token
-     * instance was originally constructed.
+     * token instance was originally constructed.
      *
      * @return The encoded {@link String} key for the process in which the lock
-     *         token instance was originally constructed.
+     *             token instance was originally constructed.
      */
-    public String getProcessKey() {
+    public String getProcessKey()
+    {
         return this.processKey;
     }
 
@@ -260,38 +264,38 @@ public final class LockToken implements Serializable {
      * token instance was originally constructed.
      *
      * @return The encoded {@link String} key for the host/server on which the
-     *         lock
-     *         token instance was originally constructed.
+     *             lock token instance was originally constructed.
      */
-    public String getHostKey() {
+    public String getHostKey()
+    {
         return this.hostKey;
     }
 
     /**
      * Gets the full formatted token key which formats the elements of this lock
      * token into a unique descriptive {@link String} describing when, where and
-     * how
-     * the resource is locked. This can be used to uniquely represent this
+     * how the resource is locked. This can be used to uniquely represent this
      * {@link LockToken} as a {@link String}.
      *
      * @return The unique token key for this instance.
      */
-    public String getTokenKey() {
+    public String getTokenKey()
+    {
         return this.tokenKey;
     }
 
     /**
      * Overridden to return <code>true</code> if and only if the specified
-     * parameter
-     * is a non-null reference to an object of the same class with equivalent
-     * properties.
+     * parameter is a non-null reference to an object of the same class with
+     * equivalent properties.
      *
      * @param obj The object to compare with.
      * @return <code>true</code> if the objects are equal, otherwise
-     *         <code>false</code>.
+     *                           <code>false</code>.
      */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (obj == null) {
             return false;
         }
@@ -330,7 +334,8 @@ public final class LockToken implements Serializable {
      * @return The hash code for this instance.
      */
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hash(
                 this.getScope(), this.getTokenId(),
                 this.getTimestamp(),
@@ -344,7 +349,8 @@ public final class LockToken implements Serializable {
      *
      * @return The result from {@link #getTokenKey()}.
      */
-    public String toString() {
+    public String toString()
+    {
         return this.getTokenKey();
     }
 }
