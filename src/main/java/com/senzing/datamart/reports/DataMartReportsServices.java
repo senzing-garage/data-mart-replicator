@@ -100,8 +100,10 @@ public class DataMartReportsServices
     }
 
     /**
-     * Gets the <b>unmodifiable</b> {@link Set} of {@link String} data source codes
-     * identifying the data sources that are configured by default with the Senzing
+     * Gets the <b>unmodifiable</b> {@link Set} of {@link String} data source
+     * codes
+     * identifying the data sources that are configured by default with the
+     * Senzing
      * template configuration.
      * 
      * @return The <b>unmodifiable</b> {@link Set} of {@link String} data source

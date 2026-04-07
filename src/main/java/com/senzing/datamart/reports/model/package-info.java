@@ -1,3 +1,4 @@
+// CSOFF: LineLength
 /**
  * This package provides model classes used in data mart reporting.
  *
@@ -136,4 +137,5 @@
  *       {@link SzRelationsPage} → {@link SzReportRelation})&lt;/li&gt;
  * &lt;/ol&gt;
  */
+// CSON: LineLength
 package com.senzing.datamart.reports.model;

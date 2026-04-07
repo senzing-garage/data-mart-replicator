@@ -23,17 +23,18 @@ import static com.senzing.util.JsonUtilities.*;
  */
 public class SzReplicatorOptions {
     /**
-     * Used to annotate methods with their associated {@link SzReplicatorOption}.
+     * Used to annotate methods with their associated
+     * {@link SzReplicatorOption}.
      */
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.METHOD)
     public @interface Option {
         /**
-         * Gets the {@link SzReplicatorOption} associated with the method that it
-         * annotates.
-         * 
-         * @return The {@link SzReplicatorOption} associated with the method that it
-         *         annotates.
+         * Gets the {@link SzReplicatorOption} associated with the
+         * method that it annotates.
+         *
+         * @return The {@link SzReplicatorOption} associated with
+         *         the method that it annotates.
          */
         SzReplicatorOption value();
     }
@@ -148,7 +149,8 @@ public class SzReplicatorOptions {
      * Constructs with the settings (as a {@link JsonObject}) with which to 
      * initialize the Senzing Core SDK.
      *
-     * @param settings The settings with which to initialize the Senzing Core SDK.
+     * @param settings The settings with which to initialize the
+     *                 Senzing Core SDK.
      */
     public SzReplicatorOptions(JsonObject settings) {
         Objects.requireNonNull(
@@ -160,7 +162,8 @@ public class SzReplicatorOptions {
      * Constructs with the settings (as a JSON {@link String}) with which to
      * initialize the Senzing Core SDK.
      *
-     * @param settings The settings with which to initialize the Senzing Core SDK.
+     * @param settings The settings with which to initialize the
+     *                 Senzing Core SDK.
      */
     public SzReplicatorOptions(String settings) {
         this(JsonUtilities.parseJsonObject(settings));
@@ -207,13 +210,16 @@ public class SzReplicatorOptions {
     }
 
     /**
-     * Sets the number of threads that the server will create for the
-     * Senzing Core SDK operations.  Set to <code>null</code> to use the {@linkplain
-     * SzReplicatorConstants#DEFAULT_CORE_CONCURRENCY default number of threads}.
+     * Sets the number of threads that the server will create for
+     * the Senzing Core SDK operations.  Set to <code>null</code>
+     * to use the {@linkplain
+     * SzReplicatorConstants#DEFAULT_CORE_CONCURRENCY default
+     * number of threads}.
      *
-     * @param concurrency The number of threads to create for Senzing Core SDK
-     *                    operations, or <code>null</code> for the default number
-     *                    of threads.
+     * @param concurrency The number of threads to create for
+     *                    Senzing Core SDK operations, or
+     *                    <code>null</code> for the default
+     *                    number of threads.
      *
      * @return A reference to this instance.
      */
@@ -226,14 +232,16 @@ public class SzReplicatorOptions {
     }
 
     /**
-     * Gets the instance name with which to initialize the core Senzing SDK
-     * via {@link com.senzing.sdk.core.SzCoreEnvironment.Builder#instanceName(String)}.
-     * If <code>null</code> is returned then {@link 
+     * Gets the instance name with which to initialize the core
+     * Senzing SDK via {@link
+     * com.senzing.sdk.core.SzCoreEnvironment.Builder#instanceName(String)}.
+     * If <code>null</code> is returned then {@link
      * SzReplicatorConstants#DEFAULT_INSTANCE_NAME} is used.
      *
-     * @return The instance name with which to initialize the core Senzing SDK,
-     *         or <code>null</code> if {@link 
-     *         SzReplicatorConstants#DEFAULT_INSTANCE_NAME} should be used.
+     * @return The instance name with which to initialize the
+     *         core Senzing SDK, or <code>null</code> if {@link
+     *         SzReplicatorConstants#DEFAULT_INSTANCE_NAME}
+     *         should be used.
      */
     @Option(CORE_INSTANCE_NAME)
     public String getCoreInstanceName() {
@@ -241,14 +249,17 @@ public class SzReplicatorOptions {
     }
 
     /**
-     * Sets the instance name with which to initialize the core Senzing SDK
-     * via {@link com.senzing.sdk.core.SzCoreEnvironment.Builder#instanceName(String)}.
-     * Set to <code>null</code> if the default value of {@link 
-     * SzReplicatorConstants#DEFAULT_INSTANCE_NAME} is to be used.
+     * Sets the instance name with which to initialize the core
+     * Senzing SDK via {@link
+     * com.senzing.sdk.core.SzCoreEnvironment.Builder#instanceName(String)}.
+     * Set to <code>null</code> if the default value of {@link
+     * SzReplicatorConstants#DEFAULT_INSTANCE_NAME} is to be
+     * used.
      *
-     * @param instanceName The instance name with which to initialize the core
-     *                   Senzing SDK, or <code>null</code> then the
-     *                   {@link SzReplicatorConstants#DEFAULT_INSTANCE_NAME}
+     * @param instanceName The instance name with which to
+     *                   initialize the core Senzing SDK, or
+     *                   <code>null</code> then the {@link
+     *                   SzReplicatorConstants#DEFAULT_INSTANCE_NAME}
      *                   should be used. 
      * 
      * @return A reference to this instance.
@@ -260,13 +271,14 @@ public class SzReplicatorOptions {
     }
 
     /**
-     * Gets the log level with which to initialize the core Senzing SDK.
-     * This returns an integer, which currently translates into a boolean
-     * for {@link com.senzing.sdk.core.SzCoreEnvironment.Builder#verboseLogging(boolean)}
-     * that is <code>true</code> for non-zero values and <code>false</code>
-     * for zero (0).  If the verbosity has not been {@linkplain 
-     * #setCoreLogLevel(int) explicitly set} then <code>false</code> is
-     * returned.
+     * Gets the log level with which to initialize the core
+     * Senzing SDK.  This returns an integer, which currently
+     * translates into a boolean for {@link
+     * com.senzing.sdk.core.SzCoreEnvironment.Builder#verboseLogging(boolean)}
+     * that is <code>true</code> for non-zero values and
+     * <code>false</code> for zero (0).  If the verbosity has
+     * not been {@linkplain #setCoreLogLevel(int) explicitly set}
+     * then <code>false</code> is returned.
      *
      * @return Gets the log level to determine how to set the verbosity for
      *         the core Senzing SDK.
@@ -277,11 +289,12 @@ public class SzReplicatorOptions {
     }
 
     /**
-     * Sets the log level with which to initialize the core Senzing SDK.
-     * This is set as an integer, which currently translates into a boolean
-     * for {@link com.senzing.sdk.core.SzCoreEnvironment.Builder#verboseLogging(boolean)}
-     * that is <code>true</code> for non-zero values and <code>false</code>
-     * for zero (0).
+     * Sets the log level with which to initialize the core
+     * Senzing SDK.  This is set as an integer, which currently
+     * translates into a boolean for {@link
+     * com.senzing.sdk.core.SzCoreEnvironment.Builder#verboseLogging(boolean)}
+     * that is <code>true</code> for non-zero values and
+     * <code>false</code> for zero (0).
      *
      * @param logLevel The log level to determine how to set the verbosity
      *                 for the core Senzing SDK.
@@ -295,11 +308,13 @@ public class SzReplicatorOptions {
     }
 
     /**
-     * Gets the explicit configuration ID with which to initialize the core
-     * Senzing SDK via {@link com.senzing.sdk.core.SzCoreEnvironment.Builder#configId(Long)}
-     * This method returns <code>null</code> if the data mart should use
-     * the current default configuration ID from the repository.  This method
-     * returns <code>null</code> if the value has not been {@linkplain 
+     * Gets the explicit configuration ID with which to
+     * initialize the core Senzing SDK via {@link
+     * com.senzing.sdk.core.SzCoreEnvironment.Builder#configId(Long)}
+     * This method returns <code>null</code> if the data mart
+     * should use the current default configuration ID from the
+     * repository.  This method returns <code>null</code> if the
+     * value has not been {@linkplain
      * #setCoreConfigurationId(Long) explicitly set}.
      *
      * @return The explicit configuration ID with which to initialize the
@@ -313,10 +328,12 @@ public class SzReplicatorOptions {
     }
 
     /**
-     * Sets the explicit configuration ID with which to initialize the core
-     * Senzing SDK via {@link com.senzing.sdk.core.SzCoreEnvironment.Builder#configId(Long)}.
-     * Set the value to <code>null</code> if the data mart should use the 
-     * current default configuration ID from the entity repository.
+     * Sets the explicit configuration ID with which to
+     * initialize the core Senzing SDK via {@link
+     * com.senzing.sdk.core.SzCoreEnvironment.Builder#configId(Long)}.
+     * Set the value to <code>null</code> if the data mart
+     * should use the current default configuration ID from
+     * the entity repository.
      *
      * @param configId The explicit configuration ID with which to initialize
      *                 the core Senzing SDK, or <code>null</code> if the data
@@ -406,11 +423,13 @@ public class SzReplicatorOptions {
     }
 
     /**
-     * Checks the configured database should be used to consume messages via the
-     * <code>sz_message_queue</code> table instead of using Rabbit MQ or Amazon SQS.
-     * 
-     * @return <code>true</code> if the configured database should be used for the
-     *         info message queue, otherwise <code>false</code>
+     * Checks the configured database should be used to consume
+     * messages via the <code>sz_message_queue</code> table
+     * instead of using Rabbit MQ or Amazon SQS.
+     *
+     * @return <code>true</code> if the configured database
+     *         should be used for the info message queue,
+     *         otherwise <code>false</code>
      */
     @Option(DATABASE_INFO_QUEUE)
     public boolean isUsingDatabaseQueue() {
@@ -418,13 +437,15 @@ public class SzReplicatorOptions {
     }
 
     /**
-     * Sets the whether or not the configured database should be used to provide the
-     * info message queue via the <code>sz_message_queue</code> table rather than
-     * using Rabbit MQ or Amazon SQS.
+     * Sets the whether or not the configured database should be
+     * used to provide the info message queue via the
+     * <code>sz_message_queue</code> table rather than using
+     * Rabbit MQ or Amazon SQS.
      *
-     * @param useDatabaseQueue <code>true</code> if the configured database should
-     *                         be used for the info message queue, otherwise
-     *                         <code>false</code>.
+     * @param useDatabaseQueue <code>true</code> if the
+     *                         configured database should be used
+     *                         for the info message queue,
+     *                         otherwise <code>false</code>.
      * 
      * @return A reference to this instance.
      */
@@ -630,7 +651,8 @@ public class SzReplicatorOptions {
             }
         }
         return name.substring(firstUpper, firstUpper + 1).toLowerCase()
-            + ((firstUpper < name.length() - 1) ? name.substring(firstUpper + 1) : "");
+            + ((firstUpper < name.length() - 1)
+                ? name.substring(firstUpper + 1) : "");
     }
 
     /**
@@ -650,7 +672,8 @@ public class SzReplicatorOptions {
             try {
                 value = getter.invoke(this);
             } catch (ReflectiveOperationException e) {
-                Throwable cause = e.getCause() == null ? e : e.getCause();
+                Throwable cause = (e.getCause() == null)
+                        ? e : e.getCause();
                 if (cause instanceof RuntimeException) {
                     throw (RuntimeException) cause;
                 }
@@ -660,7 +683,8 @@ public class SzReplicatorOptions {
             // add the value if not null
             if (value != null) {
                 // add the value to the builder with the property name
-                JsonUtilities.addProperty(job, propertyName, value);
+                JsonUtilities.addProperty(
+                        job, propertyName, value);
             }
         });
 
@@ -669,27 +693,36 @@ public class SzReplicatorOptions {
     }
 
     /**
-     * Parses the specified JSON text as an instance of {@link SzReplicatorOptions}.
+     * Parses the specified JSON text as an instance of
+     * {@link SzReplicatorOptions}.
      *
      * @param jsonText The JSON text describing the {@link SzReplicatorOptions}.
      *
-     * @return The {@link SzReplicatorOptions} created from the specified JSON text.
+     * @return The {@link SzReplicatorOptions} created from the
+     *         specified JSON text.
      */
     public static SzReplicatorOptions parse(String jsonText) {
         return parse(null, jsonText);
     }
 
     /**
-     * Parses the specified JSON text into the specified target instance, or creates
-     * a new instance if the target is {@code null}.
+     * Parses the specified JSON text into the specified target
+     * instance, or creates a new instance if the target is
+     * {@code null}.
      *
-     * @param target The {@link SzReplicatorOptions} instance to populate, or
-     *               {@code null} to create a new instance.
-     * @param jsonText The JSON text describing the {@link SzReplicatorOptions}.
+     * @param target The {@link SzReplicatorOptions} instance to
+     *               populate, or {@code null} to create a new
+     *               instance.
+     * @param jsonText The JSON text describing the
+     *                 {@link SzReplicatorOptions}.
      *
-     * @return The {@link SzReplicatorOptions} instance (either the target or a new instance).
+     * @return The {@link SzReplicatorOptions} instance (either
+     *         the target or a new instance).
      */
-    public static SzReplicatorOptions parse(SzReplicatorOptions target, String jsonText) {
+    public static SzReplicatorOptions parse(
+            SzReplicatorOptions target,
+            String              jsonText)
+    {
         JsonObject jsonObject = JsonUtilities.parseJsonObject(jsonText);
         return parse(target, jsonObject);
     }
@@ -709,20 +742,26 @@ public class SzReplicatorOptions {
     }
 
     /**
-     * Parses the specified {@link JsonObject} into the specified target instance,
-     * or creates a new instance if the target is {@code null}.
+     * Parses the specified {@link JsonObject} into the specified
+     * target instance, or creates a new instance if the target
+     * is {@code null}.
      *
-     * @param target The {@link SzReplicatorOptions} instance to populate, or
-     *               {@code null} to create a new instance.
+     * @param target The {@link SzReplicatorOptions} instance to
+     *               populate, or {@code null} to create a new
+     *               instance.
      * @param jsonObject The {@link JsonObject} describing the
      *                   {@link SzReplicatorOptions}.
      *
-     * @return The {@link SzReplicatorOptions} instance (either the target or a new instance).
+     * @return The {@link SzReplicatorOptions} instance (either
+     *         the target or a new instance).
      */
-    public static SzReplicatorOptions parse(SzReplicatorOptions target, JsonObject jsonObject)
+    public static SzReplicatorOptions parse(
+            SzReplicatorOptions target,
+            JsonObject          jsonObject)
     {
         final JsonObject obj = jsonObject;
-        SzReplicatorOptions opts = (target != null) ? target : new SzReplicatorOptions();
+        SzReplicatorOptions opts = (target != null)
+                ? target : new SzReplicatorOptions();
 
         SETTERS_BY_NAME.forEach((propertyName, setter) -> {
             // skip any property that is missing a value
@@ -732,7 +771,8 @@ public class SzReplicatorOptions {
 
             // get the parameter type
             Class<?> paramType = setter.getParameterTypes()[0];
-            Object value = getValue(paramType, obj, propertyName);
+            Object value = getValue(
+                    paramType, obj, propertyName);
             try {
                 setter.invoke(opts, value);
 
@@ -748,11 +788,13 @@ public class SzReplicatorOptions {
     }
 
     /**
-     * Creates a {@link Map} of {@link CommandLineOption} keys to {@link Object}
-     * values for initializing an {@link SzReplicator} instance.
+     * Creates a {@link Map} of {@link CommandLineOption} keys to
+     * {@link Object} values for initializing an
+     * {@link SzReplicator} instance.
      *
-     * @return The {@link Map} of {@link CommandLineOption} keys to {@link Object}
-     *         values for initializing an {@link SzReplicator} instance
+     * @return The {@link Map} of {@link CommandLineOption} keys
+     *         to {@link Object} values for initializing an
+     *         {@link SzReplicator} instance
      */
     @SuppressWarnings("rawtypes")
     protected Map<CommandLineOption, Object> buildOptionsMap() 
@@ -791,7 +833,8 @@ public class SzReplicatorOptions {
             Method method = SETTER_METHODS.get(option);
             if (method != null) {
                 try {
-                    // value = coerceValue(value, method.getParameterTypes()[0]);
+                    // value = coerceValue(
+                    //     value, method.getParameterTypes()[0]);
                     
                     method.invoke(options, value);
 
@@ -800,15 +843,20 @@ public class SzReplicatorOptions {
                     if (cause instanceof RuntimeException) {
                         throw (RuntimeException) cause;
                     }
-                    throw new RuntimeException("Failed to call " + method + " with "
-                        + value.getClass().getName() + " value: " + value, cause);
+                    throw new RuntimeException(
+                        "Failed to call " + method
+                            + " with "
+                            + value.getClass().getName()
+                            + " value: " + value,
+                        cause);
                 }
             }
         });
     }
 
     /**
-     * Utility method to only put non-null values in the specified {@link Map} with
+     * Utility method to only put non-null values in the specified
+     * {@link Map} with
      * the specified {@link SzReplicatorOption} key and {@link Object} value.
      *
      * @param map    The {@link Map} to put the key-value pair into.
@@ -832,17 +880,20 @@ public class SzReplicatorOptions {
         Class<SzReplicatorOptions> cls = SzReplicatorOptions.class;
         Method[] methods = cls.getMethods();
         for (Method method : methods) {
-            Option option = method.getAnnotation(Option.class);
+            Option option
+                = method.getAnnotation(Option.class);
             if (option == null) {
                 continue;
             }
             // check if the setter or getter
-            if ((method.getReturnType() == SzReplicatorOptions.class)
+            if ((method.getReturnType()
+                    == SzReplicatorOptions.class)
                 && (method.getParameterTypes().length == 1))
             {
                 setterMap.put(option.value(), method);
 
-            } else if ((method.getReturnType() != Void.class)
+            } else if ((method.getReturnType()
+                    != Void.class)
                 && (method.getParameterTypes().length == 0))
             {
                 getterMap.put(option.value(), method);
@@ -872,17 +923,21 @@ public class SzReplicatorOptions {
             missingSetters.removeAll(getByName.keySet());
 
             throw new IllegalStateException(
-                "Setters and getter methods are not consistent.  missingGetters=[ "
-                + missingGetters + " ], missingSetters=[ " + missingSetters + " ]");
+                "Setters and getter methods are not "
+                + "consistent.  missingGetters=[ "
+                + missingGetters + " ], missingSetters=[ "
+                + missingSetters + " ]");
         }
-        GETTERS_BY_NAME = Collections.unmodifiableMap(getByName);
-        SETTERS_BY_NAME = Collections.unmodifiableMap(setByName);
+        GETTERS_BY_NAME
+            = Collections.unmodifiableMap(getByName);
+        SETTERS_BY_NAME
+            = Collections.unmodifiableMap(setByName);
     }
 
     /**
      * Checks if this instance is equal to the specified object.
-     * Two {@link SzReplicatorOptions} instances are considered equal if all their
-     * properties are equal.
+     * Two {@link SzReplicatorOptions} instances are considered
+     * equal if all their properties are equal.
      *
      * @param obj The object to compare with this instance.
      * @return {@code true} if the specified object is equal to this instance,
@@ -912,20 +967,26 @@ public class SzReplicatorOptions {
         return this.getCoreLogLevel() == that.getCoreLogLevel()
             && this.getCoreConcurrency() == that.getCoreConcurrency()
             && this.isUsingDatabaseQueue() == that.isUsingDatabaseQueue()
-            && this.getRefreshConfigSeconds() == that.getRefreshConfigSeconds()
-            && Objects.equals(this.getCoreInstanceName(), that.getCoreInstanceName())
-            && Objects.equals(this.getCoreSettings(), that.getCoreSettings())
-            && Objects.equals(this.getCoreConfigurationId(), that.getCoreConfigurationId())
+            && this.getRefreshConfigSeconds()
+                == that.getRefreshConfigSeconds()
+            && Objects.equals(this.getCoreInstanceName(),
+                that.getCoreInstanceName())
+            && Objects.equals(this.getCoreSettings(),
+                that.getCoreSettings())
+            && Objects.equals(this.getCoreConfigurationId(),
+                that.getCoreConfigurationId())
             && Objects.equals(this.getDatabaseUri(), that.getDatabaseUri())
             && Objects.equals(this.getSQSInfoUri(), that.getSQSInfoUri())
             && Objects.equals(this.getRabbitMqUri(), that.getRabbitMqUri())
-            && Objects.equals(this.getRabbitMqInfoQueue(), that.getRabbitMqInfoQueue())
-            && Objects.equals(this.getProcessingRate(), that.getProcessingRate());
+            && Objects.equals(this.getRabbitMqInfoQueue(),
+                that.getRabbitMqInfoQueue())
+            && Objects.equals(this.getProcessingRate(),
+                that.getProcessingRate());
     }
 
     /**
-     * Returns a hash code value for this instance.
-     * The hash code is computed based on all properties of this instance.
+     * Returns a hash code value for this instance.  The hash
+     * code is computed based on all properties of this instance.
      *
      * @return A hash code value for this instance.
      */

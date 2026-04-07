@@ -58,7 +58,8 @@ public class DefaultScheduler extends Scheduler {
   }
 
   /**
-   * Checks if this {@link DefaultScheduler} has already been committed and if so then
+   * Checks if this {@link DefaultScheduler} has already been committed and if
+   * so then
    * throws an {@link IllegalStateException}.
    */
   protected void checkState() throws IllegalStateException {

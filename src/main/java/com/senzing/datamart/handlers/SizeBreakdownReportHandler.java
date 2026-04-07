@@ -11,10 +11,11 @@ import static com.senzing.datamart.SzReplicationProvider.TaskAction.*;
  */
 public class SizeBreakdownReportHandler extends UpdateReportHandler {
   /**
-   * Constructs with the specified {@link SzReplicationProvider}.  This
-   * constructs the super class with {@link
-   * com.senzing.datamart.SzReplicationProvider.TaskAction#UPDATE_ENTITY_SIZE_BREAKDOWN}
-   * as the supported action.
+   * Constructs with the specified
+   * {@link SzReplicationProvider}.  This constructs the super
+   * class with
+   * {@link SzReplicationProvider.TaskAction#UPDATE_ENTITY_SIZE_BREAKDOWN
+   * UPDATE_ENTITY_SIZE_BREAKDOWN} as the supported action.
    *
    * @param provider The {@link SzReplicationProvider} to use.
    */

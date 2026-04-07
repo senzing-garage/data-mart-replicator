@@ -14,8 +14,8 @@ public class SzEntitySizeCount implements Serializable {
     private int entitySize = 0;
 
     /**
-     * The number of entities having an entity size equal to the associated record
-     * count.
+     * The number of entities having an entity size equal to the
+     * associated record count.
      */
     private long entityCount = 0L;
 
@@ -28,24 +28,26 @@ public class SzEntitySizeCount implements Serializable {
     }
 
     /**
-     * Gets the number of records indicating the size of the entities for which the
-     * entity count is provided.
+     * Gets the number of records indicating the size of the
+     * entities for which the entity count is provided.
      *
-     * @return The number of records indicating the size of the entities for which
-     *         the entity count is provided.
+     * @return The number of records indicating the size of the
+     *         entities for which the entity count is provided.
      */
     public int getEntitySize() {
         return this.entitySize;
     }
 
     /**
-     * Sets the number of records indicating the size of the entities for which the
-     * entity count is provided.
+     * Sets the number of records indicating the size of the
+     * entities for which the entity count is provided.
      *
-     * @param recordCount The number of records indicating the size of the entities
-     *                    for which the entity count is provided.
+     * @param recordCount The number of records indicating the
+     *                    size of the entities for which the
+     *                    entity count is provided.
      * 
-     * @throws IllegalArgumentException If the specified parameter is not positive.
+     * @throws IllegalArgumentException If the specified parameter
+     *                                  is not positive.
      */
     public void setEntitySize(int recordCount) {
         if (recordCount < 1) {
@@ -60,7 +62,8 @@ public class SzEntitySizeCount implements Serializable {
      * Gets number of entities in the entity repository having the associated
      * {@linkplain #getEntitySize() entity size}.
      *
-     * @return The number of entities in the entity repository having the associated
+     * @return The number of entities in the entity repository
+     *         having the associated
      *         {@linkplain #getEntitySize() entity size}.
      */
     public long getEntityCount() {
@@ -71,8 +74,10 @@ public class SzEntitySizeCount implements Serializable {
      * Sets number of entities in the entity repository having the associated
      * {@linkplain #getEntitySize() entity size}.
      *
-     * @param entityCount The number of entities in the entity repository having the
-     *                    associated {@linkplain #getEntitySize() entity size}.
+     * @param entityCount The number of entities in the entity
+     *                    repository having the associated
+     *                    {@linkplain #getEntitySize() entity
+     *                    size}.
      * 
      * @throws IllegalArgumentException If the specified parameter is negative.
      */
@@ -86,8 +91,9 @@ public class SzEntitySizeCount implements Serializable {
     }
 
     /**
-     * Overridden to return a diagnostic {@link String} describing this instance.
-     * 
+     * Overridden to return a diagnostic {@link String} describing
+     * this instance.
+     *
      * @return A diagnostic {@link String} describing this instance.
      */
     @Override
@@ -97,8 +103,8 @@ public class SzEntitySizeCount implements Serializable {
     }
 
     /**
-     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
-     * implementation.
+     * Overridden to return a hash code consistent with the
+     * {@link #equals(Object)} implementation.
      * 
      * @return The hash code for this instance.
      */
@@ -108,12 +114,14 @@ public class SzEntitySizeCount implements Serializable {
     }
 
     /**
-     * Overridden to return <code>true</code> if and only if the specified parameter
-     * is an instance of the same class with equivalent properties.
-     * 
+     * Overridden to return <code>true</code> if and only if the
+     * specified parameter is an instance of the same class with
+     * equivalent properties.
+     *
      * @param obj The object to compare with.
-     * @return <code>true</code> if the specified parameter is an instance of the 
-     *         same class with equivalent properties, otherwise <code>false</code>.
+     * @return <code>true</code> if the specified parameter is
+     *         an instance of the same class with equivalent
+     *         properties, otherwise <code>false</code>.
      */
     @Override
     public boolean equals(Object obj) {
@@ -124,6 +132,7 @@ public class SzEntitySizeCount implements Serializable {
             return false;
         }
         SzEntitySizeCount other = (SzEntitySizeCount) obj;
-        return entitySize == other.entitySize && entityCount == other.entityCount;
+        return entitySize == other.entitySize
+                && entityCount == other.entityCount;
     }
 }

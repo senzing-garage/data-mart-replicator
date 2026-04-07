@@ -50,8 +50,8 @@ public class SzRelatedEntity extends SzEntity {
      * Sets the relationship type for this related entity to the specified
      * {@link SzMatchType}.
      *
-     * @param matchType The {@link SzMatchType} describing the relationship type for
-     *                  this related entity.
+     * @param matchType The {@link SzMatchType} describing the
+     *                  relationship type for this related entity.
      */
     public void setMatchType(SzMatchType matchType) {
         this.matchType = matchType;
@@ -76,30 +76,31 @@ public class SzRelatedEntity extends SzEntity {
     }
 
     /**
-     * Gets the principle code identifying the Entity Resolution Rule that created
-     * this relationship.
+     * Gets the principle code identifying the Entity Resolution
+     * Rule that created this relationship.
      *
-     * @return The principle code identifying the Entity Resolution Rule that
-     *         created this relationship.
+     * @return The principle code identifying the Entity Resolution
+     *         Rule that created this relationship.
      */
     public String getPrinciple() {
         return this.principle;
     }
 
     /**
-     * Sets the principle code identifying the Entity Resolution Rule that created
-     * this relationship.
+     * Sets the principle code identifying the Entity Resolution
+     * Rule that created this relationship.
      *
-     * @param principle The principle code identifying the Entity Resolution Rule
-     *                  that created this relationship.
+     * @param principle The principle code identifying the Entity
+     *                  Resolution Rule that created this
+     *                  relationship.
      */
     public void setPrinciple(String principle) {
         this.principle = normalize(principle);
     }
 
     /**
-     * Populates the specified {@link JsonObjectBuilder} with the properties of this
-     * instance.
+     * Populates the specified {@link JsonObjectBuilder} with the
+     * properties of this instance.
      *
      * @param builder The {@link JsonObjectBuilder} to populate.
      */
@@ -121,12 +122,14 @@ public class SzRelatedEntity extends SzEntity {
      * {@link SzRelatedEntity}.
      *
      * @param entity     The {@link SzRelatedEntity} to populate, or
-     *                   <code>null</code> if a new {@link SzRelatedEntity} should
-     *                   be created.
+     *                   <code>null</code> if a new
+     *                   {@link SzRelatedEntity} should be created.
      * @param jsonObject The {@link JsonObject} describing the entity.
      * @return The {@link SzRelatedEntity} that was populated.
      */
-    public static SzRelatedEntity parse(SzRelatedEntity entity, JsonObject jsonObject) {
+    public static SzRelatedEntity parse(SzRelatedEntity entity,
+                                         JsonObject jsonObject)
+    {
         // get the entity to populate
         if (entity == null) {
             entity = new SzRelatedEntity();
@@ -153,11 +156,14 @@ public class SzRelatedEntity extends SzEntity {
         }
         if (matchKey == null || matchKey.trim().length() == 0) {
             logError("", "---------------------",
-                    "Encountered empty match key (" + matchKey + ") for relationship: ", 
-                     JsonUtilities.toJsonText(jsonObject, true), 
-                     "", "---------------------", "",
-                     formatStackTrace((new IllegalArgumentException()).getStackTrace()),
-                     "", "---------------------", "");
+                    "Encountered empty match key ("
+                        + matchKey + ") for relationship: ",
+                    JsonUtilities.toJsonText(jsonObject, true),
+                    "", "---------------------", "",
+                    formatStackTrace(
+                        (new IllegalArgumentException())
+                            .getStackTrace()),
+                    "", "---------------------", "");
         }
         entity.setMatchKey(matchKey);
 
@@ -173,12 +179,14 @@ public class SzRelatedEntity extends SzEntity {
     }
 
     /**
-     * Overridden to return <code>true</code> if and only if the specified parameter
-     * is an instance of the same class with equivalent properties.
-     * 
+     * Overridden to return <code>true</code> if and only if the
+     * specified parameter is an instance of the same class with
+     * equivalent properties.
+     *
      * @param o The object to compare with.
-     * @return <code>true</code> if the specified parameter is an instance of the
-     *         same class with equivalent properties, otherwise <code>false</code>.
+     * @return <code>true</code> if the specified parameter is an
+     *         instance of the same class with equivalent properties,
+     *         otherwise <code>false</code>.
      */
     @Override
     public boolean equals(Object o) {
@@ -198,14 +206,15 @@ public class SzRelatedEntity extends SzEntity {
     }
 
     /**
-     * Overridden to return a hash code consistent with the {@link #equals(Object)}
-     * implementation.
+     * Overridden to return a hash code consistent with the
+     * {@link #equals(Object)} implementation.
      * 
      * @return The hash code for this instance.
      */
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), this.getMatchType(), this.getMatchKey(),
+        return Objects.hash(super.hashCode(),
+                this.getMatchType(), this.getMatchKey(),
                 this.getPrinciple());
     }
 

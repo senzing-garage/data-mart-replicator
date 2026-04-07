@@ -261,13 +261,15 @@ public class SzCoreSettingsUri extends ConnectionUri {
      * @return The resolved {@link ConnectionUri}, or <code>null</code>
      *         if the value is not found.
      * 
-     * @throws NullPointerException If the specified parameter is <code>null</code>.
+     * @throws NullPointerException If the specified parameter is 
+     *                              <code>null</code>.
      * 
      * @throws IllegalArgumentException If a JSON path component is expected to
      *                                  be an array index, but is not.
      */
     public ConnectionUri resolveUri(String coreSettings) {
-        Objects.requireNonNull(coreSettings, "Core settings cannot be null");
+        Objects.requireNonNull(
+            coreSettings, "Core settings cannot be null");
         JsonObject jsonObject = JsonUtilities.parseJsonObject(coreSettings);
         return this.resolveUri(jsonObject);
     }
@@ -283,13 +285,15 @@ public class SzCoreSettingsUri extends ConnectionUri {
      * @return The resolved {@link ConnectionUri}, or <code>null</code>
      *         if the value is not found.
      * 
-     * @throws NullPointerException If the specified parameter is <code>null</code>.
+     * @throws NullPointerException If the specified parameter is
+     *                              <code>null</code>.
      * 
      * @throws IllegalArgumentException If a JSON path component is expected to
      *                                  be an array index, but is not.
      */
     public ConnectionUri resolveUri(JsonObject coreSettings) {
-        Objects.requireNonNull(coreSettings, "Core settings cannot be null");
+        Objects.requireNonNull(
+            coreSettings, "Core settings cannot be null");
         JsonValue current = coreSettings;
         for (String property : this.getPathElements()) {
             if (current instanceof JsonObject) {

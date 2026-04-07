@@ -13,9 +13,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  */
 public class SzMatchCounts implements Serializable {
     /**
-     * The optional match key associated with the statistics. This may be
-     * <code>null</code> or absent if the statistics are not associated with a match
-     * key.
+     * The optional match key associated with the statistics.
+     * This may be <code>null</code> or absent if the statistics
+     * are not associated with a match key.
      */
     private String matchKey = null;
 
@@ -46,10 +46,12 @@ public class SzMatchCounts implements Serializable {
     /**
      * Constructs with the optional match key and principle.
      * 
-     * @param matchKey  The optionally associated match key, or <code>null</code> if
-     *                  no specific match key is associated.
-     * @param principle The optionally associated principle, or <code>null</code> if
-     *                  no specific principle is associated.
+     * @param matchKey  The optionally associated match key, or
+     *                  <code>null</code> if no specific match
+     *                  key is associated.
+     * @param principle The optionally associated principle, or
+     *                  <code>null</code> if no specific
+     *                  principle is associated.
      */
     public SzMatchCounts(String matchKey, String principle) {
         this.matchKey = matchKey;
@@ -59,13 +61,14 @@ public class SzMatchCounts implements Serializable {
     }
 
     /**
-     * Gets the optional match key associated with the statistics. This may be
-     * <code>null</code> or absent if the statistics are not associated with a match
-     * key.
-     * 
-     * @return The optional match key associated with the statistics, or
-     *         <code>null</code> or absent if the statistics are not associated with
-     *         a match key.
+     * Gets the optional match key associated with the
+     * statistics. This may be <code>null</code> or absent if
+     * the statistics are not associated with a match key.
+     *
+     * @return The optional match key associated with the
+     *         statistics, or <code>null</code> or absent if
+     *         the statistics are not associated with a match
+     *         key.
      */
     @JsonInclude(NON_NULL)
     public String getMatchKey() {
@@ -77,9 +80,9 @@ public class SzMatchCounts implements Serializable {
      * <code>null</code> or absent if the statistics are not associated with a
      * principle.
      * 
-     * @return The optional principle associated with the statistics, or
-     *         <code>null</code> or absent if the statistics are not associated with
-     *         a principle.
+     * @return The optional principle associated with the
+     *         statistics, or <code>null</code> or absent if the
+     *         statistics are not associated with a principle.
      */
     @JsonInclude(NON_NULL)
     public String getPrinciple() {
@@ -87,23 +90,26 @@ public class SzMatchCounts implements Serializable {
     }
 
     /**
-     * Gets the number of entities having at least one record from the primary data
-     * source matching to at least one record from the "versus" data source.
-     * 
-     * @return The number of entities having at least one record from the primary
-     *         data source matching to at least one record from the "versus" data
-     *         source.
+     * Gets the number of entities having at least one record
+     * from the primary data source matching to at least one
+     * record from the "versus" data source.
+     *
+     * @return The number of entities having at least one record
+     *         from the primary data source matching to at least
+     *         one record from the "versus" data source.
      */
     public long getEntityCount() {
         return this.entityCount;
     }
 
     /**
-     * Sets the number of entities having at least one record from the primary data
-     * source matching to at least one record from the "versus" data source.
-     * 
-     * @param entityCount The number of entities having at least one record from the
-     *                    primary data source matching to at least one record from
+     * Sets the number of entities having at least one record
+     * from the primary data source matching to at least one
+     * record from the "versus" data source.
+     *
+     * @param entityCount The number of entities having at least
+     *                    one record from the primary data source
+     *                    matching to at least one record from
      *                    the "versus" data source.
      */
     public void setEntityCount(long entityCount) {
@@ -111,26 +117,32 @@ public class SzMatchCounts implements Serializable {
     }
 
     /**
-     * Gets the number of records from the primary data source in the entities
-     * described by the {@linkplain #getEntityCount() entityCount}. <b>NOTE:</b>
-     * this is not the total number of records in those entities, but only the count
-     * of those records from the primary data source.
-     * 
-     * @return The number of records from the primary data source in the entities
-     *         described by the {@linkplain #getEntityCount() entityCount}.
+     * Gets the number of records from the primary data source
+     * in the entities described by the
+     * {@linkplain #getEntityCount() entityCount}. <b>NOTE:</b>
+     * this is not the total number of records in those
+     * entities, but only the count of those records from the
+     * primary data source.
+     *
+     * @return The number of records from the primary data
+     *         source in the entities described by the
+     *         {@linkplain #getEntityCount() entityCount}.
      */
     public long getRecordCount() {
         return this.recordCount;
     }
 
     /**
-     * Sets the number of records from the primary data source in the entities
-     * described by the {@linkplain #getEntityCount() entityCount}. <b>NOTE:</b>
-     * this is not the total number of records in those entities, but only the count
-     * of those records from the primary data source.
-     * 
-     * @param recordCount The number of records from the primary data source in the
-     *                    entities described by the {@linkplain #getEntityCount()
+     * Sets the number of records from the primary data source
+     * in the entities described by the
+     * {@linkplain #getEntityCount() entityCount}. <b>NOTE:</b>
+     * this is not the total number of records in those
+     * entities, but only the count of those records from the
+     * primary data source.
+     *
+     * @param recordCount The number of records from the primary
+     *                    data source in the entities described
+     *                    by the {@linkplain #getEntityCount()
      *                    entityCount}.
      */
     public void setRecordCount(long recordCount) {
@@ -138,7 +150,8 @@ public class SzMatchCounts implements Serializable {
     }
 
    /**
-     * Overridden to return a diagnostic {@link String} describing this instance.
+     * Overridden to return a diagnostic {@link String} describing
+     * this instance.
      * 
      * @return A diagnostic {@link String} describing this instance.
      */
@@ -151,8 +164,8 @@ public class SzMatchCounts implements Serializable {
     }
 
     /**
-     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
-     * implementation.
+     * Overridden to return a hash code consistent with the
+     * {@link #equals(Object)} implementation.
      * 
      * @return The hash code for this instance.
      */
@@ -162,12 +175,14 @@ public class SzMatchCounts implements Serializable {
    }
 
     /**
-     * Overridden to return <code>true</code> if and only if the specified parameter
-     * is an instance of the same class with equivalent properties.
-     * 
+     * Overridden to return <code>true</code> if and only if the
+     * specified parameter is an instance of the same class with
+     * equivalent properties.
+     *
      * @param obj The object to compare with.
-     * @return <code>true</code> if the specified parameter is an instance of the 
-     *         same class with equivalent properties, otherwise <code>false</code>.
+     * @return <code>true</code> if the specified parameter is
+     *         an instance of the same class with equivalent
+     *         properties, otherwise <code>false</code>.
      */
    @Override
    public boolean equals(Object obj) {
@@ -178,8 +193,10 @@ public class SzMatchCounts implements Serializable {
         return false;
     }
     SzMatchCounts other = (SzMatchCounts) obj;
-    return Objects.equals(matchKey, other.matchKey) && Objects.equals(principle, other.principle)
-            && entityCount == other.entityCount && recordCount == other.recordCount;
+    return Objects.equals(matchKey, other.matchKey)
+            && Objects.equals(principle, other.principle)
+            && entityCount == other.entityCount
+            && recordCount == other.recordCount;
    }
 
 }

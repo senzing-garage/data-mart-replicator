@@ -494,7 +494,8 @@ public class TaskGroup implements Quantified {
       if (this.getScheduledCount() == 0) {
         if (state != CLOSED) {
           throw new IllegalStateException(
-              "TaskGroup must be in a " + CLOSED + " state before its first task "
+              "TaskGroup must be in a " + CLOSED
+                  + " state before its first task "
                   + "gets scheduled: " + state);
         }
       } else {
@@ -608,7 +609,7 @@ public class TaskGroup implements Quantified {
    *
    * @throws IllegalArgumentException If the {@link TaskGroup} of the specified
    *                                  {@link Task} is not this instance.
-   * @throws IllegalStateException    If the specified {@link Task} is not in the
+   * @throws IllegalStateException If the specified {@link Task} is not in the
    *                                  {@link Task.State#SUCCESSFUL} state or if
    *                                  the
    *                                  previous record state for the task is not
@@ -683,7 +684,7 @@ public class TaskGroup implements Quantified {
    *
    * @throws IllegalArgumentException If the {@link TaskGroup} of the specified
    *                                  {@link Task} is not this instance.
-   * @throws IllegalStateException    If the specified {@link Task} is not in the
+   * @throws IllegalStateException If the specified {@link Task} is not in the
    *                                  {@link Task.State#FAILED} state or if the
    *                                  previous record state for the task is not
    *                                  a valid predecessor for {@link
@@ -760,7 +761,7 @@ public class TaskGroup implements Quantified {
    *
    * @throws IllegalArgumentException If the {@link TaskGroup} of the specified
    *                                  {@link Task} is not this instance.
-   * @throws IllegalStateException    If the specified {@link Task} is not in the
+   * @throws IllegalStateException If the specified {@link Task} is not in the
    *                                  {@link Task.State#ABORTED} state or if the
    *                                  previous record state for the task is not
    *                                  a valid predecessor for {@link
@@ -1217,7 +1218,9 @@ public class TaskGroup implements Quantified {
     long result = this.longestHandlingTime;
     for (TaskInfo taskInfo : this.taskStateMap.values()) {
       if (taskInfo.getTaskState() == STARTED) {
-        long duration = ((now - taskInfo.getStateChangedTimeNanos()) / ONE_MILLION);
+        long duration = ((now
+                - taskInfo.getStateChangedTimeNanos())
+                / ONE_MILLION);
         if (duration > result) {
           result = duration;
         }

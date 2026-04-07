@@ -31,18 +31,22 @@ public abstract class AbstractTaskHandler implements TaskHandler {
     protected static final int MAX_BATCH_SIZE = 1000;
 
     /**
-     * The error code when a record is encountered by Senzing SDK but it has no resolved
-     * entity.  This is likely an indication of a race condition where the record no 
+     * The error code when a record is encountered by Senzing
+     * SDK but it has no resolved entity.  This is likely an
+     * indication of a race condition where the record no
      * longer exists -- treat it as such.
      */
     protected static final int SZ_ERR_RECORD_HAS_NO_RESOLVED_ENTITY = 38;
 
     /**
-     * The error code when a record is encountered by Senzing SDK but it has no obs ent.
-     * This is likely an indication of a race condition where the record no longer exists
+     * The error code when a record is encountered by Senzing
+     * SDK but it has no obs ent.  This is likely an indication
+     * of a race condition where the record no longer exists
      * -- treat it as such.
      */
+    // CSOFF: LineLength
     protected static final int SZ_ERR_NO_OBSERVED_ENTITY_FOR_DSRC_ENTITY_KEY = 39;
+    // CSON: LineLength
     
     /**
      * The Senzing SDK error codes to treat as an {@link 
@@ -63,15 +67,23 @@ public abstract class AbstractTaskHandler implements TaskHandler {
     private String supportedAction = null;
 
     /**
-     * Constructs with the specified {@link SzReplicationProvider} to back this task
-     * handler and the supported {@link TaskAction}.
+     * Constructs with the specified {@link SzReplicationProvider}
+     * to back this task handler and the supported
+     * {@link TaskAction}.
      *
      * @param provider        The {@link SzReplicationProvider} to use.
      * @param supportedAction The first supported {@link TaskAction}.
      */
-    protected AbstractTaskHandler(SzReplicationProvider provider, TaskAction supportedAction) {
-        Objects.requireNonNull(provider, "The SzReplicationProvider cannot be null");
-        Objects.requireNonNull(supportedAction, "The supported task action cannot be null");
+    protected AbstractTaskHandler(
+            SzReplicationProvider provider,
+            TaskAction            supportedAction)
+    {
+        Objects.requireNonNull(
+                provider,
+                "The SzReplicationProvider cannot be null");
+        Objects.requireNonNull(
+                supportedAction,
+                "The supported task action cannot be null");
 
         this.replicationProvider = provider;
         this.supportedAction = supportedAction.toString();
@@ -122,7 +134,8 @@ public abstract class AbstractTaskHandler implements TaskHandler {
     }
 
     /**
-     * Gets the {@link DatabaseType} from the backing {@link SzReplicationProvider}.
+     * Gets the {@link DatabaseType} from the backing
+     * {@link SzReplicationProvider}.
      *
      * @return The {@link DatabaseType} from the backing
      *         {@link SzReplicationProvider}.
@@ -132,25 +145,36 @@ public abstract class AbstractTaskHandler implements TaskHandler {
     }
 
     /**
-     * Ensures the specified report update is scheduled to occur at some later time.
+     * Ensures the specified report update is scheduled to occur
+     * at some later time.
      *
-     * @param reportAction The task action for updating the report.
-     * @param reportKey    The report key for the report statistic that should be
-     *                     updated.
+     * @param reportAction The task action for updating the
+     *                     report.
+     * @param reportKey    The report key for the report
+     *                     statistic that should be updated.
      */
-    protected void scheduleReportFollowUp(String reportAction, SzReportKey reportKey) {
-        this.replicationProvider.scheduleReportFollowUp(reportAction, reportKey);
+    protected void scheduleReportFollowUp(
+            String      reportAction,
+            SzReportKey reportKey)
+    {
+        this.replicationProvider.scheduleReportFollowUp(
+                reportAction, reportKey);
     }
 
     /**
-     * Ensures the specified report update is scheduled to occur at some later time.
+     * Ensures the specified report update is scheduled to occur
+     * at some later time.
      *
-     * @param reportAction The {@link SzReplicationProvider.TaskAction} for updating
-     *                     the report.
-     * @param reportKey    The report key for the report statistic that should be
-     *                     updated.
+     * @param reportAction The
+     *                     {@link SzReplicationProvider.TaskAction}
+     *                     for updating the report.
+     * @param reportKey    The report key for the report
+     *                     statistic that should be updated.
      */
-    protected void scheduleReportFollowUp(TaskAction reportAction, SzReportKey reportKey) {
+    protected void scheduleReportFollowUp(
+            TaskAction  reportAction,
+            SzReportKey reportKey)
+    {
         this.scheduleReportFollowUp(reportAction.toString(), reportKey);
     }
 
@@ -162,14 +186,18 @@ public abstract class AbstractTaskHandler implements TaskHandler {
      * {@inheritDoc}
      */
     @Override
-    public Boolean waitUntilReady(long timeoutMillis) throws InterruptedException {
+    public Boolean waitUntilReady(long timeoutMillis)
+            throws InterruptedException
+    {
         return this.replicationProvider.waitUntilReady(timeoutMillis);
     }
 
     /**
-     * Implemented to check if the specified action is the support action and if not
-     * throws an {@link IllegalArgumentException}. If it is the supported action
-     * then {@link #handleTask(Map, int, Scheduler)} is called.
+     * Implemented to check if the specified action is the
+     * support action and if not throws an
+     * {@link IllegalArgumentException}. If it is the supported
+     * action then {@link #handleTask(Map, int, Scheduler)} is
+     * called.
      *
      * {@inheritDoc}
      */
@@ -238,30 +266,37 @@ public abstract class AbstractTaskHandler implements TaskHandler {
     }
 
     /**
-     * An interface for binding a data value to a {@link PreparedStatement} and
-     * optionally returning the number of rows expected to be updated or selected
-     * for the bound statement.
+     * An interface for binding a data value to a
+     * {@link PreparedStatement} and optionally returning the
+     * number of rows expected to be updated or selected for
+     * the bound statement.
      *
      * @param <T> The type of the object that holds the values to be bound.
      */
     protected interface Binder<T> {
         /**
-         * Binds the properties of the specified value to the specified
-         * {@link PreparedStatement}. This method optionally returns the expected number
-         * of rows or the exact expected number of rows. If <code>null</code> is
-         * returned then no exception is made on the returned number of rows. If a
-         * non-negative number is returned then that exact number of rows is expected to
-         * be updated/selected. If a negative number is returned then the absolute value
-         * of that return value is an upper bound for the maximum number of rows to be
+         * Binds the properties of the specified value to the
+         * specified {@link PreparedStatement}. This method
+         * optionally returns the expected number of rows or the
+         * exact expected number of rows. If <code>null</code>
+         * is returned then no exception is made on the returned
+         * number of rows. If a non-negative number is returned
+         * then that exact number of rows is expected to be
+         * updated/selected. If a negative number is returned
+         * then the absolute value of that return value is an
+         * upper bound for the maximum number of rows to be
          * updated/selected.
          *
          * @param ps    The {@link PreparedStatement} to bind to.
          * @param value The value that holds the properties to be bound.
-         * @return The number of expected rows to be returned when executing a query or
-         *         the number of expected rows to be updated if executing an update as a
-         *         non-negative value denoting an exact number and as a negative number
-         *         denoting an upper-bound for the absolute value, or <code>null</code>
-         *         if there is no expectation on the number of rows.
+         * @return The number of expected rows to be returned
+         *         when executing a query or the number of
+         *         expected rows to be updated if executing an
+         *         update as a non-negative value denoting an
+         *         exact number and as a negative number denoting
+         *         an upper-bound for the absolute value, or
+         *         <code>null</code> if there is no expectation
+         *         on the number of rows.
          * @throws SQLException If a failure occurs.
          */
         Integer bind(PreparedStatement ps, T value) throws SQLException;
@@ -269,19 +304,23 @@ public abstract class AbstractTaskHandler implements TaskHandler {
 
     /**
      * Binds the {@link Collection} of values to the specified
-     * {@link PreparedStatement} as a batch update, executes the batch and verifies
-     * the number of updated rows according to the return value from
-     * {@link Binder#bind(PreparedStatement, Object)} for each respective value.
-     * This method will cap the batch size at {@link #MAX_BATCH_SIZE}, execute the
-     * batch and start a new batch repeatedly until all updates have been performed.
+     * {@link PreparedStatement} as a batch update, executes the
+     * batch and verifies the number of updated rows according
+     * to the return value from
+     * {@link Binder#bind(PreparedStatement, Object)} for each
+     * respective value.  This method will cap the batch size at
+     * {@link #MAX_BATCH_SIZE}, execute the batch and start a
+     * new batch repeatedly until all updates have been
+     * performed.
      *
      * @param ps     The {@link PreparedStatement} to bind.
      * @param binder The {@link Binder} to use for binding to the
      *               {@link PreparedStatement}.
      * @param data   The {@link Collection} of data values to bind.
-     * @return The {@link List} of row counts for the updated rows, corresponding in
-     *         iteration order to the specified {@link Collection} of data values
-     *         for which the row count applies.
+     * @return The {@link List} of row counts for the updated
+     *         rows, corresponding in iteration order to the
+     *         specified {@link Collection} of data values for
+     *         which the row count applies.
      * @param <T> The type of the objects being used to bind the
      *            {@link PreparedStatement}
      * @throws SQLException If a JDBC failure occurs.
@@ -358,9 +397,11 @@ public abstract class AbstractTaskHandler implements TaskHandler {
         // check if any errors
         if (errorCount > 0) {
             throw new IllegalStateException(
-                    "Updated the wrong number of rows for " + errorCount + " of " 
-                    + rowCounts.size() + " batched updates.  statement=[ " + ps 
-                    + " ], failures=[ " + sb.toString() + " ]");
+                    "Updated the wrong number of rows for "
+                    + errorCount + " of " + rowCounts.size()
+                    + " batched updates.  statement=[ " + ps
+                    + " ], failures=[ " + sb.toString()
+                    + " ]");
         }
 
         // return the row counts

@@ -19,10 +19,12 @@ public class SQLiteSchedulingService extends AbstractSQLSchedulingService {
     }
 
     /**
-     * Ensures the schema exists and alternatively drops the existing the schema and
+     * Ensures the schema exists and alternatively drops the existing the schema
+     * and
      * recreates it.
      *
-     * @param recreate <code>true</code> if the existing schema should be dropped,
+     * @param recreate <code>true</code> if the existing schema should be
+     *        dropped,
      *                 otherwise <code>false</code>.
      *
      * @throws SQLException If a failure occurs.
@@ -64,10 +66,12 @@ public class SQLiteSchedulingService extends AbstractSQLSchedulingService {
             + " modified_on = (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')) "
             + " WHERE task_id = old.task_id; END;";
 
-        String dropUpdateTriggerSql = "DROP TRIGGER IF EXISTS sz_follow_up_tasks_mod";
+        String dropUpdateTriggerSql
+                = "DROP TRIGGER IF EXISTS sz_follow_up_tasks_mod";
 
         String createInsertTriggerSql = 
-            "CREATE TRIGGER IF NOT EXISTS sz_follow_up_tasks_create AFTER INSERT "
+            "CREATE TRIGGER IF NOT EXISTS"
+            + " sz_follow_up_tasks_create AFTER INSERT "
             + "ON sz_follow_up_tasks FOR EACH ROW " 
             + "BEGIN UPDATE sz_follow_up_tasks "
             + "SET created_on = (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')),"

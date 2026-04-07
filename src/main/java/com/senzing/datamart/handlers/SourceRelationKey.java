@@ -35,7 +35,11 @@ public final class SourceRelationKey implements Comparable<SourceRelationKey> {
      * @throws NullPointerException If the specified {@link SzMatchType} is
      *                              <code>null</code>
      */
-    public SourceRelationKey(SzMatchType matchType, String matchKey, String principle) throws NullPointerException {
+    public SourceRelationKey(SzMatchType matchType,
+                             String      matchKey,
+                             String      principle)
+            throws NullPointerException
+    {
         Objects.requireNonNull(matchType, "The match type cannot be null");
 
         this.matchType = matchType;
@@ -44,10 +48,11 @@ public final class SourceRelationKey implements Comparable<SourceRelationKey> {
     }
 
     /**
-     * Creates the variant {@link SourceRelationKey} instances for the specified
-     * {@link SzMatchType} including one with no match key or principle, one with
-     * only the match key and no principle, one with only the principle and not the
-     * match key and one with both.
+     * Creates the variant {@link SourceRelationKey} instances
+     * for the specified {@link SzMatchType} including one with
+     * no match key or principle, one with only the match key
+     * and no principle, one with only the principle and not
+     * the match key and one with both.
      * 
      * @param matchType   The {@link SzMatchType} describing the match type.
      * @param matchKey    The match key for the relationships.
@@ -112,16 +117,18 @@ public final class SourceRelationKey implements Comparable<SourceRelationKey> {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(this.getMatchType(), this.getMatchKey(), this.getPrinciple());
+        return Objects.hash(this.getMatchType(),
+                this.getMatchKey(), this.getPrinciple());
     }
 
     /**
      * Compares this instance versus another instance of this class.
      * 
      * @param key The {@link SourceRelationKey} to compare with.
-     * @return A negative number, zero (0) or a positive number depending on whether
-     *         this instance is less-than, equal-to or greater-than the specified
-     *         instance, respectively.
+     * @return A negative number, zero (0) or a positive number
+     *         depending on whether this instance is less-than,
+     *         equal-to or greater-than the specified instance,
+     *         respectively.
      */
     public int compareTo(SourceRelationKey key) {
         if (key == null) {
@@ -178,9 +185,10 @@ public final class SourceRelationKey implements Comparable<SourceRelationKey> {
     }
 
     /**
-     * Checks if this instance is equal to the specified object. This is implemented
-     * to return <code>true</code> if and only if the specified value is a non-null
-     * reference to an object of the same class with equivalent properties.
+     * Checks if this instance is equal to the specified object.
+     * This is implemented to return <code>true</code> if and
+     * only if the specified value is a non-null reference to an
+     * object of the same class with equivalent properties.
      *
      * @param obj The object to compare with.
      */
@@ -196,17 +204,22 @@ public final class SourceRelationKey implements Comparable<SourceRelationKey> {
             return false;
         }
         SourceRelationKey key = (SourceRelationKey) obj;
-        return (this.getMatchType() == key.getMatchType()) && Objects.equals(this.getMatchKey(), key.getMatchKey())
-                && Objects.equals(this.getPrinciple(), key.getPrinciple());
+        return (this.getMatchType() == key.getMatchType())
+                && Objects.equals(this.getMatchKey(),
+                        key.getMatchKey())
+                && Objects.equals(this.getPrinciple(),
+                        key.getPrinciple());
     }
 
     /**
-     * Implemented to provide a diagnostic {@link String} describing this instance.
+     * Implemented to provide a diagnostic {@link String}
+     * describing this instance.
      *
      * @return A diagnostic {@link String} describing this instance.
      */
     @Override
     public String toString() {
-        return this.getMatchType() + ":" + this.getPrinciple() + ":" + this.getMatchKey();
+        return this.getMatchType() + ":" + this.getPrinciple()
+                + ":" + this.getMatchKey();
     }
 }

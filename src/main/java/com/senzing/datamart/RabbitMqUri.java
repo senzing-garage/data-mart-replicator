@@ -578,7 +578,8 @@ public class RabbitMqUri extends ConnectionUri {
             }
 
             // get the suffix
-            suffix = (index < suffix.length() - 1) ? suffix.substring(index + 1) : "";
+            suffix = (index < suffix.length() - 1) 
+                   ? suffix.substring(index + 1) : "";
 
         } else {
             // set the port to null
@@ -595,13 +596,16 @@ public class RabbitMqUri extends ConnectionUri {
         } else {
             // check if we have a virtual host
             if (index > 0) {
-                virtualHost = urlDecodeUtf8(suffix.substring(0, index).trim());
+                virtualHost = urlDecodeUtf8(
+                    suffix.substring(0, index).trim());
             }
-            suffix = (index == suffix.length() - 1) ? "" : suffix.substring(index + 1);
+            suffix = (index == suffix.length() - 1)
+                   ? "" : suffix.substring(index + 1);
         }
 
         // parse the query parameters if found
-        Map<String, String> queryOptions = ConnectionUri.parseQueryOptions(suffix);
+        Map<String, String> queryOptions
+            = ConnectionUri.parseQueryOptions(suffix);
 
         // construct the instance
         return new RabbitMqUri(

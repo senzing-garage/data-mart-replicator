@@ -37,19 +37,23 @@ public interface LoadedStatsReportsService extends ReportsService {
     /**
      * The endpoint for the source-specific loaded statistics report.
      */
-    String SOURCE_LOADED_STATS_ENDPOINT = LOADED_STATS_PREFIX + "/data-sources/{dataSourceCode}";
+    String SOURCE_LOADED_STATS_ENDPOINT = LOADED_STATS_PREFIX
+            + "/data-sources/{dataSourceCode}";
 
     /**
      * The endpoint for the entities loaded for a data source.
      */
-    String SOURCE_LOADED_ENTITIES_ENDPOINT = SOURCE_LOADED_STATS_ENDPOINT + "/entities";
+    String SOURCE_LOADED_ENTITIES_ENDPOINT = SOURCE_LOADED_STATS_ENDPOINT
+            + "/entities";
 
     /**
      * Exposes
-     * {@link LoadedStatsReports#getLoadedStatistics(Connection, Set, Timers)} as a
+     * {@link LoadedStatsReports#getLoadedStatistics(Connection, Set, Timers)}
+     * as a
      * REST/JSON service at {@link #LOADED_STATS_ENDPOINT}.
      * 
-     * @param onlyLoaded Set to <code>true</code> to only consider data sources that
+     * @param onlyLoaded Set to <code>true</code> to only consider data sources
+     *        that
      *                   have loaded record, otherwise set this to
      *                   <code>false</code> to consider all data sources.
      * 
@@ -71,9 +75,11 @@ public interface LoadedStatsReportsService extends ReportsService {
 
             Timers timers = this.getTimers();
 
-            Set<String> dataSources = (onlyLoaded) ? null : this.getConfiguredDataSources(true);
+            Set<String> dataSources =
+                    (onlyLoaded) ? null : this.getConfiguredDataSources(true);
 
-            return LoadedStatsReports.getLoadedStatistics(conn, dataSources, timers);
+            return LoadedStatsReports.getLoadedStatistics(conn, dataSources,
+                    timers);
 
         } catch (SzException | SQLException e) {
             System.err.println(e.getMessage());
@@ -91,7 +97,8 @@ public interface LoadedStatsReportsService extends ReportsService {
 
     /**
      * Exposes
-     * {@link LoadedStatsReports#getSourceLoadedStatistics(Connection, String, Timers)}
+     * {@link LoadedStatsReports#getSourceLoadedStatistics(Connection, String,
+     * Timers)}
      * as a REST/JSON service at {@link #SOURCE_LOADED_STATS_ENDPOINT}.
      * 
      * @param dataSource The data source code for which the report is being
@@ -113,7 +120,8 @@ public interface LoadedStatsReportsService extends ReportsService {
 
             Timers timers = this.getTimers();
 
-            return LoadedStatsReports.getSourceLoadedStatistics(conn, dataSource, timers);
+            return LoadedStatsReports.getSourceLoadedStatistics(conn,
+                    dataSource, timers);
 
         } catch (SQLException e) {
             System.err.println(e.getMessage());
@@ -141,11 +149,11 @@ public interface LoadedStatsReportsService extends ReportsService {
      *                      requested.
      * @param entityIdBound The bound value for the entity ID's that will be
      *                      returned.
-     * @param boundType     The {@link SzBoundType} that describes how to apply the
+     * @param boundType The {@link SzBoundType} that describes how to apply the
      *                      specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
      * 
-     * @param sampleSize    The optional number of results to randomly sample from
+     * @param sampleSize The optional number of results to randomly sample from
      *                      the page, which, if specified, must be strictly
      *                      less-than the page size.
      * 
@@ -158,11 +166,12 @@ public interface LoadedStatsReportsService extends ReportsService {
     @Path(SOURCE_LOADED_ENTITIES_ENDPOINT + "/")
     @ProducesJson
     default SzEntitiesPage getEntityIdsForDataSource(
-            @Param("dataSourceCode")                        String      dataSource,
-            @Param("bound") @Nullable                       String      entityIdBound,
-            @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType, 
-            @Param("pageSize") @Nullable                    Integer     pageSize, 
-            @Param("sampleSize") @Nullable                  Integer     sampleSize) 
+            @Param("dataSourceCode") String      dataSource,
+            @Param("bound") @Nullable String      entityIdBound,
+            @Param("boundType")
+                    @Default("EXCLUSIVE_LOWER") SzBoundType boundType,
+            @Param("pageSize") @Nullable Integer     pageSize,
+            @Param("sampleSize") @Nullable Integer     sampleSize)
         throws ReportsServiceException 
     {
         Connection conn = null;
@@ -171,7 +180,8 @@ public interface LoadedStatsReportsService extends ReportsService {
 
             Timers timers = this.getTimers();
 
-            return LoadedStatsReports.getEntityIdsForDataSource(conn, dataSource, entityIdBound, boundType, pageSize,
+            return LoadedStatsReports.getEntityIdsForDataSource(conn,
+                    dataSource, entityIdBound, boundType, pageSize,
                     sampleSize, timers);
         } catch (SQLException e) {
             System.err.println(e.getMessage());

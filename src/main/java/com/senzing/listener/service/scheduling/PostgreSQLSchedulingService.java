@@ -17,10 +17,12 @@ public class PostgreSQLSchedulingService extends AbstractSQLSchedulingService {
     }
 
     /**
-     * Ensures the schema exists and alternatively drops the existing the schema and
+     * Ensures the schema exists and alternatively drops the existing the schema
+     * and
      * recreates it.
      *
-     * @param recreate <code>true</code> if the existing schema should be dropped,
+     * @param recreate <code>true</code> if the existing schema should be
+     *        dropped,
      *                 otherwise <code>false</code>.
      *
      * @throws SQLException If a failure occurs.
@@ -86,8 +88,10 @@ public class PostgreSQLSchedulingService extends AbstractSQLSchedulingService {
         String dropTriggerFunctionSql = 
             "DROP FUNCTION IF EXISTS sz_follow_up_timestamps;";
 
-        String dropTriggerSql = "DROP TRIGGER IF EXISTS sz_follow_up_tasks_trigger " 
-            + "ON sz_follow_up_tasks;";
+        String dropTriggerSql
+                = "DROP TRIGGER IF EXISTS"
+                + " sz_follow_up_tasks_trigger "
+                + "ON sz_follow_up_tasks;";
 
         List<String> sqlList = new ArrayList<>();
 

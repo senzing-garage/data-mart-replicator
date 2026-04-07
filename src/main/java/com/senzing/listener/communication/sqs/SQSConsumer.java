@@ -6,7 +6,9 @@ import javax.json.JsonObject;
 
 import com.senzing.listener.communication.AbstractMessageConsumer;
 import com.senzing.listener.communication.exception.MessageConsumerException;
+// CSOFF
 import com.senzing.listener.communication.exception.MessageConsumerSetupException;
+// CSON
 import com.senzing.listener.service.MessageProcessor;
 import com.senzing.listener.service.exception.ServiceSetupException;
 
@@ -21,15 +23,17 @@ import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 import static com.senzing.util.LoggingUtilities.*;
 import static com.senzing.listener.communication.MessageConsumer.State.*;
 import static com.senzing.listener.service.ServiceUtilities.*;
+// CSOFF
 import static software.amazon.awssdk.services.sqs.model.QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES;
+// CSON
 
 /**
  * A consumer for SQS.
  */
 public class SQSConsumer extends AbstractMessageConsumer<Message> {
     /**
-     * The initialization parameter for the SQS URL. There is no default value so
-     * this configuration parameter is required.
+     * The initialization parameter for the SQS URL. There is no
+     * default value so this configuration parameter is required.
      */
     public static final String SQS_URL_KEY = "sqsUrl";
 
@@ -40,32 +44,37 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
     public static final String MAXIMUM_RETRIES_KEY = "maximumRetries";
 
     /**
-     * The initialization parameter to configure the number of milliseconds to wait
-     * to retry when a failure occurs. This is only matters if the configured
-     * {@linkplain #MAXIMUM_RETRIES_KEY failure threshold} is greater than one (1).
+     * The initialization parameter to configure the number of
+     * milliseconds to wait to retry when a failure occurs. This
+     * is only matters if the configured {@linkplain
+     * #MAXIMUM_RETRIES_KEY failure threshold} is greater than
+     * one (1).
      */
     public static final String RETRY_WAIT_TIME_KEY = "retryWaitTime";
 
     /**
      * The initialization parameter to configure the number of <b>seconds</b>
-     * messages on the SQS queue are hidden from subsequent retrieve requests after
-     * having been retrieved. If not configured then the value configured on the
-     * queue itself is used. Specifying this initialization parameter allows the
+     * messages on the SQS queue are hidden from subsequent
+     * retrieve requests after having been retrieved. If not
+     * configured then the value configured on the queue itself
+     * is used. Specifying this initialization parameter allows the
      * client to override.
      */
     public static final String VISIBILITY_TIMEOUT_KEY = "visibilityTimeout";
 
     /**
      * The default number of times to retry failed SQS requests before aborting
-     * consumption. The default value is {@value}. A different value can be set via
-     * the {#link #MAXIMUM_RETRIES_KEY} parameter.
+     * consumption. The default value is {@value}. A different
+     * value can be set via the {#link #MAXIMUM_RETRIES_KEY}
+     * parameter.
      */
     public static final int DEFAULT_MAXIMUM_RETRIES = 0;
 
     /**
-     * The default number of milliseconds to wait before retrying the SQS request if
-     * the previous request failed. The default value is {@value}. A different value
-     * can be set via the {@link #RETRY_WAIT_TIME_KEY} parameter.
+     * The default number of milliseconds to wait before retrying
+     * the SQS request if the previous request failed. The default
+     * value is {@value}. A different value can be set via the
+     * {@link #RETRY_WAIT_TIME_KEY} parameter.
      */
     public static final long DEFAULT_RETRY_WAIT_TIME = 1000L;
 
@@ -125,8 +134,8 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
     }
 
     /**
-     * Initializes the object. It sets the object up based on configuration passed
-     * in.
+     * Initializes the object. It sets the object up based on
+     * configuration passed in.
      * <p>
      * The configuration is in JSON format:
      * 
@@ -143,22 +152,31 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
      * @param config Configuration string containing the needed information to
      *               connect to SQS.
      *
-     * @throws MessageConsumerSetupException If an initialization failure occurs.
+     * @throws MessageConsumerSetupException If an initialization
+     *                                      failure occurs.
      */
     @Override
-    protected void doInit(JsonObject config) throws MessageConsumerSetupException {
+    protected void doInit(JsonObject config)
+        throws MessageConsumerSetupException
+    {
         try {
             // get the SQS URL
             this.sqsUrl = getConfigString(config, SQS_URL_KEY, true);
 
             // get the failure threshold
-            this.maximumRetries = getConfigInteger(config, MAXIMUM_RETRIES_KEY, 0, DEFAULT_MAXIMUM_RETRIES);
+            this.maximumRetries = getConfigInteger(
+                    config, MAXIMUM_RETRIES_KEY,
+                    0, DEFAULT_MAXIMUM_RETRIES);
 
             // get the retry wait time
-            this.retryWaitTime = getConfigLong(config, RETRY_WAIT_TIME_KEY, 0L, DEFAULT_RETRY_WAIT_TIME);
+            this.retryWaitTime = getConfigLong(
+                    config, RETRY_WAIT_TIME_KEY,
+                    0L, DEFAULT_RETRY_WAIT_TIME);
 
             // get the visibility timeout
-            this.visibilityTimeout = getConfigInteger(config, VISIBILITY_TIMEOUT_KEY, 1, null);
+            this.visibilityTimeout = getConfigInteger(
+                    config, VISIBILITY_TIMEOUT_KEY,
+                    1, null);
 
             this.sqsClient = createSqsClient();
 
@@ -178,8 +196,9 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
     }
 
     /**
-     * Returns the maximum number times failed SQS requests will be retried before
-     * aborting message consumption. This defaults to
+     * Returns the maximum number times failed SQS requests will
+     * be retried before aborting message consumption. This
+     * defaults to
      * {@link #DEFAULT_MAXIMUM_RETRIES} and can be configured via the
      * {@link #MAXIMUM_RETRIES_KEY} configuration parameter.
      *
@@ -191,12 +210,13 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
     }
 
     /**
-     * Returns the number of milliseconds to wait between SQS request retries when a
-     * failure occurs. This defaults to {@link #DEFAULT_RETRY_WAIT_TIME} and can be
-     * configured via the {@link #RETRY_WAIT_TIME_KEY} configuration parameter.
+     * Returns the number of milliseconds to wait between SQS
+     * request retries when a failure occurs. This defaults to
+     * {@link #DEFAULT_RETRY_WAIT_TIME} and can be configured via
+     * the {@link #RETRY_WAIT_TIME_KEY} configuration parameter.
      *
-     * @return The number of milliseconds to wait between SQS request retries when a
-     *         failure occurs.
+     * @return The number of milliseconds to wait between SQS
+     *         request retries when a failure occurs.
      */
     public long getRetryWaitTime() {
         return this.retryWaitTime;
@@ -205,7 +225,8 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
     /**
      * Returns the number of <b>seconds</b> messages on the SQS queue are hidden
      * from subsequent retrieve requests after having been retrieved. If this
-     * returns <code>null</code> then the value configured on the queue itself is
+     * returns <code>null</code> then the value configured on
+     * the queue itself is
      * used.
      *
      * @return The number of <b>seconds</b> messages on the SQS queue are hidden
@@ -235,14 +256,26 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
      * @return <code>true</code> if consumption should abort, otherwise
      *         <code>false</code>.
      */
-    protected boolean handleFailure(int failureCount, ReceiveMessageResponse response, Exception failure) {
+    protected boolean handleFailure(
+            int                     failureCount,
+            ReceiveMessageResponse  response,
+            Exception               failure)
+    {
         // get the maximum number of retries
         int maxRetries = this.getMaximumRetries();
 
-        logWarning(failure, "FAILURE DETECTED: " + failureCount + " of " + maxRetries + " consecutive failure(s)",
+        logWarning(failure,
+                "FAILURE DETECTED: " + failureCount
+                        + " of " + maxRetries
+                        + " consecutive failure(s)",
                 ((response != null)
-                        ? ("Received SQS HTTP error response code: " + response.sdkHttpResponse().statusCode() + " / "
-                                + response.sdkHttpResponse().statusText())
+                        ? ("Received SQS HTTP error response"
+                                + " code: "
+                                + response.sdkHttpResponse()
+                                        .statusCode()
+                                + " / "
+                                + response.sdkHttpResponse()
+                                        .statusText())
                         : "*** No HTTP Response ***"),
                 "SQS URL: " + this.getSqsUrl());
 
@@ -274,13 +307,17 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
     @Override
     protected Long getQueueMessageCount() {
         try {
-            GetQueueAttributesRequest request = GetQueueAttributesRequest.builder()
-                .queueUrl(this.getSqsUrl())
-                .attributeNames(APPROXIMATE_NUMBER_OF_MESSAGES)
-                .build();
-            
-            GetQueueAttributesResponse response = sqsClient.getQueueAttributes(request);
-            String count = response.attributes().get(APPROXIMATE_NUMBER_OF_MESSAGES);
+            GetQueueAttributesRequest request
+                    = GetQueueAttributesRequest.builder()
+                    .queueUrl(this.getSqsUrl())
+                    .attributeNames(
+                            APPROXIMATE_NUMBER_OF_MESSAGES)
+                    .build();
+
+            GetQueueAttributesResponse response
+                    = sqsClient.getQueueAttributes(request);
+            String count = response.attributes()
+                    .get(APPROXIMATE_NUMBER_OF_MESSAGES);
 
             // check if the value was not found
             if (count == null || count.trim().length() == 0) {
@@ -320,23 +357,34 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
      * @throws MessageConsumerException If a failure occurs.
      */
     @Override
-    protected void doConsume(MessageProcessor processor) throws MessageConsumerException {
+    protected void doConsume(MessageProcessor processor)
+        throws MessageConsumerException
+    {
         this.consumptionThread = new Thread(() -> {
             int failureCount = 0;
             while (this.getState() == CONSUMING) {
                 try {
-                    ReceiveMessageRequest request = ReceiveMessageRequest.builder().queueUrl(this.getSqsUrl())
-                            .waitTimeSeconds(SQS_WAIT_SECS).visibilityTimeout(this.getVisibilityTimeout()).build();
+                    ReceiveMessageRequest request
+                            = ReceiveMessageRequest.builder()
+                            .queueUrl(this.getSqsUrl())
+                            .waitTimeSeconds(SQS_WAIT_SECS)
+                            .visibilityTimeout(
+                                    this.getVisibilityTimeout())
+                            .build();
 
-                    ReceiveMessageResponse response = sqsClient.receiveMessage(request);
+                    ReceiveMessageResponse response
+                            = sqsClient.receiveMessage(request);
 
                     // failed obtaining a response
                     if (!response.sdkHttpResponse().isSuccessful()) {
-                        // check if we intentionally shut down before logging/retrying
+                        // check if we intentionally shut down
+                        // before logging/retrying
                         if (this.getState() != CONSUMING) {
                             return;
                         }
-                        if (this.handleFailure(++failureCount, response, null)) {
+                        if (this.handleFailure(
+                                ++failureCount, response, null))
+                        {
                             // destroy and then return to abort consumption
                             this.destroy();
                             return;
@@ -356,13 +404,15 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
 
                     // enqueue the messages
                     for (Message message : messages) {
-                        // enqueue the next message for processing -- this call may wait
-                        // for enough room in the queue for the messages to be enqueued
+                        // enqueue the next message for
+                        // processing -- this call may wait for
+                        // enough room in the queue
                         this.enqueueMessages(processor, message);
                     }
 
                 } catch (SdkException e) {
-                    // check if we intentionally shut down before logging/retrying
+                    // check if we intentionally shut down
+                    // before logging/retrying
                     if (this.getState() != CONSUMING) {
                         return;
                     }
@@ -383,7 +433,8 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
     /**
      * Extracts the message body from the specified {@link Message}.
      * 
-     * @param message The {@link Message} from which to extract the message body.
+     * @param message The {@link Message} from which to extract
+     *                the message body.
      */
     @Override
     protected String extractMessageBody(Message message) {
@@ -393,14 +444,18 @@ public class SQSConsumer extends AbstractMessageConsumer<Message> {
     /**
      * Disposes the specified {@link Message}.
      * 
-     * @param message The {@link Message} from which to extract the message body.
+     * @param message The {@link Message} from which to extract
+     *                the message body.
      */
     @Override
     protected void disposeMessage(Message message) {
         String receiptHandle = message.receiptHandle();
 
-        DeleteMessageRequest deleteMessageRequest = DeleteMessageRequest.builder().queueUrl(this.getSqsUrl())
-                .receiptHandle(receiptHandle).build();
+        DeleteMessageRequest deleteMessageRequest
+                = DeleteMessageRequest.builder()
+                .queueUrl(this.getSqsUrl())
+                .receiptHandle(receiptHandle)
+                .build();
 
         sqsClient.deleteMessage(deleteMessageRequest);
     }

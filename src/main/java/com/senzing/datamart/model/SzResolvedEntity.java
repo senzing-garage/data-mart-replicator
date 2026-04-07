@@ -27,28 +27,34 @@ public class SzResolvedEntity extends SzEntity {
     }
 
     /**
-     * Gets the <b>unmodifiable</b> {@link Map} of {@link Long} entity ID keys to
-     * {@link SzRelatedEntity} values describing the related entities.
+     * Gets the <b>unmodifiable</b> {@link Map} of {@link Long}
+     * entity ID keys to {@link SzRelatedEntity} values describing
+     * the related entities.
      *
-     * @return The <b>unmodifiable</b> {@link Map} of {@link Long} entity ID keys to
-     *         {@link SzRelatedEntity} values describing the related entities.
+     * @return The <b>unmodifiable</b> {@link Map} of {@link Long}
+     *         entity ID keys to {@link SzRelatedEntity} values
+     *         describing the related entities.
      */
     public Map<Long, SzRelatedEntity> getRelatedEntities() {
         return Collections.unmodifiableMap(this.relatedEntities);
     }
 
     /**
-     * Sets the related entities for this entity to those described in the specified
-     * {@link Collection} of {@link SzRelatedEntity} instances.
+     * Sets the related entities for this entity to those described
+     * in the specified {@link Collection} of
+     * {@link SzRelatedEntity} instances.
      *
-     * @param entities The {@link Collection} of {@link SzRelatedEntity} instances.
+     * @param entities The {@link Collection} of
+     *                 {@link SzRelatedEntity} instances.
      */
     public void setRelatedEntities(Collection<SzRelatedEntity> entities) {
         long entityId = this.getEntityId();
         for (SzRelatedEntity entity : entities) {
             if (entity.getEntityId() == entityId) {
-                throw new IllegalArgumentException("None of the specified related entities can have the same entity "
-                        + "ID as this instance: " + entity);
+                throw new IllegalArgumentException(
+                        "None of the specified related entities "
+                        + "can have the same entity ID as this "
+                        + "instance: " + entity);
             }
         }
         this.relatedEntities.clear();
@@ -58,16 +64,19 @@ public class SzResolvedEntity extends SzEntity {
     }
 
     /**
-     * Adds the related entity described by the specified {@link SzRelatedEntity}
-     * instance to the related entities for this instance.
+     * Adds the related entity described by the specified
+     * {@link SzRelatedEntity} instance to the related entities
+     * for this instance.
      *
-     * @param entity The {@link SzRelatedEntity} describing the related entity to
-     *               the related entities for this instance.
+     * @param entity The {@link SzRelatedEntity} describing the
+     *               related entity to the related entities for
+     *               this instance.
      */
     public void addRelatedEntity(SzRelatedEntity entity) {
         if (entity.getEntityId() == this.getEntityId()) {
             throw new IllegalArgumentException(
-                    "A related entity cannot have the same entity ID as this entity: " + entity);
+                    "A related entity cannot have the same "
+                    + "entity ID as this entity: " + entity);
         }
         this.relatedEntities.put(entity.getEntityId(), entity);
     }
@@ -80,8 +89,8 @@ public class SzResolvedEntity extends SzEntity {
     }
 
     /**
-     * Populates the specified {@link JsonObjectBuilder} with the properties of this
-     * instance.
+     * Populates the specified {@link JsonObjectBuilder} with the
+     * properties of this instance.
      *
      * @param builder The {@link JsonObjectBuilder} to populate.
      */
@@ -89,7 +98,8 @@ public class SzResolvedEntity extends SzEntity {
         super.buildJson(builder);
         JsonArrayBuilder jab = Json.createArrayBuilder();
         Map<Long, SzRelatedEntity> relations = this.getRelatedEntities();
-        SortedMap<Long, SzRelatedEntity> sortedRelations = new TreeMap<>(relations);
+        SortedMap<Long, SzRelatedEntity> sortedRelations
+            = new TreeMap<>(relations);
 
         Collection<SzRelatedEntity> relatedEntities = sortedRelations.values();
 
@@ -102,8 +112,8 @@ public class SzResolvedEntity extends SzEntity {
     }
 
     /**
-     * Parses the specified entity hash text and returns an {@link SzResolvedEntity}
-     * describing the entity.
+     * Parses the specified entity hash text and returns an
+     * {@link SzResolvedEntity} describing the entity.
      *
      * @param hashText The entity hash text describing the entity.
      * @return The {@link SzResolvedEntity} that was populated.
@@ -139,8 +149,8 @@ public class SzResolvedEntity extends SzEntity {
     }
 
     /**
-     * Parses the specified JSON and returns an {@link SzResolvedEntity} describing
-     * the entity.
+     * Parses the specified JSON and returns an
+     * {@link SzResolvedEntity} describing the entity.
      *
      * @param jsonObject The {@link JsonObject} describing the entity.
      * @return The {@link SzResolvedEntity} that was populated.
@@ -164,10 +174,13 @@ public class SzResolvedEntity extends SzEntity {
             relatedArray = getJsonArray(jsonObject, "RELATED_ENTITIES");
         }
 
-        List<SzRelatedEntity> relatedEntities = new ArrayList<>(relatedArray == null ? 0 : relatedArray.size());
+        List<SzRelatedEntity> relatedEntities = new ArrayList<>(
+                relatedArray == null ? 0 : relatedArray.size());
 
         if (relatedArray != null) {
-            for (JsonObject jsonObj : relatedArray.getValuesAs(JsonObject.class)) {
+            for (JsonObject jsonObj
+                    : relatedArray.getValuesAs(JsonObject.class))
+            {
                 SzRelatedEntity related = SzRelatedEntity.parse(null, jsonObj);
                 relatedEntities.add(related);
             }
@@ -190,12 +203,14 @@ public class SzResolvedEntity extends SzEntity {
     }
 
     /**
-     * Overridden to return <code>true</code> if and only if the specified parameter
-     * is an instance of the same class with equivalent properties.
-     * 
+     * Overridden to return <code>true</code> if and only if the
+     * specified parameter is an instance of the same class with
+     * equivalent properties.
+     *
      * @param o The object to compare with.
-     * @return <code>true</code> if the specified parameter is an instance of the 
-     *         same class with equivalent properties, otherwise <code>false</code>.
+     * @return <code>true</code> if the specified parameter is an
+     *         instance of the same class with equivalent
+     *         properties, otherwise <code>false</code>.
      */
     @Override
     public boolean equals(Object o) {
@@ -213,8 +228,8 @@ public class SzResolvedEntity extends SzEntity {
     }
 
     /**
-     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
-     * implementation.
+     * Overridden to return a hash code consistent with the
+     * {@link #equals(Object)} implementation.
      * 
      * @return The hash code for this instance.
      */

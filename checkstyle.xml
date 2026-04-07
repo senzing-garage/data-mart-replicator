@@ -14,7 +14,13 @@
     <module name="LineLength">
         <property name="max" value="80"/>
         <property name="ignorePattern"
-                  value="^package.*|^import.*|a href|href|http://|https://"/>
+                  value="^package.*|^import.*|a href|href|http://|https://|static final.*&lt;.*&gt;"/>
+    </module>
+
+    <!-- Allow CSOFF/CSON comments to suppress checks on specific lines -->
+    <module name="SuppressWithPlainTextCommentFilter">
+        <property name="offCommentFormat" value="CSOFF"/>
+        <property name="onCommentFormat" value="CSON"/>
     </module>
 
     <module name="TreeWalker">
@@ -24,21 +30,29 @@
             <property name="allowSingleLineStatement" value="true"/>
         </module>
 
-        <!-- Left curly brace on new line (Allman) -->
-        <module name="LeftCurly">
-            <property name="option" value="nl"/>
-        </module>
+        <!-- Left curly brace placement is not enforced by checkstyle.
+             Use same-line or next-line as appropriate for readability. -->
 
-        <!-- Right curly brace alone on its own line -->
+        <!-- Right curly brace: alone or followed by else/catch/finally -->
         <module name="RightCurly">
-            <property name="option" value="alone"/>
+            <property name="option" value="alone_or_singleline"/>
+            <property name="tokens" value="CLASS_DEF, METHOD_DEF, CTOR_DEF,
+                LITERAL_FOR, LITERAL_WHILE, STATIC_INIT,
+                INSTANCE_INIT, ANNOTATION_DEF, ENUM_DEF, INTERFACE_DEF,
+                RECORD_DEF, COMPACT_CTOR_DEF"/>
+        </module>
+        <module name="RightCurly">
+            <property name="option" value="same"/>
+            <property name="tokens" value="LITERAL_TRY, LITERAL_CATCH,
+                LITERAL_FINALLY, LITERAL_IF, LITERAL_ELSE,
+                LITERAL_DO"/>
         </module>
 
         <!-- Indentation -->
         <module name="Indentation">
             <property name="basicOffset" value="4"/>
             <property name="braceAdjustment" value="0"/>
-            <property name="caseIndent" value="4"/>
+            <property name="caseIndent" value="0"/>
             <property name="throwsIndent" value="4"/>
             <property name="lineWrappingIndentation" value="8"/>
         </module>

@@ -72,8 +72,8 @@ public class LeasedMessage implements Serializable {
      * Gets the millisecond UTC time indicating when the lease on this message
      * will expire.
      * 
-     * @return The millisecond UTC time indicating when the lease on this message
-     *         will expire.
+     * @return The millisecond UTC time indicating when the
+     *         lease on this message will expire.
      */
     public long getLeaseExpiration() {
         return this.leaseExpiration;

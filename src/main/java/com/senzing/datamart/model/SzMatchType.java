@@ -10,7 +10,8 @@ import java.util.Map;
 /**
  * The various relationship match types for the data mart.
  */
-public enum SzMatchType {
+public enum SzMatchType
+{
     /**
      * The relationship describes an ambiguous match.
      */
@@ -36,7 +37,8 @@ public enum SzMatchType {
      * 
      * @param code The code with which to construct.
      */
-    SzMatchType(String code) {
+    SzMatchType(String code)
+    {
         this.code = code;
     }
 
@@ -50,19 +52,24 @@ public enum SzMatchType {
      * 
      * @return The code from this instance.
      */
-    public String getCode() {
+    public String getCode()
+    {
         return this.code;
     }
 
     /**
-     * Gets the {@link SzMatchType} for the specified two-letter code. This returns
-     * <code>null</code> if the specified code is not recognized.
+     * Gets the {@link SzMatchType} for the specified two-letter
+     * code. This returns <code>null</code> if the specified code
+     * is not recognized.
      *
-     * @param code The code for which the {@link SzMatchType} is being requested.
-     * @return The {@link SzMatchType} for the specified code, or <code>null</code>
-     *         if the specified code is not recognized.
+     * @param code The code for which the {@link SzMatchType} is
+     *             being requested.
+     * @return The {@link SzMatchType} for the specified code, or
+     *         <code>null</code> if the specified code is not
+     *         recognized.
      */
-    public static SzMatchType lookup(String code) {
+    public static SzMatchType lookup(String code)
+    {
         return CODE_MAP.get(code.toUpperCase());
     }
 
@@ -88,7 +95,8 @@ public enum SzMatchType {
      *                   from.
      * @return The detected {@link SzMatchType}.
      */
-    public static SzMatchType detect(JsonObject jsonObject) {
+    public static SzMatchType detect(JsonObject jsonObject)
+    {
         if (jsonObject.containsKey("IS_AMBIGUOUS")) {
             if (jsonObject.getInt("IS_AMBIGUOUS") != 0) {
                 return AMBIGUOUS_MATCH;
@@ -103,7 +111,8 @@ public enum SzMatchType {
 
         String code = JsonUtilities.getString(jsonObject, "MATCH_LEVEL_CODE");
         try {
-            SzMatchLevelCode matchLevelCode = (code == null) ? null : SzMatchLevelCode.valueOf(code);
+            SzMatchLevelCode matchLevelCode = (code == null)
+                ? null : SzMatchLevelCode.valueOf(code);
 
             // check the match level
             if (matchLevelCode == SzMatchLevelCode.POSSIBLY_SAME) {
@@ -111,7 +120,9 @@ public enum SzMatchType {
             }
 
         } catch (IllegalArgumentException e) {
-            System.err.println("WARNING: Unrecognized MATCH_LEVEL_CODE value: " + code);
+            System.err.println(
+                "WARNING: Unrecognized MATCH_LEVEL_CODE "
+                + "value: " + code);
         }
 
         // assume its a possible relation

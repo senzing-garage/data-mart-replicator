@@ -1,6 +1,8 @@
 package com.senzing.listener.communication;
 
+// CSOFF
 import com.senzing.listener.communication.exception.MessageConsumerSetupException;
+// CSON
 import com.senzing.listener.communication.rabbitmq.RabbitMQConsumer;
 import com.senzing.listener.communication.sqs.SQSConsumer;
 import com.senzing.listener.communication.sql.SQLConsumer;
@@ -16,15 +18,17 @@ public final class MessageConsumerFactory {
      * 
      * @param consumerType The consumer type.
      *
-     * @param config       The {@link JsonObject} describing the configuration for
-     *                     the {@link MessageConsumer}.
+     * @param config       The {@link JsonObject} describing the
+     *                     configuration for the {@link
+     *                     MessageConsumer}.
      *
      * @return The {@link MessageConsumer} that was created.
      * 
      * @throws MessageConsumerSetupException If a failure occurs.
      */
-    public static MessageConsumer generateMessageConsumer(ConsumerType  consumerType, 
-                                                          JsonObject    config)
+    public static MessageConsumer generateMessageConsumer(
+            ConsumerType  consumerType,
+            JsonObject    config)
         throws MessageConsumerSetupException 
     {
         MessageConsumer consumer = null;

@@ -14,7 +14,9 @@ import com.rabbitmq.client.DeliverCallback;
 import com.rabbitmq.client.Delivery;
 import com.senzing.listener.communication.AbstractMessageConsumer;
 import com.senzing.listener.communication.exception.MessageConsumerException;
+// CSOFF
 import com.senzing.listener.communication.exception.MessageConsumerSetupException;
+// CSON
 import com.senzing.listener.service.MessageProcessor;
 import static com.senzing.util.LoggingUtilities.*;
 import static com.senzing.io.IOUtilities.UTF_8;
@@ -135,8 +137,8 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
     }
 
     /**
-     * Initializes the object. It sets the object up based on configuration passed
-     * in.
+     * Initializes the object. It sets the object up based on
+     * configuration passed in.
      * <p>
      * The configuration is in JSON format:
      * 
@@ -157,7 +159,9 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
      * @throws MessageConsumerSetupException If a failure occurs.
      */
     @Override
-    protected void doInit(JsonObject config) throws MessageConsumerSetupException {
+    protected void doInit(JsonObject config)
+        throws MessageConsumerSetupException
+    {
         try {
             // get the queue name
             this.queueName = getConfigString(config, MQ_QUEUE_KEY, true);
@@ -169,7 +173,8 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
             this.queuePort = getConfigInteger(config, MQ_PORT_KEY, false, 1);
 
             // get the virtual host
-            this.virtualHost = getConfigString(config, MQ_VIRTUAL_HOST_KEY, false);
+            this.virtualHost = getConfigString(
+                    config, MQ_VIRTUAL_HOST_KEY, false);
 
             // get the user name (optional)
             this.userName = getConfigString(config, MQ_USER_KEY, false);
@@ -183,10 +188,17 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
                 this.password = null;
             }
 
-            // check if the and user name and password are not consistent
-            if ((this.userName != null && this.password == null) || (this.userName == null && this.password != null)) {
-                throw new MessageConsumerSetupException("Either both or neither of the " + MQ_USER_KEY + " and "
-                        + MQ_PASSWORD_KEY + " configuration parameters must be provided.");
+            // check if the user name and password are not consistent
+            if ((this.userName != null && this.password == null)
+                || (this.userName == null
+                    && this.password != null))
+            {
+                throw new MessageConsumerSetupException(
+                        "Either both or neither of the "
+                                + MQ_USER_KEY + " and "
+                                + MQ_PASSWORD_KEY
+                                + " configuration parameters"
+                                + " must be provided.");
             }
 
         } catch (MessageConsumerSetupException e) {
@@ -198,8 +210,9 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
     }
 
     /**
-     * Implemented to return the result from {@link Channel#messageCount(String)}
-     * while passing the result from {@link #getQueueName()} on the internal
+     * Implemented to return the result from {@link
+     * Channel#messageCount(String)} while passing the result from
+     * {@link #getQueueName()} on the internal
      * RabbitMQ channel.
      * 
      * <p>
@@ -235,7 +248,9 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
      * @throws IOException If an I/O error occurs.
      * @throws TimeoutException If a timeout occurs.
      */
-    protected Connection createConnection() throws IOException, TimeoutException {
+    protected Connection createConnection()
+        throws IOException, TimeoutException
+    {
         // construct the factory
         ConnectionFactory factory = createConnectionFactory();
 
@@ -279,7 +294,9 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
      * @throws MessageConsumerException If a failure occurs.
      */
     @Override
-    protected void doConsume(MessageProcessor processor) throws MessageConsumerException {
+    protected void doConsume(MessageProcessor processor)
+        throws MessageConsumerException
+    {
         try {
             Connection connection = createConnection();
             this.channel = this.getChannel(connection, queueName);
@@ -292,9 +309,11 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
                 this.enqueueMessages(processor, delivery);
             };
 
-            // this call will run in the background until basicCancel() is called
-            this.consumerTag = this.channel.basicConsume(queueName, AUTO_ACK, deliverCallback, consumerTag -> {
-            });
+            // this call will run in the background until
+            // basicCancel() is called
+            this.consumerTag = this.channel.basicConsume(
+                    queueName, AUTO_ACK,
+                    deliverCallback, consumerTag -> { });
 
         } catch (IOException | TimeoutException e) {
             throw new MessageConsumerSetupException(e);
@@ -314,14 +333,16 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
             return new String(message.getBody(), UTF_8);
 
         } catch (UnsupportedEncodingException cannotHappen) {
-            throw new IllegalStateException("UTF-8 encoding should always be supported, but is not.");
+            throw new IllegalStateException(
+                    "UTF-8 encoding should always be"
+                            + " supported, but is not.");
         }
     }
 
     /**
      * <p>
-     * Override to do cancel consumption until the number of pending messages has
-     * decreased.
+     * Override to do cancel consumption until the number of
+     * pending messages has decreased.
      * </p>
      * {@inheritDoc}
      */
@@ -338,7 +359,9 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
                 this.channel.basicCancel(this.consumerTag);
 
             } catch (IOException e) {
-                logWarning(e, "Ignoring exception while cancelling consumption.");
+                logWarning(e,
+                        "Ignoring exception while"
+                                + " cancelling consumption.");
             } finally {
                 this.consumerTag = null;
             }
@@ -358,11 +381,16 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
             synchronized (RabbitMQConsumer.this) {
                 try {
                     // now reinstate consumption
-                    this.consumerTag = this.channel.basicConsume(queueName, AUTO_ACK, deliverCallback, consumerTag -> {
-                    });
+                    this.consumerTag
+                            = this.channel.basicConsume(
+                                    queueName, AUTO_ACK,
+                                    deliverCallback,
+                                    consumerTag -> { });
 
                 } catch (IOException e) {
-                    logError(e, "Failure to resume consumption after throttling.");
+                    logError(e,
+                            "Failure to resume consumption"
+                                    + " after throttling.");
                 }
             }
         });
@@ -377,10 +405,15 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
     @Override
     protected void disposeMessage(Delivery message) {
         try {
-            this.channel.basicAck(message.getEnvelope().getDeliveryTag(), MULTI_ACK);
+            this.channel.basicAck(
+                    message.getEnvelope().getDeliveryTag(),
+                    MULTI_ACK);
 
         } catch (IOException e) {
-            logWarning(e, "Ignoring exception while acknowledging message:", message);
+            logWarning(e,
+                    "Ignoring exception while"
+                            + " acknowledging message:",
+                    message);
         }
     }
 
@@ -401,20 +434,37 @@ public class RabbitMQConsumer extends AbstractMessageConsumer<Delivery> {
         }
     }
 
-    private Channel getChannel(Connection connection, String queueName) throws IOException {
+    private Channel getChannel(Connection connection,
+                               String     queueName)
+        throws IOException
+    {
         try {
-            return this.declareQueue(connection, queueName, true, false, false, null);
+            return this.declareQueue(
+                    connection, queueName,
+                    true, false, false, null);
 
         } catch (IOException e) {
             // Possibly the queue is already declared and as non-durable.
             // Retry with durable = false.
-            return this.declareQueue(connection, queueName, false, false, false, null);
+            return this.declareQueue(
+                    connection, queueName,
+                    false, false, false, null);
         }
     }
 
-    private Channel declareQueue(Connection connection, String queueName, boolean durable, boolean exclusive, boolean autoDelete, Map<String, Object> arguments) throws IOException {
+    private Channel declareQueue(
+            Connection          connection,
+            String              queueName,
+            boolean             durable,
+            boolean             exclusive,
+            boolean             autoDelete,
+            Map<String, Object> arguments)
+        throws IOException
+    {
         Channel channel = connection.createChannel();
-        channel.queueDeclare(queueName, durable, exclusive, autoDelete, arguments);
+        channel.queueDeclare(
+                queueName, durable, exclusive,
+                autoDelete, arguments);
         return channel;
     }
 }

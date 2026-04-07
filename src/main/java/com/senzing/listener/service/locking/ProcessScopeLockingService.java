@@ -32,7 +32,9 @@ public class ProcessScopeLockingService extends AbstractLockingService {
      */
     public synchronized void dumpLocks() {
         System.err.println();
+        // CSOFF
         System.err.println("***************************************************");
+        // CSON
         this.locksToResourcesMap.forEach((lockToken, resourceKeys) -> {
             System.err.println();
             System.err.println(lockToken);
@@ -45,13 +47,17 @@ public class ProcessScopeLockingService extends AbstractLockingService {
         });
 
         System.err.println();
+        // CSOFF
         System.err.println("--------------------------------------------------");
+        // CSON
         this.resourceToLockMap.keySet().forEach(resourceKey -> {
             System.err.println();
             System.err.println(resourceKey);
         });
         System.err.println();
+        // CSOFF
         System.err.println("***************************************************");
+        // CSON
 
     }
 
@@ -103,7 +109,8 @@ public class ProcessScopeLockingService extends AbstractLockingService {
      * {@inheritDoc}
      */
     @Override
-    protected LockToken doAcquireLocks(List<ResourceKey> resourceKeys, long wait) 
+    protected LockToken doAcquireLocks(
+            List<ResourceKey> resourceKeys, long wait)
         throws ServiceExecutionException 
     {
         synchronized (this) {
@@ -128,7 +135,9 @@ public class ProcessScopeLockingService extends AbstractLockingService {
                     duration = (System.nanoTime() - start) / 1000000L;
 
                     if (wait < 0L || duration < wait) {
-                        long timeout = (wait < 0L) ? -1L : Math.max(0L, wait - duration);
+                        long timeout = (wait < 0L)
+                                ? -1L
+                                : Math.max(0L, wait - duration);
                         try {
                             if (timeout < 0L) {
                                 this.wait();
@@ -154,7 +163,9 @@ public class ProcessScopeLockingService extends AbstractLockingService {
             for (ResourceKey key : resourceKeys) {
                 this.resourceToLockMap.put(key, lockToken);
             }
-            this.locksToResourcesMap.put(lockToken, new LinkedHashSet<>(resourceKeys));
+            this.locksToResourcesMap.put(
+                    lockToken,
+                    new LinkedHashSet<>(resourceKeys));
 
             // notify all
             this.notifyAll();
@@ -188,10 +199,15 @@ public class ProcessScopeLockingService extends AbstractLockingService {
                 LockToken token = this.resourceToLockMap.remove(key);
                 if (!token.equals(lockToken)) {
                     throw new IllegalStateException(
-                        "Lock token associated with resource key does not match lock "
-                        + "token that holds the lock on the resource.  resourceKeys=[ " 
-                        + keys + " ], lockToken=[ " + token 
-                        + " ], expectedLockToken=[ " + lockToken + " ]");
+                        "Lock token associated with"
+                        + " resource key does not"
+                        + " match lock token that"
+                        + " holds the lock on the"
+                        + " resource."
+                        + "  resourceKeys=[ " + keys
+                        + " ], lockToken=[ " + token
+                        + " ], expectedLockToken=[ "
+                        + lockToken + " ]");
                 }
             }
 

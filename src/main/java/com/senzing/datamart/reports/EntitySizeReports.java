@@ -36,7 +36,8 @@ public final class EntitySizeReports {
      * 
      * @param conn The non-null JDBC {@link Connection} to use.
      * 
-     * @param timers The optional {@link Timers} to track timing of the operation.
+     * @param timers The optional {@link Timers} to track timing of the
+     *        operation.
      * 
      * @return The {@link SzEntitySizeBreakdown} describing the statistics.
      * 
@@ -45,8 +46,9 @@ public final class EntitySizeReports {
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
-    public static SzEntitySizeBreakdown getEntitySizeBreakdown(Connection   conn,
-                                                               Timers       timers)
+    public static SzEntitySizeBreakdown getEntitySizeBreakdown(
+            Connection   conn,
+                                                               Timers timers)
         throws NullPointerException, SQLException 
     {
         Objects.requireNonNull(conn, "The connection cannot be null");
@@ -63,7 +65,8 @@ public final class EntitySizeReports {
             try {
                 // prepare the total entity count query
                 ps = conn.prepareStatement("SELECT statistic, entity_count "
-                                           + "FROM sz_dm_report WHERE report=?");
+                                           + "FROM sz_dm_report WHERE "
+                                                   + "report=?");
 
                 // bind the report code
                 ps.setString(1, ENTITY_SIZE_BREAKDOWN.getCode());
@@ -133,7 +136,8 @@ public final class EntitySizeReports {
             queryingDatabase(timers, "selectCountForEntitySize");
             try {
                 // prepare the statement
-                ps = conn.prepareStatement("SELECT entity_count FROM sz_dm_report " 
+                ps = conn.prepareStatement(
+                        "SELECT entity_count FROM sz_dm_report "
                     + "WHERE report=? AND statistic=?");
 
                 // bind the parameters
@@ -173,11 +177,12 @@ public final class EntitySizeReports {
      * @param entitySize    The entity size for which the entity count is being
      *                      requested.
      * @param entityIdBound The bounded value for the returned entity ID's,
-     *                      formatted as an integer or the word <code>"max"</code>.
-     * @param boundType     The {@link SzBoundType} that describes how to apply the
+     *                      formatted as an integer or the word
+     *                      <code>"max"</code>.
+     * @param boundType The {@link SzBoundType} that describes how to apply the
      *                      specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
-     * @param sampleSize    The optional number of results to randomly sample from
+     * @param sampleSize The optional number of results to randomly sample from
      *                      the page, which, if specified, must be strictly
      *                      less-than the page size.
      * @param timers        The optional {@link Timers} to track timing of the
@@ -191,19 +196,25 @@ public final class EntitySizeReports {
      * @throws IllegalArgumentException If the specified entity size is not
      *                                  positive, if the specified page size
      *                                  or sample size is less than one (1), 
-     *                                  or if the sample size is specified and is
-     *                                  greater-than or equal to the sample size.
+     *                                  or if the sample size is specified and
+     *                                  is
+     *                                  greater-than or equal to the sample
+     *                                  size.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
-    public static SzEntitiesPage getEntityIdsForEntitySize(Connection   conn, 
-                                                           int          entitySize,
-                                                           String       entityIdBound,
-                                                           SzBoundType  boundType, 
-                                                           Integer      pageSize,
-                                                           Integer      sampleSize,
-                                                           Timers       timers)
-        throws NullPointerException, IllegalArgumentException, SQLException 
+    public static SzEntitiesPage
+        getEntityIdsForEntitySize(
+            Connection  conn,
+            int         entitySize,
+            String      entityIdBound,
+            SzBoundType boundType,
+            Integer     pageSize,
+            Integer     sampleSize,
+            Timers      timers)
+        throws NullPointerException,
+               IllegalArgumentException,
+               SQLException
     {
         Objects.requireNonNull(conn, "The connection cannot be null");
         
@@ -213,10 +224,12 @@ public final class EntitySizeReports {
                 "The entity size cannot be less than one: " + entitySize);
         }
 
-        SzReportKey reportKey = new SzReportKey(ENTITY_SIZE_BREAKDOWN, entitySize);
+        SzReportKey reportKey = new SzReportKey(ENTITY_SIZE_BREAKDOWN,
+                entitySize);
 
         return retrieveEntitiesPage(
-            conn, reportKey, entityIdBound, boundType, pageSize, sampleSize, timers);
+            conn, reportKey, entityIdBound, boundType, pageSize, sampleSize,
+                    timers);
 
     }
 

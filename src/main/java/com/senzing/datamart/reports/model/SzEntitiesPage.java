@@ -27,7 +27,8 @@ public class SzEntitiesPage implements Serializable {
     private SzBoundType boundType = null;
 
     /**
-     * The requested page size representing the maximum number of entity ID's that
+     * The requested page size representing the maximum number of entity ID's
+     * that
      * were requested to be included in the page.
      */
     private int pageSize = 0;
@@ -65,7 +66,8 @@ public class SzEntitiesPage implements Serializable {
     private long afterPageCount = 0L;
 
     /**
-     * The {@link SortedMap} of {@link Long} entity ID keys to {@link SzReportEntity}
+     * The {@link SortedMap} of {@link Long} entity ID keys to {@link
+     * SzReportEntity}
      * values describing the entities on tf page.
      */
     private SortedMap<Long, SzReportEntity> entities = null;
@@ -88,7 +90,8 @@ public class SzEntitiesPage implements Serializable {
 
     /**
      * Gets the entity ID bound value that bounds the included entity ID's. This
-     * will return an integer {@link String} or <code>"max"</code> to indicate the
+     * will return an integer {@link String} or <code>"max"</code> to indicate
+     * the
      * maximum legal value for an entity ID.
      *
      * @return The entity ID bound value that bounds the included entity ID's.
@@ -98,11 +101,14 @@ public class SzEntitiesPage implements Serializable {
     }
 
     /**
-     * Sets the entity ID bound value that bounds the included entity ID's. Set to
-     * an integer {@link String} or <code>"max"</code> to indicate the maximum legal
+     * Sets the entity ID bound value that bounds the included entity ID's. Set
+     * to
+     * an integer {@link String} or <code>"max"</code> to indicate the maximum
+     * legal
      * value for an entity ID.
      *
-     * @param bound The entity ID bound value that bounds the included entity ID's.
+     * @param bound The entity ID bound value that bounds the included entity
+     *        ID's.
      */
     public void setBound(String bound) {
         this.bound = bound;
@@ -124,14 +130,16 @@ public class SzEntitiesPage implements Serializable {
      * {@linkplain #getBound() bound value} was applied.
      *
      * @param boundType The the {@link SzBoundType} that describes how the
-     *                  associated {@linkplain #getBound() bound value} was applied.
+     *                  associated {@linkplain #getBound() bound value} was
+     *                  applied.
      */
     public void setBoundType(SzBoundType boundType) {
         this.boundType = boundType;
     }
 
     /**
-     * Gets the requested page size representing the maximum number of entity ID's
+     * Gets the requested page size representing the maximum number of entity
+     * ID's
      * that were requested to be included in the page.
      * 
      * @return The requested page size representing the maximum number of entity
@@ -142,21 +150,26 @@ public class SzEntitiesPage implements Serializable {
     }
 
     /**
-     * Sets the requested page size representing the maximum number of entity ID's
+     * Sets the requested page size representing the maximum number of entity
+     * ID's
      * that were requested to be included in the page.
      * 
-     * @param pageSize The requested page size representing the maximum number of
-     *                 entity ID's that were requested to be included in the page.
+     * @param pageSize The requested page size representing the maximum number
+     *        of
+     *                 entity ID's that were requested to be included in the
+     *                 page.
      */
     public void setPageSize(int pageSize) {
         this.pageSize = pageSize;
     }
 
     /**
-     * Gets the requested sample size representing the number of entity ID's to be
+     * Gets the requested sample size representing the number of entity ID's to
+     * be
      * randomly selected from the page of results.
      * 
-     * @return The requested page size representing the number of entity ID's to be
+     * @return The requested page size representing the number of entity ID's to
+     *         be
      *         randomly selected from the page of results.
      */
     @JsonInclude(NON_NULL)
@@ -165,10 +178,12 @@ public class SzEntitiesPage implements Serializable {
     }
 
     /**
-     * Sets the requested sample size representing the number of entity ID's to be
+     * Sets the requested sample size representing the number of entity ID's to
+     * be
      * randomly selected from the page of results.
      * 
-     * @param sampleSize The requested sample size representing the number of entity
+     * @param sampleSize The requested sample size representing the number of
+     *        entity
      *                   ID's to be randomly selected from the page of results.
      */
     public void setSampleSize(Integer sampleSize) {
@@ -179,7 +194,8 @@ public class SzEntitiesPage implements Serializable {
      * Gets the minimum entity ID of the returned results. This returns
      * <code>null</code> if there are no results.
      * 
-     * @return The minimum entity ID of the returned results, or <code>null</code>
+     * @return The minimum entity ID of the returned results, or
+     *         <code>null</code>
      *         if there are no results.
      */
     @JsonInclude(NON_NULL)
@@ -194,7 +210,8 @@ public class SzEntitiesPage implements Serializable {
      * Gets the maximum entity ID of the returned results. This returns
      * <code>null</code> if there are no results.
      *
-     * @return The maximum entity ID of the returned results, or <code>null</code>
+     * @return The maximum entity ID of the returned results, or
+     *         <code>null</code>
      *         if there are no results.
      */
     @JsonInclude(NON_NULL)
@@ -206,15 +223,18 @@ public class SzEntitiesPage implements Serializable {
     }
 
     /**
-     * Gets the minimum entity ID of the entire entity page. This will be the same
+     * Gets the minimum entity ID of the entire entity page. This will be the
+     * same
      * as the {@linkplain #getMinimumValue() minimum value} if the
      * {@linkplain #getSampleSize() sample size} was not specified, however, if
-     * sample size was specified then this will be the minimum entity ID value of
+     * sample size was specified then this will be the minimum entity ID value
+     * of
      * all the candidate entities on the page that were used for random sample
      * selection even if that entity was not randomly selected. This returns
      * <code>null</code> if there are no results.
      * 
-     * @return The minimum entity ID of the entire entity page, or <code>null</code>
+     * @return The minimum entity ID of the entire entity page, or
+     *         <code>null</code>
      *         if there are no results.
      */
     @JsonInclude(NON_NULL)
@@ -226,10 +246,12 @@ public class SzEntitiesPage implements Serializable {
     }
 
     /**
-     * Sets the minimum entity ID of the entire entity page. This will be the same
+     * Sets the minimum entity ID of the entire entity page. This will be the
+     * same
      * as the {@linkplain #getMinimumValue() minimum value} the
      * {@linkplain #getSampleSize() sample size} was not specified, however, if
-     * sample size was specified then this will be the minimum entity ID value of
+     * sample size was specified then this will be the minimum entity ID value
+     * of
      * all the candidate entities on the page that were used for random sample
      * selection even if that entity was not randomly selected. Set this to
      * <code>null</code> if there are no results.
@@ -242,15 +264,18 @@ public class SzEntitiesPage implements Serializable {
     }
 
     /**
-     * Gets the maximum entity ID of the entire entity page. This will be the same
+     * Gets the maximum entity ID of the entire entity page. This will be the
+     * same
      * as the {@linkplain #getMaximumValue() maximum value} if the
      * {@linkplain #getSampleSize() sample size} was not specified, however, if
-     * sample size was specified then this will be the maximum entity ID value of
+     * sample size was specified then this will be the maximum entity ID value
+     * of
      * all the candidate entities on the page that were used for random sample
      * selection even if that entity was not randomly selected. This returns
      * <code>null</code> if there are no results.
      * 
-     * @return The maximum entity ID of the entire entity page, or <code>null</code>
+     * @return The maximum entity ID of the entire entity page, or
+     *         <code>null</code>
      *         if there are no results.
      */
     @JsonInclude(NON_NULL)
@@ -262,10 +287,12 @@ public class SzEntitiesPage implements Serializable {
     }
 
     /**
-     * Sets the maximum entity ID of the entire entity page. This will be the same
+     * Sets the maximum entity ID of the entire entity page. This will be the
+     * same
      * as the {@linkplain #getMaximumValue() maximum value} the
      * {@linkplain #getSampleSize() sample size} was not specified, however, if
-     * sample size was specified then this will be the maximum entity ID value of
+     * sample size was specified then this will be the maximum entity ID value
+     * of
      * all the candidate entities on the page that were used for random sample
      * selection even if that entity was not randomly selected. Set this to
      * <code>null</code> if there are no results.
@@ -281,7 +308,8 @@ public class SzEntitiesPage implements Serializable {
      * Gets the total number of entities in the set representing the set of all
      * possible results across all pages.
      *
-     * @return The the total number of entities in the set representing the set of
+     * @return The the total number of entities in the set representing the set
+     *         of
      *         all possible results across all pages.
      */
     public long getTotalEntityCount() {
@@ -292,7 +320,8 @@ public class SzEntitiesPage implements Serializable {
      * Sets the total number of entities in the set representing the set of all
      * possible results across all pages.
      *
-     * @param entityCount The the total number of entities in the set representing
+     * @param entityCount The the total number of entities in the set
+     *        representing
      *                    the set of all possible results across all pages.
      */
     public void setTotalEntityCount(long entityCount) {
@@ -300,10 +329,12 @@ public class SzEntitiesPage implements Serializable {
     }
 
     /**
-     * Gets the number of entities in the set that exist on pages that occur before
+     * Gets the number of entities in the set that exist on pages that occur
+     * before
      * this page.
      * 
-     * @return The the number of entities in the set that exist on pages that occur
+     * @return The the number of entities in the set that exist on pages that
+     *         occur
      *         before this page.
      */
     public long getBeforePageCount() {
@@ -311,10 +342,12 @@ public class SzEntitiesPage implements Serializable {
     }
 
     /**
-     * Sets the number of entities in the set that exist on pages that occur before
+     * Sets the number of entities in the set that exist on pages that occur
+     * before
      * this page.
      * 
-     * @param entityCount The the number of entities in the set that exist on pages
+     * @param entityCount The the number of entities in the set that exist on
+     *        pages
      *                    that occur before this page.
      */
     public void setBeforePageCount(long entityCount) {
@@ -322,10 +355,12 @@ public class SzEntitiesPage implements Serializable {
     }
 
     /**
-     * Gets the number of entities in the set that exist on pages that occur after
+     * Gets the number of entities in the set that exist on pages that occur
+     * after
      * this page.
      * 
-     * @return The the number of entities in the set that exist on pages that occur
+     * @return The the number of entities in the set that exist on pages that
+     *         occur
      *         after this page.
      */
     public long getAfterPageCount() {
@@ -333,10 +368,12 @@ public class SzEntitiesPage implements Serializable {
     }
 
     /**
-     * Sets the number of entities in the set that exist on pages that occur after
+     * Sets the number of entities in the set that exist on pages that occur
+     * after
      * this page.
      * 
-     * @param entityCount The the number of entities in the set that exist on pages
+     * @param entityCount The the number of entities in the set that exist on
+     *        pages
      *                    that occur after this page.
      */
     public void setAfterPageCount(long entityCount) {
@@ -344,11 +381,14 @@ public class SzEntitiesPage implements Serializable {
     }
 
     /**
-     * Gets the {@link List} of {@link SzReportEntity} instances describing the entities
-     * in this page of results. The returned {@link List} will be in ascending order
+     * Gets the {@link List} of {@link SzReportEntity} instances describing the
+     * entities
+     * in this page of results. The returned {@link List} will be in ascending
+     * order
      * of entity ID.
      * 
-     * @return The {@link List} of {@link SzReportEntity} instances describing the
+     * @return The {@link List} of {@link SzReportEntity} instances describing
+     *         the
      *         entities in this page of results (in ascending order).
      */
     public List<SzReportEntity> getEntities() {
@@ -356,13 +396,16 @@ public class SzEntitiesPage implements Serializable {
     }
 
     /**
-     * Sets the {@link List} of {@link SzReportEntity} instances describing the entities
-     * in this page of results. The entities will be sorted in ascending order of
+     * Sets the {@link List} of {@link SzReportEntity} instances describing the
+     * entities
+     * in this page of results. The entities will be sorted in ascending order
+     * of
      * entity ID and deduplicated when added with entities with duplicate entity
      * ID's being replaced by the one that occurs last in the specified
      * {@link Collection}.
      * 
-     * @param entities The {@link List} of {@link SzReportEntity} instances describing
+     * @param entities The {@link List} of {@link SzReportEntity} instances
+     *        describing
      *                 the entities in this page of results.
      */
     public void setEntities(Collection<SzReportEntity> entities) {
@@ -377,7 +420,8 @@ public class SzEntitiesPage implements Serializable {
     }
 
     /**
-     * Adds the specified {@link SzReportEntity} to the list of entities for this page. If
+     * Adds the specified {@link SzReportEntity} to the list of entities for
+     * this page. If
      * an entity with the same entity ID already exists on the page then the
      * specified one replaces the existing one.
      * 
@@ -389,7 +433,8 @@ public class SzEntitiesPage implements Serializable {
 
     /**
      * Removes the entity with the specified entity ID from the list of entities
-     * associated with this instance. If no entity has the specified entity ID then
+     * associated with this instance. If no entity has the specified entity ID
+     * then
      * this method has no effect.
      * 
      * @param entityId The entity ID of the entity to be removed.
@@ -406,7 +451,8 @@ public class SzEntitiesPage implements Serializable {
     }
 
     /**
-     * Overridden to return a diagnostic {@link String} describing this instance.
+     * Overridden to return a diagnostic {@link String} describing this
+     * instance.
      * 
      * @return A diagnostic {@link String} describing this instance.
      */
@@ -425,24 +471,32 @@ public class SzEntitiesPage implements Serializable {
     }
 
     /**
-     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
+     * Overridden to return a hash code consistent with the {@link
+     * #equals(Object)}
      * implementation.
      * 
      * @return The hash code for this instance.
      */
     @Override
     public int hashCode() {
-        return Objects.hash(bound, boundType, pageSize, sampleSize, pageMinimumValue, pageMaximumValue,
-                totalEntityCount, beforePageCount, afterPageCount, entities);
+        return Objects.hash(
+            bound, boundType, pageSize,
+            sampleSize, pageMinimumValue,
+            pageMaximumValue, totalEntityCount,
+            beforePageCount, afterPageCount,
+            entities);
     }
 
     /**
-     * Overridden to return <code>true</code> if and only if the specified parameter
+     * Overridden to return <code>true</code> if and only if the specified
+     * parameter
      * is an instance of the same class with equivalent properties.
      * 
      * @param obj The object to compare with.
-     * @return <code>true</code> if the specified parameter is an instance of the 
-     *         same class with equivalent properties, otherwise <code>false</code>.
+     * @return <code>true</code> if the specified parameter is an instance of
+     *         the
+     *         same class with equivalent properties, otherwise
+     *         <code>false</code>.
      */
     @Override
     public boolean equals(Object obj) {
@@ -453,11 +507,24 @@ public class SzEntitiesPage implements Serializable {
             return false;
         }
         SzEntitiesPage other = (SzEntitiesPage) obj;
-        return Objects.equals(bound, other.bound) && boundType == other.boundType && pageSize == other.pageSize
-                && Objects.equals(sampleSize, other.sampleSize)
-                && Objects.equals(getPageMinimumValue(), other.getPageMinimumValue())
-                && Objects.equals(getPageMaximumValue(), other.getPageMaximumValue())
-                && totalEntityCount == other.totalEntityCount && beforePageCount == other.beforePageCount
-                && afterPageCount == other.afterPageCount && Objects.equals(entities, other.entities);
+        return Objects.equals(bound, other.bound)
+                && boundType == other.boundType
+                && pageSize == other.pageSize
+                && Objects.equals(
+                    sampleSize, other.sampleSize)
+                && Objects.equals(
+                    getPageMinimumValue(),
+                    other.getPageMinimumValue())
+                && Objects.equals(
+                    getPageMaximumValue(),
+                    other.getPageMaximumValue())
+                && totalEntityCount
+                   == other.totalEntityCount
+                && beforePageCount
+                   == other.beforePageCount
+                && afterPageCount
+                   == other.afterPageCount
+                && Objects.equals(
+                    entities, other.entities);
     }
 }

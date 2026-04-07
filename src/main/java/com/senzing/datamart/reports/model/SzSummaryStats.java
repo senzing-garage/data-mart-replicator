@@ -62,8 +62,9 @@ public class SzSummaryStats implements Serializable {
      * statistics for a specific data source. This will replace any existing
      * statistics for the same data source.
      * 
-     * @param summary The {@link SzSourceSummary} describing the summary statistics
-     *                for a specific data source.
+     * @param summary The {@link SzSourceSummary} describing the
+     *                summary statistics for a specific data
+     *                source.
      */
     public void addSourceSummary(SzSourceSummary summary) {
         if (summary == null) {
@@ -91,7 +92,8 @@ public class SzSummaryStats implements Serializable {
     }
 
     /**
-     * Overridden to return a diagnostic {@link String} describing this instance.
+     * Overridden to return a diagnostic {@link String} describing
+     * this instance.
      * 
      * @return A diagnostic {@link String} describing this instance.
      */
@@ -101,7 +103,8 @@ public class SzSummaryStats implements Serializable {
     }
 
     /**
-     * Overridden to make the hash code consistent with {@link #equals(Object)}.
+     * Overridden to make the hash code consistent with
+     * {@link #equals(Object)}.
      * 
      * {@inheritDoc}
      */

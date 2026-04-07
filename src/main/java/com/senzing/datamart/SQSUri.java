@@ -9,7 +9,8 @@ import java.util.Objects;
 /**
  * Represents an SQS connection URI.
  */
-public class SQSUri extends ConnectionUri {
+public class SQSUri extends ConnectionUri
+{
     /**
      * The default port for HTTP insecure communication.
      */
@@ -64,15 +65,12 @@ public class SQSUri extends ConnectionUri {
      * 
      * @return The ASCII query from the URI rather than the decoded one.
      */
-    private static String getASCIIQuery(URI uri) {
-        if (uri == null) {
-            return null;
-        }
+    private static String getASCIIQuery(URI uri)
+    {
+        if (uri == null) return null;
         String asciiString = uri.toASCIIString();
         int index = asciiString.indexOf("?");
-        if (index < 0 || index == asciiString.length() - 1) {
-            return null;
-        }
+        if (index < 0 || index == asciiString.length() - 1) return null;
         return asciiString.substring(index + 1);
     }
 
@@ -90,26 +88,27 @@ public class SQSUri extends ConnectionUri {
     public SQSUri(URI uri)
     {
         super(uri.getScheme().equalsIgnoreCase("https") 
-              ? SECURE_SCHEME_PREFIX : SCHEME_PREFIX,
-              parseQueryOptions(getASCIIQuery(uri)));
+                ? SECURE_SCHEME_PREFIX
+                : SCHEME_PREFIX, parseQueryOptions(getASCIIQuery(uri)));
 
         requireNonNull(uri, "The URI cannot be null");
 
         // get the string specification of the URI
         String spec = uri.toString();
         if (!spec.toLowerCase().startsWith(SECURE_SCHEME_PREFIX)
-            && !spec.toLowerCase().startsWith(SCHEME_PREFIX))
+                && !spec.toLowerCase().startsWith(SCHEME_PREFIX))
         {
             throw new IllegalArgumentException(
-                "The specified URI does not appear to be an SQS URI: " + spec);
+                    "The specified URI does not appear to be an SQS URI: "
+                            + spec);
         }
 
         // set the fields
         this.secure = uri.getScheme().equalsIgnoreCase("https");
-        this.host   = uri.getHost();
-        this.port   = (uri.getPort() > 0) ? uri.getPort() : null;
-        this.path   = uri.getPath();
-        this.uri    = uri;
+        this.host = uri.getHost();
+        this.port = (uri.getPort() > 0) ? uri.getPort() : null;
+        this.path = uri.getPath();
+        this.uri = uri;
     }
 
     /**
@@ -118,7 +117,8 @@ public class SQSUri extends ConnectionUri {
      * @return <code>true</code> if this instance describes a secure
      *         connection to SQS, otherwise <code>false</code>.
      */
-    public boolean isSecure() {
+    public boolean isSecure()
+    {
         return this.secure;
     }
 
@@ -127,7 +127,8 @@ public class SQSUri extends ConnectionUri {
      * 
      * @return The host for the SQS connection.
      */
-    public String getHost() {
+    public String getHost()
+    {
         return this.host;
     }
 
@@ -140,9 +141,9 @@ public class SQSUri extends ConnectionUri {
      * 
      * @return The port for the SQS connection.
      */
-    public int getPort() {
-        return (this.port != null 
-                ? this.port
+    public int getPort()
+    {
+        return (this.port != null ? this.port
                 : (this.secure ? DEFAULT_SECURE_PORT : DEFAULT_PORT));
     }
 
@@ -158,7 +159,8 @@ public class SQSUri extends ConnectionUri {
      *         default port} or {@linkplain #DEFAULT_SECURE_PORT 
      *         default secure port} should be used.
      */
-    public boolean hasPort() {
+    public boolean hasPort()
+    {
         return (this.port != null);
     }
 
@@ -167,7 +169,8 @@ public class SQSUri extends ConnectionUri {
      * 
      * @return The path for the SQS connection.
      */
-    public String getPath() {
+    public String getPath()
+    {
         return this.path;
     }
 
@@ -176,7 +179,8 @@ public class SQSUri extends ConnectionUri {
      * 
      * @return The {@link URI} for the SQS connection.
      */
-    public URI getUri() {
+    public URI getUri()
+    {
         return this.uri;
     }
 
@@ -186,7 +190,8 @@ public class SQSUri extends ConnectionUri {
      * 
      * @return The formatted URI for this instance.
      */
-    public String toString() {
+    public String toString()
+    {
         return this.getUri().toASCIIString();
     }
 
@@ -196,12 +201,11 @@ public class SQSUri extends ConnectionUri {
      * 
      * @return The hash code for this instance.
      */
-    public int hashCode() {
-        return Objects.hash(this.isSecure(),
-                            this.getHost(),
-                            (this.hasPort() ? this.getPort() : null),
-                            this.getPath(),
-                            this.getUri());
+    public int hashCode()
+    {
+        return Objects.hash(this.isSecure(), this.getHost(),
+                (this.hasPort() ? this.getPort() : null), this.getPath(),
+                this.getUri());
     }
 
     /**
@@ -220,23 +224,18 @@ public class SQSUri extends ConnectionUri {
      * @return <code>true</code> if and only if the objects are equal,
      *         otherwise <code>false</code>.
      */
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (this == obj) {
-            return true;
-        }
-        if (this.getClass() != obj.getClass()) {
-            return false;
-        }
+    public boolean equals(Object obj)
+    {
+        if (obj == null) return false;
+        if (this == obj) return true;
+        if (this.getClass() != obj.getClass()) return false;
         SQSUri url = (SQSUri) obj;
         return Objects.equals(this.getUri(), url.getUri())
-            && Objects.equals(this.isSecure(), url.isSecure())
-            && Objects.equals(this.getHost(), url.getHost())
-            && Objects.equals(this.hasPort(), url.hasPort())
-            && Objects.equals(this.getPort(), url.getPort())
-            && Objects.equals(this.getPath(), url.getPath());
+                && Objects.equals(this.isSecure(), url.isSecure())
+                && Objects.equals(this.getHost(), url.getHost())
+                && Objects.equals(this.hasPort(), url.hasPort())
+                && Objects.equals(this.getPort(), url.getPort())
+                && Objects.equals(this.getPath(), url.getPath());
     }
 
     /**
@@ -253,7 +252,8 @@ public class SQSUri extends ConnectionUri {
      * @throws IllegalArgumentException If the specified URI is not properly
      *                                  formatted.
      */
-    public static SQSUri parse(String uri) {
+    public static SQSUri parse(String uri)
+    {
         try {
             return new SQSUri(new URI(uri));
         } catch (URISyntaxException e) {
@@ -261,7 +261,8 @@ public class SQSUri extends ConnectionUri {
         }
     }
 
-    static {
+    static
+    {
         registerConnectionType(SCHEME_PREFIX, SQSUri.class);
         registerConnectionType(SECURE_SCHEME_PREFIX, SQSUri.class);
     }

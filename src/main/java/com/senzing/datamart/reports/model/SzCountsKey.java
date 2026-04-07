@@ -58,9 +58,10 @@ class SzCountsKey implements Comparable<SzCountsKey>, Serializable {
      * 
      * @param obj The object to compare with.
      * 
-     * @return <code>true</code> if and only if the specified parameter is a
-     *         non-null reference to an object of the same class with an equivalent
-     *         match key and principle, otherwise <code>false</code>.
+     * @return <code>true</code> if and only if the specified
+     *         parameter is a non-null reference to an object of
+     *         the same class with an equivalent match key and
+     *         principle, otherwise <code>false</code>.
      */
     @Override
     public boolean equals(Object obj) {
@@ -91,15 +92,17 @@ class SzCountsKey implements Comparable<SzCountsKey>, Serializable {
 
     /**
      * Implemented to return a negative number, zero (0) or a positive number
-     * depending on whether this instance compares less-than, equal-to, or greater
-     * than the specified parameter with sorting first on match key and then
-     * principle with <code>null</code> values comparing less-than values that are
-     * not <code>null</code>.
+     * depending on whether this instance compares less-than,
+     * equal-to, or greater than the specified parameter with
+     * sorting first on match key and then principle with
+     * <code>null</code> values comparing less-than values that
+     * are not <code>null</code>.
      * 
      * @param key The {@link SzCountsKey} to compare with.
      * 
-     * @return A negative number, zero (0) or a positive number depending on whether
-     *         this instance compares less-than, equal-to, or greater than the
+     * @return A negative number, zero (0) or a positive number
+     *         depending on whether this instance compares
+     *         less-than, equal-to, or greater than the
      *         specified parameter.
      */
     @Override
@@ -133,8 +136,9 @@ class SzCountsKey implements Comparable<SzCountsKey>, Serializable {
     }
 
     /**
-     * Implemented to return a diagnostic {@link String} describing this instance
-     * with the principle first and then the match key, separated by a colon.
+     * Implemented to return a diagnostic {@link String}
+     * describing this instance with the principle first and
+     * then the match key, separated by a colon.
      * 
      * @return A diagnostic {@link String} describing this instance.
      */

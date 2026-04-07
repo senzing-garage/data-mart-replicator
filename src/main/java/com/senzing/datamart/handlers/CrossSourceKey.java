@@ -22,7 +22,8 @@ public final class CrossSourceKey implements Comparable<CrossSourceKey> {
      * @param source The non-null data source code representing both the
      *               "from" and "to" data source.
      * 
-     * @throws NullPointerException If the specified data source is <code>null</code>
+     * @throws NullPointerException If the specified data source
+     *                              is <code>null</code>
      */
     public CrossSourceKey(String source) 
         throws NullPointerException 
@@ -42,8 +43,10 @@ public final class CrossSourceKey implements Comparable<CrossSourceKey> {
     public CrossSourceKey(String source1, String source2)
         throws NullPointerException 
     {
-        Objects.requireNonNull(source1, "The first data source cannot be null");
-        Objects.requireNonNull(source2, "The second data source cannot be null");
+        Objects.requireNonNull(
+                source1, "The first data source cannot be null");
+        Objects.requireNonNull(
+                source2, "The second data source cannot be null");
 
         this.source1 = source1;
         this.source2 = source2;
@@ -78,9 +81,10 @@ public final class CrossSourceKey implements Comparable<CrossSourceKey> {
     }
 
     /**
-     * Checks if this instance is equal to the specified object. This is implemented
-     * to return <code>true</code> if and only if the specified value is a non-null
-     * reference to an object of the same class with equivalent properties.
+     * Checks if this instance is equal to the specified object.
+     * This is implemented to return <code>true</code> if and
+     * only if the specified value is a non-null reference to an
+     * object of the same class with equivalent properties.
      *
      * @param obj The object to compare with.
      */
@@ -107,9 +111,10 @@ public final class CrossSourceKey implements Comparable<CrossSourceKey> {
      * 
      * @param key The {@link CrossSourceKey} to compare with.
      * 
-     * @return A negative number if this instance compares less-than the specified
-     *         parameter, a positive number if it compares greater-than the
-     *         specified parameter and zero (0) if they compare equal.
+     * @return A negative number if this instance compares
+     *         less-than the specified parameter, a positive
+     *         number if it compares greater-than the specified
+     *         parameter and zero (0) if they compare equal.
      */
     @Override
     public int compareTo(CrossSourceKey key) {
@@ -129,7 +134,8 @@ public final class CrossSourceKey implements Comparable<CrossSourceKey> {
     }
 
     /**
-     * Implemented to provide a diagnostic {@link String} describing this instance.
+     * Implemented to provide a diagnostic {@link String}
+     * describing this instance.
      *
      * @return A diagnostic {@link String} describing this instance.
      */

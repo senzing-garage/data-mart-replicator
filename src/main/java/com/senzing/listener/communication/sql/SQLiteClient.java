@@ -73,7 +73,8 @@ public class SQLiteClient implements SQLClient {
             + " modified_on = (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')) "
             + " WHERE message_id = new.message_id; END;";
 
-       String dropInsertTriggerSql = "DROP TRIGGER IF EXISTS sz_msg_queue_create";
+       String dropInsertTriggerSql
+               = "DROP TRIGGER IF EXISTS sz_msg_queue_create";
 
        List<String> sqlList = new ArrayList<>();
 

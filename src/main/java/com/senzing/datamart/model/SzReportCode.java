@@ -53,12 +53,15 @@ public enum SzReportCode {
     }
 
     /**
-     * Looks up the {@link SzReportCode} for the specified text code. This returns
-     * <code>null</code> if the specified code is not recognized.
+     * Looks up the {@link SzReportCode} for the specified text
+     * code. This returns <code>null</code> if the specified code
+     * is not recognized.
      *
-     * @param code The code for which the {@link SzReportCode} is being requested.
-     * @return The {@link SzReportCode} for the specified code, or <code>null</code>
-     *         if the specified code was not recognized.
+     * @param code The code for which the {@link SzReportCode}
+     *             is being requested.
+     * @return The {@link SzReportCode} for the specified code,
+     *         or <code>null</code> if the specified code was not
+     *         recognized.
      */
     public static SzReportCode lookup(String code) {
         return CODE_LOOKUP_MAP.get(code);

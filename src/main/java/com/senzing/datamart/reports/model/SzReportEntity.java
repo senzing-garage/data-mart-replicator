@@ -39,10 +39,11 @@ public class SzReportEntity implements Serializable {
     private Integer relationCount = null;
 
     /**
-     * The {@link SortedMap} of {@link Long} entity ID's identifying the entities on this
-     * page.
+     * The {@link SortedMap} of {@link Long} entity ID's
+     * identifying the entities on this page.
      */
-    private SortedMap<SzRecordKey, SzReportRecord> records = null;
+    private SortedMap<SzRecordKey, SzReportRecord> records
+        = null;
 
     /**
      * Default constructor.
@@ -53,7 +54,7 @@ public class SzReportEntity implements Serializable {
 
     /**
      * Constructs with the specified entity ID.
-     * 
+     *
      * @param entityId The entity ID for the entity.
      */
     public SzReportEntity(long entityId) {
@@ -62,7 +63,7 @@ public class SzReportEntity implements Serializable {
 
     /**
      * Constructs with the specified entity ID.
-     * 
+     *
      * @param entityId   The entity ID for the entity.
      * @param entityName The best name for the entity.
      */
@@ -77,7 +78,8 @@ public class SzReportEntity implements Serializable {
     /**
      * Gets the entity ID that uniquely identifies the entity.
      *
-     * @return The entity ID that uniquely identifies the entity.
+     * @return The entity ID that uniquely identifies the
+     *         entity.
      */
     public long getEntityId() {
         return this.entityId;
@@ -86,7 +88,8 @@ public class SzReportEntity implements Serializable {
     /**
      * Sets the entity ID that uniquely identifies the entity.
      *
-     * @param entityId The entity ID that uniquely identifies the entity.
+     * @param entityId The entity ID that uniquely identifies
+     *                 the entity.
      */
     public void setEntityId(long entityId) {
         this.entityId = entityId;
@@ -94,7 +97,7 @@ public class SzReportEntity implements Serializable {
 
     /**
      * Gets the best name associated with the entity.
-     * 
+     *
      * @return The best name associated with the entity.
      */
     @JsonInclude(NON_EMPTY)
@@ -104,7 +107,7 @@ public class SzReportEntity implements Serializable {
 
     /**
      * Sets the best name associated with the entity.
-     * 
+     *
      * @param name The best name associated with the entity.
      */
     public void setEntityName(String name) {
@@ -113,7 +116,7 @@ public class SzReportEntity implements Serializable {
 
     /**
      * Gets the number of records resolved to this entity.
-     * 
+     *
      * @return The number of records resolved to this entity.
      */
     @JsonInclude(NON_NULL)
@@ -122,18 +125,22 @@ public class SzReportEntity implements Serializable {
     }
 
     /**
-     * Sets the number of records that are resolved to this entity.
-     * 
-     * @param recordCount The number of records that are resolved to this entity.
+     * Sets the number of records that are resolved to this
+     * entity.
+     *
+     * @param recordCount The number of records that are
+     *                    resolved to this entity.
      */
     public void setRecordCount(Integer recordCount) {
         this.recordCount = recordCount;
     }
 
     /**
-     * Gets the number of entities that are related to this entity.
-     * 
-     * @return The number of entities that are related to this entity.
+     * Gets the number of entities that are related to this
+     * entity.
+     *
+     * @return The number of entities that are related to this
+     *         entity.
      */
     @JsonInclude(NON_NULL)
     public Integer getRelationCount() {
@@ -141,42 +148,51 @@ public class SzReportEntity implements Serializable {
     }
 
     /**
-     * Sets the number of entities that are related to this entity.
-     * 
-     * @param relationCount The number of entities that are related to this entity.
+     * Sets the number of entities that are related to this
+     * entity.
+     *
+     * @param relationCount The number of entities that are
+     *                      related to this entity.
      */
     public void setRelationCount(Integer relationCount) {
         this.relationCount = relationCount;
     }
 
     /**
-     * Gets the {@link List} of {@link SzReportRecord} instances describing the records in
-     * the entity.
-     * 
-     * @return The {@link List} of {@link SzReportRecord} instances describing the records
-     *         in the entity.
+     * Gets the {@link List} of {@link SzReportRecord}
+     * instances describing the records in the entity.
+     *
+     * @return The {@link List} of {@link SzReportRecord}
+     *         instances describing the records in the entity.
      */
     @JsonInclude(NON_EMPTY)
     public List<SzReportRecord> getRecords() {
-        List<SzReportRecord> records = new ArrayList<>(this.records.values());
+        List<SzReportRecord> records
+            = new ArrayList<>(this.records.values());
         return records;
     }
 
     /**
-     * Sets the {@link List} of {@link SzReportRecord} instances describing the records in
-     * this entity. If two records exist in the {@link Collection} with the same
-     * data source code and record ID then the later one replaces the earlier one.
-     * 
-     * @param records The {@link Collection} of {@link SzReportRecord} instances
+     * Sets the {@link List} of {@link SzReportRecord}
+     * instances describing the records in this entity. If two
+     * records exist in the {@link Collection} with the same
+     * data source code and record ID then the later one
+     * replaces the earlier one.
+     *
+     * @param records The {@link Collection} of
+     *                {@link SzReportRecord} instances
      *                describing the records in this entity.
      */
-    public void setRecords(Collection<SzReportRecord> records) {
+    public void setRecords(
+            Collection<SzReportRecord> records)
+    {
         this.records.clear();
         if (records != null) {
             records.forEach(record -> {
                 if (record != null) {
-                    SzRecordKey key = SzRecordKey.of(record.getDataSource(), 
-                                                     record.getRecordId());
+                    SzRecordKey key = SzRecordKey.of(
+                        record.getDataSource(),
+                        record.getRecordId());
                     this.records.put(key, record);
                 }
             });
@@ -184,27 +200,36 @@ public class SzReportEntity implements Serializable {
     }
 
     /**
-     * Adds the specified {@link SzReportRecord} to the list of records for this entity.
-     * If a record already exists for this entity with the same data source code and
-     * record ID, then the specified record replaces the existing one.
-     * 
-     * @param record The {@link SzReportRecord} describing the record to be added.
+     * Adds the specified {@link SzReportRecord} to the list
+     * of records for this entity. If a record already exists
+     * for this entity with the same data source code and
+     * record ID, then the specified record replaces the
+     * existing one.
+     *
+     * @param record The {@link SzReportRecord} describing
+     *               the record to be added.
      */
     public void addRecord(SzReportRecord record) {
-        SzRecordKey key = SzRecordKey.of(record.getDataSource(), record.getRecordId());
+        SzRecordKey key = SzRecordKey.of(
+            record.getDataSource(), record.getRecordId());
         this.records.put(key, record);
     }
 
     /**
-     * Removes any record from this entity with the specified data source code and
-     * record ID. If there is no such record in the entity then this method has no
-     * effect.
-     * 
-     * @param dataSourceCode The data source code for the record to remove.
-     * @param recordId       The record ID for the record to remove.
+     * Removes any record from this entity with the specified
+     * data source code and record ID. If there is no such
+     * record in the entity then this method has no effect.
+     *
+     * @param dataSourceCode The data source code for the
+     *                       record to remove.
+     * @param recordId       The record ID for the record to
+     *                       remove.
      */
-    public void removeRecord(String dataSourceCode, String recordId) {
-        SzRecordKey key = SzRecordKey.of(dataSourceCode, recordId);
+    public void removeRecord(String dataSourceCode,
+                             String recordId)
+    {
+        SzRecordKey key
+            = SzRecordKey.of(dataSourceCode, recordId);
         this.records.remove(key);
     }
 
@@ -216,37 +241,44 @@ public class SzReportEntity implements Serializable {
     }
 
     /**
-     * Overridden to return a diagnostic {@link String} describing this instance.
-     * 
-     * @return A diagnostic {@link String} describing this instance.
+     * Overridden to return a diagnostic {@link String}
+     * describing this instance.
+     *
+     * @return A diagnostic {@link String} describing this
+     *         instance.
      */
     @Override
     public String toString() {
-        return "entityId=[ " + this.getEntityId() 
-                + " ], entityName=[ " + this.getEntityName()
-                + " ], recordCount=[ " + this.getRecordCount()
-                + " ], relationCount=[ " + this.getRelationCount()
-                + " ], records=[ " + this.getRecords() + " ]";
+        return "entityId=[ " + this.getEntityId()
+            + " ], entityName=[ " + this.getEntityName()
+            + " ], recordCount=[ " + this.getRecordCount()
+            + " ], relationCount=[ "
+            + this.getRelationCount()
+            + " ], records=[ " + this.getRecords() + " ]";
     }
 
     /**
-     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
-     * implementation.
-     * 
+     * Overridden to return a hash code consistent with the
+     * {@link #equals(Object)} implementation.
+     *
      * @return The hash code for this instance.
      */
     @Override
     public int hashCode() {
-        return Objects.hash(entityId, entityName, recordCount, relationCount, records);
+        return Objects.hash(entityId, entityName,
+                            recordCount, relationCount,
+                            records);
     }
 
     /**
-     * Overridden to return <code>true</code> if and only if the specified parameter
-     * is an instance of the same class with equivalent properties.
-     * 
+     * Overridden to return <code>true</code> if and only if
+     * the specified parameter is an instance of the same class
+     * with equivalent properties.
+     *
      * @param obj The object to compare with.
-     * @return <code>true</code> if the specified parameter is an instance of the 
-     *         same class with equivalent properties, otherwise <code>false</code>.
+     * @return <code>true</code> if the specified parameter is
+     *         an instance of the same class with equivalent
+     *         properties, otherwise <code>false</code>.
      */
     @Override
     public boolean equals(Object obj) {
@@ -257,10 +289,13 @@ public class SzReportEntity implements Serializable {
             return false;
         }
         SzReportEntity other = (SzReportEntity) obj;
-        return entityId == other.entityId 
-                && Objects.equals(entityName, other.entityName)
-                && Objects.equals(recordCount, other.recordCount) 
-                && Objects.equals(relationCount, other.relationCount)
-                && Objects.equals(records, other.records);
+        return entityId == other.entityId
+            && Objects.equals(entityName,
+                other.entityName)
+            && Objects.equals(recordCount,
+                other.recordCount)
+            && Objects.equals(relationCount,
+                other.relationCount)
+            && Objects.equals(records, other.records);
     }
 }

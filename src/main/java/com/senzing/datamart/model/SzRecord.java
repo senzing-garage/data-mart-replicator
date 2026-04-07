@@ -8,13 +8,14 @@ import javax.json.JsonObjectBuilder;
 import java.util.Objects;
 
 /**
- * Encapsulates the information for the record that is replicated for the data
- * mart.
+ * Encapsulates the information for the record that is replicated for
+ * the data mart.
  */
-public class SzRecord {
+public class SzRecord 
+{
     /**
-     * The {@link SzRecordKey} describing the data source code and record ID pair
-     * that identify this record.
+     * The {@link SzRecordKey} describing the data source code and
+     * record ID pair that identify this record.
      */
     private SzRecordKey recordKey;
 
@@ -31,8 +32,8 @@ public class SzRecord {
     private String principle;
 
     /**
-     * Constructs with the specified data source, record ID, optional match key and
-     * optional principle.
+     * Constructs with the specified data source, record ID, optional
+     * match key and optional principle.
      * 
      * @param dataSource The data source code for the data source.
      * @param recordId   The record ID for the record.
@@ -46,7 +47,11 @@ public class SzRecord {
      * @throws NullPointerException If the data source or record ID are
      *                              <code>null</code>.
      */
-    public SzRecord(String dataSource, String recordId, String matchKey, String principle) {
+    public SzRecord(String  dataSource,
+                    String  recordId,
+                    String  matchKey,
+                    String  principle)
+    {
         this(new SzRecordKey(dataSource, recordId), matchKey, principle);
     }
 
@@ -57,7 +62,10 @@ public class SzRecord {
      * @param matchKey  The match key that binds the record to the entity.
      * @param principle The principle that bound the record to the entity.
      */
-    public SzRecord(SzRecordKey recordKey, String matchKey, String principle) {
+    public SzRecord(SzRecordKey recordKey,
+                    String      matchKey,
+                    String      principle) 
+    {
         Objects.requireNonNull(recordKey, "The record key cannot be null");
 
         // normalize the match key and principle
@@ -77,9 +85,9 @@ public class SzRecord {
     }
 
     /**
-     * Gets the data source code for the record. This is a convenience function for
-     * calling {@link SzRecordKey#getDataSource()} on the result from
-     * {@link #getRecordKey()}.
+     * Gets the data source code for the record. This is a
+     * convenience function for calling {@link SzRecordKey#getDataSource()}
+     * on the result from {@link #getRecordKey()}.
      *
      * @return The data source code for the record.
      * 
@@ -91,8 +99,9 @@ public class SzRecord {
     }
 
     /**
-     * Gets the record ID for the record. This is a convenience function for calling
-     * {@link SzRecordKey#getRecordId()} on the result from {@link #getRecordKey()}.
+     * Gets the record ID for the record. This is a convenience
+     * function for calling {@link SzRecordKey#getRecordId()} on
+     * the result from {@link #getRecordKey()}.
      *
      * @return The record ID for the record.
      * 
@@ -104,45 +113,51 @@ public class SzRecord {
     }
 
     /**
-     * Gets the {@link SzRecordKey} containing the data source code and record ID
-     * pair that identify this record.
+     * Gets the {@link SzRecordKey} containing the data source code
+     * and record ID pair that identify this record.
      * 
-     * @return The {@link SzRecordKey} containing the data source code and record ID
-     *         pair that identify this record.
+     * @return The {@link SzRecordKey} containing the data source
+     *         code and record ID pair that identify this record.
      */
     public SzRecordKey getRecordKey() {
         return this.recordKey;
     }
 
     /**
-     * Gets the match key that bound this record to its respective entity. This
-     * returns <code>null</code> if this is the first record in that entity.
+     * Gets the match key that bound this record to its respective
+     * entity. This returns <code>null</code> if this is the first
+     * record in that entity.
      * 
-     * @return The match key that bound this record to its its respective entity, or
-     *         <code>null</code> if this is the first record in that entity.
+     * @return The match key that bound this record to its its
+     *         respective entity, or <code>null</code> if this is
+     *         the first record in that entity.
      */
     public String getMatchKey() {
         return this.matchKey;
     }
 
     /**
-     * Gets the principle that bound this record to its respective entity. This
-     * returns <code>null</code> if this is the first record in that entity.
+     * Gets the principle that bound this record to its respective
+     * entity. This returns <code>null</code> if this is the first
+     * record in that entity.
      * 
-     * @return The principle that bound this record to its its respective entity, or
-     *         <code>null</code> if this is the first record in that entity.
+     * @return The principle that bound this record to its its
+     *         respective entity, or <code>null</code> if this is
+     *         the first record in that entity.
      */
     public String getPrinciple() {
         return this.principle;
     }
 
     /**
-     * Overridden to return <code>true</code> if and only if the specified parameter
-     * is an instance of the same class with equivalent properties.
+     * Overridden to return <code>true</code> if and only if the
+     * specified parameter is an instance of the same class with
+     * equivalent properties.
      * 
      * @param o The object to compare with.
-     * @return <code>true</code> if the specified parameter is an instance of the 
-     *         same class with equivalent properties, otherwise <code>false</code>.
+     * @return <code>true</code> if the specified parameter is an
+     *         instance of the same class with equivalent properties,
+     *         otherwise <code>false</code>.
      */
     @Override
     public boolean equals(Object o) {
@@ -159,19 +174,20 @@ public class SzRecord {
     }
 
     /**
-     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
-     * implementation.
+     * Overridden to return a hash code consistent with
+     * the {@link #equals(Object)} implementation.
      * 
      * @return The hash code for this instance.
      */
     @Override
     public int hashCode() {
-        return Objects.hash(this.getRecordKey(), this.getMatchKey(), this.getPrinciple());
+        return Objects.hash(
+            this.getRecordKey(), this.getMatchKey(), this.getPrinciple());
     }
 
     /**
-     * Populates the specified {@link JsonObjectBuilder} with the properties of this
-     * instance.
+     * Populates the specified {@link JsonObjectBuilder} with the
+     * properties of this instance.
      *
      * @param builder The {@link JsonObjectBuilder} to populate.
      */
@@ -203,8 +219,8 @@ public class SzRecord {
     /**
      * Converts this instance to JSON text, optionally pretty printing.
      *
-     * @param prettyPrint <code>true</code> if the JSON should be pretty printed,
-     *                    otherwise <code>false</code>.
+     * @param prettyPrint <code>true</code> if the JSON should be pretty
+     *                    printed, otherwise <code>false</code>.
      *
      * @return The JSON text for this instance.
      */

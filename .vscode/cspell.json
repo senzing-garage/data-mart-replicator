@@ -26,6 +26,8 @@
     "CONFIGFILE",
     "CONFIGPATH",
     "cooldown",
+    "CSOFF",
+    "CSON",
     "CUST",
     "databind",
     "datamart",

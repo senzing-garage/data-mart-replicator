@@ -167,12 +167,13 @@ public class SzSampleRecord implements Serializable {
   }
 
   /**
-   * Overridden to return <code>true</code> if and only if the specified parameter
+   * Overridden to return <code>true</code> if and only if the specified
+   * parameter
    * is an instance of the same class with equivalent properties.
    * 
    * @param obj The object to compare with.
    * @return <code>true</code> if the specified parameter is an instance of the 
-   *         same class with equivalent properties, otherwise <code>false</code>.
+   * same class with equivalent properties, otherwise <code>false</code>.
    */
   @Override
   public boolean equals(Object obj) {
@@ -189,7 +190,8 @@ public class SzSampleRecord implements Serializable {
   }
 
     /**
-     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
+     * Overridden to return a hash code consistent with the {@link
+     * #equals(Object)}
      * implementation.
      * 
      * @return The hash code for this instance.
@@ -288,7 +290,8 @@ public class SzSampleRecord implements Serializable {
    *
    * @param jsonText The JSON text to parse.
    *
-   * @return The created {@link SzSampleRecord} instance, or <code>null</code> if the
+   * @return The created {@link SzSampleRecord} instance, or <code>null</code>
+   *         if the
    *         specified text is <code>null</code>.
    *
    * @throws IllegalArgumentException If the specified text is not valid JSON or
@@ -313,7 +316,8 @@ public class SzSampleRecord implements Serializable {
    *
    * @param jsonObject The {@link JsonObject} describing the JSON to parse.
    *
-   * @return The created {@link SzSampleRecord} instance, or <code>null</code> if the
+   * @return The created {@link SzSampleRecord} instance, or <code>null</code>
+   *         if the
    *         specified parameter is <code>null</code>.
    *
    * @throws IllegalArgumentException If the specified text is not valid JSON or
@@ -335,7 +339,8 @@ public class SzSampleRecord implements Serializable {
    *
    * @param jsonText The JSON text to parse.
    *
-   * @return The created {@link SzSampleRecord} instance, or <code>null</code> if the
+   * @return The created {@link SzSampleRecord} instance, or <code>null</code>
+   *         if the
    *         specified text is <code>null</code>.
    *
    * @throws IllegalArgumentException If the specified text is not valid JSON or
@@ -359,7 +364,8 @@ public class SzSampleRecord implements Serializable {
    *
    * @param jsonObject The {@link JsonObject} describing the JSON to parse.
    *
-   * @return The created {@link SzSampleRecord} instance, or <code>null</code> if the
+   * @return The created {@link SzSampleRecord} instance, or <code>null</code>
+   *         if the
    *         specified parameter is <code>null</code>.
    *
    * @throws IllegalArgumentException If the specified text is not valid JSON or
@@ -388,7 +394,8 @@ public class SzSampleRecord implements Serializable {
    *
    * @param flagsKey The JSON property key for the flags property.
    *
-   * @return The created {@link SzSampleRecord} instance, or <code>null</code> if the
+   * @return The created {@link SzSampleRecord} instance, or <code>null</code>
+   *         if the
    *         specified parameter is <code>null</code>.
    *
    * @throws IllegalArgumentException If the specified text is not valid JSON or

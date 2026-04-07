@@ -9,7 +9,8 @@ public final class SzReplicatorConstants {
     /**
      * The default module name ({@value}).
      */
-    public static final String DEFAULT_INSTANCE_NAME = "senzing-datamart-replicator";
+    public static final String DEFAULT_INSTANCE_NAME
+        = "senzing-datamart-replicator";
 
     /**
      * The default core concurrency setting used by API server
@@ -25,8 +26,9 @@ public final class SzReplicatorConstants {
         = String.valueOf(DEFAULT_CORE_CONCURRENCY);
 
     /**
-     * The default number of seconds to wait in between checking for changes in the
-     * configuration and automatically refreshing the configuration.
+     * The default number of seconds to wait in between checking
+     * for changes in the configuration and automatically
+     * refreshing the configuration.
      */
     public static final long DEFAULT_REFRESH_CONFIG_SECONDS 
         = (Duration.ofHours(12).toMillis()) / 1000;
@@ -38,8 +40,8 @@ public final class SzReplicatorConstants {
         = String.valueOf(DEFAULT_REFRESH_CONFIG_SECONDS);
 
     /**
-     * The prefix for environment variables used that are specific to the Senzing
-     * REST API Server.
+     * The prefix for environment variables used that are
+     * specific to the Senzing REST API Server.
      */
     public static final String ENV_PREFIX = "SENZING_TOOLS_";
 

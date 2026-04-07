@@ -15,7 +15,9 @@ import static com.senzing.io.IOUtilities.UTF_8;
  * Provides a key for identifying a resource that can be locked via the
  * {@link LockingService}.
  */
-public final class ResourceKey implements Serializable, Comparable<ResourceKey> {
+public final class ResourceKey
+        implements Serializable, Comparable<ResourceKey>
+{
     /**
      * The resource type.
      */
@@ -42,7 +44,8 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey> 
     public ResourceKey(String resourceType, String... components) {
         Objects.requireNonNull(resourceType);
         this.resourceType = resourceType;
-        this.components = (components == null) ? List.of() : List.of(components);
+        this.components = (components == null)
+                ? List.of() : List.of(components);
     }
 
     /**
@@ -50,7 +53,8 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey> 
      * (e.g.: <code>"RECORD"</code>, <code>"ENTITY"</code>, or
      * <code>"REPORT"</code>) followed by zero or more key components that more
      * specifically identify the resource within the type of resource (e.g.: an
-     * entity ID or a data source code followed by a record ID). This constructor
+     * entity ID or a data source code followed by a record ID). This
+     * constructor
      * version converts the one or more {@link Object} component instances to
      * {@link String} instances.
      *
@@ -74,7 +78,8 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey> 
     }
 
     /**
-     * Returns the resource type that identifies the type of resource. Examples may
+     * Returns the resource type that identifies the type of resource. Examples
+     * may
      * be <code>"ENTITY"</code>, <code>"RECORD"</code> or <code>"REPORT"</code>.
      *
      * @return The resource type that identifies the type of resource.
@@ -85,13 +90,14 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey> 
 
     /**
      * Returns the <b>unmodifiable</b> {@link List} of {@link String} components
-     * that more specifically identify the resource being locked within the resource
+     * that more specifically identify the resource being locked within the
+     * resource
      * type. The returned {@link List} may be empty, but will <b>not</b> be
      * <code>null</code>; however, elements in the {@link List} may be
      * <code>null</code>.
      *
      * @return The <b>unmodifiable</b> {@link List} of {@link String} components
-     *         that more specifically identify the resource being locked within the
+     * that more specifically identify the resource being locked within the
      *         resource type.
      */
     public List<String> getComponents() {
@@ -110,8 +116,10 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey> 
     }
 
     /**
-     * Overridden to return <code>true</code> if and only if the specified parameter
-     * is a non-null reference to an instance of the same class with an equivalent
+     * Overridden to return <code>true</code> if and only if the specified
+     * parameter
+     * is a non-null reference to an instance of the same class with an
+     * equivalent
      * resource type and all component parts in the same order.
      *
      * @param obj The object to compare with.
@@ -136,7 +144,8 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey> 
 
     /**
      * Overridden to return a result consistent with the {@link #equals(Object)}
-     * method that orders resource keys first by their resource types and then by
+     * method that orders resource keys first by their resource types and then
+     * by
      * their component identifying parts according to
      * {@link String#compareTo(String)}.
      *
@@ -197,19 +206,22 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey> 
     }
 
     /**
-     * Parses the encoded text as a {@link ResourceKey}. The encoding is done by the
+     * Parses the encoded text as a {@link ResourceKey}. The encoding is done by
+     * the
      * {@link #toString()} method. This method returns <code>null</code> if the
      * specified parameter is <code>null</code>.
      *
      * @param text The text to parse.
      *
      * @return The {@link ResourceKey} parsed from the specified text, or
-     *         <code>null</code> if the specified parameter is <code>null</code>.
+     * <code>null</code> if the specified parameter is <code>null</code>.
      * @throws IllegalArgumentException If the specified parameter is an empty
-     *                                  string after trimming leading and trailing
+     * string after trimming leading and trailing
      *                                  white space.
      */
-    public static ResourceKey parse(String text) throws IllegalArgumentException {
+    public static ResourceKey parse(String text)
+        throws IllegalArgumentException
+    {
         // return null if parameter is null
         if (text == null) {
             return null;
@@ -218,7 +230,10 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey> 
         // trim leading and trailing whitespace
         text = text.trim();
         if (text.length() == 0) {
-            throw new IllegalArgumentException("The specified text cannot be an empty string or only whitespace.");
+            throw new IllegalArgumentException(
+                    "The specified text cannot be an"
+                            + " empty string or only"
+                            + " whitespace.");
         }
 
         String[] tokens = text.split(":");
@@ -231,7 +246,8 @@ public final class ResourceKey implements Serializable, Comparable<ResourceKey> 
             return new ResourceKey(resourceType, components);
 
         } catch (UnsupportedEncodingException cannotHappen) {
-            throw new IllegalStateException("UTF-8 supporting is not supported.");
+            throw new IllegalStateException(
+                    "UTF-8 supporting is not supported.");
         }
 
     }

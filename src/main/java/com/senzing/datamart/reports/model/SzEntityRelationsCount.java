@@ -27,7 +27,8 @@ public class SzEntityRelationsCount implements Serializable {
     }
 
     /**
-     * Gets the number of entity relations for which the entity count is provided.
+     * Gets the number of entity relations for which the entity
+     * count is provided.
      *
      * @return The number of entity relations for which the entity count is
      *         provided.
@@ -37,7 +38,8 @@ public class SzEntityRelationsCount implements Serializable {
     }
 
     /**
-     * Sets the number of entity relations for which the entity count is provided.
+     * Sets the number of entity relations for which the entity
+     * count is provided.
      *
      * @param relationsCount The number of entity relations for which the entity
      *                       count is provided.
@@ -57,8 +59,9 @@ public class SzEntityRelationsCount implements Serializable {
      * Gets number of entities in the entity repository having the associated
      * {@linkplain #getRelationsCount() number of entity relations}.
      *
-     * @return The number of entities in the entity repository having the associated
-     *         {@linkplain #getRelationsCount() number of entity relations}.
+     * @return The number of entities in the entity repository
+     *         having the associated {@linkplain
+     *         #getRelationsCount() number of entity relations}.
      */
     public long getEntityCount() {
         return this.entityCount;
@@ -68,9 +71,10 @@ public class SzEntityRelationsCount implements Serializable {
      * Sets number of entities in the entity repository having the associated
      * {@linkplain #getRelationsCount() number of entity relations}.
      *
-     * @param entityCount The number of entities in the entity repository having the
-     *                    associated {@linkplain #getRelationsCount() number of
-     *                    entity relations}.
+     * @param entityCount The number of entities in the entity
+     *                    repository having the associated
+     *                    {@linkplain #getRelationsCount() number
+     *                    of entity relations}.
      * 
      * @throws IllegalArgumentException If the specified parameter is negative.
      */
@@ -84,7 +88,8 @@ public class SzEntityRelationsCount implements Serializable {
     }
 
     /**
-     * Overridden to return a diagnostic {@link String} describing this instance.
+     * Overridden to return a diagnostic {@link String} describing
+     * this instance.
      * 
      * @return A diagnostic {@link String} describing this instance.
      */
@@ -95,8 +100,8 @@ public class SzEntityRelationsCount implements Serializable {
     }
 
     /**
-     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
-     * implementation.
+     * Overridden to return a hash code consistent with the
+     * {@link #equals(Object)} implementation.
      * 
      * @return The hash code for this instance.
      */
@@ -106,12 +111,14 @@ public class SzEntityRelationsCount implements Serializable {
     }
 
     /**
-     * Overridden to return <code>true</code> if and only if the specified parameter
-     * is an instance of the same class with equivalent properties.
-     * 
+     * Overridden to return <code>true</code> if and only if the
+     * specified parameter is an instance of the same class with
+     * equivalent properties.
+     *
      * @param obj The object to compare with.
-     * @return <code>true</code> if the specified parameter is an instance of the 
-     *         same class with equivalent properties, otherwise <code>false</code>.
+     * @return <code>true</code> if the specified parameter is
+     *         an instance of the same class with equivalent
+     *         properties, otherwise <code>false</code>.
      */
     @Override
     public boolean equals(Object obj) {
@@ -122,6 +129,7 @@ public class SzEntityRelationsCount implements Serializable {
             return false;
         }
         SzEntityRelationsCount other = (SzEntityRelationsCount) obj;
-        return relationsCount == other.relationsCount && entityCount == other.entityCount;
+        return relationsCount == other.relationsCount
+                && entityCount == other.entityCount;
     }
 }

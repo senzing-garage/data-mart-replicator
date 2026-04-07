@@ -22,7 +22,8 @@ public class SzReportRelation implements Serializable {
     private SzReportEntity relatedEntity = null;
 
     /**
-     * The {@link SzRelationType} describing the relationship type for the relation.
+     * The {@link SzRelationType} describing the relationship type for the
+     * relation.
      */
     private SzRelationType relationType = null;
 
@@ -48,18 +49,22 @@ public class SzReportRelation implements Serializable {
     }
 
     /**
-     * Gets the {@link SzReportEntity} describing the first entity in the relationship.
+     * Gets the {@link SzReportEntity} describing the first entity in the
+     * relationship.
      * 
-     * @return The {@link SzReportEntity} describing the first entity in the relationship.
+     * @return The {@link SzReportEntity} describing the first entity in the
+     *         relationship.
      */
     public SzReportEntity getEntity() {
         return this.entity;
     }
 
     /**
-     * Sets the {@link SzReportEntity} describing the first entity in the relationship.
+     * Sets the {@link SzReportEntity} describing the first entity in the
+     * relationship.
      * 
-     * @param entity The {@link SzReportEntity} describing the first entity in the
+     * @param entity The {@link SzReportEntity} describing the first entity in
+     *        the
      *               relationship.
      */
     public void setEntity(SzReportEntity entity) {
@@ -67,7 +72,8 @@ public class SzReportRelation implements Serializable {
     }
 
     /**
-     * Gets the {@link SzReportEntity} describing the second entity in the relationship.
+     * Gets the {@link SzReportEntity} describing the second entity in the
+     * relationship.
      * 
      * @return The {@link SzReportEntity} describing the second entity in the
      *         relationship.
@@ -77,9 +83,11 @@ public class SzReportRelation implements Serializable {
     }
 
     /**
-     * Sets the {@link SzReportEntity} describing the second entity in the relationship.
+     * Sets the {@link SzReportEntity} describing the second entity in the
+     * relationship.
      * 
-     * @param related The {@link SzReportEntity} describing the second entity in the
+     * @param related The {@link SzReportEntity} describing the second entity in
+     *        the
      *                relationship.
      */
     public void setRelatedEntity(SzReportEntity related) {
@@ -90,7 +98,8 @@ public class SzReportRelation implements Serializable {
      * Gets the {@link SzRelationType} describing the relationship type for the
      * relation.
      * 
-     * @return The {@link SzRelationType} describing the relationship type for the
+     * @return The {@link SzRelationType} describing the relationship type for
+     *         the
      *         relation.
      */
     @JsonInclude(NON_NULL)
@@ -102,7 +111,8 @@ public class SzReportRelation implements Serializable {
      * Sets the {@link SzRelationType} describing the relationship type for the
      * relation.
      * 
-     * @param relationType The {@link SzRelationType} describing the relationship
+     * @param relationType The {@link SzRelationType} describing the
+     *        relationship
      *                     type for the relation.
      */
     public void setRelationType(SzRelationType relationType) {
@@ -148,7 +158,8 @@ public class SzReportRelation implements Serializable {
     }
 
     /**
-     * Overridden to return a diagnostic {@link String} describing this instance.
+     * Overridden to return a diagnostic {@link String} describing this
+     * instance.
      * 
      * @return A diagnostic {@link String} describing this instance.
      */
@@ -162,23 +173,29 @@ public class SzReportRelation implements Serializable {
     }
 
     /**
-     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
+     * Overridden to return a hash code consistent with the {@link
+     * #equals(Object)}
      * implementation.
      * 
      * @return The hash code for this instance.
      */
     @Override
     public int hashCode() {
-        return Objects.hash(entity, relatedEntity, relationType, matchKey, principle);
+        return Objects.hash(entity, relatedEntity,
+                            relationType, matchKey,
+                            principle);
     }
 
     /**
-     * Overridden to return <code>true</code> if and only if the specified parameter
+     * Overridden to return <code>true</code> if and only if the specified
+     * parameter
      * is an instance of the same class with equivalent properties.
      * 
      * @param obj The object to compare with.
-     * @return <code>true</code> if the specified parameter is an instance of the 
-     *         same class with equivalent properties, otherwise <code>false</code>.
+     * @return <code>true</code> if the specified parameter is an instance of
+     *         the
+     *         same class with equivalent properties, otherwise
+     *         <code>false</code>.
      */
     @Override
     public boolean equals(Object obj) {
@@ -189,8 +206,12 @@ public class SzReportRelation implements Serializable {
             return false;
         }
         SzReportRelation other = (SzReportRelation) obj;
-        return Objects.equals(entity, other.entity) && Objects.equals(relatedEntity, other.relatedEntity)
-                && relationType == other.relationType && Objects.equals(matchKey, other.matchKey)
+        return Objects.equals(entity, other.entity)
+                && Objects.equals(
+                    relatedEntity, other.relatedEntity)
+                && relationType == other.relationType
+                && Objects.equals(
+                    matchKey, other.matchKey)
                 && Objects.equals(principle, other.principle);
     }
 }

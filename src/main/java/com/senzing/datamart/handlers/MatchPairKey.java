@@ -21,8 +21,8 @@ public final class MatchPairKey implements Comparable<MatchPairKey> {
     private String principle;
 
     /**
-     * Constructs with the specified match key and principle. Both of the parameters
-     * may be <code>null</code>.
+     * Constructs with the specified match key and principle.
+     * Both of the parameters may be <code>null</code>.
      *
      * @param matchKey  The match key for the relationships.
      * @param principle The principle for the relationships.
@@ -33,8 +33,8 @@ public final class MatchPairKey implements Comparable<MatchPairKey> {
     }
 
     /**
-     * Gets the match key. This may return <code>null</code> if constructed with a
-     * <code>null</code> match key.
+     * Gets the match key. This may return <code>null</code> if
+     * constructed with a <code>null</code> match key.
      * 
      * @return The associated match key, or <code>null</code> if no specific
      *         match key was associated.
@@ -65,9 +65,10 @@ public final class MatchPairKey implements Comparable<MatchPairKey> {
     }
 
     /**
-     * Checks if this instance is equal to the specified object. This is implemented
-     * to return <code>true</code> if and only if the specified value is a non-null
-     * reference to an object of the same class with equivalent properties.
+     * Checks if this instance is equal to the specified object.
+     * This is implemented to return <code>true</code> if and
+     * only if the specified value is a non-null reference to an
+     * object of the same class with equivalent properties.
      *
      * @param obj The object to compare with.
      */
@@ -88,16 +89,18 @@ public final class MatchPairKey implements Comparable<MatchPairKey> {
     }
 
     /**
-     * Implemented to handle comparing such that we sort first on principles and
-     * then on match keys with <code>null</code> values sorting less-than non-null
-     * values. If the specified parameter is <code>null</code> then this returns one
-     * (1).
-     * 
+     * Implemented to handle comparing such that we sort first on
+     * principles and then on match keys with <code>null</code>
+     * values sorting less-than non-null values. If the specified
+     * parameter is <code>null</code> then this returns
+     * one (1).
+     *
      * @param key The {@link MatchPairKey} to compare with.
-     * 
-     * @return A negative number if this instance compares less-than the specified
-     *         parameter, a positive number if it compares greater-than the
-     *         specified parameter and zero (0) if they compare equal.
+     *
+     * @return A negative number if this instance compares
+     *         less-than the specified parameter, a positive
+     *         number if it compares greater-than the specified
+     *         parameter and zero (0) if they compare equal.
      */
     @Override
     public int compareTo(MatchPairKey key) {
@@ -133,7 +136,8 @@ public final class MatchPairKey implements Comparable<MatchPairKey> {
     }
 
     /**
-     * Implemented to provide a diagnostic {@link String} describing this instance.
+     * Implemented to provide a diagnostic {@link String}
+     * describing this instance.
      *
      * @return A diagnostic {@link String} describing this instance.
      */

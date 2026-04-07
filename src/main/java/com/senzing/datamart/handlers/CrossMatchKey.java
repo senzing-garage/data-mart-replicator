@@ -34,7 +34,8 @@ public final class CrossMatchKey implements Comparable<CrossMatchKey> {
      *                  "from" and "to" data source.
      * @param matchKey  The optional match key associated with the match.
      * @param principle The optional principle associated with the match.
-     * @throws NullPointerException If the specified data source is <code>null</code>
+     * @throws NullPointerException If the specified data source
+     *                              is <code>null</code>
      */
     public CrossMatchKey(String source, String matchKey, String principle) 
         throws NullPointerException 
@@ -58,8 +59,10 @@ public final class CrossMatchKey implements Comparable<CrossMatchKey> {
                          String principle)
             throws NullPointerException 
     {
-        Objects.requireNonNull(source1, "The first data source cannot be null");
-        Objects.requireNonNull(source2, "The second data source cannot be null");
+        Objects.requireNonNull(
+                source1, "The first data source cannot be null");
+        Objects.requireNonNull(
+                source2, "The second data source cannot be null");
 
         this.source1 = source1;
         this.source2 = source2;
@@ -86,24 +89,24 @@ public final class CrossMatchKey implements Comparable<CrossMatchKey> {
     }
 
     /**
-     * Gets the match key associated with the match. This will return
-     * <code>null</code> if this instance was constructed with a <code>null</code>
-     * match key.
-     * 
-     * @return The match key associated with the match, or <code>null</code> if no
-     *         match key was associated.
+     * Gets the match key associated with the match. This will
+     * return <code>null</code> if this instance was constructed
+     * with a <code>null</code> match key.
+     *
+     * @return The match key associated with the match, or
+     *         <code>null</code> if no match key was associated.
      */
     public String getMatchKey() {
         return this.matchKey;
     }
 
     /**
-     * Gets the principle associated with the relationships. This will return
-     * <code>null</code> if this instance was constructed with a <code>null</code>
-     * principle.
-     * 
-     * @return The principle associated with the match, or <code>null</code> if no
-     *         match key was associated.
+     * Gets the principle associated with the relationships. This
+     * will return <code>null</code> if this instance was
+     * constructed with a <code>null</code> principle.
+     *
+     * @return The principle associated with the match, or
+     *         <code>null</code> if no match key was associated.
      */
     public String getPrinciple() {
         return this.principle;
@@ -116,13 +119,16 @@ public final class CrossMatchKey implements Comparable<CrossMatchKey> {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(this.getSource1(), this.getSource2(), this.getMatchKey(), this.getPrinciple());
+        return Objects.hash(this.getSource1(),
+                this.getSource2(), this.getMatchKey(),
+                this.getPrinciple());
     }
 
     /**
-     * Checks if this instance is equal to the specified object. This is implemented
-     * to return <code>true</code> if and only if the specified value is a non-null
-     * reference to an object of the same class with equivalent properties.
+     * Checks if this instance is equal to the specified object.
+     * This is implemented to return <code>true</code> if and
+     * only if the specified value is a non-null reference to an
+     * object of the same class with equivalent properties.
      *
      * @param obj The object to compare with.
      */
@@ -145,16 +151,18 @@ public final class CrossMatchKey implements Comparable<CrossMatchKey> {
     }
 
     /**
-     * Implemented to handle comparing such that we sort first on the associated
-     * data sources, then on principles and then on match keys with
-     * <code>null</code> values sorting less-than non-null values. If the specified
-     * parameter is <code>null</code> then this returns one (1).
-     * 
+     * Implemented to handle comparing such that we sort first on
+     * the associated data sources, then on principles and then
+     * on match keys with <code>null</code> values sorting
+     * less-than non-null values. If the specified parameter is
+     * <code>null</code> then this returns one (1).
+     *
      * @param key The {@link CrossMatchKey} to compare with.
-     * 
-     * @return A negative number if this instance compares less-than the specified
-     *         parameter, a positive number if it compares greater-than the
-     *         specified parameter and zero (0) if they compare equal.
+     *
+     * @return A negative number if this instance compares
+     *         less-than the specified parameter, a positive
+     *         number if it compares greater-than the specified
+     *         parameter and zero (0) if they compare equal.
      */
     @Override
     public int compareTo(CrossMatchKey key) {
@@ -202,7 +210,8 @@ public final class CrossMatchKey implements Comparable<CrossMatchKey> {
     }
 
     /**
-     * Implemented to provide a diagnostic {@link String} describing this instance.
+     * Implemented to provide a diagnostic {@link String}
+     * describing this instance.
      *
      * @return A diagnostic {@link String} describing this instance.
      */

@@ -28,13 +28,15 @@ public interface SchedulingService extends Quantified {
         INITIALIZING,
 
         /**
-         * The {@link SchedulingService} has completed initialization, but has not
+         * The {@link SchedulingService} has completed initialization, but has
+         * not
          * yet had a task scheduled and dispatched.
          */
         READY,
 
         /**
-         * The {@link SchedulingService} is actively scheduling and handling tasks.
+         * The {@link SchedulingService} is actively scheduling and handling
+         * tasks.
          */
         ACTIVE,
 
@@ -45,7 +47,8 @@ public interface SchedulingService extends Quantified {
         DESTROYING,
 
         /**
-         * The {@link SchedulingService} is no longer processing messages and has
+         * The {@link SchedulingService} is no longer processing messages and
+         * has
          * been destroyed.
          */
         DESTROYED;
@@ -54,9 +57,11 @@ public interface SchedulingService extends Quantified {
          * Checks if in this instance describes a state in which the
          * {@link SchedulingService} would allow tasks to be scheduled. The
          * states for which this returns <code>true</code> are {@link #READY}
-         * and {@link #ACTIVE}, for all other states it returns <code>false</code>.
+         * and {@link #ACTIVE}, for all other states it returns
+         * <code>false</code>.
          *
-         * @return <code>true</code> if a {@link SchedulingService} in this state
+         * @return <code>true</code> if a {@link SchedulingService} in this
+         *         state
          *         is available for tasks to be scheduled, otherwise
          *         <code>false</code>.
          */
@@ -96,7 +101,8 @@ public interface SchedulingService extends Quantified {
      * {@link TaskGroup}. The {@link TaskGroup} allows the caller to {@linkplain
      * TaskGroup#awaitCompletion() await completion} of the scheduled tasks. If
      * you want to schedule tasks that belong to different groups you can call
-     * this method multiple times since each returned {@link Scheduler} will have
+     * this method multiple times since each returned {@link Scheduler} will
+     * have
      * a different {@link TaskGroup}.
      *
      * @return A {@link Scheduler} instance that is backed by this instance.
@@ -106,9 +112,11 @@ public interface SchedulingService extends Quantified {
     }
 
     /**
-     * Creates a {@link Scheduler} to schedule standard <b>or</b> follow-up tasks
+     * Creates a {@link Scheduler} to schedule standard <b>or</b> follow-up
+     * tasks
      * with this scheduling service. If the specified parameter is
-     * <code>false</code> then the created {@link Scheduler} will create standard
+     * <code>false</code> then the created {@link Scheduler} will create
+     * standard
      * tasks and associate all scheduled tasks with a unique {@link TaskGroup}.
      * The {@link TaskGroup} allows the caller to {@linkplain
      * TaskGroup#awaitCompletion() await completion} of the scheduled tasks. If
@@ -116,10 +124,12 @@ public interface SchedulingService extends Quantified {
      * Scheduler} will schedule <b>follow-up</b> tasks that will eventually be
      * handled, but there will be no way blocking until those tasks complete. If
      * you want to schedule tasks that belong to different groups you can call
-     * this method multiple times with a <code>false</code> as the parameter since
+     * this method multiple times with a <code>false</code> as the parameter
+     * since
      * each returned {@link Scheduler} will have a different {@link TaskGroup}.
      *
-     * @param followUp <code>true</code> if the returned {@link Scheduler} should
+     * @param followUp <code>true</code> if the returned {@link Scheduler}
+     *        should
      *                 schedule follow-up tasks, and <code>false</code> if it
      *                 should schedule standard tasks that belong to a unique
      *                 {@link TaskGroup}.
@@ -144,11 +154,12 @@ public interface SchedulingService extends Quantified {
     LockingService getLockingService();
 
     /**
-     * Gets the (approximate) number of pending scheduled tasks (follow-up or otherwise).
+     * Gets the (approximate) number of pending scheduled tasks (follow-up or
+     * otherwise).
      * This returns <code>null</code> if the number cannot be determined.
      * 
      * @return The (approximate) number of pending scheduled tasks, or 
-     *         <code>null</code> if the number of pending tasks cannot be determined.
+     * <code>null</code> if the number of pending tasks cannot be determined.
      */
     default Long getAllRemainingTasksCount() {
         Long taskCount = this.getRemainingTasksCount();
@@ -209,7 +220,8 @@ public interface SchedulingService extends Quantified {
      * Prevents further tasks from being scheduled, handles any pending tasks,
      * persists any follow-up tasks that have not been persisted and releases
      * any resources that were allocated. This method transitions this instance
-     * to the {@link State#DESTROYING} state and then the {@link State#DESTROYED}
+     * to the {@link State#DESTROYING} state and then the {@link
+     * State#DESTROYED}
      * state.
      */
     void destroy();

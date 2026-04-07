@@ -51,36 +51,40 @@ public class RelationshipCounts {
   }
 
   /**
-   * Gets the count of records of the first data source to entities having records
-   * from the second data source. If the data sources differ and they are present
-   * on both sides of the relationship then this the sum of records from both
+   * Gets the count of records of the first data source to
+   * entities having records from the second data source. If
+   * the data sources differ and they are present on both sides
+   * of the relationship then this the sum of records from both
    * sides.
    *
-   * @return The count of records of the first data source to entities having
-   *         records from the second data source.
+   * @return The count of records of the first data source to
+   *         entities having records from the second data source.
    */
   public int getRecordCount() {
     return this.recordCount;
   }
 
   /**
-   * Sets the count of records of the first data source to entities having records
-   * from the second data source. If the data sources differ and they are present
-   * on both sides of the relationship then this the sum of records from both
+   * Sets the count of records of the first data source to
+   * entities having records from the second data source. If
+   * the data sources differ and they are present on both sides
+   * of the relationship then this the sum of records from both
    * sides.
    *
-   * @param count The count of records of the first data source to entities having
-   *              records from the second data source.
+   * @param count The count of records of the first data source
+   *              to entities having records from the second
+   *              data source.
    */
   public void setRecordCount(int count) {
     this.recordCount = count;
   }
 
   /**
-   * Increment the count of records of the first data source to entities having
-   * records from the second data source. If the data sources differ and they are
-   * present on both sides of the relationship then this the sum of records from
-   * both sides.
+   * Increment the count of records of the first data source to
+   * entities having records from the second data source. If
+   * the data sources differ and they are present on both sides
+   * of the relationship then this the sum of records from both
+   * sides.
    *
    * @param delta The delta by which to increment the record count.
    */
@@ -95,7 +99,9 @@ public class RelationshipCounts {
    */
   @Override
   public String toString() {
-    return "source1=[ " + this.getSource1() + " ], source2=[ " + this.getSource2() + " ], recordCount=[ "
-        + this.getRecordCount() + " ]";
+    return "source1=[ " + this.getSource1()
+        + " ], source2=[ " + this.getSource2()
+        + " ], recordCount=[ " + this.getRecordCount()
+        + " ]";
   }
 }

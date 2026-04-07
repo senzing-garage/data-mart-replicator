@@ -74,7 +74,10 @@ public interface SQLClient {
    * @param sqlList The list of SQL statements to execute.
    * @throws SQLException If a database error occurs.
    */
-  default void executeSqlStatements(Connection conn, List<String> sqlList) throws SQLException {
+  default void executeSqlStatements(Connection conn,
+                                    List<String> sqlList)
+      throws SQLException
+  {
     Statement stmt = null;
     try {
       stmt = conn.createStatement();
@@ -132,7 +135,10 @@ public interface SQLClient {
    * 
    * @throws SQLException If a database failure occurs.
    */
-  default void insertMessage(Connection conn, String messageText) throws SQLException {
+  default void insertMessage(Connection conn,
+                             String     messageText)
+      throws SQLException
+  {
     PreparedStatement ps = null;
     try {
       ps = conn.prepareStatement(
@@ -210,10 +216,10 @@ public interface SQLClient {
   }
 
   /**
-   * Selects the info message rows that were previously leased with the specified
-   * lease ID and returns a {@link List} of {@link LeasedMessage} instances
-   * describing
-   * the info message rows.
+   * Selects the info message rows that were previously leased
+   * with the specified lease ID and returns a {@link List} of
+   * {@link LeasedMessage} instances describing the info message
+   * rows.
    * 
    * @param conn    The {@link Connection} to use.
    * 

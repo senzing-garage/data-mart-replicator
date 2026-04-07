@@ -68,7 +68,8 @@ public class SzRelationKey implements Comparable<SzRelationKey>, Serializable {
             return false;
         }
         SzRelationKey key = (SzRelationKey) obj;
-        return this.getEntityId() == key.getEntityId() && this.getRelatedId() == key.getRelatedId();
+        return this.getEntityId() == key.getEntityId()
+                && this.getRelatedId() == key.getRelatedId();
     }
 
     /**
@@ -87,9 +88,10 @@ public class SzRelationKey implements Comparable<SzRelationKey>, Serializable {
      * entity ID (both in ascending order) with <code>null</code> values sorted
      * before non-null values.
      * 
-     * @return A negative number, zero (0) or a positive number depending on whether
-     *         this instance compares less-than, equal-to or greater-than the
-     *         specified instance, respectively.
+     * @return A negative number, zero (0) or a positive number
+     *         depending on whether this instance compares
+     *         less-than, equal-to or greater-than the specified
+     *         instance, respectively.
      */
     @Override
     public int compareTo(SzRelationKey key) {
@@ -115,11 +117,12 @@ public class SzRelationKey implements Comparable<SzRelationKey>, Serializable {
     }
 
     /**
-     * Implemented to format this instance as a relation bound value with the entity
-     * ID followed by the related ID, separated by a colon.
-     * 
-     * @return A relation bound value with the entity ID followed by the related ID,
-     *         separated by a colon.
+     * Implemented to format this instance as a relation bound
+     * value with the entity ID followed by the related ID,
+     * separated by a colon.
+     *
+     * @return A relation bound value with the entity ID
+     *         followed by the related ID, separated by a colon.
      */
     public String toString() {
         return this.getEntityId() + ":" + this.getRelatedId();
@@ -159,8 +162,10 @@ public class SzRelationKey implements Comparable<SzRelationKey>, Serializable {
             String part1 = text.substring(0, index).trim().toLowerCase();
             String part2 = text.substring(index + 1).trim().toLowerCase();
 
-            long entityId = "max".equals(part1) ? Long.MAX_VALUE : Long.parseLong(part1);
-            long relatedId = "max".equals(part2) ? Long.MAX_VALUE : Long.parseLong(part2);
+            long entityId = "max".equals(part1)
+                    ? Long.MAX_VALUE : Long.parseLong(part1);
+            long relatedId = "max".equals(part2)
+                    ? Long.MAX_VALUE : Long.parseLong(part2);
 
             return new SzRelationKey(entityId, relatedId);
 

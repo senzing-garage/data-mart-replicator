@@ -58,7 +58,8 @@ public abstract class AbstractLockingService implements LockingService {
         synchronized (this) {
             if (this.getState() != UNINITIALIZED) {
                 throw new IllegalStateException(
-                        "Cannot initialize if not in the " + UNINITIALIZED + " state: "
+                        "Cannot initialize if not in the "
+                                + UNINITIALIZED + " state: "
                                 + this.getState());
             }
             this.setState(INITIALIZING);
@@ -115,7 +116,8 @@ public abstract class AbstractLockingService implements LockingService {
     protected abstract void doDestroy();
 
     /**
-     * Overridden to validate the {@link State} of this instance and the specified
+     * Overridden to validate the {@link State} of this instance and the
+     * specified
      * {@link Set} before delegating to {@link #doAcquireLocks(List, long)} with
      * a sorted {@link List} of {@link ResourceKey} instances.
      *
@@ -126,7 +128,7 @@ public abstract class AbstractLockingService implements LockingService {
      *         the allotted time.
      * @throws ServiceExecutionException If a failure occurs in attempting to
      *                                   acquire the locks.
-     * @throws IllegalStateException     If the {@link State} of this instance is
+     * @throws IllegalStateException If the {@link State} of this instance is
      *                                   not {@link State#INITIALIZED}.
      */
     @Override
@@ -142,7 +144,8 @@ public abstract class AbstractLockingService implements LockingService {
         for (ResourceKey key : resourceKeys) {
             Objects.requireNonNull(
                     key, "The specified set of resource "
-                            + "keys cannot contain null elements: " + resourceKeys);
+                            + "keys cannot contain null"
+                            + " elements: " + resourceKeys);
         }
 
         synchronized (this) {
@@ -188,11 +191,12 @@ public abstract class AbstractLockingService implements LockingService {
      *
      * @throws NullPointerException      If the specified {@link LockToken} is
      *                                   <code>null</code>.
-     * @throws IllegalArgumentException  If the specified {@link LockToken} is not
+     * @throws IllegalArgumentException If the specified {@link LockToken} is
+     *         not
      *                                   recognized.
      * @throws ServiceExecutionException If a failure occurs in attempting to
      *                                   acquire the locks.
-     * @throws IllegalStateException     If the {@link State} of this instance is
+     * @throws IllegalStateException If the {@link State} of this instance is
      *                                   not {@link State#INITIALIZED} or {@link
      *                                   State#DESTROYING}.
      */
@@ -207,8 +211,10 @@ public abstract class AbstractLockingService implements LockingService {
             State state = this.getState();
             if (state != INITIALIZED && state != DESTROYING) {
                 throw new IllegalStateException(
-                        "The LockingService must be in either the " + INITIALIZED
-                                + " or " + DESTROYING + " state to release locks.");
+                        "The LockingService must be in"
+                                + " either the " + INITIALIZED
+                                + " or " + DESTROYING
+                                + " state to release locks.");
             }
         }
 
@@ -224,7 +230,8 @@ public abstract class AbstractLockingService implements LockingService {
      *
      * @return The number of resources whose locks were released.
      *
-     * @throws IllegalArgumentException  If the specified {@link LockToken} is not
+     * @throws IllegalArgumentException If the specified {@link LockToken} is
+     *         not
      *                                   recognized.
      * @throws ServiceExecutionException If a failure occurs in attempting to
      *                                   acquire the locks.

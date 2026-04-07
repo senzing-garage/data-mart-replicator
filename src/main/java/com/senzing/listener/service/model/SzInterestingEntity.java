@@ -11,16 +11,20 @@ import java.util.*;
  * array inside an element of the <code>INTERESTING_ENTITIES</code> array of an
  * INFO message.
  */
-public class SzInterestingEntity implements Serializable {
+public class SzInterestingEntity implements Serializable
+{
     /**
      * The JSON property key for serializing and deserializing the
-     * {@linkplain #getEntityId() entity ID property} for instances of this class.
+     * {@linkplain #getEntityId() entity ID property} for instances of this
+     * class.
      */
     public static final String ENTITY_ID_KEY = "entityId";
 
     /**
-     * The JSON property key for deserializing the {@linkplain #setEntityId(Long)
-     * entity ID property} when parsing raw Senzing INFO message JSON to construct
+     * The JSON property key for deserializing the {@linkplain
+     * #setEntityId(Long)
+     * entity ID property} when parsing raw Senzing INFO message JSON to
+     * construct
      * instances of this class.
      */
     public static final String RAW_ENTITY_ID_KEY = "ENTITY_ID";
@@ -32,7 +36,8 @@ public class SzInterestingEntity implements Serializable {
     public static final String DEGREES_KEY = "degrees";
 
     /**
-     * The JSON property key for deserializing the {@linkplain #setDegrees(Integer)
+     * The JSON property key for deserializing the {@linkplain
+     * #setDegrees(Integer)
      * degrees property} when parsing raw Senzing INFO message JSON to construct
      * instances of this class.
      */
@@ -45,7 +50,8 @@ public class SzInterestingEntity implements Serializable {
     public static final String FLAGS_KEY = "flags";
 
     /**
-     * The JSON property key for deserializing the {@linkplain #setFlags(Collection)
+     * The JSON property key for deserializing the {@linkplain
+     * #setFlags(Collection)
      * flags property} when parsing raw Senzing INFO message JSON to construct
      * instances of this class.
      */
@@ -61,7 +67,8 @@ public class SzInterestingEntity implements Serializable {
     /**
      * The JSON property key for deserializing the
      * {@linkplain #setSampleRecords(Collection) sample records property} when
-     * parsing raw Senzing INFO message JSON to construct instances of this class.
+     * parsing raw Senzing INFO message JSON to construct instances of this
+     * class.
      */
     public static final String RAW_SAMPLE_RECORDS_KEY = "SAMPLE_RECORDS";
 
@@ -81,7 +88,8 @@ public class SzInterestingEntity implements Serializable {
     private Set<String> flags;
 
     /**
-     * The {@link List} of {@link SzSampleRecord} instances describing the sample
+     * The {@link List} of {@link SzSampleRecord} instances describing the
+     * sample
      * records.
      */
     private List<SzSampleRecord> sampleRecords;
@@ -89,7 +97,8 @@ public class SzInterestingEntity implements Serializable {
     /**
      * Default constructor.
      */
-    public SzInterestingEntity() {
+    public SzInterestingEntity()
+    {
         this(null, null, null, null);
     }
 
@@ -98,20 +107,26 @@ public class SzInterestingEntity implements Serializable {
      * records.
      *
      * @param entityId      The entity ID for this instance.
-     * @param degrees       The number of degrees of separation for this instance.
+     * @param degrees The number of degrees of separation for this instance.
      * @param flags         The {@link Collection} of flags for this instance.
      * @param sampleRecords The {@link Collection} of {@link SzSampleRecord}
      *                      instances describing the sample records for this
      *                      instance.
      */
-    public SzInterestingEntity(Long entityId, Integer degrees, Collection<String> flags, Collection<SzSampleRecord> sampleRecords) {
+    public SzInterestingEntity(Long entityId,
+                               Integer degrees,
+                               Collection<String> flags,
+                               Collection<SzSampleRecord> sampleRecords)
+    {
         this.entityId = entityId;
         this.degrees = degrees;
 
-        this.flags = (flags == null) ? new LinkedHashSet<>() : new LinkedHashSet<>(flags);
+        this.flags = (flags == null) ? new LinkedHashSet<>()
+                : new LinkedHashSet<>(flags);
         this.flags.remove(null); // remove any null entries
 
-        this.sampleRecords = (sampleRecords == null) ? new LinkedList<>() : new ArrayList<>(sampleRecords);
+        this.sampleRecords = (sampleRecords == null) ? new LinkedList<>()
+                : new ArrayList<>(sampleRecords);
         this.sampleRecords.remove(null); // remove any null entries
     }
 
@@ -120,7 +135,8 @@ public class SzInterestingEntity implements Serializable {
      *
      * @return The entity ID for the interesting entity.
      */
-    public Long getEntityId() {
+    public Long getEntityId()
+    {
         return this.entityId;
     }
 
@@ -129,7 +145,8 @@ public class SzInterestingEntity implements Serializable {
      *
      * @param entityId The entity ID for the interesting entity.
      */
-    public void setEntityId(Long entityId) {
+    public void setEntityId(Long entityId)
+    {
         this.entityId = entityId;
     }
 
@@ -138,7 +155,8 @@ public class SzInterestingEntity implements Serializable {
      *
      * @return The degrees of separation for the interesting entity.
      */
-    public Integer getDegrees() {
+    public Integer getDegrees()
+    {
         return this.degrees;
     }
 
@@ -147,17 +165,20 @@ public class SzInterestingEntity implements Serializable {
      *
      * @param degrees The degrees of separation for the interesting entity.
      */
-    public void setDegrees(Integer degrees) {
+    public void setDegrees(Integer degrees)
+    {
         this.degrees = degrees;
     }
 
     /**
-     * Gets the flags for the sample record as an <b>unmodifiable</b> {@link Set}.
+     * Gets the flags for the sample record as an <b>unmodifiable</b> {@link
+     * Set}.
      *
      * @return The flags for the sample record as an <b>unmodifiable</b>
      *         {@link Set}.
      */
-    public Set<String> getFlags() {
+    public Set<String> getFlags()
+    {
         return Collections.unmodifiableSet(this.flags);
     }
 
@@ -167,43 +188,50 @@ public class SzInterestingEntity implements Serializable {
      *
      * @param flags The {@link Collection} of flags.
      */
-    public void setFlags(Collection<String> flags) {
+    public void setFlags(Collection<String> flags)
+    {
         this.flags.clear();
-        if (flags != null) {
+        if (flags != null)
+        {
             this.flags.addAll(flags);
         }
     }
 
     /**
-     * Adds the specified flag to the {@link Set} of flags for this sample record.
+     * Adds the specified flag to the {@link Set} of flags for this sample
+     * record.
      *
      * @param flag The flag to add to the {@link Set} of flags for this sample
      *             record.
      */
-    public void addFlag(String flag) {
+    public void addFlag(String flag)
+    {
         Objects.requireNonNull(flag, "The specified flag cannot be null");
         this.flags.add(flag);
     }
 
     /**
-     * Gets the sample records for the interesting entity as an <b>unmodifiable</b>
+     * Gets the sample records for the interesting entity as an
+     * <b>unmodifiable</b>
      * {@link List} of {@link SzSampleRecord}.
      *
      * @return The sample records for the interesting entity as an
      *         <b>unmodifiable</b> {@link List} of {@link SzSampleRecord}.
      */
-    public List<SzSampleRecord> getSampleRecords() {
+    public List<SzSampleRecord> getSampleRecords()
+    {
         return Collections.unmodifiableList(this.sampleRecords);
     }
 
     /**
-     * Sets the sample records for the interesting entity to those in the specified
-     * {@link Collection}.
+     * Sets the sample records for the interesting entity to those in the
+     * specified {@link Collection}.
      *
      * @param sampleRecords The {@link Collection} of {@link SzSampleRecord}
      *                      instances.
      */
-    public void setSampleRecords(Collection<SzSampleRecord> sampleRecords) {
+    public void setSampleRecords(Collection<SzSampleRecord> sampleRecords)
+    {
         this.sampleRecords.clear();
         if (sampleRecords != null) {
             this.sampleRecords.addAll(sampleRecords);
@@ -215,51 +243,59 @@ public class SzInterestingEntity implements Serializable {
      * {@link SzSampleRecord} to the {@link List} of sample records for this
      * instance.
      *
-     * @param sampleRecord The {@link SzSampleRecord} describing the sample record
+     * @param sampleRecord The {@link SzSampleRecord} describing the sample
+     *        record
      *                     to add to this interesting entity.
      */
-    public void addSampleRecord(SzSampleRecord sampleRecord) {
-        Objects.requireNonNull(sampleRecord, "The specified sample record cannot be null");
+    public void addSampleRecord(SzSampleRecord sampleRecord)
+    {
+        Objects.requireNonNull(sampleRecord,
+                "The specified sample record cannot be null");
         this.sampleRecords.add(sampleRecord);
     }
 
     /**
-     * Overridden to return <code>true</code> if and only if the specified parameter
+     * Overridden to return <code>true</code> if and only if the specified
+     * parameter
      * is an instance of the same class with equivalent properties.
      * 
      * @param o The object to compare with.
-     * @return <code>true</code> if the specified parameter is an instance of the
-     *         same class with equivalent properties, otherwise <code>false</code>.
+     * @return <code>true</code> if the specified parameter is an instance of
+     *         the
+     * same class with equivalent properties, otherwise <code>false</code>.
      */
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || this.getClass() != o.getClass()) {
-            return false;
-        }
+    public boolean equals(Object o)
+    {
+        if (this == o) { return true; }
+        if (o == null || this.getClass() != o.getClass()) { return false; }
         SzInterestingEntity that = (SzInterestingEntity) o;
         return Objects.equals(this.getEntityId(), that.getEntityId())
                 && Objects.equals(this.getDegrees(), that.getDegrees())
                 && Objects.equals(this.getFlags(), that.getFlags())
-                && Objects.equals(this.getSampleRecords(), that.getSampleRecords());
+                && Objects.equals(this.getSampleRecords(),
+                        that.getSampleRecords());
     }
 
     /**
-     * Overridden to return a hash code consistent with the {@link #equals(Object)}
+     * Overridden to return a hash code consistent with the {@link
+     * #equals(Object)}
      * implementation.
      * 
      * @return The hash code for this instance.
      */
     @Override
-    public int hashCode() {
-        return Objects.hash(this.getEntityId(), this.getDegrees(), this.getFlags(), this.getSampleRecords());
+    public int hashCode()
+    {
+        return Objects.hash(this.getEntityId(), this.getDegrees(),
+                this.getFlags(), this.getSampleRecords());
     }
 
     /**
-     * Serializes this instance as JSON to the specified {@link JsonObjectBuilder}.
-     * If the specified {@link JsonObjectBuilder} is <code>null</code> then a new
+     * Serializes this instance as JSON to the specified {@link
+     * JsonObjectBuilder}.
+     * If the specified {@link JsonObjectBuilder} is <code>null</code> then a
+     * new
      * instance is created, populated and then returned.
      *
      * @param builder The optional {@link JsonObjectBuilder} to use, or
@@ -270,21 +306,25 @@ public class SzInterestingEntity implements Serializable {
      * @see #toJsonObjectBuilder()
      * @see #toJsonObject()
      */
-    public JsonObjectBuilder toJsonObjectBuilder(JsonObjectBuilder builder) {
-        if (builder == null) {
+    public JsonObjectBuilder toJsonObjectBuilder(JsonObjectBuilder builder)
+    {
+        if (builder == null)
+        {
             builder = Json.createObjectBuilder();
         }
         JsonUtilities.add(builder, ENTITY_ID_KEY, this.getEntityId());
         JsonUtilities.add(builder, DEGREES_KEY, this.getDegrees());
 
         JsonArrayBuilder jab = Json.createArrayBuilder();
-        for (String flag : this.getFlags()) {
+        for (String flag : this.getFlags())
+        {
             JsonUtilities.add(jab, flag);
         }
         builder.add(FLAGS_KEY, jab);
 
         jab = Json.createArrayBuilder();
-        for (SzSampleRecord record : this.getSampleRecords()) {
+        for (SzSampleRecord record : this.getSampleRecords())
+        {
             jab.add(record.toJsonObjectBuilder());
         }
         builder.add(SAMPLE_RECORDS_KEY, jab);
@@ -301,50 +341,61 @@ public class SzInterestingEntity implements Serializable {
      * @see #toJsonObjectBuilder(JsonObjectBuilder)
      * @see #toJsonObject()
      */
-    public JsonObjectBuilder toJsonObjectBuilder() {
+    public JsonObjectBuilder toJsonObjectBuilder()
+    {
         return this.toJsonObjectBuilder(null);
     }
 
     /**
-     * Serializes this instance as JSON to a new {@link JsonObject} and returns the
+     * Serializes this instance as JSON to a new {@link JsonObject} and returns
+     * the
      * created {@link JsonObject}.
      *
-     * @return The {@link JsonObject} that was created to describe the serialized
+     * @return The {@link JsonObject} that was created to describe the
+     *         serialized
      *         form of this instance.
      *
      * @see #toJsonObjectBuilder(JsonObjectBuilder)
      * @see #toJsonObjectBuilder()
      */
-    public JsonObject toJsonObject() {
+    public JsonObject toJsonObject()
+    {
         return this.toJsonObjectBuilder().build();
     }
 
     /**
-     * Serializes this instance as JSON text and returns the JSON text, optionally
+     * Serializes this instance as JSON text and returns the JSON text,
+     * optionally
      * pretty-printing the generated JSON.
      *
-     * @param prettyPrint <code>true</code> if the JSON should be pretty-printed,
+     * @param prettyPrint <code>true</code> if the JSON should be
+     *        pretty-printed,
      *                    otherwise <code>false</code> for more efficient JSON.
      * @return The JSON text that was generated.
      */
-    public String toJsonText(boolean prettyPrint) {
+    public String toJsonText(boolean prettyPrint)
+    {
         return JsonUtilities.toJsonText(this.toJsonObject(), prettyPrint);
     }
 
     /**
-     * Serializes this instance as JSON text and returns the JSON text. The returned
+     * Serializes this instance as JSON text and returns the JSON text. The
+     * returned
      * JSON should <b>not</b> be pretty-printed.
      *
      * @return The JSON text that was generated.
      */
-    public String toJsonText() {
+    public String toJsonText()
+    {
         return this.toJsonText(false);
     }
 
     /**
      * Parses the specified JSON text that is formatted as if generated by
-     * {@linkplain #toJsonText() serializing} an instance of this class and creates
-     * a new instance of this class as described by the JSON. If the required JSON
+     * {@linkplain #toJsonText() serializing} an instance of this class and
+     * creates
+     * a new instance of this class as described by the JSON. If the required
+     * JSON
      * properties are not found then an exception is thrown.
      *
      * @param jsonText The JSON text to parse.
@@ -352,36 +403,45 @@ public class SzInterestingEntity implements Serializable {
      * @return The created {@link SzInterestingEntity} instance, or
      *         <code>null</code> if the specified text is <code>null</code>.
      *
-     * @throws IllegalArgumentException If the specified text is not valid JSON or
+     * @throws IllegalArgumentException If the specified text is not valid JSON
+     *         or
      *                                  does not contain the required JSON
      *                                  properties.
      */
-    public static SzInterestingEntity fromJson(String jsonText) throws IllegalArgumentException {
-        if (jsonText == null) {
-            return null;
-        }
+    public static SzInterestingEntity fromJson(String jsonText)
+        throws IllegalArgumentException
+    {
+        if (jsonText == null) { return null; }
         return fromJson(JsonUtilities.parseJsonObject(jsonText));
     }
 
     /**
-     * Parses the JSON described by the specified {@link JsonObject} where that JSON
-     * is formatted as if generated by {@linkplain #toJsonObject() serializing} an
-     * instance of this class and creates a new instance of this class as described
-     * by the JSON. If the required JSON properties are not found then an exception
+     * Parses the JSON described by the specified {@link JsonObject} where that
+     * JSON
+     * is formatted as if generated by {@linkplain #toJsonObject() serializing}
+     * an
+     * instance of this class and creates a new instance of this class as
+     * described
+     * by the JSON. If the required JSON properties are not found then an
+     * exception
      * is thrown.
      *
      * @param jsonObject The {@link JsonObject} describing the JSON to parse.
      *
      * @return The created {@link SzInterestingEntity} instance, or
-     *         <code>null</code> if the specified parameter is <code>null</code>.
+     * <code>null</code> if the specified parameter is <code>null</code>.
      *
-     * @throws IllegalArgumentException If the specified text is not valid JSON or
+     * @throws IllegalArgumentException If the specified text is not valid JSON
+     *         or
      *                                  does not contain the required JSON
      *                                  properties.
      *
      */
-    public static SzInterestingEntity fromJson(JsonObject jsonObject) throws IllegalArgumentException {
-        return fromJson(jsonObject, ENTITY_ID_KEY, DEGREES_KEY, FLAGS_KEY, SAMPLE_RECORDS_KEY, false);
+    public static SzInterestingEntity fromJson(JsonObject jsonObject)
+        throws IllegalArgumentException
+    {
+        return fromJson(jsonObject, ENTITY_ID_KEY, DEGREES_KEY, FLAGS_KEY,
+                SAMPLE_RECORDS_KEY, false);
     }
 
     /**
@@ -395,35 +455,43 @@ public class SzInterestingEntity implements Serializable {
      * @return The created {@link SzInterestingEntity} instance, or
      *         <code>null</code> if the specified text is <code>null</code>.
      *
-     * @throws IllegalArgumentException If the specified text is not valid JSON or
+     * @throws IllegalArgumentException If the specified text is not valid JSON
+     *         or
      *                                  does not contain the required JSON
      *                                  properties.
      */
-    public static SzInterestingEntity fromRawJson(String jsonText) throws IllegalArgumentException {
-        if (jsonText == null) {
-            return null;
-        }
+    public static SzInterestingEntity fromRawJson(String jsonText)
+        throws IllegalArgumentException
+    {
+        if (jsonText == null) { return null; }
         return fromRawJson(JsonUtilities.parseJsonObject(jsonText));
     }
 
     /**
-     * Parses the JSON described by the specified {@link JsonObject} where that JSON
-     * is formatted as a raw Senzing INFO message part and creates a new instance of
-     * this class as described by the JSON. If the required JSON properties are not
+     * Parses the JSON described by the specified {@link JsonObject} where that
+     * JSON
+     * is formatted as a raw Senzing INFO message part and creates a new
+     * instance of
+     * this class as described by the JSON. If the required JSON properties are
+     * not
      * found then an exception is thrown.
      *
      * @param jsonObject The {@link JsonObject} describing the JSON to parse.
      *
      * @return The created {@link SzInterestingEntity} instance, or
-     *         <code>null</code> if the specified parameter is <code>null</code>.
+     * <code>null</code> if the specified parameter is <code>null</code>.
      *
-     * @throws IllegalArgumentException If the specified text is not valid JSON or
+     * @throws IllegalArgumentException If the specified text is not valid JSON
+     *         or
      *                                  does not contain the required JSON
      *                                  properties.
      *
      */
-    public static SzInterestingEntity fromRawJson(JsonObject jsonObject) throws IllegalArgumentException {
-        return fromJson(jsonObject, RAW_ENTITY_ID_KEY, RAW_DEGREES_KEY, RAW_FLAGS_KEY, RAW_SAMPLE_RECORDS_KEY, true);
+    public static SzInterestingEntity fromRawJson(JsonObject jsonObject)
+        throws IllegalArgumentException
+    {
+        return fromJson(jsonObject, RAW_ENTITY_ID_KEY, RAW_DEGREES_KEY,
+                RAW_FLAGS_KEY, RAW_SAMPLE_RECORDS_KEY, true);
     }
 
     /**
@@ -431,7 +499,7 @@ public class SzInterestingEntity implements Serializable {
      * {@link JsonObject} using the specified JSON property keys for the various
      * parts.
      *
-     * @param jsonObject       The {@link JsonObject} describing the JSON to parse.
+     * @param jsonObject The {@link JsonObject} describing the JSON to parse.
      *
      * @param entityIdKey      The JSON property key for the entity ID property.
      *
@@ -447,21 +515,30 @@ public class SzInterestingEntity implements Serializable {
      *                         the serialized form from this class.
      *
      * @return The created {@link SzInterestingEntity} instance, or
-     *         <code>null</code> if the specified parameter is <code>null</code>.
+     * <code>null</code> if the specified parameter is <code>null</code>.
      *
-     * @throws IllegalArgumentException If the specified text is not valid JSON or
+     * @throws IllegalArgumentException If the specified text is not valid JSON
+     *         or
      *                                  does not contain the required JSON
      *                                  properties.
      *
      */
-    private static SzInterestingEntity fromJson(JsonObject jsonObject, String entityIdKey, String degreesKey, String flagsKey, String sampleRecordsKey, boolean rawJson) throws IllegalArgumentException {
-        if (jsonObject == null) {
-            return null;
-        }
-        if (!jsonObject.containsKey(entityIdKey) || !jsonObject.containsKey(degreesKey)) {
-            throw new IllegalArgumentException("The specified JSON must contain the \"" + entityIdKey + "\" and \""
-                    + degreesKey + "\" properties: "
-                    + JsonUtilities.toJsonText(jsonObject));
+    private static SzInterestingEntity fromJson(JsonObject jsonObject,
+                                                String entityIdKey,
+                                                String degreesKey,
+                                                String flagsKey,
+                                                String sampleRecordsKey,
+                                                boolean rawJson)
+        throws IllegalArgumentException
+    {
+        if (jsonObject == null) { return null; }
+        if (!jsonObject.containsKey(entityIdKey)
+                || !jsonObject.containsKey(degreesKey))
+        {
+            throw new IllegalArgumentException(
+                    "The specified JSON must contain the \"" + entityIdKey
+                            + "\" and \"" + degreesKey + "\" properties: "
+                            + JsonUtilities.toJsonText(jsonObject));
         }
 
         Long entityId = JsonUtilities.getLong(jsonObject, entityIdKey);
@@ -471,14 +548,17 @@ public class SzInterestingEntity implements Serializable {
         // absent flags key treated as null, constructor normalizes to empty
         List<String> flags = JsonUtilities.getStrings(jsonObject, flagsKey);
 
-        // absent sample records key treated as null, constructor normalizes to empty
-        JsonArray arr = JsonUtilities.getJsonArray(jsonObject, sampleRecordsKey);
+        // absent sample records key treated as null, constructor normalizes to
+        // empty
+        JsonArray arr = JsonUtilities.getJsonArray(jsonObject,
+                sampleRecordsKey);
         List<SzSampleRecord> sampleRecords = null;
-        if (arr != null) {
+        if (arr != null)
+        {
             sampleRecords = new ArrayList<>(arr.size());
-            for (JsonObject obj : arr.getValuesAs(JsonObject.class)) {
-                sampleRecords.add(rawJson
-                        ? SzSampleRecord.fromRawJson(obj)
+            for (JsonObject obj : arr.getValuesAs(JsonObject.class))
+            {
+                sampleRecords.add(rawJson ? SzSampleRecord.fromRawJson(obj)
                         : SzSampleRecord.fromJson(obj));
             }
         }
@@ -491,7 +571,8 @@ public class SzInterestingEntity implements Serializable {
      *
      * @return The result from {@link #toJsonText()}.
      */
-    public String toString() {
+    public String toString()
+    {
         return this.toJsonText();
     }
 }

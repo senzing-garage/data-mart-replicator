@@ -16,8 +16,8 @@ import com.senzing.util.Quantified.Statistic;
  */
 public interface SzReplicationProvider {
     /**
-     * Enumerates many of the common task actions that a task handler will encounter
-     * for the data mart replicator.
+     * Enumerates many of the common task actions that a task
+     * handler will encounter for the data mart replicator.
      */
     enum TaskAction {
         /**
@@ -54,22 +54,25 @@ public interface SzReplicationProvider {
          * Update the entity relation breakdown report.
          */
         UPDATE_ENTITY_RELATION_BREAKDOWN
-    };
+    }
 
     /**
-     * Waits until the replication service is ready for handling tasks for at most
-     * the specified number of milliseconds. Specify a negative number of
-     * milliseconds to wait indefinitely or zero (0) to simply check if ready with
+     * Waits until the replication service is ready for handling
+     * tasks for at most the specified number of milliseconds.
+     * Specify a negative number of milliseconds to wait
+     * indefinitely or zero (0) to simply check if ready with
      * no waiting.
      *
-     * @param timeoutMillis The maximum number of milliseconds to wait for this task
-     *                      handler to become ready, a negative number to wait
-     *                      indefinitely, or zero (0) to simply poll without
-     *                      waiting.
+     * @param timeoutMillis The maximum number of milliseconds to
+     *                      wait for this task handler to become
+     *                      ready, a negative number to wait
+     *                      indefinitely, or zero (0) to simply
+     *                      poll without waiting.
      *
-     * @return {@link Boolean#TRUE} if ready to handle tasks, {@link Boolean#FALSE}
-     *         if not yet ready, and <code>null</code> if due to some failure we
-     *         will never be ready to handle tasks.
+     * @return {@link Boolean#TRUE} if ready to handle tasks,
+     *         {@link Boolean#FALSE} if not yet ready, and
+     *         <code>null</code> if due to some failure we will
+     *         never be ready to handle tasks.
      *
      * @throws InterruptedException If interrupted while waiting.
      */
@@ -85,28 +88,31 @@ public interface SzReplicationProvider {
     SzEnvironment getSzEnvironment();
 
     /**
-     * Gets the {@link ConnectionProvider} to use for connecting to the data mart
-     * database.
+     * Gets the {@link ConnectionProvider} to use for connecting
+     * to the data mart database.
      *
-     * @return The {@link ConnectionProvider} to use for connecting to the data mart
-     *         database.
+     * @return The {@link ConnectionProvider} to use for
+     *         connecting to the data mart database.
      */
     ConnectionProvider getConnectionProvider();
 
     /**
-     * Gets the {@link DatabaseType} to use for working with the data mart database.
+     * Gets the {@link DatabaseType} to use for working with the
+     * data mart database.
      *
-     * @return The {@link DatabaseType} to use for working with the data mart
-     *         database.
+     * @return The {@link DatabaseType} to use for working with
+     *         the data mart database.
      */
     DatabaseType getDatabaseType();
 
     /**
-     * Ensures the specified report update is scheduled to occur at some later time.
+     * Ensures the specified report update is scheduled to occur
+     * at some later time.
      *
-     * @param reportAction The task action for updating the report.
-     * @param reportKey    The report key for the report statistic that should be
-     *                     updated.
+     * @param reportAction The task action for updating the
+     *                     report.
+     * @param reportKey    The report key for the report statistic
+     *                     that should be updated.
      */
     void scheduleReportFollowUp(String reportAction, SzReportKey reportKey);
 
