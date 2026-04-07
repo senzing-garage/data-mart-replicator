@@ -1389,9 +1389,10 @@ public abstract class AbstractSchedulingService implements SchedulingService
                         = this.taskCollapseLookup
                             .get(signature);
                     if (scheduledTask != null) {
-                        // CSOFF
-                        logDebug("SCHEDULING TASK: ", task, "COLLAPSING WITH: ", scheduledTask);
-                        // CSON
+                        logDebug("SCHEDULING TASK: ",
+                                 task,
+                                 "COLLAPSING WITH: ",
+                                 scheduledTask);
 
                         // simply collapse with the existing scheduled task
                         scheduledTask.collapseWith(task);
@@ -1471,9 +1472,11 @@ public abstract class AbstractSchedulingService implements SchedulingService
             // wait for the designated duration
             this.timerStart(Stat.dequeueTaskWait);
             try {
-                // CSOFF
-                logDebug("SLEEPING BEFORE RETRIEVING " + (postponed ? "POSTPONED" : "FOLLOW-UP") + " TASK: " + timeout);
-                // CSON
+                logDebug("SLEEPING BEFORE RETRIEVING "
+                        + (postponed
+                           ? "POSTPONED"
+                           : "FOLLOW-UP")
+                        + " TASK: " + timeout);
                 this.wait(timeout);
 
             } catch (InterruptedException ignore) {
@@ -1497,9 +1500,10 @@ public abstract class AbstractSchedulingService implements SchedulingService
                 try {
                     task = this.getReadyPendingTask();
                 } catch (Exception e) {
-                    // CSOFF
-                    logWarning(e, "FAILED TO OBTAIN A TASK FROM THE PENDING QUEUE");
-                    // CSON
+                    logWarning(
+                        e,
+                        "FAILED TO OBTAIN A TASK "
+                        + "FROM THE PENDING QUEUE");
                 } finally {
                     this.timerPause(Stat.checkPending);
                 }
@@ -1510,9 +1514,12 @@ public abstract class AbstractSchedulingService implements SchedulingService
                 try {
                     task = this.getReadyPostponedTask();
                 } catch (Exception e) {
-                    // CSOFF
-                    logWarning(e, "FAILED TO OBTAIN A POSTPONED TASK, DEFERRING POSTPONED TASKS FOR NOW");
-                    // CSON
+                    logWarning(
+                        e,
+                        "FAILED TO OBTAIN A "
+                        + "POSTPONED TASK, DEFERRING"
+                        + " POSTPONED TASKS FOR"
+                        + " NOW");
                 } finally {
                     this.timerPause(Stat.checkPostponed);
                 }
@@ -1527,9 +1534,12 @@ public abstract class AbstractSchedulingService implements SchedulingService
                     // right away if we got an error
                     this.followUpNanoTime
                         = System.nanoTime();
-                    // CSOFF
-                    logWarning(e, "FAILED TO OBTAIN A FOLLOW-UP TASK, DEFERRING FOLLOW-UP TASKS FOR NOW");
-                    // CSON
+                    logWarning(
+                        e,
+                        "FAILED TO OBTAIN A "
+                        + "FOLLOW-UP TASK, DEFERRING"
+                        + " FOLLOW-UP TASKS FOR"
+                        + " NOW");
                 } finally {
                     this.timerPause(Stat.checkFollowUp);
                 }
@@ -2079,9 +2089,10 @@ public abstract class AbstractSchedulingService implements SchedulingService
                         try {
                             do {
                                 if (count > 0) {
-                                    // CSOFF
-                                    logInfo("****** STILL WAITING ON TASK HANDLER READINESS");
-                                    // CSON
+                                    logInfo(
+                                        "****** STILL WAITING"
+                                        + " ON TASK HANDLER"
+                                        + " READINESS");
                                 }
                                 count++;
                                 ready = taskHandler
@@ -2090,29 +2101,36 @@ public abstract class AbstractSchedulingService implements SchedulingService
                             } while (FALSE.equals(ready));
 
                         } catch (InterruptedException e) {
-                            // CSOFF
-                            logWarning("****** INTERRUPTED WHILE WAITING ON TASK HANDLER READINESS");
-                            System.err.println(e.getMessage());
-                            System.err.println(formatStackTrace(e.getStackTrace()));
-                            // CSON
+                            logWarning(
+                                "****** INTERRUPTED WHILE"
+                                + " WAITING ON TASK"
+                                + " HANDLER READINESS");
+                            System.err.println(
+                                e.getMessage());
+                            System.err.println(
+                                formatStackTrace(
+                                    e.getStackTrace()));
                             return;
                         }
 
                         // check if ready state indicates
                         // a failure
                         if (ready == null) {
-                            // CSOFF
-                            logWarning("****** TASK HANDLER HAS INDICATED A FAILURE PREVENTING READINESS (CHECK LOGS)");
-                            // CSON
+                            logWarning(
+                                "****** TASK HANDLER HAS"
+                                + " INDICATED A FAILURE"
+                                + " PREVENTING READINESS"
+                                + " (CHECK LOGS)");
                             return;
                         }
 
                         // check if ready state is false
                         // (should not get here)
                         if (FALSE.equals(ready)) {
-                            // CSOFF
-                            logWarning("****** TASK HANDLER NEVER BECAME READY TO HANDLE TASKS");
-                            // CSON
+                            logWarning(
+                                "****** TASK HANDLER"
+                                + " NEVER BECAME READY"
+                                + " TO HANDLE TASKS");
                             return;
                         }
 
@@ -2318,10 +2336,11 @@ public abstract class AbstractSchedulingService implements SchedulingService
             }
 
         } catch (Exception e) {
-            // CSOFF
-            System.err.println(e.getMessage());
-            System.err.println(formatStackTrace(e.getStackTrace()));
-            // CSON
+            System.err.println(
+                e.getMessage());
+            System.err.println(
+                formatStackTrace(
+                    e.getStackTrace()));
 
         } finally {
             // when done, close out the worker pool
@@ -2416,9 +2435,10 @@ public abstract class AbstractSchedulingService implements SchedulingService
             Timers        timers)
     {
         if (scheduledTask.isSuccessful() == null) {
-            // CSOFF
-            logWarning("Statistics recorded for incomplete task: ", scheduledTask);
-            // CSON
+            logWarning(
+                "Statistics recorded for "
+                + "incomplete task: ",
+                scheduledTask);
             return;
         }
         synchronized (this.getStatisticsMonitor()) {
@@ -2500,9 +2520,12 @@ public abstract class AbstractSchedulingService implements SchedulingService
                         this.followUpFailureCount += multiplicity;
                         break;
                     default:
-                        // CSOFF
-                        logWarning("UNEXPECTED POST-COMPLETION TASK STATE: " + task.getState(), task);
-                        // CSON
+                        logWarning(
+                            "UNEXPECTED "
+                            + "POST-COMPLETION "
+                            + "TASK STATE: "
+                            + task.getState(),
+                            task);
                     }
                 } else {
                     this.taskCompleteCount++;
@@ -2514,9 +2537,12 @@ public abstract class AbstractSchedulingService implements SchedulingService
                         this.taskFailureCount++;
                         break;
                     default:
-                        // CSOFF
-                        logWarning("UNEXPECTED POST-COMPLETION TASK STATE: " + task.getState(), task);
-                        // CSON
+                        logWarning(
+                            "UNEXPECTED "
+                            + "POST-COMPLETION "
+                            + "TASK STATE: "
+                            + task.getState(),
+                            task);
                     }
 
                     long taskTime = task.getRoundTripTime();

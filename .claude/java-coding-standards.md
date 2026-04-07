@@ -1,11 +1,11 @@
 <!-- markdownlint-disable MD013 -->
 # Java Coding Standards
 
-This document defines the Java formatting and coding style standards for
-this project. These standards are enforced by checkstyle (via the
-`-Pcheckstyle` Maven profile) and supplemented by the VSCode Java
-formatter where possible. Where the VSCode formatter's limitations produce
-incorrect formatting, manual correction or scripted correction is required.
+This document defines the Java formatting and coding style standards.
+These standards are enforced by checkstyle (via the `-Pcheckstyle`
+Maven profile) and supplemented by the VSCode Java formatter where
+possible. Where the VSCode formatter's limitations produce incorrect
+formatting, manual correction or scripted correction is required.
 
 ---
 
@@ -16,7 +16,7 @@ incorrect formatting, manual correction or scripted correction is required.
   - `package` and `import` statements
   - Lines containing URLs (`http://`, `https://`, `href`)
   - `static final` field declarations with generic type parameters
-    (e.g., `Map<String, Set<CommandLineOption>>`)
+    (e.g., `Map<String, Set<ConfigOption>>`)
 - Use `// CSOFF` before and `// CSON` after a line to suppress the
   line-length check when breaking the line would harm readability
   (see "Log Message Formatting" below).
@@ -37,14 +37,14 @@ callable units:
 - Constructor definitions
 
 ```java
-public class SzReplicator extends Thread
+public class OrderProcessor extends Thread
 {
     public void run()
     {
         // ...
     }
 
-    private static class InnerHelper
+    private static class BatchHelper
     {
         // ...
     }
@@ -159,10 +159,10 @@ opening parenthesis, names left-aligned on the first 4-space tab stop
 after the longest parameter type:
 
 ```java
-    public SzReportKey(SzReportCode         reportCode,
-                       SzReportStatistic    statistic,
-                       String               dataSource1,
-                       String               dataSource2)
+    public SearchResult(ResultCode      resultCode,
+                        QueryStatistic  statistic,
+                        String          dataSource1,
+                        String          dataSource2)
     {
         // ...
     }
@@ -175,9 +175,9 @@ from the method), types left-aligned vertically, names aligned on the
 first 4-space tab stop after the longest type:
 
 ```java
-    protected static void registerConnectionType(
-            String                          schemePrefix,
-            Class<? extends ConnectionUri>  urlClass)
+    protected static void registerProtocolHandler(
+            String                              schemePrefix,
+            Class<? extends ProtocolHandler>    handlerClass)
     {
         // ...
     }
@@ -191,8 +191,8 @@ Exception types appear on the same line if they all fit within 80
 characters:
 
 ```java
-    public void init(JsonObject config)
-        throws ServiceSetupException
+    public void initialize(JsonObject config)
+        throws ConfigurationException
     {
         // ...
     }
@@ -202,9 +202,9 @@ If multiple exception types don't fit on one line, place one per line
 with types left-aligned and a comma after all but the last:
 
 ```java
-    public void process(String data)
-        throws ServiceSetupException,
-               ServiceExecutionException,
+    public void processRecord(String data)
+        throws ConfigurationException,
+               ProcessingException,
                IOException
     {
         // ...
@@ -231,10 +231,10 @@ Break at `+` operators, with the `+` starting the continuation line:
 
 ```java
     throw new IllegalArgumentException(
-        "A second data source cannot be specified if "
-            + "the first data source is null.  reportCode=[ "
-            + reportCode + " ], dataSource1=[ "
-            + dataSource1 + " ]");
+        "Cannot specify a secondary value when "
+            + "the primary value is null.  primary=[ "
+            + primary + " ], secondary=[ "
+            + secondary + " ]");
 ```
 
 ### Ternary Operator
@@ -257,9 +257,9 @@ Break at `+` operators, with the `+` starting the continuation line:
 both `?` and `:`, with `:` aligned under `?`:
 
 ```java
-    SzMatchLevelCode matchLevelCode = (code == null)
+    StatusLevel statusLevel = (code == null)
         ? null
-        : SzMatchLevelCode.valueOf(code);
+        : StatusLevel.valueOf(code);
 ```
 
 **Tier 4: The value after `?` or `:` is itself a long expression** —
@@ -280,9 +280,9 @@ aligned/indented relative to the opening parenthesis:
 Break before `&&` and `||`:
 
 ```java
-    if (oldRelated.getMatchType() != newRelated.getMatchType()
-        || !oldRelated.getMatchKey().equals(newRelated.getMatchKey())
-        || !oldRelated.getPrinciple().equals(newRelated.getPrinciple()))
+    if (oldRecord.getStatus() != newRecord.getStatus()
+        || !oldRecord.getCategory().equals(newRecord.getCategory())
+        || !oldRecord.getPriority().equals(newRecord.getPriority()))
     {
         // ...
     }
@@ -336,26 +336,27 @@ This applies when:
 
 ```java
 // CSOFF
-logInfo("SzReplicator NOT found to be idle: ",
+logInfo("Server status report: ",
         " - - - - - - - - - - - - - - - - - - - - - - - ",
-        "    Remaining Messages : " + this.messageConsumer.getMessageCount(),
-        "    Message Idle Time  : " + ((System.nanoTime() - this.messageConsumer.getLastMessageNanoTime()) / ONE_MILLION) + "ms",
+        "    Pending Requests : " + this.queue.getPendingCount(),
+        "    Active Workers   : " + this.pool.getActiveCount(),
+        "    Idle Time        : " + ((System.nanoTime() - this.lastActivityNanos) / ONE_MILLION) + "ms",
         " - - - - - - - - - - - - - - - - - - - - - - - ");
 // CSON
 ```
 
-Notice how the labels (`"Remaining Messages"`,
-`"Message Idle Time"`) and the `":"` separators align vertically.
-Breaking these lines would destroy the visual alignment that makes
-the code readable.
+Notice how the labels (`"Pending Requests"`,
+`"Active Workers"`, `"Idle Time"`) and the `":"` separators
+align vertically. Breaking these lines would destroy the visual
+alignment that makes the code readable.
 
 **Not needed** — simple single-line log messages that happen to be
 long should be broken normally using string concatenation, not
 suppressed with CSOFF/CSON:
 
 ```java
-logWarning("Entity " + entityId
-    + " has unexpected match key: " + matchKey);
+logWarning("Record " + recordId
+    + " has unexpected status: " + status);
 ```
 
 ---
@@ -398,15 +399,14 @@ align with the start of the description text (not the tag keyword):
 
 ```java
     /**
-     * @param reportCode  The report code for the report.
-     * @param dataSource1 The first data source, or
-     *                    <code>null</code> if no first data
-     *                    source.
-     * @return The parsed report key, or <code>null</code> if
+     * @param category  The category for the report.
+     * @param startDate The start date, or <code>null</code>
+     *                  if no start date filter is applied.
+     * @return The generated report, or <code>null</code> if
      *         the specified parameter is <code>null</code> or
      *         an empty string.
-     * @throws IllegalArgumentException If the specified encoded
-     *         statistic is not a properly formatted statistic.
+     * @throws IllegalArgumentException If the specified category
+     *         is not a recognized report category.
      */
 ```
 
@@ -574,20 +574,20 @@ Priority 1: Everything on one line if it fits in 80 chars:
 Priority 2: Parameters aligned to opening paren, one per line,
 types aligned vertically, names on first 4-space tab stop after
 longest type:
-    public SzReportKey(SzReportCode      reportCode,
-                       String            statistic,
-                       String            dataSource)
+    public SearchResult(ResultCode  resultCode,
+                        String      category,
+                        String      dataSource)
 
 Priority 3: When paren-alignment exceeds 80 chars, double-indent
 parameters (8 spaces from method), types left-aligned, names on
 first 4-space tab stop after longest type:
-    protected static void registerType(
-            String                          schemePrefix,
-            Class<? extends ConnectionUri>  urlClass)
+    protected static void registerHandler(
+            String                            schemePrefix,
+            Class<? extends ProtocolHandler>   handlerClass)
 
 THROWS CLAUSE: Always on its own line, single-indented (4 spaces):
-    public void init(JsonObject config)
-        throws ServiceSetupException
+    public void initialize(JsonObject config)
+        throws ConfigurationException
 
 Opening brace always left-aligned with the method declaration start.
 
