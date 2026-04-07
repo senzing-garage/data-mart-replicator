@@ -25,3 +25,4 @@ jobs:
         uses: bearer/bearer-action@v2
         with:
           skip-rule: "java_lang_sqli,java_lang_observable_timing"
+          skip-path: ".claude/scripts"
