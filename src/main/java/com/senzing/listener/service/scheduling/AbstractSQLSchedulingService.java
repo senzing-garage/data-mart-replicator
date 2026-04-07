@@ -336,9 +336,10 @@ public abstract class AbstractSQLSchedulingService
             } else if (rowCount == 1) {
                 return true;
             } else {
-                // CSOFF
-                logError("MULTIPLE ROWS UPDATED FOR FOLLOW-UP TASK: ", task);
-                // CSON
+                logError(
+                    "MULTIPLE ROWS UPDATED "
+                    + "FOR FOLLOW-UP TASK: ",
+                    task);
                 throw new IllegalStateException(
                     "Somehow updated multiple "
                     + "rows when updating task "
@@ -432,10 +433,11 @@ public abstract class AbstractSQLSchedulingService
             ps = close(ps);
 
         } catch (SQLException e) {
-            // CSOFF
-            System.err.println(e.getMessage());
-            System.err.println(formatStackTrace(e.getStackTrace()));
-            // CSON
+            System.err.println(
+                e.getMessage());
+            System.err.println(
+                formatStackTrace(
+                    e.getStackTrace()));
             throw e;
 
         } finally {
@@ -585,10 +587,12 @@ public abstract class AbstractSQLSchedulingService
                 = this.getPendingTaskCount()
                 + this.getPostponedTaskCount();
             if (taskCount == 0) {
-                // CSOFF
-                logDebug("FOLLOW-UP LEASE: Foregoing full follow-up delay since "
-                        + "it appears there are no other tasks to handle.");
-                // CSON
+                logDebug(
+                    "FOLLOW-UP LEASE: Foregoing"
+                    + " full follow-up delay"
+                    + " since it appears there"
+                    + " are no other tasks to"
+                    + " handle.");
             }
             long followUpOffset
                 = (taskCount == 0)
@@ -835,9 +839,10 @@ public abstract class AbstractSQLSchedulingService
             boolean deleted = this.deleteFollowUpTask(conn, task);
 
             if (!deleted) {
-                // CSOFF
-                logWarning("WARNING: Follow-up task was already completed: ", task);
-                // CSON
+                logWarning(
+                    "WARNING: Follow-up task "
+                    + "was already completed: ",
+                    task);
             }
 
             // commit the transaction

@@ -611,20 +611,21 @@ public abstract class AbstractListenerService implements ListenerService
             scheduler.commit();
 
             // wait for the tasks to be completed
-            // CSOFF
-            logDebug("AWAITING COMPLETION ON TASK GROUP: " + taskGroup.getTaskCount());
-            // CSON
+            logDebug(
+                "AWAITING COMPLETION ON "
+                + "TASK GROUP: "
+                + taskGroup.getTaskCount());
             taskGroup.awaitCompletion();
-            // CSOFF
-            logDebug("COMPLETED TASK GROUP: " + taskGroup.getTaskCount());
-            // CSON
+            logDebug(
+                "COMPLETED TASK GROUP: "
+                + taskGroup.getTaskCount());
 
             // determine the state of the group
             TaskGroup.State groupState
                 = taskGroup.getState();
-            // CSOFF
-            logDebug("COMPLETED TASK GROUP STATE: " + groupState);
-            // CSON
+            logDebug(
+                "COMPLETED TASK GROUP STATE: "
+                + groupState);
             if (groupState == TaskGroup.State.SUCCESSFUL) {
                 return;
             }
@@ -635,10 +636,11 @@ public abstract class AbstractListenerService implements ListenerService
             if (failedTasks.size() == 1) {
                 Exception failure
                     = failedTasks.get(0).getFailure();
-                // CSOFF
-                System.err.println(failure.getMessage());
-                System.err.println(formatStackTrace(failure.getStackTrace()));
-                // CSON
+                System.err.println(
+                    failure.getMessage());
+                System.err.println(
+                    formatStackTrace(
+                        failure.getStackTrace()));
                 if (failure instanceof ServiceExecutionException) {
                     throw ((ServiceExecutionException)
                         failure);
@@ -656,10 +658,11 @@ public abstract class AbstractListenerService implements ListenerService
                     pw.println("--------------------"
                         + "--------------------");
                     pw.println(failedTask);
-                    // CSOFF
-                    System.err.println(failure.getMessage());
-                    System.err.println(formatStackTrace(failure.getStackTrace()));
-                    // CSON
+                    System.err.println(
+                        failure.getMessage());
+                    System.err.println(
+                        formatStackTrace(
+                            failure.getStackTrace()));
                     pw.println();
                 }
                 throw new ServiceExecutionException(
@@ -669,10 +672,11 @@ public abstract class AbstractListenerService implements ListenerService
             throw e;
 
         } catch (RuntimeException e) {
-            // CSOFF
-            System.err.println(e.getMessage());
-            System.err.println(formatStackTrace(e.getStackTrace()));
-            // CSON
+            System.err.println(
+                e.getMessage());
+            System.err.println(
+                formatStackTrace(
+                    e.getStackTrace()));
             throw new ServiceExecutionException(e);
         }
     }
