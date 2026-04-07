@@ -27,36 +27,41 @@ import static com.senzing.util.LoggingUtilities.*;
 /**
  * Provides Loaded Statistics Report functionality.
  */
-public final class LoadedStatsReports {
+public final class LoadedStatsReports
+{
     /**
      * Private default constructor.
      */
-    private LoadedStatsReports() {
+    private LoadedStatsReports()
+    {
         // do nothing
     }
 
     /**
-     * Gets all the count stats including total record count, total entity count and
-     * total unmatched record count along with a breakdown of record count, entity
-     * count and unmatched record count by data source.
+     * Gets all the count stats including total record count, total entity count
+     * and total unmatched record count along with a breakdown of record count,
+     * entity count and unmatched record count by data source.
      * 
      * <p>
-     * The statistics for data sources with loaded records are <b>ALWAYS</b> included
-     * in the report.  However, a {@link Set} of {@link String} data source codes can
-     * be specified for those data sources for which "zero" statistics should be included
-     * even if no records are loaded for those data sources.  <b>NOTE:</b> this will
-     * <b>NOT</b> filter statistics so that statistics for data sources with loaded
-     * records can be excluded.
+     * The statistics for data sources with loaded records are <b>ALWAYS</b>
+     * included in the report. However, a {@link Set} of {@link String} data
+     * source codes can be specified for those data sources for which "zero"
+     * statistics should be included even if no records are loaded for those
+     * data sources. <b>NOTE:</b> this will
+     * <b>NOT</b> filter statistics so that statistics for data sources with
+     * loaded records can be excluded.
      *
      * @param conn The non-null JDBC {@link Connection} to use.
      * 
-     * @param dataSources The optional {@link Set} of {@link String} data source codes
-     *                    for those data sources to be included in the statistics even
-     *                    if they have no records loaded, or <code>null</code> if the
-     *                    results should simply include statistics for data sources for
-     *                    which records have been loaded.
+     * @param dataSources The optional {@link Set} of {@link String} data source
+     *                    codes for those data sources to be included in the
+     *                    statistics even if they have no records loaded, or
+     *                    <code>null</code> if the results should simply include
+     *                    statistics for data sources for which records have
+     *                    been loaded.
      * 
-     * @param timers The optional {@link Timers} to track timing of the operation.
+     * @param timers The optional {@link Timers} to track timing of the
+     *               operation.
      * 
      * @return The {@link SzLoadedStats} describing the statistics.
      * 
@@ -86,7 +91,8 @@ public final class LoadedStatsReports {
                 
                 // prepare the total entity count query
                 ps = conn.prepareStatement(
-                    "SELECT SUM(entity_count) FROM sz_dm_report WHERE report=?");
+                    "SELECT SUM(entity_count) FROM sz_dm_report WHERE "
+                            + "report=?");
 
                 // bind the report code
                 ps.setString(1, ENTITY_SIZE_BREAKDOWN.getCode());
@@ -106,7 +112,8 @@ public final class LoadedStatsReports {
             }
 
             // create a map to keep track of the source stats
-            SortedMap<String, SzSourceLoadedStats> sourceStatsMap = new TreeMap<>();
+            SortedMap<String,
+                    SzSourceLoadedStats> sourceStatsMap = new TreeMap<>();
 
             // now get the source entity and record counts
             long totalRecordCount = 0L;
@@ -114,7 +121,8 @@ public final class LoadedStatsReports {
             queryingDatabase(timers, "selectCountsBySource");
             try {
                 // prepare the statement
-                ps = conn.prepareStatement("SELECT data_source1, entity_count, record_count "
+                ps = conn.prepareStatement(
+                        "SELECT data_source1, entity_count, record_count "
                         + "FROM sz_dm_report WHERE report=? AND statistic=? "
                         + "ORDER BY data_source1");
 
@@ -134,7 +142,8 @@ public final class LoadedStatsReports {
                     // increment the total record count
                     totalRecordCount += recordCount;
 
-                    SzSourceLoadedStats stats = new SzSourceLoadedStats(dataSource);
+                    SzSourceLoadedStats stats =
+                            new SzSourceLoadedStats(dataSource);
                     stats.setEntityCount(entityCount);
                     stats.setRecordCount(recordCount);
 
@@ -179,11 +188,14 @@ public final class LoadedStatsReports {
                     // increment the total record count
                     totalUnmatchedRecordCount += unmatchedCount;
 
-                    SzSourceLoadedStats stats = sourceStatsMap.remove(dataSource);
+                    SzSourceLoadedStats stats =
+                            sourceStatsMap.remove(dataSource);
                     if (stats == null) {
                         stats = new SzSourceLoadedStats(dataSource);
-                        logWarning("Missing entity and record count stats for data source, "
-                                   + "but got unmatched record count stats: " + dataSource);
+                        logWarning("Missing entity and record count stats for "
+                                + "data source, "
+                                   + "but got unmatched record count stats: "
+                                           + dataSource);
                     }
 
                     // set the unmatched record count
@@ -210,7 +222,8 @@ public final class LoadedStatsReports {
             if (unusedDataSources != null) {
                 // iterate over the unused data sources
                 unusedDataSources.forEach(dataSource -> {
-                    SzSourceLoadedStats stats = new SzSourceLoadedStats(dataSource);
+                    SzSourceLoadedStats stats =
+                            new SzSourceLoadedStats(dataSource);
                     stats.setEntityCount(0);
                     stats.setRecordCount(0);
                     stats.setUnmatchedRecordCount(0);
@@ -220,11 +233,16 @@ public final class LoadedStatsReports {
 
             // add the source stats to the result
             sourceStatsMap.values().forEach(stats -> {
-                if (unusedDataSources == null || !unusedDataSources.contains(stats.getDataSource())) {
-                    logWarning("Missing unmatched record count stats for data source (" 
-                                + stats.getDataSource() + "), but got entity and record "
+                if (unusedDataSources == null
+                    || !unusedDataSources.contains(stats.getDataSource()))
+                {
+                    logWarning("Missing unmatched record count stats for data "
+                            + "source ("
+                                + stats.getDataSource()
+                                        + "), but got entity and record "
                                 + "count stats:  dataSources=[ " + dataSources 
-                                + " ], unusedDataSources=[ " + unusedDataSources + " ]");
+                                + " ], unusedDataSources=[ " + unusedDataSources
+                                        + " ]");
                 }
                 result.addDataSourceCount(stats);
             });
@@ -239,32 +257,37 @@ public final class LoadedStatsReports {
     }
 
     /**
-     * Gets the {@link SzSourceLoadedStats} describing the record counts,
-     * entity counts and unmatched records for a specific data source.
+     * Gets the {@link SzSourceLoadedStats} describing the record counts, entity
+     * counts and unmatched records for a specific data source.
      * 
      * @param conn The non-null JDBC {@link Connection} to use.
      * 
      * @param dataSource The non-null data source code identifying the data
-     *                   source for which the count statistics are being requested.
+     *                   source for which the count statistics are being
+     *                   requested.
      * 
-     * @param timers The optional {@link Timers} to track timing of the operation.
+     * @param timers The optional {@link Timers} to track timing of the
+     *               operation.
      * 
-     * @return The {@link SzSourceLoadedStats} describing the record counts, 
-     *         entity counts and unmatched record counts for the specified 
-     *         data source.
+     * @return The {@link SzSourceLoadedStats} describing the record counts,
+     *             entity counts and unmatched record counts for the specified
+     *             data source.
      * 
      * @throws NullPointerException If either of the specified parameters is
      *                              <code>null</code>.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
-    public static SzSourceLoadedStats getSourceLoadedStatistics(Connection  conn,
-                                                                String      dataSource,
-                                                                Timers      timers) 
+    public static SzSourceLoadedStats
+        getSourceLoadedStatistics(
+            Connection  conn,
+            String      dataSource,
+            Timers      timers)
         throws NullPointerException, SQLException
     {
         Objects.requireNonNull(conn, "The connection cannot be null");
-        Objects.requireNonNull(dataSource, "The data source code cannot be null");
+        Objects.requireNonNull(dataSource,
+                "The data source code cannot be null");
         
         // get the connection
         PreparedStatement ps = null;
@@ -351,20 +374,21 @@ public final class LoadedStatsReports {
     }
 
     /**
-     * Retrieves a page of entity ID's for entities that have records loaded from
-     * the specified data source.
+     * Retrieves a page of entity ID's for entities that have records loaded
+     * from the specified data source.
      *
      * @param conn          The non-null JDBC {@link Connection} to use.
-     * @param dataSource    The non-null data source for which the entities
-     *                      are being retrieved.
+     * @param dataSource    The non-null data source for which the entities are
+     *                      being retrieved.
      * @param entityIdBound The bounded value for the returned entity ID's,
-     *                      formatted as an integer or the word <code>"max"</code>.
-     * @param boundType     The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                      formatted as an integer or the word
+     *                      <code>"max"</code>.
+     * @param boundType The {@link SzBoundType} that describes how to apply the
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
-     * @param sampleSize    The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     * @param sampleSize The optional number of results to randomly sample from
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * @param timers        The optional {@link Timers} to track timing of the
      *                      operation.
      * 
@@ -373,30 +397,37 @@ public final class LoadedStatsReports {
      * @throws NullPointerException If a required parameter is specified as
      *                              <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified page size or sample size
-     *                                  is less than one (1), or if the sample size
-     *                                  is specified and is greater-than or equal
-     *                                  to the sample size.
+     * @throws IllegalArgumentException If the specified page size or sample
+     *                                  size is less than one (1), or if the
+     *                                  sample size is specified and is
+     *                                  greater-than or equal to the sample
+     *                                  size.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
-    public static SzEntitiesPage getEntityIdsForDataSource(Connection   conn,
-                                                           String       dataSource,
-                                                           String       entityIdBound, 
-                                                           SzBoundType  boundType,
-                                                           Integer      pageSize,
-                                                           Integer      sampleSize,
-                                                           Timers       timers) 
-        throws NullPointerException, IllegalArgumentException, SQLException 
+    public static SzEntitiesPage
+        getEntityIdsForDataSource(
+            Connection  conn,
+            String      dataSource,
+            String      entityIdBound,
+            SzBoundType boundType,
+            Integer     pageSize,
+            Integer     sampleSize,
+            Timers      timers)
+        throws NullPointerException,
+               IllegalArgumentException,
+               SQLException
     {
         Objects.requireNonNull(conn, "The connection cannot be null");
         Objects.requireNonNull(dataSource, "The data source cannot be null");
 
         SzReportKey reportKey 
-            = new SzReportKey(DATA_SOURCE_SUMMARY, ENTITY_COUNT, dataSource, dataSource);
+            = new SzReportKey(DATA_SOURCE_SUMMARY, ENTITY_COUNT, dataSource,
+                    dataSource);
 
         return retrieveEntitiesPage(
-            conn, reportKey, entityIdBound, boundType, pageSize, sampleSize, timers);
+            conn, reportKey, entityIdBound, boundType, pageSize, sampleSize,
+                    timers);
     }
 
 }

@@ -3,7 +3,8 @@ package com.senzing.listener.communication;
 /**
  * Enumerates the supported consumer types.
  */
-public enum ConsumerType {
+public enum ConsumerType
+{
   /**
    * Uses for database message queue via <code>sz_message_queue</code> table.
    */

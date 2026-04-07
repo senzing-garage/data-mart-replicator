@@ -3,7 +3,8 @@ package com.senzing.listener.service.locking;
 /**
  * Enumerates the locking scopes.
  */
-public enum LockScope {
+public enum LockScope
+{
   /**
    * The lock was obtained for the current process and other processes on the
    * same host or on other hosts are unaware that the lock was obtained.
@@ -11,8 +12,8 @@ public enum LockScope {
   PROCESS,
 
   /**
-   * The lock was obtained on this host server and all processes on the
-   * same host server using the same {@link LockingService} with an equivalent
+   * The lock was obtained on this host server and all processes on the same
+   * host server using the same {@link LockingService} with an equivalent
    * configuration will be aware that the lock was obtained, but processes
    * running on other hosts are unaware of the lock. Such locks require some
    * level of interprocess communication within a single server such as using

@@ -17,11 +17,13 @@ import static com.senzing.util.LoggingUtilities.multilineFormat;
  * The startup options for the data mart replicator.
  */
 @SuppressWarnings("rawtypes")
-public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, SzReplicatorOption> {
+public enum SzReplicatorOption 
+        implements CommandLineOption<SzReplicatorOption, SzReplicatorOption>
+{
     /**
      * <p>
-     * Option for displaying help/usage for the replicator. This option can only be
-     * provided by itself and has no parameters.
+     * Option for displaying help/usage for the replicator. This option can only
+     * be provided by itself and has no parameters.
      * <p>
      * This option can be specified in the following ways:
      * <ul>
@@ -32,8 +34,8 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
 
     /**
      * <p>
-     * Option for displaying the version number of the replicator. This option can
-     * only be provided by itself and has no parameters.
+     * Option for displaying the version number of the replicator. This option
+     * can only be provided by itself and has no parameters.
      * <p>
      * This option can be specified in the following ways:
      * <ul>
@@ -44,10 +46,10 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
 
     /**
      * <p>
-     * Option for ignoring environment variables when setting the values for other
-     * command-line options. A single parameter may optionally be specified as
-     * <code>true</code> or <code>false</code> with <code>false</code> simulating
-     * the absence of the option.
+     * Option for ignoring environment variables when setting the values for
+     * other command-line options. A single parameter may optionally be
+     * specified as <code>true</code> or <code>false</code> with
+     * <code>false</code> simulating the absence of the option.
      * <p>
      * This option can be specified in the following ways:
      * <ul>
@@ -58,8 +60,9 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
 
     /**
      * <p>
-     * Option for specifying the module name to initialize the Senzing API's with.
-     * The default value is {@link SzReplicatorConstants#DEFAULT_INSTANCE_NAME}.
+     * Option for specifying the module name to initialize the Senzing API's
+     * with.  The default value is {@link
+     * SzReplicatorConstants#DEFAULT_INSTANCE_NAME}.
      * <p>
      * This option can be specified in the following ways:
      * <ul>
@@ -68,31 +71,37 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      * <code>SENZING_TOOLS_CORE_INSTANCE_NAME="{module-name}"</code></li>
      * </ul>
      */
-    CORE_INSTANCE_NAME("--core-instance-name", ENV_PREFIX + "CORE_INSTANCE_NAME", null, 1, DEFAULT_INSTANCE_NAME),
+    CORE_INSTANCE_NAME("--core-instance-name", 
+                       ENV_PREFIX + "CORE_INSTANCE_NAME",
+                       null, 1, DEFAULT_INSTANCE_NAME),
 
     /**
      * <p>
      * Option for specifying the core settings JSON with which to initialize the
-     * Core Senzing SDK. The parameter to this option should be the settings as a
-     * JSON object <b>or</b> the path to a file containing the settings JSON.
+     * Core Senzing SDK. The parameter to this option should be the settings as
+     * a JSON object <b>or</b> the path to a file containing the settings JSON.
      * <p>
      * This option requires {@link #DATABASE_URI} and one of the following info
      * queue options to be specified:
      * <ul>
      * <li>{@link #SQS_INFO_URI} (for Amazon SQS)</li>
-     * <li>{@link #RABBITMQ_URI} and {@link #RABBITMQ_INFO_QUEUE} (for RabbitMQ)</li>
+     * <li>{@link #RABBITMQ_URI} and {@link #RABBITMQ_INFO_QUEUE} 
+     *     (for RabbitMQ)</li>
      * <li>{@link #DATABASE_INFO_QUEUE} (for database queue)</li>
      * </ul>
      * <p>
      * This option can be specified in the following ways:
      * <ul>
-     * <li>Command Line: <code>--core-settings [{file-path}|{json-text}]</code></li>
+     * <li>Command Line: <code>--core-settings [{file-path}|{json-text}]
+     *     </code></li>
      * <li>Environment:
-     * <code>SENZING_TOOLS_CORE_SETTINGS="[{file-path}|{json-text}]"</code></li>
+     * <code>SENZING_TOOLS_CORE_SETTINGS="[{file-path}|{json-text}]"
+     *     </code></li>
      * </ul>
      */
-    CORE_SETTINGS("--core-settings", ENV_PREFIX + "CORE_SETTINGS", List.of("SENZING_ENGINE_CONFIGURATION_JSON"), true,
-            1),
+    CORE_SETTINGS("--core-settings", ENV_PREFIX + "CORE_SETTINGS",
+                  List.of("SENZING_ENGINE_CONFIGURATION_JSON"), true,
+                  1),
 
     /**
      * <p>
@@ -103,7 +112,8 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      * This option can be specified in the following ways:
      * <ul>
      * <li>Command Line: <code>--config-id {config-id}</code></li>
-     * <li>Environment: <code>SENZING_TOOLS_CORE_CONFIG_ID="{config-id}"</code></li>
+     * <li>Environment: <code>SENZING_TOOLS_CORE_CONFIG_ID="{config-id}"
+     *     </code></li>
      * </ul>
      */
     CORE_CONFIG_ID("--core-config-id", ENV_PREFIX + "CORE_CONFIG_ID", null, 1),
@@ -126,16 +136,19 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      * <li>Command Line:
      * <code>--core-log-level [muted|verbose|{integer}]</code></li>
      * <li>Environment:
-     * <code>SENZING_TOOLS_CORE_LOG_LEVEL="[muted|verbose|{integer}]"</code></li>
+     * <code>SENZING_TOOLS_CORE_LOG_LEVEL="[muted|verbose|{integer}]"
+     * </code></li>
      * </ul>
      */
-    CORE_LOG_LEVEL("--core-log-level", ENV_PREFIX + "CORE_LOG_LEVEL", null, 0, "muted"),
+    CORE_LOG_LEVEL("--core-log-level", 
+                   ENV_PREFIX + "CORE_LOG_LEVEL",
+                   null, 0, "muted"),
 
     /**
      * <p>
-     * This option sets the number of threads available for executing Core Senzing
-     * SDK functions. The single parameter to this option should be a positive
-     * integer. If not specified, then this defaults to
+     * This option sets the number of threads available for executing Core
+     * Senzing SDK functions. The single parameter to this option should be a
+     * positive integer. If not specified, then this defaults to
      * {@link SzReplicatorConstants#DEFAULT_CORE_CONCURRENCY},
      * <p>
      * This option can be specified in the following ways:
@@ -145,27 +158,31 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      * <code>SENZING_TOOLS_CORE_CONCURRENCY="{thread-count}"</code></li>
      * </ul>
      */
-    CORE_CONCURRENCY("--core-concurrency", ENV_PREFIX + "CORE_CONCURRENCY", null, 1, DEFAULT_CORE_CONCURRENCY_PARAM),
+    CORE_CONCURRENCY("--core-concurrency",
+                     ENV_PREFIX + "CORE_CONCURRENCY",
+                     null, 1,
+                     DEFAULT_CORE_CONCURRENCY_PARAM),
 
     /**
      * <p>
-     * If leveraging the default configuration stored in the database, this option
-     * is used to specify how often the gRPC server should background check that the
-     * current active config is the same as the current default config and update
-     * the active config if not. The parameter to this option is specified as an
-     * integer:
+     * If leveraging the default configuration stored in the database, this
+     * option is used to specify how often the gRPC server should background
+     * check that the current active config is the same as the current default
+     * config and update the active config if not. The parameter to this option
+     * is specified as an integer:
      * <ul>
      * <li>A positive integer is interpreted as a number of seconds.</li>
-     * <li>If zero is specified, the auto-refresh is disabled and it will only occur
-     * when a requested configuration element is not found in the current active
-     * config.</li>
-     * <li>Specifying a negative integer is allowed but is used to enable a check
-     * and conditional refresh only when manually requested (programmatically).</li>
+     * <li>If zero is specified, the auto-refresh is disabled and it will only
+     * occur when a requested configuration element is not found in the current
+     * active config.</li>
+     * <li>Specifying a negative integer is allowed but is used to enable a
+     * check and conditional refresh only when manually requested 
+     * (programmatically).</li>
      * </ul>
-     * <b>NOTE:</b> This is option ignored if auto-refresh is disabled because the
-     * config was specified via the <code>G2CONFIGFILE</code> in the
-     * {@link #CORE_SETTINGS} or if {@link #CORE_CONFIG_ID} has been specified to
-     * lock in a specific configuration.
+     * <b>NOTE:</b> This is option ignored if auto-refresh is disabled because
+     * the config was specified via the <code>G2CONFIGFILE</code> in the
+     * {@link #CORE_SETTINGS} or if {@link #CORE_CONFIG_ID} has been specified
+     * to lock in a specific configuration.
      * <p>
      * This option can be specified in the following ways:
      * <ul>
@@ -174,27 +191,29 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      * <code>SENZING_TOOLS_REFRESH_CONFIG_SECONDS="{integer}"</code></li>
      * </ul>
      */
-    REFRESH_CONFIG_SECONDS("--refresh-config-seconds", ENV_PREFIX + "REFRESH_CONFIG_SECONDS", null, 1,
-            DEFAULT_REFRESH_CONFIG_SECONDS_PARAM),
+    REFRESH_CONFIG_SECONDS("--refresh-config-seconds", 
+                           ENV_PREFIX + "REFRESH_CONFIG_SECONDS",
+                           null, 1,
+                           DEFAULT_REFRESH_CONFIG_SECONDS_PARAM),
 
     /**
      * <p>
      * Use this option to balance the message consumption and processing between
-     * aggressively keeping the data mart closely in sync with the entity repository
-     * and less frequent batch processing to conserve system resources. The value to
-     * this option is one of the following:
+     * aggressively keeping the data mart closely in sync with the entity
+     * repository and less frequent batch processing to conserve system
+     * resources. The value to this option is one of the following:
      * <ul>
-     * <li><code>leisurely</code> -- This setting allows for longer gaps between
-     * updating the data mart, favoring less frequent batch processing in order to
-     * conserve system resources.</li>
+     * <li><code>leisurely</code> -- This setting allows for longer gaps
+     * between updating the data mart, favoring less frequent batch processing
+     * in order to conserve system resources.</li>
      * 
      * <li><code>standard</code> -- This is the default and is balance between
-     * conserving system resources and keeping the data mart updated in a reasonably
-     * timely manner.</li>
+     * conserving system resources and keeping the data mart updated in a
+     * reasonably timely manner.</li>
      * 
-     * <li><code>aggressive</code> -- This setting uses more system resources to
-     * aggressively consume and process incoming messages to keep the data mart
-     * closely in sync with the least time delay.</li>
+     * <li><code>aggressive</code> -- This setting uses more system resources
+     * to aggressively consume and process incoming messages to keep the data
+     * mart closely in sync with the least time delay.</li>
      * 
      * </ul>
      * This option can be specified in the following ways:
@@ -205,15 +224,17 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      * <code>SENZING_TOOLS_REFRESH_CONFIG_SECONDS="{integer}"</code></li>
      * </ul>
      */
-    PROCESSING_RATE("--processing-rate", ENV_PREFIX + "PROCESSING_RATE", null, 1,
-            ProcessingRate.STANDARD.toString().toLowerCase()),
+    PROCESSING_RATE("--processing-rate", 
+                    ENV_PREFIX + "PROCESSING_RATE",
+                    null, 1,
+                    ProcessingRate.STANDARD.toString().toLowerCase()),
 
     /**
      * <p>
-     * This option is used to specify the URL to an Amazon SQS queue to be used for
-     * obtaining the info messages. The single parameter to this option is the URL.
-     * If this option is specified then the info queue parameters for RabbitMQ are
-     * not allowed.
+     * This option is used to specify the URL to an Amazon SQS queue to be used
+     * for obtaining the info messages. The single parameter to this option is
+     * the URL.  If this option is specified then the info queue parameters for
+     * RabbitMQ are not allowed.
      * <p>
      * This option can be specified in the following ways:
      * <ul>
@@ -225,29 +246,34 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
 
     /**
      * <p>
-     * This option is used to specify the URL to the RabbitMQ server for finding the
-     * RabbitMQ info queue. The single parameter to this option is an AMQP URL. If
-     * this option is specified then the SQS info queue parameter is not allowed.
+     * This option is used to specify the URL to the RabbitMQ server for finding
+     * the RabbitMQ info queue. The single parameter to this option is an AMQP
+     * URL. If this option is specified then the SQS info queue parameter is not
+     * allowed.
      * <p>
      * This option can be specified in the following ways:
      * <ul>
      * <li>Command Line:
      * <code>--rabbit-info-uri amqp://user:password@host:port/vhost</code></li>
      * <li>Environment:
-     * <code>SENZING_TOOLS_RABBITMQ_URI="amqp://user:password@host:port/vhost"</code></li>
+     * <code>SENZING_TOOLS_RABBITMQ_URI="amqp://user:password@host:port/vhost"
+     *      </code></li>
      * <li>Environment:
-     * <code>SENZING_TOOLS_RABBITMQ_URI="amqp://user:password@host:port/vhost" (fallback)</code></li>
+     * <code>SENZING_TOOLS_RABBITMQ_URI="amqp://user:password@host:port/vhost"
+     *       (fallback)</code></li>
      * </ul>
      */
-    RABBITMQ_URI("--rabbit-info-uri", ENV_PREFIX + "RABBITMQ_URI", List.of(ENV_PREFIX + "RABBITMQ_URI"), 1),
+    RABBITMQ_URI("--rabbit-info-uri", 
+                 ENV_PREFIX + "RABBITMQ_URI",
+                 List.of(ENV_PREFIX + "RABBITMQ_URI"), 1),
 
     /**
      * <p>
-     * This option is used to specify the routing key for connecting to RabbitMQ as
-     * part of specifying a RabbitMQ info queue. The single parameter to this option
-     * is a routing key. If this option is specified then the other options required
-     * for a RabbitMQ info queue are required and the info queue parameters
-     * pertaining to SQS and Kafka are not allowed.
+     * This option is used to specify the routing key for connecting to RabbitMQ
+     * as part of specifying a RabbitMQ info queue. The single parameter to this
+     * option is a routing key. If this option is specified then the other
+     * options required for a RabbitMQ info queue are required and the info
+     * queue parameters pertaining to SQS and Kafka are not allowed.
      * <p>
      * This option can be specified in the following ways:
      * <ul>
@@ -256,25 +282,27 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      * <code>SENZING_TOOLS_RABBITMQ_INFO_QUEUE="{queue-name}"</code></li>
      * </ul>
      */
-    RABBITMQ_INFO_QUEUE("--rabbit-info-queue", ENV_PREFIX + "RABBITMQ_INFO_QUEUE", null, 1),
+    RABBITMQ_INFO_QUEUE("--rabbit-info-queue", 
+                        ENV_PREFIX + "RABBITMQ_INFO_QUEUE",
+                        null, 1),
 
     /**
      * <p>
      * This presence of this option causes the data mart replicator to utilize a
      * database table message queue instead of Rabbit MQ or Amazon SQS. The data
-     * mart replicator will use the same database that is configured for the data
-     * mart to find the <code>sz_message_queue</code> table from which to consume
-     * messages. The absence of this parameter will causes the data mart to require
-     * additional options for configuring the message queue for Rabbit MQ or Amazon
-     * SQS. A single parameter may optionally be specified as <code>true</code> or
-     * <code>false</code> with <code>false</code> simulating the absence of the
-     * option.
+     * mart replicator will use the same database that is configured for the
+     * data mart to find the <code>sz_message_queue</code> table from which to
+     * consume messages. The absence of this parameter will causes the data mart
+     * to require additional options for configuring the message queue for
+     * Rabbit MQ or Amazon SQS. A single parameter may optionally be specified
+     * as <code>true</code> or <code>false</code> with <code>false</code>
+     * simulating the absence of the option.
      * <p>
-     * <b>NOTE:</b> If using SQLite then only a single database connection from a
-     * single process is allowed at any one time, and therefore either a process
-     * embedding the data mart must be populating the queue concurrently or
-     * population of the queue by another process must occur while the data mart
-     * replicator is <b>not</b> consuming the messages from the
+     * <b>NOTE:</b> If using SQLite then only a single database connection from
+     * a single process is allowed at any one time, and therefore either a
+     * process embedding the data mart must be populating the queue concurrently
+     * or population of the queue by another process must occur while the data
+     * mart replicator is <b>not</b> consuming the messages from the
      * <code>sz_message_queue</code> table.
      * <p>
      * This option can be specified in the following ways:
@@ -284,12 +312,15 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      * <code>SENZING_DATA_MART_DATABASE_INFO_QUEUE="{true|false}"</code></li>
      * </ul>
      */
-    DATABASE_INFO_QUEUE("--database-info-queue", ENV_PREFIX + "DATABASE_INFO_QUEUE", null, 0, "false"),
+    DATABASE_INFO_QUEUE("--database-info-queue",
+                        ENV_PREFIX + "DATABASE_INFO_QUEUE",
+                        null, 0, "false"),
 
     /**
-     * This option is used to specify the database connection for the data mart. The
-     * single parameter to this option is the SQLite or PostgreSQL database URL
-     * specifying the database connection. Possible database URL formats are:
+     * This option is used to specify the database connection for the data mart.
+     * The single parameter to this option is the SQLite or PostgreSQL database
+     * URL specifying the database connection. Possible database URL formats
+     * are:
      * <ul>
      * <li><code>{@value PostgreSqlUri#SUPPORTED_FORMAT_1}</code></li>
      * <li><code>{@value PostgreSqlUri#SUPPORTED_FORMAT_2}</code></li>
@@ -311,11 +342,13 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      * </ul>
      * <p>
      * The default value for this option if not specified is
-     * {@link SzReplicatorConstants#DEFAULT_CORE_SETTINGS_DATABASE_URI}. This is so
-     * it attempts to obtain the database URI from the {@linkplain #CORE_SETTINGS
-     * Senzing Core SDK settings}.
+     * {@link SzReplicatorConstants#DEFAULT_CORE_SETTINGS_DATABASE_URI}. This
+     * is so it attempts to obtain the database URI from the {@linkplain
+     * #CORE_SETTINGS Senzing Core SDK settings}.
      */
-    DATABASE_URI("--database-uri", ENV_PREFIX + "DATA_MART_DATABASE_URI", null, 1, DEFAULT_CORE_SETTINGS_DATABASE_URI);
+    DATABASE_URI("--database-uri", 
+                 ENV_PREFIX + "DATA_MART_DATABASE_URI",
+                 null, 1, DEFAULT_CORE_SETTINGS_DATABASE_URI);
 
 
     /**
@@ -329,8 +362,10 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      *   </li>
      * </ul>
      */
-    public static final Set<Class<? extends ConnectionUri>> SUPPORTED_DATABASE_URI_TYPES
-        = Set.of(PostgreSqlUri.class, SQLiteUri.class, SzCoreSettingsUri.class);
+    public static final Set<Class<? extends ConnectionUri>>
+            SUPPORTED_DATABASE_URI_TYPES = Set.of(PostgreSqlUri.class, 
+                                                  SQLiteUri.class,
+                                                  SzCoreSettingsUri.class);
 
     /**
      * Constructs with the specified parameters.
@@ -340,7 +375,11 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      * @param envFallbacks   The {@link List} of fallback environment variables.
      * @param parameterCount The number of parameters for the option.
      */
-    SzReplicatorOption(String cmdLineFlag, String envVariable, List<String> envFallbacks, int parameterCount) {
+    SzReplicatorOption(String       cmdLineFlag, 
+                       String       envVariable,
+                       List<String> envFallbacks, 
+                       int          parameterCount) 
+    {
         this(cmdLineFlag, envVariable, envFallbacks, false, parameterCount);
     }
 
@@ -349,13 +388,20 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      *
      * @param cmdLineFlag       The command-line flag.
      * @param envVariable       The primary environment variable.
-     * @param envFallbacks      The {@link List} of fallback environment variables.
+     * @param envFallbacks      The {@link List} of fallback environment 
+     *                          variables.
      * @param parameterCount    The number of parameters for the option.
-     * @param defaultParameters The default parameter values for the option if not
-     *                          specified.
+     * @param defaultParameters The default parameter values for the option if
+     *                          not specified.
      */
-    SzReplicatorOption(String cmdLineFlag, String envVariable, List<String> envFallbacks, int parameterCount, String... defaultParameters) {
-        this(cmdLineFlag, envVariable, envFallbacks, false, parameterCount, defaultParameters);
+    SzReplicatorOption(String       cmdLineFlag,
+                       String       envVariable,
+                       List<String> envFallbacks,
+                       int          parameterCount,
+                       String...    defaultParameters) 
+    {
+        this(cmdLineFlag, envVariable, envFallbacks, false,
+             parameterCount, defaultParameters);
     }
 
     /**
@@ -365,19 +411,28 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      *                          otherwise <code>false</code>.
      * @param cmdLineFlag       The command-line flag.
      * @param envVariable       The primary environment variable.
-     * @param envFallbacks      The {@link List} of fallback environment variables.
+     * @param envFallbacks      The {@link List} of fallback environment
+     *                          variables.
      * @param parameterCount    The number of parameters for the option.
-     * @param defaultParameters The default parameter value for the option if not
-     *                          specified.
+     * @param defaultParameters The default parameter value for the option if
+     *                          not specified.
      */
-    SzReplicatorOption(String cmdLineFlag, String envVariable, List<String> envFallbacks, boolean primary, int parameterCount, String... defaultParameters) {
+    SzReplicatorOption(String       cmdLineFlag,
+                       String       envVariable, 
+                       List<String> envFallbacks,
+                       boolean      primary,
+                       int          parameterCount, 
+                       String...    defaultParameters) 
+    {
         this.primary = primary;
         this.cmdLineFlag = cmdLineFlag;
         this.envVariable = envVariable;
         this.minParamCount = (parameterCount < 0) ? 0 : parameterCount;
         this.maxParamCount = parameterCount;
-        this.envFallbacks = (envFallbacks == null) ? null : List.copyOf(envFallbacks);
-        this.defaultParameters = (defaultParameters == null) ? Collections.emptyList() : List.of(defaultParameters);
+        this.envFallbacks = (envFallbacks == null) 
+            ? null : List.copyOf(envFallbacks);
+        this.defaultParameters = (defaultParameters == null) 
+            ? Collections.emptyList() : List.of(defaultParameters);
     }
 
     /**
@@ -417,7 +472,8 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
     private List<String> defaultParameters = null;
 
     /**
-     * The {@link Map} of option keys to values that are sets of dependency sets.
+     * The {@link Map} of option keys to values that are sets of dependency
+     * sets.
      */
     private static final Map<SzReplicatorOption, Set<Set<CommandLineOption>>> DEPENDENCIES;
 
@@ -434,52 +490,62 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
     private static final Map<String, SzReplicatorOption> OPTIONS_BY_FLAG;
 
     @Override
-    public String getCommandLineFlag() {
+    public String getCommandLineFlag()
+    {
         return this.cmdLineFlag;
     }
 
     @Override
-    public int getMinimumParameterCount() {
+    public int getMinimumParameterCount()
+    {
         return this.minParamCount;
     }
 
     @Override
-    public int getMaximumParameterCount() {
+    public int getMaximumParameterCount()
+    {
         return this.maxParamCount;
     }
 
     @Override
-    public List<String> getDefaultParameters() {
+    public List<String> getDefaultParameters()
+    {
         return this.defaultParameters;
     }
 
     @Override
-    public boolean isPrimary() {
+    public boolean isPrimary()
+    {
         return this.primary;
     }
 
     @Override
-    public String getEnvironmentVariable() {
+    public String getEnvironmentVariable()
+    {
         return this.envVariable;
     }
 
     @Override
-    public List<String> getEnvironmentFallbacks() {
+    public List<String> getEnvironmentFallbacks()
+    {
         return this.envFallbacks;
     }
 
     @Override
-    public Set<CommandLineOption> getConflicts() {
+    public Set<CommandLineOption> getConflicts()
+    {
         return CONFLICTING_OPTIONS.get(this);
     }
 
     @Override
-    public Set<Set<CommandLineOption>> getDependencies() {
+    public Set<Set<CommandLineOption>> getDependencies()
+    {
         return DEPENDENCIES.get(this);
     }
 
     @Override
-    public boolean isSensitive() {
+    public boolean isSensitive()
+    {
         switch (this) {
             case RABBITMQ_URI:
             case DATABASE_URI:
@@ -490,7 +556,8 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
         }
     }
 
-    static {
+    static 
+    {
         // force load the URI classes
         Class<?>[] classes = {
                 ConnectionUri.class,
@@ -500,8 +567,10 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
                 SQSUri.class,
                 SzCoreSettingsUri.class
         };
-        for (Class c : classes) {
-            try {
+        for (Class c : classes) 
+        {
+            try
+            {
                 // attempt to preload the class
                 Class.forName(c.getName());
             } catch (ClassNotFoundException ignore) {
@@ -509,16 +578,20 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
             }
         }
 
-        Map<SzReplicatorOption, Set<Set<CommandLineOption>>> dependencyMap = new LinkedHashMap<>();
-        Map<SzReplicatorOption, Set<CommandLineOption>> conflictMap = new LinkedHashMap<>();
+        Map<SzReplicatorOption, Set<Set<CommandLineOption>>> dependencyMap
+                = new LinkedHashMap<>();
+        Map<SzReplicatorOption, Set<CommandLineOption>> conflictMap
+                = new LinkedHashMap<>();
         Map<String, SzReplicatorOption> lookupMap = new LinkedHashMap<>();
 
-        try {
+        try 
+        {
             // iterate over the options
             for (SzReplicatorOption option : SzReplicatorOption.values()) {
                 conflictMap.put(option, new LinkedHashSet<>());
                 dependencyMap.put(option, new LinkedHashSet<>());
-                lookupMap.put(option.getCommandLineFlag().toLowerCase(), option);
+                lookupMap.put(option.getCommandLineFlag().toLowerCase(), 
+                              option);
             }
 
             SzReplicatorOption[] exclusiveOptions = { HELP, VERSION };
@@ -535,9 +608,11 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
             }
 
             // handle the messaging options
-            Set<SzReplicatorOption> rabbitInfoOptions = Set.of(RABBITMQ_URI, RABBITMQ_INFO_QUEUE);
+            Set<SzReplicatorOption> rabbitInfoOptions 
+                    = Set.of(RABBITMQ_URI, RABBITMQ_INFO_QUEUE);
 
-            Set<CommandLineOption> requiredRabbit = Set.of(RABBITMQ_URI, RABBITMQ_INFO_QUEUE);
+            Set<CommandLineOption> requiredRabbit 
+                    = Set.of(RABBITMQ_URI, RABBITMQ_INFO_QUEUE);
 
             Set<CommandLineOption> sqsInfoOptions = Set.of(SQS_INFO_URI);
 
@@ -565,7 +640,8 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
                 if (requiredRabbit.contains(option)) {
                     continue;
                 }
-                Set<Set<CommandLineOption>> dependencySets = dependencyMap.get(option);
+                Set<Set<CommandLineOption>> dependencySets 
+                        = dependencyMap.get(option);
                 dependencySets.add(requiredRabbit);
             }
 
@@ -586,9 +662,11 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
             baseDependSets.add(Collections.unmodifiableSet(dependSet));
 
             SzReplicatorOption[] initOptions = { CORE_SETTINGS };
-            // make the primary options dependent on one set of info queue options
+            // make the primary options dependent on one set of 
+            // info queue options
             for (SzReplicatorOption option : initOptions) {
-                Set<Set<CommandLineOption>> dependencySets = dependencyMap.get(option);
+                Set<Set<CommandLineOption>> dependencySets
+                        = dependencyMap.get(option);
 
                 dependencySets.addAll(baseDependSets);
             }
@@ -608,22 +686,27 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
     /**
      * The {@link ParameterProcessor} implementation for this class.
      */
-    private static class ParamProcessor implements ParameterProcessor {
+    private static class ParamProcessor implements ParameterProcessor
+    {
         /**
          * Processes the parameters for the specified option.
          *
          * @param option The {@link SzReplicatorOption} to process.
          * @param params The {@link List} of parameters for the option.
          * @return The processed value.
-         * @throws IllegalArgumentException If the specified {@link CommandLineOption}
-         *                                  is not an instance of
-         *                                  {@link SzReplicatorOption} or is otherwise
+         * @throws IllegalArgumentException If the specified {@link 
+         *                                  CommandLineOption} is not an 
+         *                                  instance of {@link 
+         *                                  SzReplicatorOption} or is otherwise
          *                                  unrecognized.
          */
-        public Object process(CommandLineOption option, List<String> params) {
+        public Object process(CommandLineOption option, List<String> params)
+        {
             if (!(option instanceof SzReplicatorOption)) {
                 throw new IllegalArgumentException(
-                        "Unhandled command line option: " + option.getCommandLineFlag() + " / " + option);
+                        "Unhandled command line option: " 
+                            + option.getCommandLineFlag() 
+                            + " / " + option);
             }
 
             // down-cast
@@ -645,8 +728,11 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
                     if ("true".equalsIgnoreCase(boolText)) {
                         return Boolean.TRUE;
                     }
-                    throw new IllegalArgumentException("The specified parameter for " + option.getCommandLineFlag()
-                            + " must be true or false: " + params.get(0));
+                    throw new IllegalArgumentException(
+                            "The specified parameter for "
+                                + option.getCommandLineFlag()
+                                + " must be true or false: " 
+                                + params.get(0));
 
                 case CORE_INSTANCE_NAME:
                     return params.get(0).trim();
@@ -654,7 +740,8 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
                 case CORE_SETTINGS: {
                     String paramVal = params.get(0).trim();
                     if (paramVal.length() == 0) {
-                        throw new IllegalArgumentException("Missing parameter for core settings.");
+                        throw new IllegalArgumentException(
+                            "Missing parameter for core settings.");
                     }
                     if (paramVal.startsWith("{")) {
                         try {
@@ -662,28 +749,34 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
 
                         } catch (Exception e) {
                             throw new IllegalArgumentException(
-                                    multilineFormat("Core settings is not valid JSON: ", paramVal));
+                                    multilineFormat(
+                                        "Core settings is not valid JSON: ",
+                                        paramVal));
                         }
                     } else {
                         File initFile = new File(paramVal);
                         if (!initFile.exists()) {
-                            throw new IllegalArgumentException("Specified JSON init file does not exist: " + initFile);
+                            throw new IllegalArgumentException(
+                                    "Specified JSON init file does not exist: " 
+                                        + initFile);
                         }
                         String jsonText;
                         try {
                             jsonText = readTextFileAsString(initFile, "UTF-8");
 
                         } catch (IOException e) {
-                            throw new RuntimeException(
-                                    multilineFormat("Failed to read JSON initialization file: " + initFile, "",
-                                            "Cause: " + e.getMessage()));
+                            throw new RuntimeException(multilineFormat(
+                                    "Failed to read JSON initialization file: "
+                                        + initFile, "",
+                                    "Cause: " + e.getMessage()));
                         }
                         try {
                             return JsonUtilities.parseJsonObject(jsonText);
 
                         } catch (Exception e) {
                             throw new IllegalArgumentException(
-                                    "The initialization file does not contain valid JSON: " + initFile);
+                                    "The initialization file does not contain "
+                                    + "valid JSON: " + initFile);
                         }
                     }
                 }
@@ -691,23 +784,27 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
                     try {
                         return Long.parseLong(params.get(0));
                     } catch (Exception e) {
-                        throw new IllegalArgumentException("The configuration ID for " + option.getCommandLineFlag()
-                                + " must be an integer: " + params.get(0));
+                        throw new IllegalArgumentException(
+                                "The configuration ID for " 
+                                    + option.getCommandLineFlag()
+                                    + " must be an integer: " 
+                                    + params.get(0));
                     }
 
                 case CORE_LOG_LEVEL: {
                     String paramVal = params.get(0).trim().toLowerCase();
 
                     switch (paramVal) {
-                        case "verbose":
-                        case "1":
-                            return 1;
-                        case "muted":
-                        case "0":
-                            return 0;
-                        default:
-                            throw new IllegalArgumentException(
-                                    "The specified core log level is not recognized; " + paramVal);
+                    case "verbose":
+                    case "1":
+                        return 1;
+                    case "muted":
+                    case "0":
+                        return 0;
+                    default:
+                        throw new IllegalArgumentException(
+                                "The specified core log level is not "
+                                + "recognized; " + paramVal);
                     }
                 }
 
@@ -716,10 +813,14 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
                     try {
                         threadCount = Integer.parseInt(params.get(0));
                     } catch (IllegalArgumentException e) {
-                        throw new IllegalArgumentException("Thread count must be an integer: " + params.get(0));
+                        throw new IllegalArgumentException(
+                            "Thread count must be an integer: " 
+                            + params.get(0));
                     }
                     if (threadCount <= 0) {
-                        throw new IllegalArgumentException("Negative thread counts are not allowed: " + threadCount);
+                        throw new IllegalArgumentException(
+                            "Negative thread counts are not allowed: "
+                            + threadCount);
                     }
                     return threadCount;
                 }
@@ -729,8 +830,10 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
                         return Long.parseLong(params.get(0));
                     } catch (Exception e) {
                         throw new IllegalArgumentException(
-                                "The specified refresh period for " + option.getCommandLineFlag()
-                                        + " must be an integer: " + params.get(0));
+                            "The specified refresh period for " 
+                                + option.getCommandLineFlag()
+                                + " must be an integer: " 
+                                + params.get(0));
                     }
 
                 case PROCESSING_RATE:
@@ -750,7 +853,8 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
 
                 default:
                     throw new IllegalArgumentException(
-                            "Unhandled command line option: " + option.getCommandLineFlag() + " / " + option);
+                            "Unhandled command line option: " 
+                            + option.getCommandLineFlag() + " / " + option);
 
             }
         }
@@ -763,7 +867,8 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      * 
      * @return The {@link ConnectionUri} that was parsed.
      */
-    public static ProcessingRate parseProcessingRate(String paramValue) {
+    public static ProcessingRate parseProcessingRate(String paramValue)
+    {
         Objects.requireNonNull(paramValue, "Parameter value cannot be null");
         try {
             return ProcessingRate.valueOf(paramValue.trim().toUpperCase());
@@ -776,7 +881,8 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
                 prefix = ", ";
             }
             throw new IllegalArgumentException(
-                    "Unrecognized processing rate value (" + paramValue + ").  Should be one of: " + sb.toString());
+                    "Unrecognized processing rate value (" + paramValue
+                    + ").  Should be one of: " + sb.toString());
         }
     }
 
@@ -787,21 +893,24 @@ public enum SzReplicatorOption implements CommandLineOption<SzReplicatorOption, 
      * 
      * @return The {@link ConnectionUri} that was parsed.
      */
-    public static ConnectionUri parseDatabaseUri(String paramValue) {
+    public static ConnectionUri parseDatabaseUri(String paramValue)
+    {
         Objects.requireNonNull(paramValue, "Parameter value cannot be null");
 
         ConnectionUri uri = ConnectionUri.parse(paramValue);
         if (!SUPPORTED_DATABASE_URI_TYPES.contains(uri.getClass())) {
-            throw new IllegalArgumentException("Unrecognized database connection URI: " + paramValue);
+            throw new IllegalArgumentException(
+                "Unrecognized database connection URI: " + paramValue);
         }
         return uri;
     }
 
     /**
-     * The {@link ParameterProcessor} for {@link SzReplicatorOption}. This instance
-     * will only handle instances of {@link CommandLineOption} instances of type
-     * {@link SzReplicatorOption}.
+     * The {@link ParameterProcessor} for {@link SzReplicatorOption}. This
+     * instance will only handle instances of {@link CommandLineOption}
+     * instances of type {@link SzReplicatorOption}.
      */
-    public static final ParameterProcessor PARAMETER_PROCESSOR = new ParamProcessor();
+    public static final ParameterProcessor PARAMETER_PROCESSOR 
+        = new ParamProcessor();
 
 }

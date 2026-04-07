@@ -8,13 +8,15 @@ import static com.senzing.util.LoggingUtilities.*;
 /**
  * Provides build information for the replicator.
  */
-public final class BuildInfo {
+public final class BuildInfo
+{
     /**
      * The Maven build version of the replicator.
      */
     public static final String MAVEN_VERSION;
 
-    static {
+    static
+    {
         String resource = "/com/senzing/datamart/build-info.properties";
         String version = "UNKNOWN";
         try (InputStream is = BuildInfo.class.getResourceAsStream(resource)) {
@@ -37,7 +39,8 @@ public final class BuildInfo {
     /**
      * Private default constructor.
      */
-    private BuildInfo() {
+    private BuildInfo()
+    {
         // do nothing
     }
 }

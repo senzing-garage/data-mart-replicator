@@ -1,8 +1,8 @@
+// CSOFF: LineLength
 /**
  * This package provides model classes used in data mart reporting.
  *
- * &lt;h2&gt;Class Diagram&lt;/h2&gt;
- * &lt;pre&gt;
+ * &lt;h2&gt;Class Diagram&lt;/h2&gt; &lt;pre&gt;
  * ═══════════════════════════════════════════════════════════════════════════════════
  *                     com.senzing.datamart.reports.model CLASS DIAGRAM
  * ═══════════════════════════════════════════════════════════════════════════════════
@@ -119,9 +119,8 @@
  * ═══════════════════════════════════════════════════════════════════════════════════
  * &lt;/pre&gt;
  *
- * &lt;h2&gt;Functional Groups&lt;/h2&gt;
- * &lt;p&gt;The model is organized into 4 main functional groups:&lt;/p&gt;
- * &lt;ol&gt;
+ * &lt;h2&gt;Functional Groups&lt;/h2&gt; &lt;p&gt;The model is organized into 4
+ * main functional groups:&lt;/p&gt; &lt;ol&gt;
  *   &lt;li&gt;&lt;strong&gt;Loaded Stats&lt;/strong&gt; - Basic record/entity counts per data source
  *       ({@link SzLoadedStats} → {@link SzSourceLoadedStats})&lt;/li&gt;
  *   &lt;li&gt;&lt;strong&gt;Summary Stats&lt;/strong&gt; - Cross-source matching statistics with
@@ -136,4 +135,5 @@
  *       {@link SzRelationsPage} → {@link SzReportRelation})&lt;/li&gt;
  * &lt;/ol&gt;
  */
+// CSON: LineLength
 package com.senzing.datamart.reports.model;

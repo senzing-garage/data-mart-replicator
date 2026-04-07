@@ -1,11 +1,11 @@
 package com.senzing.listener.service.exception;
 
 /**
- * Exception that can be thrown if a {@link 
- * com.senzing.listener.service.ListenerService} fails
- * initialization.
+ * Exception that can be thrown if a {@link
+ * com.senzing.listener.service.ListenerService} fails initialization.
  */
-public class ServiceSetupException extends Exception {
+public class ServiceSetupException extends Exception
+{
 
   private static final long serialVersionUID = 1L;
 
@@ -14,7 +14,8 @@ public class ServiceSetupException extends Exception {
    *
    * @param message The message describing why the failure occurred.
    */
-  public ServiceSetupException(String message) {
+  public ServiceSetupException(String message)
+  {
     super(message);
   }
 
@@ -25,7 +26,8 @@ public class ServiceSetupException extends Exception {
    * @param e The {@link Exception} describing the underlying cause of the
    *          failure.
    */
-  public ServiceSetupException(Exception e) {
+  public ServiceSetupException(Exception e)
+  {
     super(e);
   }
 
@@ -38,7 +40,8 @@ public class ServiceSetupException extends Exception {
    * @param e The {@link Exception} describing the underlying cause of the
    *          failure.
    */
-  public ServiceSetupException(String message, Exception e) {
+  public ServiceSetupException(String message, Exception e)
+  {
     super(message, e);
   }
 }

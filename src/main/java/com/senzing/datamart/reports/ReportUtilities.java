@@ -26,11 +26,13 @@ import static com.senzing.sql.SQLUtilities.*;
 /**
  * Provides reporting utility functions and constants.
  */
-public final class ReportUtilities {
+public final class ReportUtilities
+{
     /**
      * Private default constructor.
      */
-    private ReportUtilities() {
+    private ReportUtilities()
+    {
         // do nothing
     }
 
@@ -40,8 +42,8 @@ public final class ReportUtilities {
     public static final int DEFAULT_PAGE_SIZE = 100;
 
     /**
-     * The multiplier to calculate the default page size from the sample size when
-     * the sample size is specified, but the page size is not specified.
+     * The multiplier to calculate the default page size from the sample size
+     * when the sample size is specified, but the page size is not specified.
      */
     public static final int SAMPLE_SIZE_MULTIPLIER = 20;
 
@@ -57,7 +59,9 @@ public final class ReportUtilities {
      * @param timers           The {@link Timers} instance to transition.
      * @param queryDescription A description of the query being executed.
      */
-    public static void queryingDatabase(Timers timers, String queryDescription) {
+    public static void queryingDatabase(Timers timers,
+                                        String queryDescription)
+    {
         if (timers == null) {
             return;
         }
@@ -72,7 +76,8 @@ public final class ReportUtilities {
      * @param timers           The {@link Timers} instance to transition.
      * @param queryDescription A description of the query being executed.
      */
-    public static void queriedDatabase(Timers timers, String queryDescription) {
+    public static void queriedDatabase(Timers timers, String queryDescription)
+    {
         if (timers == null) {
             return;
         }
@@ -81,18 +86,19 @@ public final class ReportUtilities {
     }
 
     /**
-     * Retrieves a page of entity ID's for a specific report key with the specified
-     * bound applied.
+     * Retrieves a page of entity ID's for a specific report key with the
+     * specified bound applied.
      * 
      * @param conn          The non-null JDBC {@link Connection} to use.
-     * @param reportKey     The non-null {@link SzReportKey} identifying the report
+     * @param reportKey The non-null {@link SzReportKey} identifying the report
      *                      with which the entity ID's are associated.
      * @param entityIdBound The bounded value for the returned entity ID's,
-     *                      formatted as an integer or the word <code>"max"</code>.
+     *                      formatted as an integer or the word
+     *                      <code>"max"</code>.
      * @param boundType     The {@link SzBoundType} describing how the entity ID
      *                      bound value is applied in retrieving the page.
-     * @param pageSize      The optional maximum number of entity ID's to return.
-     * @param sampleSize    The optional number of results to randomly sample from
+     * @param pageSize The optional maximum number of entity ID's to return.
+     * @param sampleSize The optional number of results to randomly sample from
      *                      the page, which, if specified, must be strictly
      *                      less-than the page size.
      * @param timers        The optional {@link Timers} to use.
@@ -105,13 +111,14 @@ public final class ReportUtilities {
      * @throws IllegalArgumentException If the specified page size or sample
      *                                  size is less than one (1), or if the
      *                                  sample size is specified and is
-     *                                  greater-than or equal to the sample size.
+     *                                  greater-than or equal to the sample
+     *                                  size.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
     public static SzEntitiesPage retrieveEntitiesPage(Connection    conn,
                                                       SzReportKey   reportKey,
-                                                      String        entityIdBound,
+                                                      String entityIdBound,
                                                       SzBoundType   boundType,
                                                       Integer       pageSize,
                                                       Integer       sampleSize,
@@ -150,7 +157,8 @@ public final class ReportUtilities {
 
         // check if the bound type is null (this should not be the case)
         if (boundType == null) {
-            boundType = ("max".equals(entityIdBound)) ? EXCLUSIVE_UPPER : EXCLUSIVE_LOWER;
+            boundType = ("max".equals(entityIdBound))
+                    ? EXCLUSIVE_UPPER : EXCLUSIVE_LOWER;
         }
 
         String formattedReportKey = reportKey.toString();
@@ -222,7 +230,8 @@ public final class ReportUtilities {
                 sb.append(" < ? ORDER BY entity_id DESC ");
                 break;
             default:
-                throw new IllegalStateException("Unhandled bound type: " + boundType);
+                throw new IllegalStateException("Unhandled bound type: "
+                        + boundType);
             }
 
             // handle the page size
@@ -385,8 +394,10 @@ public final class ReportUtilities {
         queryingDatabase(timers, "selectBeforePageEntityCount");
         try {
             if (resultCount > 0) {
-                ps = conn.prepareStatement("SELECT COUNT(*) FROM sz_dm_report_detail "
-                        + "WHERE report_key = ? AND entity_id < ? AND related_id = 0");
+                ps = conn.prepareStatement(
+                        "SELECT COUNT(*) FROM sz_dm_report_detail "
+                        + "WHERE report_key = ? AND entity_id < ? AND "
+                                + "related_id = 0");
 
                 ps.setString(1, formattedReportKey);
                 ps.setLong(2, minEntityId);
@@ -418,17 +429,17 @@ public final class ReportUtilities {
     }
 
     /**
-     * Retrieves a page of relations for a specific report key with the specified
-     * bound applied.
+     * Retrieves a page of relations for a specific report key with the
+     * specified bound applied.
      * 
      * @param conn          The non-null JDBC {@link Connection} to use.
-     * @param reportKey     The non-null {@link SzReportKey} identifying the report
+     * @param reportKey The non-null {@link SzReportKey} identifying the report
      *                      with which the entity ID's are associated.
      * @param relationBound The bounded value for the returned relations.
      * @param boundType     The {@link SzBoundType} describing how the entity ID
      *                      bound value is applied in retrieving the page.
-     * @param pageSize      The optional maximum number of entity ID's to return.
-     * @param sampleSize    The optional number of results to randomly sample from
+     * @param pageSize The optional maximum number of entity ID's to return.
+     * @param sampleSize The optional number of results to randomly sample from
      *                      the page, which, if specified, must be strictly
      *                      less-than the page size.
      * @param timers        The optional {@link Timers} to use.
@@ -441,13 +452,14 @@ public final class ReportUtilities {
      * @throws IllegalArgumentException If the specified page size or sample
      *                                  size is less than one (1), or if the
      *                                  sample size is specified and is
-     *                                  greater-than or equal to the sample size.
+     *                                  greater-than or equal to the sample
+     *                                  size.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
     public static SzRelationsPage retrieveRelationsPage(Connection  conn,
                                                         SzReportKey reportKey,
-                                                        String      relationBound,
+                                                        String relationBound,
                                                         SzBoundType boundType,
                                                         Integer     pageSize,
                                                         Integer     sampleSize,
@@ -470,8 +482,10 @@ public final class ReportUtilities {
         }
         if (pageSize != null && sampleSize != null && sampleSize >= pageSize) {
             throw new IllegalArgumentException(
-                    "If both the page size and sample size are specified then the "
-                    + "sample size (" + sampleSize + ") must be strictly less-than "
+                    "If both the page size and sample size are "
+                            + "specified then the "
+                    + "sample size (" + sampleSize
+                            + ") must be strictly less-than "
                     + "the page size (" + pageSize + ")");
         }
 
@@ -512,7 +526,8 @@ public final class ReportUtilities {
                         } else {
                             entityIdBound = Long.parseLong(part1);
                         }
-                        String part2 = (index == relationBound.length() - 1) ? ""
+                        String part2 =
+                                (index == relationBound.length() - 1) ? ""
                                 : relationBound.substring(index + 1).trim();
                         if ("max".equals(part2.toLowerCase())) {
                             relatedIdBound = Long.MAX_VALUE;
@@ -526,7 +541,8 @@ public final class ReportUtilities {
 
                 } catch (IllegalArgumentException e) {
                     throw new IllegalArgumentException(
-                            "The specified relation bound is not properly formatted: "
+                            "The specified relation bound is not "
+                                    + "properly formatted: "
                             + relationBound);
                 }
             }
@@ -594,7 +610,8 @@ public final class ReportUtilities {
                 sb.append("ORDER BY entity_id DESC, related_id DESC ");
                 break;
             default:
-                throw new IllegalStateException("Unhandled bound type: " + boundType);
+                throw new IllegalStateException("Unhandled bound type: "
+                        + boundType);
             }
 
             // handle the page size
@@ -604,7 +621,8 @@ public final class ReportUtilities {
 
             // now do the outer query
             sb.append("SELECT rel_entity_id, rel_related_id," 
-                    + " match_type, rel_match_key, rel_rev_match_key, rel_errule_code,"
+                    + " match_type, rel_match_key, rel_rev_match_key, "
+                            + "rel_errule_code,"
                     + " entity_id, entity_name, record_count, relation_count,"
                     + " data_source, record_id, match_key, errule_code " 
                     + "FROM (SELECT"
@@ -614,11 +632,14 @@ public final class ReportUtilities {
                     + " t2.match_key AS rel_match_key,"
                     + " t2.rev_match_key AS rel_rev_match_key,"
                     + " t2.errule_code AS rel_errule_code,"
-                    + " t3.entity_id AS entity_id, t3.entity_name AS entity_name," 
+                    + " t3.entity_id AS entity_id, t3.entity_name AS "
+                            + "entity_name,"
                     + " t3.record_count AS record_count,"
                     + " t3.relation_count AS relation_count,"
-                    + " t4.data_source AS data_source, t4.record_id AS record_id,"
-                    + " t4.match_key AS match_key, t4.errule_code AS errule_code " 
+                    + " t4.data_source AS data_source, t4.record_id AS "
+                            + "record_id,"
+                    + " t4.match_key AS match_key, t4.errule_code AS "
+                            + "errule_code "
                     + "FROM sz_dm_report_detail AS t1 "
                     + "LEFT OUTER JOIN sz_dm_relation AS t2 "
                     + "ON t2.entity_id = "
@@ -629,7 +650,8 @@ public final class ReportUtilities {
                     + "ON t1.entity_id = t3.entity_id " 
                     + "LEFT OUTER JOIN sz_dm_record AS t4 "
                     + "ON t1.entity_id = t4.entity_id " 
-                    + "WHERE (t1.entity_id, t1.related_id) IN (" + innerQuery + ") "
+                    + "WHERE (t1.entity_id, t1.related_id) IN (" + innerQuery
+                            + ") "
                     + "UNION SELECT" 
                     + " t5.entity_id AS rel_entity_id,"
                     + " t5.related_id AS rel_related_id,"
@@ -637,11 +659,14 @@ public final class ReportUtilities {
                     + " t6.match_key AS rel_match_key,"
                     + " t6.rev_match_key AS rel_rev_match_key,"
                     + " t6.errule_code AS rel_errule_code,"
-                    + " t7.entity_id AS entity_id, t7.entity_name AS entity_name,"
+                    + " t7.entity_id AS entity_id, t7.entity_name AS "
+                            + "entity_name,"
                     + " t7.record_count AS record_count,"
                     + " t7.relation_count AS relation_count,"
-                    + " t8.data_source AS data_source, t8.record_id AS record_id,"
-                    + " t8.match_key AS match_key, t8.errule_code AS errule_code "
+                    + " t8.data_source AS data_source, t8.record_id AS "
+                            + "record_id,"
+                    + " t8.match_key AS match_key, t8.errule_code AS "
+                            + "errule_code "
                     + "FROM sz_dm_report_detail AS t5 "
                     + "LEFT OUTER JOIN sz_dm_relation AS t6 " 
                     + "ON t6.entity_id = "
@@ -652,7 +677,8 @@ public final class ReportUtilities {
                     + "ON t5.related_id = t7.entity_id "
                     + "LEFT OUTER JOIN sz_dm_record AS t8 "
                     + "ON t5.related_id = t8.entity_id "
-                    + "WHERE (t5.entity_id, t5.related_id) IN (" + innerQuery + ") " 
+                    + "WHERE (t5.entity_id, t5.related_id) IN (" + innerQuery
+                            + ") "
                     + ") AS relations_page " 
                     + "ORDER BY rel_entity_id, rel_related_id, entity_id,"
                     + " data_source, record_id");
@@ -708,7 +734,8 @@ public final class ReportUtilities {
                 // check if we need to finish with the relation
                 if (relation != null 
                     && (relation.getEntity().getEntityId() != relEntityId
-                        || relation.getRelatedEntity().getEntityId() != relRelatedId)) 
+                        || relation.getRelatedEntity()
+                                .getEntityId() != relRelatedId))
                 {
                     // add to the page results
                     pageResults.add(relation);
@@ -762,7 +789,8 @@ public final class ReportUtilities {
                     // choose the reverse match key if the related entity ID 
                     // is less than the entity ID
                     relation.setMatchKey(
-                        (relRelatedId < relEntityId) ? relRevMatchKey : relMatchKey);
+                        (relRelatedId < relEntityId)
+                                ? relRevMatchKey : relMatchKey);
                 }
 
                 // get the entity to be updated
@@ -869,7 +897,8 @@ public final class ReportUtilities {
         try {
             // prepare the statement
             ps = conn.prepareStatement(
-                    "SELECT COUNT(*) FROM sz_dm_report_detail " + "WHERE report_key = ? AND related_id <> 0");
+                    "SELECT COUNT(*) FROM sz_dm_report_detail "
+                            + "WHERE report_key = ? AND related_id <> 0");
             ps.setString(1, formattedReportKey);
             rs = ps.executeQuery();
             rs.next();
@@ -892,7 +921,8 @@ public final class ReportUtilities {
                 ps = conn.prepareStatement(
                         "SELECT COUNT(*) FROM sz_dm_report_detail " 
                         + "WHERE report_key = ? AND related_id <> 0 AND "
-                        + "((entity_id = ? AND related_id < ?) OR (entity_id < ?))");
+                        + "((entity_id = ? AND related_id < ?) OR "
+                                + "(entity_id < ?))");
 
                 ps.setString(1, formattedReportKey);
                 ps.setLong(2, minEntityId);

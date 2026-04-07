@@ -5,6 +5,8 @@ import com.senzing.listener.service.exception.ServiceSetupException;
 import com.senzing.listener.service.scheduling.*;
 import com.senzing.util.Quantified;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import uk.org.webcompere.systemstubs.stream.SystemErr;
 
 import javax.json.Json;
@@ -26,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Tests for {@link AbstractListenerService}.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Execution(ExecutionMode.SAME_THREAD)
 class AbstractListenerServiceTest {
 
     /**

@@ -15,4 +15,5 @@
   <suppress checks="MethodLength" files="."/>
   <suppress checks="FileLength" files="."/>
   <suppress checks="NoWhitespaceAfter" files="."/>
+  <suppress checks="Indentation" files="."/>
 </suppressions>

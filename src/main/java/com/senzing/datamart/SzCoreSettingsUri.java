@@ -19,13 +19,14 @@ import com.senzing.util.JsonUtilities;
 import static com.senzing.text.TextUtilities.urlDecodeUtf8;
 
 /**
- * Represents a database connection URI that is extracted from
- * the Senzing Core Settings JSON.  The Senzing Core Setting JSON
- * typically contains URI's for the database connection(s) and
- * these can be accessed via a JSON path.  For example, the JSON path
- * to the Senzing repository database connection is <code>SQL/CONNECTION</code>.
+ * Represents a database connection URI that is extracted from the Senzing Core
+ * Settings JSON. The Senzing Core Setting JSON typically contains URI's for the
+ * database connection(s) and these can be accessed via a JSON path. For
+ * example, the JSON path to the Senzing repository database connection is
+ * <code>SQL/CONNECTION</code>.
  */
-public class SzCoreSettingsUri extends ConnectionUri {
+public class SzCoreSettingsUri extends ConnectionUri
+{
     /**
      * The scheme prefix for the URI's including the 
      * <code>"//core-settings/"</code> suffix.
@@ -34,8 +35,8 @@ public class SzCoreSettingsUri extends ConnectionUri {
     public static final String SCHEME_PREFIX = "sz://core-settings/";
 
     /**
-     * Supported format for a Senzing Core Settings URI using a JSON path.
-     * The value of this constant is <code>{@value}</code>.
+     * Supported format for a Senzing Core Settings URI using a JSON path. The
+     * value of this constant is <code>{@value}</code>.
      */
     public static final String SUPPORTED_FORMAT
         = "sz://core-settings/[json-path]";
@@ -60,11 +61,11 @@ public class SzCoreSettingsUri extends ConnectionUri {
     private List<String> pathElements = null;
 
     /**
-     * Constructs with the specified JSON path representing the
-     * path to the JSON property in the Senzing Core SDK settings.
+     * Constructs with the specified JSON path representing the path to the JSON
+     * property in the Senzing Core SDK settings.
      * 
-     * @param jsonPath The JSON path with each path element separated by 
-     *                 a forward-slash.
+     * @param jsonPath The JSON path with each path element separated by a
+     *                 forward-slash.
      * 
      * @throws NullPointerException If the specified path is <code>null</code>.
      */
@@ -74,17 +75,15 @@ public class SzCoreSettingsUri extends ConnectionUri {
     }
 
     /**
-     * Constructs with the specified JSON path representing the
-     * path to the JSON property in the Senzing Core SDK settings
-     * and optional query options.
+     * Constructs with the specified JSON path representing the path to the JSON
+     * property in the Senzing Core SDK settings and optional query options.
      * 
      * <p>
      * <b>NOTE:</b> If the first character of the specified path is 
-     * not a forward slash, then the path will be prefixed with a forward
-     * slash.
+     * not a forward slash, then the path will be prefixed with a forward slash.
      * 
-     * @param jsonPath The JSON path with each path element separated by 
-     *                 a forward-slash.
+     * @param jsonPath The JSON path with each path element separated by a
+     *                 forward-slash.
      * 
      * @param queryOptions The optional {@link Map} of {@link String} query
      *                     parameter keys to {@link String} query parameter
@@ -92,8 +91,8 @@ public class SzCoreSettingsUri extends ConnectionUri {
      * 
      * @throws NullPointerException If the specified path is <code>null</code>.
      * 
-     * @throws IllegalArgumentException If there are any empty path elements
-     *                                  in the specified path.
+     * @throws IllegalArgumentException If there are any empty path elements in
+     *                                  the specified path.
      */
     public SzCoreSettingsUri(String jsonPath, Map<String, String> queryOptions)
     {
@@ -137,29 +136,32 @@ public class SzCoreSettingsUri extends ConnectionUri {
      * 
      * @return The JSON path for this instance.
      */
-    public String getPath() {
+    public String getPath()
+    {
         return this.jsonPath;
     }
 
     /**
-     * Gets the URL-decoded JSON path elements that were 
-     * parsed from the {@linkplain #getPath() JSON path}
-     * after splitting the path on <code>"/"</code>.
+     * Gets the URL-decoded JSON path elements that were parsed from the
+     * {@linkplain #getPath() JSON path} after splitting the path on
+     * <code>"/"</code>.
      * 
-     * @return URL-decoded JSON path elements from the
-     *         {@linkplain #getPath() JSON path}.  
+     * @return URL-decoded JSON path elements from the {@linkplain #getPath()
+     *                     JSON path}.
      */
-    public List<String> getPathElements() {
+    public List<String> getPathElements()
+    {
         return this.pathElements;
     }
 
     /**
-     * Implemented to format the URI as a {@link String} with proper
-     * URI encoding.
+     * Implemented to format the URI as a {@link String} with proper URI
+     * encoding.
      * 
      * @return The formatted URI for this instance.
      */
-    public String toString() {
+    public String toString()
+    {
         return SCHEME_PREFIX + this.getPath().substring(1)
              + this.getQueryString();
     }
@@ -170,7 +172,8 @@ public class SzCoreSettingsUri extends ConnectionUri {
      * 
      * @return The hash code for this instance.
      */
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hash(this.getPath(),
                             this.getQueryOptions());
     }
@@ -183,9 +186,10 @@ public class SzCoreSettingsUri extends ConnectionUri {
      * @param obj The object to compare with.
      * 
      * @return <code>true</code> if and only if the objects are equal, otherwise
-     *         <code>false</code>.
+     *                           <code>false</code>.
      */
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (obj == null) {
             return false;
         }
@@ -201,9 +205,9 @@ public class SzCoreSettingsUri extends ConnectionUri {
     }
 
     /**
-     * Provides a static factory method for parsing a 
-     * Senzing Core Settings database URI for obtaining
-     * the connection URI from the Senzing Core SDK settings.
+     * Provides a static factory method for parsing a Senzing Core Settings
+     * database URI for obtaining the connection URI from the Senzing Core SDK
+     * settings.
      * 
      * @param uri The URI to parse.
      * 
@@ -215,7 +219,8 @@ public class SzCoreSettingsUri extends ConnectionUri {
      * @throws IllegalArgumentException If the specified URI is not properly
      *                                  formatted.
      */
-    public static SzCoreSettingsUri parse(String uri) {
+    public static SzCoreSettingsUri parse(String uri)
+    {
         requireNonNull(uri, "The URI cannot be null");
 
         // check the prefix
@@ -252,44 +257,49 @@ public class SzCoreSettingsUri extends ConnectionUri {
     }
 
     /**
-     * Parses the specified JSON text as a {@link JsonObject} and returns
-     * the result from {@link #resolveUri(JsonObject)}.
+     * Parses the specified JSON text as a {@link JsonObject} and returns the
+     * result from {@link #resolveUri(JsonObject)}.
      * 
-     * @param coreSettings The JSON text representing the 
-     *                     Senzing Core SDK settings.
+     * @param coreSettings The JSON text representing the Senzing Core SDK
+     *                     settings.
      * 
-     * @return The resolved {@link ConnectionUri}, or <code>null</code>
-     *         if the value is not found.
+     * @return The resolved {@link ConnectionUri}, or <code>null</code> if the
+     *             value is not found.
      * 
-     * @throws NullPointerException If the specified parameter is <code>null</code>.
+     * @throws NullPointerException If the specified parameter is
+     *                              <code>null</code>.
      * 
      * @throws IllegalArgumentException If a JSON path component is expected to
      *                                  be an array index, but is not.
      */
-    public ConnectionUri resolveUri(String coreSettings) {
-        Objects.requireNonNull(coreSettings, "Core settings cannot be null");
+    public ConnectionUri resolveUri(String coreSettings)
+    {
+        Objects.requireNonNull(
+            coreSettings, "Core settings cannot be null");
         JsonObject jsonObject = JsonUtilities.parseJsonObject(coreSettings);
         return this.resolveUri(jsonObject);
     }
 
     /**
-     * Resolves the {@link ConnectionUri} for this instance using the
-     * specified {@link JsonObject} representing the Senzing Core SDK
-     * settings.
+     * Resolves the {@link ConnectionUri} for this instance using the specified
+     * {@link JsonObject} representing the Senzing Core SDK settings.
      * 
-     * @param coreSettings The {@link JsonObject} representing the
-     *                     Senzing Core SDK settings.
+     * @param coreSettings The {@link JsonObject} representing the Senzing Core
+     *                     SDK settings.
      * 
-     * @return The resolved {@link ConnectionUri}, or <code>null</code>
-     *         if the value is not found.
+     * @return The resolved {@link ConnectionUri}, or <code>null</code> if the
+     *             value is not found.
      * 
-     * @throws NullPointerException If the specified parameter is <code>null</code>.
+     * @throws NullPointerException If the specified parameter is
+     *                              <code>null</code>.
      * 
      * @throws IllegalArgumentException If a JSON path component is expected to
      *                                  be an array index, but is not.
      */
-    public ConnectionUri resolveUri(JsonObject coreSettings) {
-        Objects.requireNonNull(coreSettings, "Core settings cannot be null");
+    public ConnectionUri resolveUri(JsonObject coreSettings)
+    {
+        Objects.requireNonNull(
+            coreSettings, "Core settings cannot be null");
         JsonValue current = coreSettings;
         for (String property : this.getPathElements()) {
             if (current instanceof JsonObject) {

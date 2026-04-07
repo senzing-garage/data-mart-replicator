@@ -10,37 +10,42 @@ import java.util.Set;
  * Defines an interface for a locking service that will obtain locks on
  * resources identified by {@link ResourceKey} instances.
  */
-public interface LockingService {
+public interface LockingService
+{
   /**
-   * Enumerates the state of the {@link com.senzing.listener.communication.MessageConsumer}.
+   * Enumerates the state of the {@link
+   * com.senzing.listener.communication.MessageConsumer}.
    */
-  enum State {
+  enum State
+  {
     /**
-     * The {@link com.senzing.listener.communication.MessageConsumer} has not yet been initialized.
+     * The {@link com.senzing.listener.communication.MessageConsumer} has not
+     * yet been initialized.
      */
     UNINITIALIZED,
 
     /**
-     * The {@link com.senzing.listener.communication.MessageConsumer} is initializing, but has not finished
-     * initializing.
+     * The {@link com.senzing.listener.communication.MessageConsumer} is
+     * initializing, but has not finished initializing.
      */
     INITIALIZING,
 
     /**
-     * The {@link com.senzing.listener.communication.MessageConsumer} has completed initialization and is ready
-     * to handle providing resource locks.
+     * The {@link com.senzing.listener.communication.MessageConsumer} has
+     * completed initialization and is ready to handle providing resource locks.
      */
     INITIALIZED,
 
     /**
-     * The {@link com.senzing.listener.communication.MessageConsumer} has begun destruction, but may still be
-     * processing whatever messages were in progress.
+     * The {@link com.senzing.listener.communication.MessageConsumer} has begun
+     * destruction, but may still be processing whatever messages were in
+     * progress.
      */
     DESTROYING,
 
     /**
-     * The {@link com.senzing.listener.communication.MessageConsumer} is no longer processing messages and has
-     * been destroyed.
+     * The {@link com.senzing.listener.communication.MessageConsumer} is no
+     * longer processing messages and has been destroyed.
      */
     DESTROYED;
   }
@@ -75,32 +80,32 @@ public interface LockingService {
    * be obtained by this instance.
    *
    * @return The {@link LockScope} describing the scope of the locks that will
-   *         be obtained by this instance.
+   *             be obtained by this instance.
    */
   LockScope getScope();
 
   /**
-   * Acquires locks on <b>all</b> the resources identified by the
-   * specified keys if all are available within the specified number of
-   * milliseconds.  If the locks cannot all be obtained within the specified
-   * time then <code>null</code> is returned to indicate that the locks were
-   * not obtained.  Specify a wait time of zero (0) milliseconds to indicate
-   * no waiting and do an immediate return if the locks are not available and
-   * specify a negative number of milliseconds to wait indefinitely.
+   * Acquires locks on <b>all</b> the resources identified by the specified keys
+   * if all are available within the specified number of milliseconds. If the
+   * locks cannot all be obtained within the specified time then
+   * <code>null</code> is returned to indicate that the locks were not obtained.
+   * Specify a wait time of zero (0) milliseconds to indicate no waiting and do
+   * an immediate return if the locks are not available and specify a negative
+   * number of milliseconds to wait indefinitely.
    *
    * @param resourceKeys The {@link Set} of resource keys
    * @param wait The number of milliseconds to wait for the locks.
    * @return The {@link LockToken} associated with the acquired locks, or
-   *         <code>null</code> if the resources could not all be locked within
-   *         the allotted time.
+   *             <code>null</code> if the resources could not all be locked
+   *             within the allotted time.
    * @throws ServiceExecutionException If a failure occurs in attempting to
    *                                   acquire the locks.
    * @throws NullPointerException If the specified {@link Set} is
    *                              <code>null</code> or contains
    *                              <code>null</code> values.
    * @throws IllegalArgumentException If the specified {@link Set} is empty.
-   * @throws IllegalStateException If the {@link State} of this instance is
-   *                               not {@link State#INITIALIZED}.
+   * @throws IllegalStateException If the {@link State} of this instance is not
+   *                               {@link State#INITIALIZED}.
    */
   LockToken acquireLocks(Set<ResourceKey> resourceKeys, long wait)
     throws ServiceExecutionException, IllegalStateException;
@@ -122,8 +127,8 @@ public interface LockingService {
    *                                  recognized.
    * @throws ServiceExecutionException If a failure occurs in attempting to
    *                                   acquire the locks.
-   * @throws IllegalStateException If the {@link State} of this instance is
-   *                               not {@link State#INITIALIZED} or {@link
+   * @throws IllegalStateException If the {@link State} of this instance is not
+   *                               {@link State#INITIALIZED} or {@link
    *                               State#DESTROYING}.
    */
   int releaseLocks(LockToken lockToken)

@@ -11,7 +11,8 @@ import java.util.TreeMap;
 /**
  * Describes a count statistics for the repository.
  */
-public class SzLoadedStats implements Serializable {
+public class SzLoadedStats implements Serializable
+{
     /**
      * The total number of records loaded in the entity repository.
      */
@@ -24,23 +25,24 @@ public class SzLoadedStats implements Serializable {
     private long totalEntityCount = 0L;
 
     /**
-     * The total number of records loaded in the entity repository that failed to
-     * match against any other record. This is also the number of entities in the
-     * repository that only have a single record.
+     * The total number of records loaded in the entity repository that failed
+     * to match against any other record. This is also the number of entities in
+     * the repository that only have a single record.
      */
     private long totalUnmatchedRecordCount = 0L;
 
     /**
-     * The {@link SortedMap} of {@link String} data source code keys to
-     * {@link SzSourceLoadedStats} values describing the count statistics for that
-     * data source.
+     * The {@link SortedMap} of {@link String} data source code keys to {@link
+     * SzSourceLoadedStats} values describing the count statistics for that data
+     * source.
      */
     private SortedMap<String, SzSourceLoadedStats> dataSourceCounts = null;
 
     /**
      * Default constructor.
      */
-    public SzLoadedStats() {
+    public SzLoadedStats()
+    {
         this.totalRecordCount = 0L;
         this.totalEntityCount = 0L;
         this.totalUnmatchedRecordCount = 0L;
@@ -52,9 +54,10 @@ public class SzLoadedStats implements Serializable {
      * repository.
      *
      * @return The total number of records that have been loaded to the entity
-     *         repository.
+     *             repository.
      */
-    public long getTotalRecordCount() {
+    public long getTotalRecordCount()
+    {
         return this.totalRecordCount;
     }
 
@@ -62,10 +65,11 @@ public class SzLoadedStats implements Serializable {
      * Sets the the total number of records that have been loaded to the entity
      * repository.
      *
-     * @param recordCount The total number of records that have been loaded to the
-     *                    entity repository.
+     * @param recordCount The total number of records that have been loaded to
+     *                    the entity repository.
      */
-    public void setTotalRecordCount(long recordCount) {
+    public void setTotalRecordCount(long recordCount)
+    {
         this.totalRecordCount = recordCount;
     }
 
@@ -73,10 +77,11 @@ public class SzLoadedStats implements Serializable {
      * Gets the total number of entities that have been resolved in the entity
      * repository.
      *
-     * @return The total number of entities that have been resolved in the entity
-     *         repository.
+     * @return The total number of entities that have been resolved in the
+     *             entity repository.
      */
-    public long getTotalEntityCount() {
+    public long getTotalEntityCount()
+    {
         return this.totalEntityCount;
     }
 
@@ -84,57 +89,61 @@ public class SzLoadedStats implements Serializable {
      * Sets total number of entities that have at least one record from the
      * associated data source.
      *
-     * @param entityCount The total number of entities that have been loaded for the
-     *                    associated data source.
+     * @param entityCount The total number of entities that have been loaded for
+     *                    the associated data source.
      */
-    public void setTotalEntityCount(long entityCount) {
+    public void setTotalEntityCount(long entityCount)
+    {
         this.totalEntityCount = entityCount;
     }
 
     /**
      * Gets the total number of records that have been loaded to the entity
-     * repository that did <b>not</b> match against any other records. This is also
-     * the total number of entities that only have a single record.
+     * repository that did <b>not</b> match against any other records. This is
+     * also the total number of entities that only have a single record.
      *
      * @return The total number of records that have been loaded to the entity
-     *         repository.
+     *             repository.
      */
-    public long getTotalUnmatchedRecordCount() {
+    public long getTotalUnmatchedRecordCount()
+    {
         return this.totalUnmatchedRecordCount;
     }
 
     /**
      * Sets the the total number of records that have been loaded to the entity
-     * repository that did <b>not</b> match against any other record. This is also
-     * the total number of entities that only have a single record.
+     * repository that did <b>not</b> match against any other record. This is
+     * also the total number of entities that only have a single record.
      *
-     * @param recordCount The total number of records that have been loaded to the
-     *                    entity repository.
+     * @param recordCount The total number of records that have been loaded to
+     *                    the entity repository.
      */
-    public void setTotalUnmatchedRecordCount(long recordCount) {
+    public void setTotalUnmatchedRecordCount(long recordCount)
+    {
         this.totalUnmatchedRecordCount = recordCount;
     }
 
     /**
      * Gets the {@link List} of {@link SzSourceLoadedStats} describing the count
-     * statistics for each data source. The returned value list should contain only
-     * one element for each data source.
-     * 
-     * @return The {@link List} of {@link SzSourceLoadedStats} describing the count
-     *         statistics for each data source. The returned {@link List} should
-     *         contain only one element for each data source.
+     * statistics for each data source. The returned value list should contain
+     * only one element for each data source.
+     *
+     * @return The {@link List} of {@link SzSourceLoadedStats} describing the
+     *             count statistics for each data source. The returned {@link
+     *             List} should contain only one element for each data source.
      */
-    public List<SzSourceLoadedStats> getDataSourceCounts() {
+    public List<SzSourceLoadedStats> getDataSourceCounts()
+    {
         Collection<SzSourceLoadedStats> stats = this.dataSourceCounts.values();
         return new ArrayList<>(stats);
     }
 
     /**
      * Sets the {@link List} of {@link SzSourceLoadedStats} describing the count
-     * statistics for each data source. This clears any existing data source counts
-     * before setting with those specified. The specified {@link List} should
-     * contain only one element for each data source, but if duplicates are
-     * encountered then later values in the {@link List} take precedence,
+     * statistics for each data source. This clears any existing data source
+     * counts before setting with those specified. The specified {@link List}
+     * should contain only one element for each data source, but if duplicates
+     * are encountered then later values in the {@link List} take precedence,
      * overwriting prior values from the {@link List}. Specifying a
      * <code>null</code> {@link List} is equivalent to specifying an empty
      * {@link List}.
@@ -142,7 +151,8 @@ public class SzLoadedStats implements Serializable {
      * @param statsList The {@link Collection} of {@link SzSourceLoadedStats}
      *                  describing the count statistics for each data source.
      */
-    public void setDataSourceCounts(Collection<SzSourceLoadedStats> statsList) {
+    public void setDataSourceCounts(Collection<SzSourceLoadedStats> statsList)
+    {
         this.dataSourceCounts.clear();
         if (statsList != null) {
             statsList.forEach(stats -> {
@@ -154,16 +164,18 @@ public class SzLoadedStats implements Serializable {
     }
 
     /**
-     * Adds the specified {@link SzSourceLoadedStats} describing count statistics
-     * for a data source to the existing {@link SzSourceLoadedStats} for this
-     * instance. If the specified {@link SzSourceLoadedStats} has the same data
-     * source code as an existing {@link SzSourceLoadedStats} instance then the
-     * specified value replaces the existing one for that data source code.
+     * Adds the specified {@link SzSourceLoadedStats} describing count
+     * statistics for a data source to the existing {@link SzSourceLoadedStats}
+     * for this instance. If the specified {@link SzSourceLoadedStats} has the
+     * same data source code as an existing {@link SzSourceLoadedStats} instance
+     * then the specified value replaces the existing one for that data source
+     * code.
      * 
-     * @param stats The {@link SzSourceLoadedStats} describing count statistics for
-     *              a specific data source.
+     * @param stats The {@link SzSourceLoadedStats} describing count statistics
+     *              for a specific data source.
      */
-    public void addDataSourceCount(SzSourceLoadedStats stats) {
+    public void addDataSourceCount(SzSourceLoadedStats stats)
+    {
         if (stats == null) {
             return;
         }
@@ -171,12 +183,14 @@ public class SzLoadedStats implements Serializable {
     }
 
     /**
-     * Overridden to return a diagnostic {@link String} describing this instance.
+     * Overridden to return a diagnostic {@link String} describing this
+     * instance.
      * 
      * @return A diagnostic {@link String} describing this instance.
      */
     @Override
-    public String toString() {
+    public String toString()
+    {
         return "totalRecordCount=[ " + this.getTotalRecordCount() 
                 + " ], totalEntityCount=[ " + this.getTotalEntityCount()
                 + " ], totalUnmatchedRecordCount=[ " 
@@ -185,26 +199,31 @@ public class SzLoadedStats implements Serializable {
     }
 
     /**
-     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
-     * implementation.
+     * Overridden to return a hash code consistent with the
+     * {@link #equals(Object)} implementation.
      * 
      * @return The hash code for this instance.
      */
     @Override
-    public int hashCode() {
-        return Objects.hash(totalRecordCount, totalEntityCount, totalUnmatchedRecordCount, dataSourceCounts);
+    public int hashCode()
+    {
+        return Objects.hash(totalRecordCount,
+                totalEntityCount, totalUnmatchedRecordCount,
+                dataSourceCounts);
     }
 
     /**
-     * Overridden to return <code>true</code> if and only if the specified parameter
-     * is an instance of the same class with equivalent properties.
-     * 
+     * Overridden to return <code>true</code> if and only if the specified
+     * parameter is an instance of the same class with equivalent properties.
+     *
      * @param obj The object to compare with.
-     * @return <code>true</code> if the specified parameter is an instance of the 
-     *         same class with equivalent properties, otherwise <code>false</code>.
+     * @return <code>true</code> if the specified parameter is an instance of
+     *                           the same class with equivalent properties,
+     *                           otherwise <code>false</code>.
      */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (this == obj) {
             return true;
         }
@@ -212,8 +231,10 @@ public class SzLoadedStats implements Serializable {
             return false;
         }
         SzLoadedStats other = (SzLoadedStats) obj;
-        return totalRecordCount == other.totalRecordCount && totalEntityCount == other.totalEntityCount
-                && totalUnmatchedRecordCount == other.totalUnmatchedRecordCount
+        return totalRecordCount == other.totalRecordCount
+                && totalEntityCount == other.totalEntityCount
+                && totalUnmatchedRecordCount
+                    == other.totalUnmatchedRecordCount
                 && Objects.equals(dataSourceCounts, other.dataSourceCounts);
     }
 

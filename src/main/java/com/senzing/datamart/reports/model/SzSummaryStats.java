@@ -9,10 +9,10 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 /**
- * Describes the source summary and all cross-summaries with
- * that data source.
+ * Describes the source summary and all cross-summaries with that data source.
  */
-public class SzSummaryStats implements Serializable {
+public class SzSummaryStats implements Serializable
+{
     /**
      * The {@link SortedMap} of {@link String} "versus" data source code keys to
      * {@link SzSourceSummary} values describing the count statistics for that
@@ -23,18 +23,20 @@ public class SzSummaryStats implements Serializable {
     /**
      * Default constructor.
      */
-    public SzSummaryStats() {
+    public SzSummaryStats()
+    {
         this.sourceSummaries = new TreeMap<>();
     }
 
     /**
-     * Gets the {@link List} of {@link SzSourceSummary} instances describing
-     * the summary statistics for all configured data sources.
+     * Gets the {@link List} of {@link SzSourceSummary} instances describing the
+     * summary statistics for all configured data sources.
      * 
      * @return The {@link List} of {@link SzSourceSummary} instances describing
-     *         the summary statistics for all configured data sources.
+     *             the summary statistics for all configured data sources.
      */
-    public List<SzSourceSummary> getSourceSummaries() {
+    public List<SzSourceSummary> getSourceSummaries()
+    {
         return new ArrayList<>(this.sourceSummaries.values());
     }
 
@@ -46,7 +48,8 @@ public class SzSummaryStats implements Serializable {
      *                  describing the summary statistics for all configured
      *                  data sources.
      */
-    public void setSourceSummaries(Collection<SzSourceSummary> summaries) {
+    public void setSourceSummaries(Collection<SzSourceSummary> summaries)
+    {
         this.sourceSummaries.clear();
         if (summaries != null) {
             summaries.forEach(summary -> {
@@ -62,10 +65,11 @@ public class SzSummaryStats implements Serializable {
      * statistics for a specific data source. This will replace any existing
      * statistics for the same data source.
      * 
-     * @param summary The {@link SzSourceSummary} describing the summary statistics
-     *                for a specific data source.
+     * @param summary The {@link SzSourceSummary} describing the summary
+     *                statistics for a specific data source.
      */
-    public void addSourceSummary(SzSourceSummary summary) {
+    public void addSourceSummary(SzSourceSummary summary)
+    {
         if (summary == null) {
             return;
         }
@@ -73,52 +77,59 @@ public class SzSummaryStats implements Serializable {
     }
 
     /**
-     * Removes the {@link SzSourceSummary} associated with the specified
-     * data source if any exists for that data source.
+     * Removes the {@link SzSourceSummary} associated with the specified data
+     * source if any exists for that data source.
      * 
-     * @param dataSourceCode The data source code for which to remove
-     *                       the source summary.
+     * @param dataSourceCode The data source code for which to remove the source
+     *                       summary.
      */
-    public void removeSourceSummary(String dataSourceCode) {
+    public void removeSourceSummary(String dataSourceCode)
+    {
         this.sourceSummaries.remove(dataSourceCode);
     }
 
     /**
      * Removes all source summary statistics for all the data sources.
      */
-    public void removeAllSourceSummaries() {
+    public void removeAllSourceSummaries()
+    {
         this.sourceSummaries.clear();
     }
 
     /**
-     * Overridden to return a diagnostic {@link String} describing this instance.
+     * Overridden to return a diagnostic {@link String} describing this
+     * instance.
      * 
      * @return A diagnostic {@link String} describing this instance.
      */
     @Override
-    public String toString() {
+    public String toString()
+    {
         return "sourceSummaries=[ " + this.getSourceSummaries() + " ]";
     }
 
     /**
-     * Overridden to make the hash code consistent with {@link #equals(Object)}.
+     * Overridden to make the hash code consistent with
+     * {@link #equals(Object)}.
      * 
      * {@inheritDoc}
      */
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hash(sourceSummaries);
     }
 
     /**
-     * Overridden to return <code>true</code> if and only if the 
-     * specified parameter is a non-null reference to an object of
-     * the same class with equivalent properties.
+     * Overridden to return <code>true</code> if and only if the specified
+     * parameter is a non-null reference to an object of the same class with
+     * equivalent properties.
      * 
      * {@inheritDoc}
      */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (this == obj) {
             return true;
         }

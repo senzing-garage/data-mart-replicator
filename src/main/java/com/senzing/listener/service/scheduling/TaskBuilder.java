@@ -12,10 +12,11 @@ import static java.util.Collections.*;
 import static com.senzing.util.JsonUtilities.*;
 
 /**
- * Provides a builder for a task that is tied to a {@link Scheduler}.
- * A task can be built and then scheduled to that scheduler.
+ * Provides a builder for a task that is tied to a {@link Scheduler}. A task can
+ * be built and then scheduled to that scheduler.
  */
-public class TaskBuilder {
+public class TaskBuilder
+{
   /**
    * The {@link Scheduler} to use for scheduling the tasks.
    */
@@ -45,7 +46,8 @@ public class TaskBuilder {
    * @throws NullPointerException If either parameter is <code>null</code>.
    */
   TaskBuilder(Scheduler scheduler, String action)
-      throws NullPointerException {
+      throws NullPointerException
+  {
     Objects.requireNonNull(scheduler, "Scheduler cannot be null");
     Objects.requireNonNull(action, "Action cannot be null");
     this.scheduler = scheduler;
@@ -57,7 +59,8 @@ public class TaskBuilder {
   /**
    * Provides a builder for a list parameter of the parent {@link TaskBuilder}.
    */
-  public final class ListParamBuilder {
+  public final class ListParamBuilder
+  {
     /**
      * The associated parameter name.
      */
@@ -73,7 +76,8 @@ public class TaskBuilder {
      *
      * @param name The parameter name for this builder.
      */
-    private ListParamBuilder(String name) {
+    private ListParamBuilder(String name)
+    {
       this.values = new LinkedList<>();
       this.name = name;
     }
@@ -83,14 +87,16 @@ public class TaskBuilder {
      *
      * @param values The one or more values to add. If a single value then a
      *               single value is added to the list parameter, if zero or
-     *               multiple values are provided then a sub-list value is added.
+     *               multiple values are provided then a sub-list value is
+     *               added.
      *
      * @return A reference to this instance.
      * @throws IllegalStateException If the list parameter has already been
      *                               ended via {@link #endList()}
      */
     public ListParamBuilder add(String... values)
-        throws IllegalStateException {
+        throws IllegalStateException
+    {
       this.checkState();
       if (values.length == 1) {
         this.values.add(values[0]);
@@ -105,14 +111,16 @@ public class TaskBuilder {
      *
      * @param values The one or more values to add. If a single value then a
      *               single value is added to the list parameter, if zero or
-     *               multiple values are provided then a sub-list value is added.
+     *               multiple values are provided then a sub-list value is
+     *               added.
      *
      * @return A reference to this instance.
      * @throws IllegalStateException If the list parameter has already been
      *                               ended via {@link #endList()}
      */
     public ListParamBuilder add(Integer... values)
-        throws IllegalStateException {
+        throws IllegalStateException
+    {
       this.checkState();
       if (values.length == 1) {
         this.values.add(values[0]);
@@ -127,7 +135,8 @@ public class TaskBuilder {
      *
      * @param values The one or more values to add. If a single value then a
      *               single value is added to the list parameter, if zero or
-     *               multiple values are provided then a sub-list value is added.
+     *               multiple values are provided then a sub-list value is
+     *               added.
      *
      * @return A reference to this instance.
      *
@@ -135,7 +144,8 @@ public class TaskBuilder {
      *                               ended via {@link #endList()}
      */
     public ListParamBuilder add(Long... values)
-        throws IllegalStateException {
+        throws IllegalStateException
+    {
       this.checkState();
       if (values.length == 1) {
         this.values.add(values[0]);
@@ -150,14 +160,16 @@ public class TaskBuilder {
      *
      * @param values The one or more values to add. If a single value then a
      *               single value is added to the list parameter, if zero or
-     *               multiple values are provided then a sub-list value is added.
+     *               multiple values are provided then a sub-list value is
+     *               added.
      *
      * @return A reference to this instance.
      * @throws IllegalStateException If the list parameter has already been
      *                               ended via {@link #endList()}
      */
     public ListParamBuilder add(Float... values)
-        throws IllegalStateException {
+        throws IllegalStateException
+    {
       this.checkState();
       if (values.length == 1) {
         this.values.add(values[0]);
@@ -172,14 +184,16 @@ public class TaskBuilder {
      *
      * @param values The one or more values to add. If a single value then a
      *               single value is added to the list parameter, if zero or
-     *               multiple values are provided then a sub-list value is added.
+     *               multiple values are provided then a sub-list value is
+     *               added.
      *
      * @return A reference to this instance.
      * @throws IllegalStateException If the list parameter has already been
      *                               ended via {@link #endList()}
      */
     public ListParamBuilder add(Double... values)
-        throws IllegalStateException {
+        throws IllegalStateException
+    {
       this.checkState();
       if (values.length == 1) {
         this.values.add(values[0]);
@@ -194,14 +208,16 @@ public class TaskBuilder {
      *
      * @param values The one or more values to add. If a single value then a
      *               single value is added to the list parameter, if zero or
-     *               multiple values are provided then a sub-list value is added.
+     *               multiple values are provided then a sub-list value is
+     *               added.
      *
      * @return A reference to this instance.
      * @throws IllegalStateException If the list parameter has already been
      *                               ended via {@link #endList()}
      */
     public ListParamBuilder add(BigInteger... values)
-        throws IllegalStateException {
+        throws IllegalStateException
+    {
       this.checkState();
       if (values.length == 1) {
         this.values.add(values[0]);
@@ -216,14 +232,16 @@ public class TaskBuilder {
      *
      * @param values The one or more values to add. If a single value then a
      *               single value is added to the list parameter, if zero or
-     *               multiple values are provided then a sub-list value is added.
+     *               multiple values are provided then a sub-list value is
+     *               added.
      *
      * @return A reference to this instance.
      * @throws IllegalStateException If the list parameter has already been
      *                               ended via {@link #endList()}
      */
     public ListParamBuilder add(BigDecimal... values)
-        throws IllegalStateException {
+        throws IllegalStateException
+    {
       this.checkState();
       if (values.length == 1) {
         this.values.add(values[0]);
@@ -238,14 +256,16 @@ public class TaskBuilder {
      *
      * @param values The one or more values to add. If a single value then a
      *               single value is added to the list parameter, if zero or
-     *               multiple values are provided then a sub-list value is added.
+     *               multiple values are provided then a sub-list value is
+     *               added.
      *
      * @return A reference to this instance.
      * @throws IllegalStateException If the list parameter has already been
      *                               ended via {@link #endList()}
      */
     public ListParamBuilder add(Boolean... values)
-        throws IllegalStateException {
+        throws IllegalStateException
+    {
       this.checkState();
       if (values.length == 1) {
         this.values.add(values[0]);
@@ -267,7 +287,8 @@ public class TaskBuilder {
      *                               ended via {@link #endList()}
      */
     public ListParamBuilder add(JsonArray listValue)
-        throws IllegalStateException {
+        throws IllegalStateException
+    {
       this.checkState();
       this.values.add(normalizeJsonValue(listValue));
       return this;
@@ -277,15 +298,16 @@ public class TaskBuilder {
      * Adds a map value to this list parameter described by the specified
      * {@link JsonArray}.
      *
-     * @param mapValue The {@link JsonObject} describing the map value to add
-     *                 to the list.
+     * @param mapValue The {@link JsonObject} describing the map value to add to
+     *                 the list.
      *
      * @return A reference to this instance.
      * @throws IllegalStateException If the list parameter has already been
      *                               ended via {@link #endList()}
      */
     public ListParamBuilder add(JsonObject mapValue)
-        throws IllegalStateException {
+        throws IllegalStateException
+    {
       this.checkState();
       this.values.add(normalizeJsonValue(mapValue));
       return this;
@@ -298,7 +320,9 @@ public class TaskBuilder {
      * @throws IllegalStateException If the list parameter has already been
      *                               ended via {@link #endList()}
      */
-    private void checkState() throws IllegalStateException {
+    private void checkState()
+        throws IllegalStateException
+    {
       if (this.values == null) {
         throw new IllegalStateException(
             "The list parameter has already been concluded: " + this.name);
@@ -314,7 +338,8 @@ public class TaskBuilder {
      *                               ended via {@link #endList()}
      */
     public TaskBuilder endList()
-        throws IllegalStateException {
+        throws IllegalStateException
+    {
       this.checkState();
       TaskBuilder taskBuilder = TaskBuilder.this;
       taskBuilder.params.put(this.name, unmodifiableList(this.values));
@@ -326,7 +351,8 @@ public class TaskBuilder {
   /**
    * Provides a builder for a map parameter of the parent {@link TaskBuilder}.
    */
-  public final class MapParamBuilder {
+  public final class MapParamBuilder
+  {
     /**
      * The parameter name.
      */
@@ -342,7 +368,8 @@ public class TaskBuilder {
      *
      * @param name The parameter name.
      */
-    private MapParamBuilder(String name) {
+    private MapParamBuilder(String name)
+    {
       this.name = name;
       this.values = new TreeMap<>();
     }
@@ -350,8 +377,8 @@ public class TaskBuilder {
     /**
      * Adds a name/value pair to the map parameter with a single value or a list
      * of values as the value for the pair. If exactly one value is provided
-     * then the name/value pair will be single-valued, otherwise the value
-     * will be a {@link List} of the specified values.
+     * then the name/value pair will be single-valued, otherwise the value will
+     * be a {@link List} of the specified values.
      *
      * @param key    The named key for the value.
      * @param values The one or more values to add. If a single value then a
@@ -362,7 +389,7 @@ public class TaskBuilder {
      * @return A reference to this instance.
      * @throws IllegalStateException    If the list parameter has already been
      *                                  ended via {@link #endMap()}
-     * @throws NullPointerException     If the specified key is <code>null</code>.
+     * @throws NullPointerException If the specified key is <code>null</code>.
      * @throws IllegalArgumentException If the specified key has already been
      *                                  specified for this map parameter.
      */
@@ -382,8 +409,8 @@ public class TaskBuilder {
     /**
      * Adds a name/value pair to the map parameter with a single value or a list
      * of values as the value for the pair. If exactly one value is provided
-     * then the name/value pair will be single-valued, otherwise the value
-     * will be a {@link List} of the specified values.
+     * then the name/value pair will be single-valued, otherwise the value will
+     * be a {@link List} of the specified values.
      *
      * @param key    The named key for the value.
      * @param values The one or more values to add. If a single value then a
@@ -394,7 +421,7 @@ public class TaskBuilder {
      * @return A reference to this instance.
      * @throws IllegalStateException    If the list parameter has already been
      *                                  ended via {@link #endMap()}
-     * @throws NullPointerException     If the specified key is <code>null</code>.
+     * @throws NullPointerException If the specified key is <code>null</code>.
      * @throws IllegalArgumentException If the specified key has already been
      *                                  specified for this map parameter.
      */
@@ -414,8 +441,8 @@ public class TaskBuilder {
     /**
      * Adds a name/value pair to the map parameter with a single value or a list
      * of values as the value for the pair. If exactly one value is provided
-     * then the name/value pair will be single-valued, otherwise the value
-     * will be a {@link List} of the specified values.
+     * then the name/value pair will be single-valued, otherwise the value will
+     * be a {@link List} of the specified values.
      *
      * @param key    The named key for the value.
      * @param values The one or more values to add. If a single value then a
@@ -426,7 +453,7 @@ public class TaskBuilder {
      * @return A reference to this instance.
      * @throws IllegalStateException    If the list parameter has already been
      *                                  ended via {@link #endMap()}
-     * @throws NullPointerException     If the specified key is <code>null</code>.
+     * @throws NullPointerException If the specified key is <code>null</code>.
      * @throws IllegalArgumentException If the specified key has already been
      *                                  specified for this map parameter.
      */
@@ -446,8 +473,8 @@ public class TaskBuilder {
     /**
      * Adds a name/value pair to the map parameter with a single value or a list
      * of values as the value for the pair. If exactly one value is provided
-     * then the name/value pair will be single-valued, otherwise the value
-     * will be a {@link List} of the specified values.
+     * then the name/value pair will be single-valued, otherwise the value will
+     * be a {@link List} of the specified values.
      *
      * @param key    The named key for the value.
      * @param values The one or more values to add. If a single value then a
@@ -458,7 +485,7 @@ public class TaskBuilder {
      * @return A reference to this instance.
      * @throws IllegalStateException    If the list parameter has already been
      *                                  ended via {@link #endMap()}
-     * @throws NullPointerException     If the specified key is <code>null</code>.
+     * @throws NullPointerException If the specified key is <code>null</code>.
      * @throws IllegalArgumentException If the specified key has already been
      *                                  specified for this map parameter.
      */
@@ -478,8 +505,8 @@ public class TaskBuilder {
     /**
      * Adds a name/value pair to the map parameter with a single value or a list
      * of values as the value for the pair. If exactly one value is provided
-     * then the name/value pair will be single-valued, otherwise the value
-     * will be a {@link List} of the specified values.
+     * then the name/value pair will be single-valued, otherwise the value will
+     * be a {@link List} of the specified values.
      *
      * @param key    The named key for the value.
      * @param values The one or more values to add. If a single value then a
@@ -490,7 +517,7 @@ public class TaskBuilder {
      * @return A reference to this instance.
      * @throws IllegalStateException    If the list parameter has already been
      *                                  ended via {@link #endMap()}
-     * @throws NullPointerException     If the specified key is <code>null</code>.
+     * @throws NullPointerException If the specified key is <code>null</code>.
      * @throws IllegalArgumentException If the specified key has already been
      *                                  specified for this map parameter.
      */
@@ -510,8 +537,8 @@ public class TaskBuilder {
     /**
      * Adds a name/value pair to the map parameter with a single value or a list
      * of values as the value for the pair. If exactly one value is provided
-     * then the name/value pair will be single-valued, otherwise the value
-     * will be a {@link List} of the specified values.
+     * then the name/value pair will be single-valued, otherwise the value will
+     * be a {@link List} of the specified values.
      *
      * @param key    The named key for the value.
      * @param values The one or more values to add. If a single value then a
@@ -522,7 +549,7 @@ public class TaskBuilder {
      * @return A reference to this instance.
      * @throws IllegalStateException    If the list parameter has already been
      *                                  ended via {@link #endMap()}
-     * @throws NullPointerException     If the specified key is <code>null</code>.
+     * @throws NullPointerException If the specified key is <code>null</code>.
      * @throws IllegalArgumentException If the specified key has already been
      *                                  specified for this map parameter.
      */
@@ -542,8 +569,8 @@ public class TaskBuilder {
     /**
      * Adds a name/value pair to the map parameter with a single value or a list
      * of values as the value for the pair. If exactly one value is provided
-     * then the name/value pair will be single-valued, otherwise the value
-     * will be a {@link List} of the specified values.
+     * then the name/value pair will be single-valued, otherwise the value will
+     * be a {@link List} of the specified values.
      *
      * @param key    The named key for the value.
      * @param values The one or more values to add. If a single value then a
@@ -554,7 +581,7 @@ public class TaskBuilder {
      * @return A reference to this instance.
      * @throws IllegalStateException    If the list parameter has already been
      *                                  ended via {@link #endMap()}
-     * @throws NullPointerException     If the specified key is <code>null</code>.
+     * @throws NullPointerException If the specified key is <code>null</code>.
      * @throws IllegalArgumentException If the specified key has already been
      *                                  specified for this map parameter.
      */
@@ -574,8 +601,8 @@ public class TaskBuilder {
     /**
      * Adds a name/value pair to the map parameter with a single value or a list
      * of values as the value for the pair. If exactly one value is provided
-     * then the name/value pair will be single-valued, otherwise the value
-     * will be a {@link List} of the specified values.
+     * then the name/value pair will be single-valued, otherwise the value will
+     * be a {@link List} of the specified values.
      *
      * @param key    The named key for the value.
      * @param values The one or more values to add. If a single value then a
@@ -586,7 +613,7 @@ public class TaskBuilder {
      * @return A reference to this instance.
      * @throws IllegalStateException    If the list parameter has already been
      *                                  ended via {@link #endMap()}
-     * @throws NullPointerException     If the specified key is <code>null</code>.
+     * @throws NullPointerException If the specified key is <code>null</code>.
      * @throws IllegalArgumentException If the specified key has already been
      *                                  specified for this map parameter.
      */
@@ -615,7 +642,7 @@ public class TaskBuilder {
      * @return A reference to this instance.
      * @throws IllegalStateException    If the list parameter has already been
      *                                  ended via {@link #endMap()}
-     * @throws NullPointerException     If the specified key is <code>null</code>.
+     * @throws NullPointerException If the specified key is <code>null</code>.
      * @throws IllegalArgumentException If the specified key has already been
      *                                  specified for this map parameter.
      */
@@ -634,13 +661,13 @@ public class TaskBuilder {
      * {@link JsonObject}.
      *
      * @param key      The named key for the value.
-     * @param mapValue The {@link JsonObject} describing the sub-map value to
-     *                 be associated.
+     * @param mapValue The {@link JsonObject} describing the sub-map value to be
+     *                 associated.
      *
      * @return A reference to this instance.
      * @throws IllegalStateException    If the list parameter has already been
      *                                  ended via {@link #endMap()}
-     * @throws NullPointerException     If the specified key is <code>null</code>.
+     * @throws NullPointerException If the specified key is <code>null</code>.
      * @throws IllegalArgumentException If the specified key has already been
      *                                  specified for this map parameter.
      */
@@ -662,7 +689,8 @@ public class TaskBuilder {
      *                               ended via {@link #endMap()}
      */
     public TaskBuilder endMap()
-        throws IllegalStateException {
+        throws IllegalStateException
+    {
       this.checkState();
       TaskBuilder taskBuilder = TaskBuilder.this;
       taskBuilder.params.put(this.name, unmodifiableSortedMap(this.values));
@@ -674,12 +702,13 @@ public class TaskBuilder {
      * Checks if the specified key has already been added to the map parameter.
      * 
      * @param key The key to check.
-     * @throws NullPointerException     If the specified key is <code>null</code>.
+     * @throws NullPointerException If the specified key is <code>null</code>.
      * @throws IllegalArgumentException If the key is already present in the map
      *                                  of values.
      */
     private void checkKey(String key)
-        throws NullPointerException, IllegalArgumentException {
+        throws NullPointerException, IllegalArgumentException
+    {
       this.checkState();
       Objects.requireNonNull(key, "The specified key cannot be null");
       if (this.values.containsKey(key)) {
@@ -696,7 +725,9 @@ public class TaskBuilder {
      * @throws IllegalStateException If the list parameter has already been
      *                               ended via {@link #endMap()}
      */
-    private void checkState() throws IllegalStateException {
+    private void checkState()
+        throws IllegalStateException
+    {
       if (this.values == null) {
         throw new IllegalStateException(
             "The list parameter has already been concluded: " + this.name);
@@ -705,8 +736,8 @@ public class TaskBuilder {
   }
 
   /**
-   * Adds a required resource that must be locked for exclusive access when
-   * the associated task is performed.
+   * Adds a required resource that must be locked for exclusive access when the
+   * associated task is performed.
    *
    * @param resourceType The type of resource being identified.
    * @param components   Zero or more key components that more specifically
@@ -717,15 +748,16 @@ public class TaskBuilder {
    * @throws NullPointerException  If the resource type is <code>null</code>.
    */
   public TaskBuilder resource(String resourceType, String... components)
-      throws IllegalStateException, NullPointerException {
+      throws IllegalStateException, NullPointerException
+  {
     this.resourceKeys.add(new ResourceKey(resourceType, components));
     return this;
   }
 
   /**
-   * Adds a required resource that must be locked for exclusive access when
-   * the associated task is performed. This variant converts the objects
-   * in the specified components array to {@link String} instances.
+   * Adds a required resource that must be locked for exclusive access when the
+   * associated task is performed. This variant converts the objects in the
+   * specified components array to {@link String} instances.
    *
    * @param resourceType The type of resource being identified.
    * @param components   Zero or more key components that more specifically
@@ -736,16 +768,17 @@ public class TaskBuilder {
    * @throws NullPointerException  If the resource type is <code>null</code>.
    */
   public TaskBuilder resource(String resourceType, Object... components)
-      throws IllegalStateException, NullPointerException {
+      throws IllegalStateException, NullPointerException
+  {
     this.resourceKeys.add(new ResourceKey(resourceType, components));
     return this;
   }
 
   /**
-   * Adds a parameter with the specified name a single value or a list
-   * of values. If exactly one value is provided then the parameter pair will
-   * be single-valued, otherwise the value will be a {@link List} of the
-   * specified values.
+   * Adds a parameter with the specified name a single value or a list of
+   * values. If exactly one value is provided then the parameter pair will be
+   * single-valued, otherwise the value will be a {@link List} of the specified
+   * values.
    *
    * @param name   The parameter name for the parameter.
    * @param values The one or more values for the parameter. If a single value
@@ -763,7 +796,10 @@ public class TaskBuilder {
    *                                  parameter.
    */
   public TaskBuilder parameter(String name, String... values)
-      throws IllegalStateException, NullPointerException, IllegalArgumentException {
+      throws IllegalStateException,
+             NullPointerException,
+             IllegalArgumentException
+  {
     this.checkParamName(name);
     if (values.length == 1) {
       this.params.put(name, values[0]);
@@ -774,10 +810,10 @@ public class TaskBuilder {
   }
 
   /**
-   * Adds a parameter with the specified name a single value or a list
-   * of values. If exactly one value is provided then the parameter pair will
-   * be single-valued, otherwise the value will be a {@link List} of the
-   * specified values.
+   * Adds a parameter with the specified name a single value or a list of
+   * values. If exactly one value is provided then the parameter pair will be
+   * single-valued, otherwise the value will be a {@link List} of the specified
+   * values.
    *
    * @param name   The parameter name for the parameter.
    * @param values The one or more values for the parameter. If a single value
@@ -795,7 +831,10 @@ public class TaskBuilder {
    *                                  parameter.
    */
   public TaskBuilder parameter(String name, Integer... values)
-      throws IllegalStateException, NullPointerException, IllegalArgumentException {
+      throws IllegalStateException,
+             NullPointerException,
+             IllegalArgumentException
+  {
     this.checkParamName(name);
     if (values.length == 1) {
       this.params.put(name, values[0]);
@@ -806,10 +845,10 @@ public class TaskBuilder {
   }
 
   /**
-   * Adds a parameter with the specified name a single value or a list
-   * of values. If exactly one value is provided then the parameter pair will
-   * be single-valued, otherwise the value will be a {@link List} of the
-   * specified values.
+   * Adds a parameter with the specified name a single value or a list of
+   * values. If exactly one value is provided then the parameter pair will be
+   * single-valued, otherwise the value will be a {@link List} of the specified
+   * values.
    *
    * @param name   The parameter name for the parameter.
    * @param values The one or more values for the parameter. If a single value
@@ -827,7 +866,10 @@ public class TaskBuilder {
    *                                  parameter.
    */
   public TaskBuilder parameter(String name, Long... values)
-      throws IllegalStateException, NullPointerException, IllegalArgumentException {
+      throws IllegalStateException,
+             NullPointerException,
+             IllegalArgumentException
+  {
     this.checkParamName(name);
     if (values.length == 1) {
       this.params.put(name, values[0]);
@@ -838,10 +880,10 @@ public class TaskBuilder {
   }
 
   /**
-   * Adds a parameter with the specified name a single value or a list
-   * of values. If exactly one value is provided then the parameter pair will
-   * be single-valued, otherwise the value will be a {@link List} of the
-   * specified values.
+   * Adds a parameter with the specified name a single value or a list of
+   * values. If exactly one value is provided then the parameter pair will be
+   * single-valued, otherwise the value will be a {@link List} of the specified
+   * values.
    *
    * @param name   The parameter name for the parameter.
    * @param values The one or more values for the parameter. If a single value
@@ -859,7 +901,10 @@ public class TaskBuilder {
    *                                  parameter.
    */
   public TaskBuilder parameter(String name, Float... values)
-      throws IllegalStateException, NullPointerException, IllegalArgumentException {
+      throws IllegalStateException,
+             NullPointerException,
+             IllegalArgumentException
+  {
     this.checkParamName(name);
     if (values.length == 1) {
       this.params.put(name, values[0]);
@@ -870,10 +915,10 @@ public class TaskBuilder {
   }
 
   /**
-   * Adds a parameter with the specified name a single value or a list
-   * of values. If exactly one value is provided then the parameter pair will
-   * be single-valued, otherwise the value will be a {@link List} of the
-   * specified values.
+   * Adds a parameter with the specified name a single value or a list of
+   * values. If exactly one value is provided then the parameter pair will be
+   * single-valued, otherwise the value will be a {@link List} of the specified
+   * values.
    *
    * @param name   The parameter name for the parameter.
    * @param values The one or more values for the parameter. If a single value
@@ -891,7 +936,10 @@ public class TaskBuilder {
    *                                  parameter.
    */
   public TaskBuilder parameter(String name, Double... values)
-      throws IllegalStateException, NullPointerException, IllegalArgumentException {
+      throws IllegalStateException,
+             NullPointerException,
+             IllegalArgumentException
+  {
     this.checkParamName(name);
     if (values.length == 1) {
       this.params.put(name, values[0]);
@@ -902,10 +950,10 @@ public class TaskBuilder {
   }
 
   /**
-   * Adds a parameter with the specified name a single value or a list
-   * of values. If exactly one value is provided then the parameter pair will
-   * be single-valued, otherwise the value will be a {@link List} of the
-   * specified values.
+   * Adds a parameter with the specified name a single value or a list of
+   * values. If exactly one value is provided then the parameter pair will be
+   * single-valued, otherwise the value will be a {@link List} of the specified
+   * values.
    *
    * @param name   The parameter name for the parameter.
    * @param values The one or more values for the parameter. If a single value
@@ -923,7 +971,10 @@ public class TaskBuilder {
    *                                  parameter.
    */
   public TaskBuilder parameter(String name, BigInteger... values)
-      throws IllegalStateException, NullPointerException, IllegalArgumentException {
+      throws IllegalStateException,
+             NullPointerException,
+             IllegalArgumentException
+  {
     this.checkParamName(name);
     if (values.length == 1) {
       this.params.put(name, values[0]);
@@ -934,10 +985,10 @@ public class TaskBuilder {
   }
 
   /**
-   * Adds a parameter with the specified name a single value or a list
-   * of values. If exactly one value is provided then the parameter pair will
-   * be single-valued, otherwise the value will be a {@link List} of the
-   * specified values.
+   * Adds a parameter with the specified name a single value or a list of
+   * values. If exactly one value is provided then the parameter pair will be
+   * single-valued, otherwise the value will be a {@link List} of the specified
+   * values.
    *
    * @param name   The parameter name for the parameter.
    * @param values The one or more values for the parameter. If a single value
@@ -955,7 +1006,10 @@ public class TaskBuilder {
    *                                  parameter.
    */
   public TaskBuilder parameter(String name, BigDecimal... values)
-      throws IllegalStateException, NullPointerException, IllegalArgumentException {
+      throws IllegalStateException,
+             NullPointerException,
+             IllegalArgumentException
+  {
     this.checkParamName(name);
     if (values.length == 1) {
       this.params.put(name, values[0]);
@@ -966,10 +1020,10 @@ public class TaskBuilder {
   }
 
   /**
-   * Adds a parameter with the specified name a single value or a list
-   * of values. If exactly one value is provided then the parameter pair will
-   * be single-valued, otherwise the value will be a {@link List} of the
-   * specified values.
+   * Adds a parameter with the specified name a single value or a list of
+   * values. If exactly one value is provided then the parameter pair will be
+   * single-valued, otherwise the value will be a {@link List} of the specified
+   * values.
    *
    * @param name   The parameter name for the parameter.
    * @param values The one or more values for the parameter. If a single value
@@ -987,7 +1041,10 @@ public class TaskBuilder {
    *                                  parameter.
    */
   public TaskBuilder parameter(String name, Boolean... values)
-      throws IllegalStateException, NullPointerException, IllegalArgumentException {
+      throws IllegalStateException,
+             NullPointerException,
+             IllegalArgumentException
+  {
     this.checkParamName(name);
     if (values.length == 1) {
       this.params.put(name, values[0]);
@@ -1002,8 +1059,8 @@ public class TaskBuilder {
    * of values is described by the specified {@link JsonArray}.
    *
    * @param name      The parameter name for the parameter.
-   * @param listValue The {@link JsonArray} describing the sub-list value to
-   *                  be associated.
+   * @param listValue The {@link JsonArray} describing the sub-list value to be
+   *                  associated.
    *
    * @return A reference to this instance.
    * @throws IllegalStateException    If this instance has already created and
@@ -1015,19 +1072,22 @@ public class TaskBuilder {
    *                                  parameter.
    */
   public TaskBuilder parameter(String name, JsonArray listValue)
-      throws IllegalStateException, NullPointerException, IllegalArgumentException {
+      throws IllegalStateException,
+             NullPointerException,
+             IllegalArgumentException
+  {
     this.checkParamName(name);
     this.params.put(name, normalizeJsonValue(listValue));
     return this;
   }
 
   /**
-   * Adds a parameter to the task with a map of values as its value. The map
-   * of values is described by the specified {@link JsonObject}.
+   * Adds a parameter to the task with a map of values as its value. The map of
+   * values is described by the specified {@link JsonObject}.
    *
    * @param name     The parameter name for the parameter.
-   * @param mapValue The {@link JsonObject} describing the sub-map value to
-   *                 be associated.
+   * @param mapValue The {@link JsonObject} describing the sub-map value to be
+   *                 associated.
    *
    * @return A reference to this instance.
    * @throws IllegalStateException    If this instance has already created and
@@ -1039,7 +1099,10 @@ public class TaskBuilder {
    *                                  parameter.
    */
   public TaskBuilder parameter(String name, JsonObject mapValue)
-      throws IllegalStateException, NullPointerException, IllegalArgumentException {
+      throws IllegalStateException,
+             NullPointerException,
+             IllegalArgumentException
+  {
     this.checkParamName(name);
     this.params.put(name, normalizeJsonValue(mapValue));
     return this;
@@ -1062,7 +1125,10 @@ public class TaskBuilder {
    *                                  parameter.
    */
   public ListParamBuilder listParameter(String name)
-      throws IllegalStateException, NullPointerException, IllegalArgumentException {
+      throws IllegalStateException,
+             NullPointerException,
+             IllegalArgumentException
+  {
     this.checkParamName(name);
     ListParamBuilder paramBuilder = new ListParamBuilder(name);
     this.params.put(name, null);
@@ -1088,7 +1154,10 @@ public class TaskBuilder {
    *                                  parameter.
    */
   public MapParamBuilder mapParameter(String name)
-      throws IllegalStateException, NullPointerException, IllegalArgumentException {
+      throws IllegalStateException,
+             NullPointerException,
+             IllegalArgumentException
+  {
     this.checkParamName(name);
     MapParamBuilder paramBuilder = new MapParamBuilder(name);
     this.params.put(name, null);
@@ -1105,15 +1174,17 @@ public class TaskBuilder {
    * @throws IllegalStateException If this instance has already created and
    *                               scheduled a task via {@link #schedule()}.
    */
-  public Scheduler schedule() throws IllegalStateException {
+  public Scheduler schedule()
+      throws IllegalStateException
+  {
     return this.schedule(true);
   }
 
   /**
    * Queues the task that has been built for scheduling (pending {@linkplain
-   * Scheduler#commit()}). This version allows the caller to indicate
-   * whether the scheduled task may be collapsed with other identical
-   * tasks and performed once with a corresponding multiplicity.
+   * Scheduler#commit()}). This version allows the caller to indicate whether
+   * the scheduled task may be collapsed with other identical tasks and
+   * performed once with a corresponding multiplicity.
    *
    * @param allowCollapse <code>true</code> if the scheduled task may be
    *                      collapsed with other identical tasks, and
@@ -1124,7 +1195,8 @@ public class TaskBuilder {
    *                               scheduled a task via {@link #schedule()}.
    */
   public Scheduler schedule(boolean allowCollapse)
-      throws IllegalStateException {
+      throws IllegalStateException
+  {
     // check the state
     this.checkState();
 
@@ -1163,7 +1235,9 @@ public class TaskBuilder {
    * @throws IllegalStateException If this instance has already created and
    *                               scheduled a task via {@link #schedule()}.
    */
-  private void checkState() throws IllegalStateException {
+  private void checkState()
+      throws IllegalStateException
+  {
     if (this.scheduler == null) {
       throw new IllegalStateException(
           "This TaskBuilder instance has already created and scheduled a "
@@ -1183,7 +1257,10 @@ public class TaskBuilder {
    *                                  of values.
    */
   private void checkParamName(String name)
-      throws IllegalStateException, NullPointerException, IllegalArgumentException {
+      throws IllegalStateException,
+             NullPointerException,
+             IllegalArgumentException
+  {
     this.checkState();
     Objects.requireNonNull(
         name, "The specified parameter name cannot be null");

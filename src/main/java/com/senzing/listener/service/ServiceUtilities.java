@@ -8,20 +8,22 @@ import javax.json.JsonObject;
 /**
  * Provides utility methods for services.
  */
-public final class ServiceUtilities {
+public final class ServiceUtilities
+{
   /**
    * Private default constructor.
    */
-  private ServiceUtilities() {
+  private ServiceUtilities()
+  {
     // do nothing
   }
 
   /**
-   * Utility method for obtaining a {@link String} configuration parameter
-   * with options to check if missing and required.  This will throw
-   * a {@link ServiceSetupException} if it fails.  Any {@link String}
-   * value that is obtained will be trimmed of leading and trailing whitespace
-   * and if empty will be returned as <code>null</code>.
+   * Utility method for obtaining a {@link String} configuration parameter with
+   * options to check if missing and required. This will throw a {@link
+   * ServiceSetupException} if it fails. Any {@link String} value that is
+   * obtained will be trimmed of leading and trailing whitespace and if empty
+   * will be returned as <code>null</code>.
    *
    * @param config The {@link JsonObject} configuration.
    * @param key The configuration parameter key.
@@ -40,11 +42,11 @@ public final class ServiceUtilities {
   }
 
   /**
-   * Utility method for obtaining a {@link String} configuration parameter
-   * with options to check if missing and required.  This will throw
-   * a {@link ServiceSetupException} if it fails.  Any {@link String}
-   * value that is obtained will be trimmed of leading and trailing whitespace.
-   * Resultant empty-string values will optionally be converted to
+   * Utility method for obtaining a {@link String} configuration parameter with
+   * options to check if missing and required. This will throw a {@link
+   * ServiceSetupException} if it fails. Any {@link String} value that is
+   * obtained will be trimmed of leading and trailing whitespace. Resultant
+   * empty-string values will optionally be converted to
    * <code>null</code> if the normalization parameter is set to
    * <code>true</code> and will be returned as-is if <code>false</code>.
    *
@@ -85,11 +87,11 @@ public final class ServiceUtilities {
   }
 
   /**
-   * Utility method for obtaining a {@link String} configuration parameter
-   * with option to return a default value if missing.  This will throw
-   * a {@link ServiceSetupException} if it fails.  Any {@link String}
-   * value that is obtained will be trimmed of leading and trailing whitespace
-   * and if empty will be returned as <code>null</code>.
+   * Utility method for obtaining a {@link String} configuration parameter with
+   * option to return a default value if missing. This will throw a {@link
+   * ServiceSetupException} if it fails. Any {@link String} value that is
+   * obtained will be trimmed of leading and trailing whitespace and if empty
+   * will be returned as <code>null</code>.
    *
    * @param config The {@link JsonObject} configuration.
    * @param key The configuration parameter key.
@@ -114,11 +116,11 @@ public final class ServiceUtilities {
   }
 
   /**
-   * Utility method for obtaining a {@link String} configuration parameter
-   * with option to return a default value if missing.  This will throw
-   * a {@link ServiceSetupException} if it fails. Any {@link String}
-   * value that is obtained will be trimmed of leading and trailing whitespace.
-   * Resultant empty-string values will optionally be converted to
+   * Utility method for obtaining a {@link String} configuration parameter with
+   * option to return a default value if missing. This will throw a {@link
+   * ServiceSetupException} if it fails. Any {@link String} value that is
+   * obtained will be trimmed of leading and trailing whitespace. Resultant
+   * empty-string values will optionally be converted to
    * <code>null</code> if the normalization parameter is set to
    * <code>true</code> and will be returned as-is if <code>false</code>.
    *
@@ -164,15 +166,15 @@ public final class ServiceUtilities {
   /**
    * Utility method for obtaining an {@link Integer} configuration parameter
    * with options to check if missing and required or if it is less than an
-   * optional minimum value.  This will throw {@link
-   * ServiceSetupException} if it fails.
+   * optional minimum value. This will throw {@link ServiceSetupException} if it
+   * fails.
    *
    * @param config The {@link JsonObject} configuration.
    * @param key The configuration parameter key.
    * @param required <code>true</code> if required, otherwise
    *                 <code>false</code>.
-   * @param minimum The minimum integer value allowed, or <code>null</code>
-   *                if no minimum is enforced.
+   * @param minimum The minimum integer value allowed, or <code>null</code> if
+   *                no minimum is enforced.
    * @return The {@link String} configuration value.
    * @throws ServiceSetupException If the value is required and not present or
    *                               if it is present and less than the optionally
@@ -196,13 +198,13 @@ public final class ServiceUtilities {
   /**
    * Utility method for obtaining an {@link Integer} configuration parameter
    * with options to check if missing and required or if it is less than an
-   * optional minimum value.  This will throw {@link
-   * ServiceSetupException} if it fails.
+   * optional minimum value. This will throw {@link ServiceSetupException} if it
+   * fails.
    *
    * @param config The {@link JsonObject} configuration.
    * @param key The configuration parameter key.
-   * @param minimum The minimum integer value allowed, or <code>null</code>
-   *                if no minimum is enforced.
+   * @param minimum The minimum integer value allowed, or <code>null</code> if
+   *                no minimum is enforced.
    * @param defaultValue The default value to return if the value is missing.
    * @return The {@link String} configuration value.
    * @throws ServiceSetupException If the value is present and less than the
@@ -234,17 +236,16 @@ public final class ServiceUtilities {
   }
 
   /**
-   * Utility method for obtaining a {@link Long} configuration parameter
-   * with options to check if missing and required or if it is less than an
-   * optional minimum value.  This will throw {@link
-   * ServiceSetupException} if it fails.
+   * Utility method for obtaining a {@link Long} configuration parameter with
+   * options to check if missing and required or if it is less than an optional
+   * minimum value. This will throw {@link ServiceSetupException} if it fails.
    *
    * @param config The {@link JsonObject} configuration.
    * @param key The configuration parameter key.
    * @param required <code>true</code> if required, otherwise
    *                 <code>false</code>.
-   * @param minimum The minimum integer value allowed, or <code>null</code>
-   *                if no minimum is enforced.
+   * @param minimum The minimum integer value allowed, or <code>null</code> if
+   *                no minimum is enforced.
    * @return The {@link String} configuration value.
    * @throws ServiceSetupException If the value is required and not present or
    *                               if it is present and less than the optionally
@@ -267,15 +268,14 @@ public final class ServiceUtilities {
   }
 
   /**
-   * Utility method for obtaining a {@link Long} configuration parameter
-   * with options to check if missing and required or if it is less than an
-   * optional minimum value.  This will throw {@link
-   * ServiceSetupException} if it fails.
+   * Utility method for obtaining a {@link Long} configuration parameter with
+   * options to check if missing and required or if it is less than an optional
+   * minimum value. This will throw {@link ServiceSetupException} if it fails.
    *
    * @param config The {@link JsonObject} configuration.
    * @param key The configuration parameter key.
-   * @param minimum The minimum integer value allowed, or <code>null</code>
-   *                if no minimum is enforced.
+   * @param minimum The minimum integer value allowed, or <code>null</code> if
+   *                no minimum is enforced.
    * @param defaultValue The default value to return if the value is missing.
    * @return The {@link String} configuration value.
    * @throws ServiceSetupException If the value is less than the optionally
@@ -307,8 +307,8 @@ public final class ServiceUtilities {
   }
 
   /**
-   * Utility method for obtaining a {@link Boolean} configuration parameter
-   * with options to check if missing and required.  This will throw {@link
+   * Utility method for obtaining a {@link Boolean} configuration parameter with
+   * options to check if missing and required. This will throw {@link
    * ServiceSetupException} if it fails.
    *
    * @param config The {@link JsonObject} configuration.
@@ -323,7 +323,8 @@ public final class ServiceUtilities {
   public static Boolean getConfigBoolean(JsonObject config,
                                          String     key,
                                          boolean    required)
-      throws ServiceSetupException {
+      throws ServiceSetupException
+  {
     // check if required and missing
     if (required && !config.containsKey(key)) {
       throw new ServiceSetupException(
@@ -334,10 +335,9 @@ public final class ServiceUtilities {
   }
 
   /**
-   * Utility method for obtaining a {@link Long} configuration parameter
-   * with options to check if missing and required or if it is less than an
-   * optional minimum value.  This will throw {@link
-   * ServiceSetupException} if it fails.
+   * Utility method for obtaining a {@link Long} configuration parameter with
+   * options to check if missing and required or if it is less than an optional
+   * minimum value. This will throw {@link ServiceSetupException} if it fails.
    *
    * @param config The {@link JsonObject} configuration.
    * @param key The configuration parameter key.

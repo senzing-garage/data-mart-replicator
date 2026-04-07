@@ -1,14 +1,16 @@
 package com.senzing.datamart.reports;
 
 /**
- * Provides a {@link RuntimeException} that is thrown from the
- * reports services in the event of failure.
+ * Provides a {@link RuntimeException} that is thrown from the reports services
+ * in the event of failure.
  */
-public class ReportsServiceException extends RuntimeException {
+public class ReportsServiceException extends RuntimeException
+{
     /**
      * Default constructor.
      */
-    public ReportsServiceException() {
+    public ReportsServiceException()
+    {
         super();
     }
 
@@ -17,7 +19,8 @@ public class ReportsServiceException extends RuntimeException {
      * 
      * @param message THe message with which to construct.
      */
-    public ReportsServiceException(String message) {
+    public ReportsServiceException(String message)
+    {
         super(message);
     }
 
@@ -26,7 +29,8 @@ public class ReportsServiceException extends RuntimeException {
      * 
      * @param cause The underlying cause of the failure.
      */
-    public ReportsServiceException(Throwable cause) {
+    public ReportsServiceException(Throwable cause)
+    {
         super(cause);
     }
 
@@ -36,7 +40,8 @@ public class ReportsServiceException extends RuntimeException {
      * @param message THe message with which to construct.
      * @param cause The underlying cause of the failure.
      */
-    public ReportsServiceException(String message, Throwable cause) {
+    public ReportsServiceException(String message, Throwable cause)
+    {
         super(message, cause);
     }
 }

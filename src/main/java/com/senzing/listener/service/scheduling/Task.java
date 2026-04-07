@@ -18,7 +18,8 @@ import static com.senzing.listener.service.scheduling.Task.Statistic.*;
 /**
  * Describes a task to be scheduled and handled.
  */
-public class Task {
+public class Task
+{
   /**
    * Constant used for converting between nanoseconds and milliseconds.
    */
@@ -27,10 +28,11 @@ public class Task {
   /**
    * The enumerated states of a task.
    */
-  enum State {
+  enum State
+  {
     /**
-     * The transient state that the task is in between when it is constructed and
-     * when it is scheduled to be executed.
+     * The transient state that the task is in between when it is constructed
+     * and when it is scheduled to be executed.
      */
     UNSCHEDULED,
 
@@ -57,8 +59,8 @@ public class Task {
     FAILED,
 
     /**
-     * The task was aborted before being started because another task in the group
-     * failed.
+     * The task was aborted before being started because another task in the
+     * group failed.
      */
     ABORTED;
 
@@ -97,10 +99,11 @@ public class Task {
      * Gets the <b>unmodifiable</b> {@link Set} of predecessor states for this
      * instance.
      *
-     * @return The <b>unmodifiable</b> {@link Set} of predecessor states for this
-     *         instance.
+     * @return The <b>unmodifiable</b> {@link Set} of predecessor states for
+     *             this instance.
      */
-    public Set<State> getPredecessors() {
+    public Set<State> getPredecessors()
+    {
       return this.predecessors;
     }
 
@@ -109,9 +112,10 @@ public class Task {
      * instance.
      *
      * @return The <b>unmodifiable</b> {@link Set} of successor states for this
-     *         instance.
+     *             instance.
      */
-    public Set<State> getSuccessors() {
+    public Set<State> getSuccessors()
+    {
       return this.successors;
     }
   }
@@ -121,38 +125,40 @@ public class Task {
    * {@link Task#getStatistics()} method.
    *
    */
-  public enum Statistic {
+  public enum Statistic
+  {
     /**
-     * The time spent (in milliseconds) between constructing the task and scheduling
-     * the task. If the task is not yet scheduled then it is the time spent thus
-     * far.
+     * The time spent (in milliseconds) between constructing the task and
+     * scheduling the task. If the task is not yet scheduled then it is the time
+     * spent thus far.
      */
     unscheduledTime,
 
     /**
-     * The time spent (in milliseconds) between scheduling the task and beginning to
-     * handle the task. If the task has not yet begun handling then it is the time
-     * spent thus far waiting to be handled.
+     * The time spent (in milliseconds) between scheduling the task and
+     * beginning to handle the task. If the task has not yet begun handling then
+     * it is the time spent thus far waiting to be handled.
      */
     pendingTime,
 
     /**
-     * The time spent (in milliseconds) handling the task once it was no longer in a
-     * pending state. This is zero (0) if not yet handled and if the task is not yet
-     * completed it will be the time spent thus far.
+     * The time spent (in milliseconds) handling the task once it was no longer
+     * in a pending state. This is zero (0) if not yet handled and if the task
+     * is not yet completed it will be the time spent thus far.
      */
     handlingTime,
 
     /**
      * The number of milliseconds from the point in time from when the task was
-     * scheduled until the time it completed either successfully, with a failure or
-     * was aborted.
+     * scheduled until the time it completed either successfully, with a failure
+     * or was aborted.
      */
     roundTripTime,
 
     /**
-     * The total time (in milliseconds) from construction until completion (whether
-     * successful or failed) or until the current time if not yet completed.
+     * The total time (in milliseconds) from construction until completion
+     * (whether successful or failed) or until the current time if not yet
+     * completed.
      */
     lifespan;
 
@@ -163,7 +169,8 @@ public class Task {
      *
      * @return The unit of measure for this statistic.
      */
-    public String getUnits() {
+    public String getUnits()
+    {
       return "ms";
     }
   }
@@ -178,7 +185,8 @@ public class Task {
    *
    * @return The next task ID.
    */
-  private static synchronized long getNextTaskId() {
+  private static synchronized long getNextTaskId()
+  {
     return nextTaskId++;
   }
 
@@ -226,7 +234,8 @@ public class Task {
   private Exception failure = null;
 
   /**
-   * The number of elapsed milliseconds since the task was originally serialized.
+   * The number of elapsed milliseconds since the task was originally
+   * serialized.
    *
    */
   private long elapsedMillisSinceSerialization = 0L;
@@ -237,14 +246,14 @@ public class Task {
   private long createdTimeNanos = -1L;
 
   /**
-   * The nanoseconds timestamp when this task was scheduled, or negative one (-1)
-   * if not yet scheduled.
+   * The nanoseconds timestamp when this task was scheduled, or negative one
+   * (-1) if not yet scheduled.
    */
   private long scheduledTimeNanos = -1L;
 
   /**
-   * The nanosecond timestamp when this task was started, or negative one (-1) if
-   * not yet started.
+   * The nanosecond timestamp when this task was started, or negative one (-1)
+   * if not yet started.
    */
   private long startedTimeNanos = -1L;
 
@@ -262,13 +271,18 @@ public class Task {
    * @param resourceKeys  The {@link SortedSet} of {@link ResourceKey} instances
    *                      for the task.
    * @param taskGroup     The optional {@link TaskGroup} for the task, or
-   *                      <code>null</code> if the task is a follow-up task either
-   *                      being constructed directly or deserialized from the
-   *                      database.
-   * @param allowCollapse <code>true</code> if collapsing identical tasks of this
-   *                      type is allowed, otherwise <code>false</code>.
+   *                      <code>null</code> if the task is a follow-up task
+   *                      either being constructed directly or deserialized from
+   *                      the database.
+   * @param allowCollapse <code>true</code> if collapsing identical tasks of
+   *                      this type is allowed, otherwise <code>false</code>.
    */
-  Task(String action, SortedMap<String, Object> parameters, SortedSet<ResourceKey> resourceKeys, TaskGroup taskGroup, boolean allowCollapse) {
+  Task(String                   action,
+       SortedMap<String, Object> parameters,
+       SortedSet<ResourceKey>    resourceKeys,
+       TaskGroup                 taskGroup,
+       boolean                   allowCollapse)
+  {
     this.taskId = getNextTaskId();
     this.action = action;
     this.parameters = new TreeMap<>(parameters);
@@ -287,18 +301,24 @@ public class Task {
    * @param action                          The action for the task.
    * @param parameters                      The {@link SortedMap} of parameters
    *                                        for the task.
-   * @param resourceKeys                    The {@link SortedSet} of
-   *                                        {@link ResourceKey} instances for the
-   *                                        task.
+   * @param resourceKeys                    The {@link SortedSet} of {@link
+   *                                        ResourceKey} instances for the task.
    * @param allowCollapse                   <code>true</code> if collapsing
    *                                        identical tasks of this type is
-   *                                        allowed, otherwise <code>false</code>.
+   *                                        allowed, otherwise
+   *                                        <code>false</code>.
    * @param elapsedMillisSinceSerialization The number of milliseconds that have
    *                                        elapsed since the deserialized task
    *                                        was originally created, or
    *                                        <code>null</code> if unknown.
    */
-  private Task(String action, SortedMap<String, Object> parameters, SortedSet<ResourceKey> resourceKeys, boolean allowCollapse, Long elapsedMillisSinceSerialization) {
+  private Task(
+          String                   action,
+          SortedMap<String, Object> parameters,
+          SortedSet<ResourceKey>    resourceKeys,
+          boolean                   allowCollapse,
+          Long                      elapsedMillisSinceSerialization)
+  {
     this.taskId = getNextTaskId();
     this.action = action;
     this.parameters = parameters;
@@ -318,13 +338,14 @@ public class Task {
 
   /**
    * Returns the statistics for this {@link Task} instance. The statistics are
-   * returned as a {@link Map} of {@link Statistic} keys to {@link Number} values
-   * whose units are measured in the associated units for the given the key found
-   * via {@link Statistic#getUnits()}.
+   * returned as a {@link Map} of {@link Statistic} keys to {@link Number}
+   * values whose units are measured in the associated units for the given the
+   * key found via {@link Statistic#getUnits()}.
    *
    * @return The statistics for this {@link Task}.
    */
-  public Map<Statistic, Number> getStatistics() {
+  public Map<Statistic, Number> getStatistics()
+  {
     Map<Statistic, Number> result = new LinkedHashMap<>();
     synchronized (this) {
       result.put(unscheduledTime, this.getUnscheduledTime());
@@ -357,7 +378,11 @@ public class Task {
    * @return The deserialized {@link Task}.
    */
   @SuppressWarnings("unchecked")
-  static Task deserialize(String jsonText, boolean allowCollapse, Long elapsedMillisSinceSerialization) {
+  static Task deserialize(
+          String  jsonText,
+          boolean allowCollapse,
+          Long    elapsedMillisSinceSerialization)
+  {
     JsonObject jsonObject = parseJsonObject(jsonText);
 
     String action = getString(jsonObject, "action");
@@ -367,12 +392,18 @@ public class Task {
     JsonArray resourceArray = getJsonArray(jsonObject, "resources");
 
     // get the parameters map
-    SortedMap<String, Object> paramsMap = (paramsObject == null) ? Collections.emptySortedMap()
-        : new TreeMap<>((Map<String, Object>) normalizeJsonValue(paramsObject));
+    SortedMap<String, Object> paramsMap
+            = (paramsObject == null)
+            ? Collections.emptySortedMap()
+            : new TreeMap<>((Map<String, Object>)
+                    normalizeJsonValue(paramsObject));
 
     // get the list of resources
-    List<String> resourceList = (resourceArray == null) ? Collections.emptyList()
-        : (List<String>) normalizeJsonValue(resourceArray);
+    List<String> resourceList
+            = (resourceArray == null)
+            ? Collections.emptyList()
+            : (List<String>)
+                    normalizeJsonValue(resourceArray);
 
     // convert the resources from strings to objects
     SortedSet<ResourceKey> resourceSet = new TreeSet<>();
@@ -380,7 +411,9 @@ public class Task {
       resourceSet.add(ResourceKey.parse(resourceKey));
     }
 
-    return new Task(action, paramsMap, resourceSet, allowCollapse, elapsedMillisSinceSerialization);
+    return new Task(action, paramsMap, resourceSet,
+            allowCollapse,
+            elapsedMillisSinceSerialization);
   }
 
   /**
@@ -388,13 +421,14 @@ public class Task {
    *
    * @return The current {@link State} for this task.
    */
-  public synchronized State getState() {
+  public synchronized State getState()
+  {
     return this.state;
   }
 
   /**
-   * Sets the {@link State} of this task to the specified {@link State} which must
-   * be a valid transition from the {@linkplain #getState() current state}.
+   * Sets the {@link State} of this task to the specified {@link State} which
+   * must be a valid transition from the {@linkplain #getState() current state}.
    *
    * @param state The {@link State} to transition to.
    *
@@ -402,26 +436,33 @@ public class Task {
    *                                  represent a valid transition from the
    *                                  {@linkplain #getState() current state}.`
    */
-  private synchronized void setState(State state) {
+  private synchronized void setState(State state)
+  {
     Set<State> predecessors = state.getPredecessors();
     Set<State> successors = this.getState().getSuccessors();
 
-    if ((!predecessors.contains(this.getState())) || (!successors.contains(state))) {
+    if ((!predecessors.contains(this.getState()))
+        || (!successors.contains(state)))
+    {
       throw new IllegalArgumentException(
-          "Cannot transition to specified state (" + state + ") from " + "current state (" + this.getState() + ").");
+          "Cannot transition to specified state ("
+              + state + ") from current state ("
+              + this.getState() + ").");
     }
     this.state = state;
     this.notifyAll();
   }
 
   /**
-   * Gets the associated {@link TaskGroup}, if any. This returns <code>null</code>
+   * Gets the associated {@link TaskGroup}, if any. This returns
+   * <code>null</code>
    * if the task has no group.
    *
    * @return The associated {@link TaskGroup}, or <code>null</code> if this task
-   *         has no group.
+   *             has no group.
    */
-  public TaskGroup getTaskGroup() {
+  public TaskGroup getTaskGroup()
+  {
     return this.taskGroup;
   }
 
@@ -432,27 +473,30 @@ public class Task {
    * incrementally increased multiplicity.
    *
    * @return <code>true</code> if this task can be collapsed, otherwise
-   *         <code>false</code>.
+   *                           <code>false</code>.
    */
-  public boolean isAllowingCollapse() {
+  public boolean isAllowingCollapse()
+  {
     return this.allowCollapse;
   }
 
   /**
-   * Checks if this {@link Task} instance has been marked in a state of completion
-   * either {@link State#SUCCESSFUL}, {@link State#FAILED} or
+   * Checks if this {@link Task} instance has been marked in a state of
+   * completion either {@link State#SUCCESSFUL}, {@link State#FAILED} or
    * {@link State#ABORTED}.
    *
    * @return <code>true</code> if completed, otherwise <code>false</code>.
    */
-  public synchronized boolean isCompleted() {
+  public synchronized boolean isCompleted()
+  {
     return (this.completedTimeNanos >= 0L);
   }
 
   /**
    * Marks this task as having been scheduled.
    */
-  void markScheduled() {
+  void markScheduled()
+  {
     synchronized (this) {
       this.setState(SCHEDULED);
       this.scheduledTimeNanos = System.nanoTime();
@@ -466,7 +510,8 @@ public class Task {
   /**
    * Marks this task has having begun being handled.
    */
-  void beginHandling() {
+  void beginHandling()
+  {
     synchronized (this) {
       this.setState(STARTED);
       this.startedTimeNanos = System.nanoTime();
@@ -480,7 +525,8 @@ public class Task {
   /**
    * Marks this task as having succeeded.
    */
-  void succeeded() {
+  void succeeded()
+  {
     synchronized (this) {
       this.setState(SUCCESSFUL);
       this.completedTimeNanos = System.nanoTime();
@@ -495,7 +541,8 @@ public class Task {
    *
    * @param failure The {@link Exception} describing the failure.
    */
-  void failed(Exception failure) {
+  void failed(Exception failure)
+  {
     synchronized (this) {
       this.setState(FAILED);
       this.completedTimeNanos = System.nanoTime();
@@ -509,7 +556,8 @@ public class Task {
   /**
    * Marks this task as having been aborted.
    */
-  void aborted() {
+  void aborted()
+  {
     synchronized (this) {
       this.setState(ABORTED);
       this.completedTimeNanos = System.nanoTime();
@@ -524,7 +572,8 @@ public class Task {
    *
    * @return The task ID for this task.
    */
-  public long getTaskId() {
+  public long getTaskId()
+  {
     return this.taskId;
   }
 
@@ -533,7 +582,8 @@ public class Task {
    *
    * @return The action for this task.
    */
-  public String getAction() {
+  public String getAction()
+  {
     return this.action;
   }
 
@@ -542,7 +592,8 @@ public class Task {
    *
    * @return The <b>unmodifiable</b> {@link Map} of parameters for this task.
    */
-  public SortedMap<String, Object> getParameters() {
+  public SortedMap<String, Object> getParameters()
+  {
     return this.parameters;
   }
 
@@ -550,10 +601,12 @@ public class Task {
    * Gets the <b>unmodifiable</b> {@link Set} of {@link ResourceKey} instances
    * identifying the resources that will be modified by this task.
    *
-   * @return The <b>unmodifiable</b> {@link Set} of {@link ResourceKey} instances
-   *         identifying the resources that will be modified by this task.
+   * @return The <b>unmodifiable</b> {@link Set} of {@link ResourceKey}
+   *             instances identifying the resources that will be modified by
+   *             this task.
    */
-  public SortedSet<ResourceKey> getResourceKeys() {
+  public SortedSet<ResourceKey> getResourceKeys()
+  {
     return this.resourceKeys;
   }
 
@@ -564,23 +617,26 @@ public class Task {
    * successfully.
    *
    * @return The {@link Exception} describing any failure that may have occurred
-   *         while handling this {@link Task}, or <code>null</code> if the
-   *         {@link Task} has not yet been handled or was handled but completed
-   *         successfully.
+   *             while handling this {@link Task}, or <code>null</code> if the
+   *             {@link Task} has not yet been handled or was handled but
+   *             completed successfully.
    */
-  public Exception getFailure() {
+  public Exception getFailure()
+  {
     return this.failure;
   }
 
   /**
-   * Converts the specified {@link Task} to a {@link JsonObjectBuilder} describing
-   * the action, parameters and associated resource keys.
+   * Converts the specified {@link Task} to a {@link JsonObjectBuilder}
+   * describing the action, parameters and associated resource keys.
    *
    * @param task The {@link Task} to be represented as a {@link JsonObject}.
    *
-   * @return The {@link JsonObjectBuilder} describing the specified {@link Task}.
+   * @return The {@link JsonObjectBuilder} describing the specified {@link
+   *             Task}.
    */
-  public static JsonObjectBuilder toJsonObjectBuilder(Task task) {
+  public static JsonObjectBuilder toJsonObjectBuilder(Task task)
+  {
     JsonObjectBuilder job1 = Json.createObjectBuilder();
     job1.add("action", task.action);
     if (task.parameters.size() > 0) {
@@ -601,12 +657,14 @@ public class Task {
   }
 
   /**
-   * Converts this {@link Task} instance to a {@link JsonObjectBuilder} describing
-   * the action, parameters and associated resource keys.
+   * Converts this {@link Task} instance to a {@link JsonObjectBuilder}
+   * describing the action, parameters and associated resource keys.
    *
-   * @return The {@link JsonObjectBuilder} describing this {@link Task} instance.
+   * @return The {@link JsonObjectBuilder} describing this {@link Task}
+   *             instance.
    */
-  public JsonObjectBuilder toJsonObjectBuilder() {
+  public JsonObjectBuilder toJsonObjectBuilder()
+  {
     return toJsonObjectBuilder(this);
   }
 
@@ -618,7 +676,8 @@ public class Task {
    *
    * @return The {@link JsonObject} describing the specified {@link Task}.
    */
-  public static JsonObject toJsonObject(Task task) {
+  public static JsonObject toJsonObject(Task task)
+  {
     return toJsonObjectBuilder(task).build();
   }
 
@@ -628,7 +687,8 @@ public class Task {
    *
    * @return The {@link JsonObject} describing this {@link Task} instance.
    */
-  public JsonObject toJsonObject() {
+  public JsonObject toJsonObject()
+  {
     return toJsonObject(this);
   }
 
@@ -640,7 +700,8 @@ public class Task {
    *
    * @return The JSON text representation of this task as a {@link String}.
    */
-  public static String toJsonText(Task task) {
+  public static String toJsonText(Task task)
+  {
     return JsonUtilities.toJsonText(toJsonObject(task));
   }
 
@@ -649,7 +710,8 @@ public class Task {
    *
    * @return The JSON representation of this task.
    */
-  public String toJsonText() {
+  public String toJsonText()
+  {
     return toJsonText(this);
   }
 
@@ -659,10 +721,11 @@ public class Task {
    *
    * @param task The {@link Task} to convert to a signature.
    *
-   * @return A message digest signature which can be used to easily identify this
-   *         a serialized text representation of this task.
+   * @return A message digest signature which can be used to easily identify
+   *           this a serialized text representation of this task.
    */
-  public static String toSignature(Task task) {
+  public static String toSignature(Task task)
+  {
     return toSignature(toJsonText(task));
   }
 
@@ -670,10 +733,11 @@ public class Task {
    * Gets a message digest signature which can be used to easily identify a
    * serialized text representation of this task.
    *
-   * @return A message digest signature which can be used to easily identify this
-   *         a serialized text representation of this task.
+   * @return A message digest signature which can be used to easily identify
+   *           this a serialized text representation of this task.
    */
-  public String getSignature() {
+  public String getSignature()
+  {
     return toSignature(this);
   }
 
@@ -685,7 +749,8 @@ public class Task {
    *
    * @return The message digest of the specific JSON text.
    */
-  private static String toSignature(String jsonText) {
+  private static String toSignature(String jsonText)
+  {
     try {
       HexFormat hex = HexFormat.of();
       MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -708,7 +773,8 @@ public class Task {
    * @return A diagnostic {@link String} describing this task.
    */
   @Override
-  public String toString() {
+  public String toString()
+  {
     return this.toString(this.getState());
   }
 
@@ -720,7 +786,8 @@ public class Task {
    *
    * @return The {@link String} representation of this instance.
    */
-  protected String toString(State state) {
+  protected String toString(State state)
+  {
     StringBuilder sb = new StringBuilder();
     sb.append("taskId=[ ").append(this.getTaskId()).append(" ], ");
     sb.append("state=[ ").append(state).append(" ], ");
@@ -729,19 +796,23 @@ public class Task {
     String signature = toSignature(jsonText);
 
     sb.append("signature=[ ").append(signature).append(" ], ");
-    sb.append("allowCollapse=[ ").append(this.isAllowingCollapse()).append(" ], ").append("task=[ ").append(jsonText)
-        .append(" ]");
+    sb.append("allowCollapse=[ ")
+        .append(this.isAllowingCollapse())
+        .append(" ], ").append("task=[ ")
+        .append(jsonText).append(" ]");
     return sb.toString();
   }
 
   /**
-   * Gets the number of milliseconds from the point in time at which this task was
-   * created until it was scheduled to be handled. If the task has not yet been
-   * scheduled then the number of milliseconds since it was created is returned.
+   * Gets the number of milliseconds from the point in time at which this task
+   * was created until it was scheduled to be handled. If the task has not yet
+   * been scheduled then the number of milliseconds since it was created is
+   * returned.
    *
    * @return The duration of the unscheduled time of this task in milliseconds.
    */
-  public synchronized long getUnscheduledTime() {
+  public synchronized long getUnscheduledTime()
+  {
     if (this.scheduledTimeNanos < 0L) {
       return (System.nanoTime() - this.createdTimeNanos) / ONE_MILLION;
     } else {
@@ -750,16 +821,17 @@ public class Task {
   }
 
   /**
-   * Gets the number of milliseconds from the point in time at which this task was
-   * scheduled until handling of the task was started. If the task has not yet
-   * been scheduled then negative one (-1) is returned. If the task has been
-   * scheduled, but has not yet been started then the number of milliseconds since
-   * it was scheduled is returned. If the task was a deserialized follow-up task
-   * then this may include the time spent in persistent storage.
+   * Gets the number of milliseconds from the point in time at which this task
+   * was scheduled until handling of the task was started. If the task has not
+   * yet been scheduled then negative one (-1) is returned. If the task has been
+   * scheduled, but has not yet been started then the number of milliseconds
+   * since it was scheduled is returned. If the task was a deserialized
+   * follow-up task then this may include the time spent in persistent storage.
    *
    * @return The duration of the pending time of this task in milliseconds.
    */
-  public synchronized long getPendingTime() {
+  public synchronized long getPendingTime()
+  {
     if (this.scheduledTimeNanos < 0L) {
       return -1L;
     }
@@ -774,14 +846,15 @@ public class Task {
 
   /**
    * Gets the number of milliseconds from the point in time at which handling of
-   * this task was started until handling completed successfully or with failures.
-   * If the task has not yet been started then negative one (-1) is returned. If
-   * the task started, but has not yet completed then the number of milliseconds
-   * since it was started is returned.
+   * this task was started until handling completed successfully or with
+   * failures. If the task has not yet been started then negative one (-1) is
+   * returned. If the task started, but has not yet completed then the number of
+   * milliseconds since it was started is returned.
    *
    * @return The duration of the handling time of this task in milliseconds.
    */
-  public synchronized long getHandlingTime() {
+  public synchronized long getHandlingTime()
+  {
     if (this.startedTimeNanos < 0L) {
       return -1L;
     }
@@ -800,14 +873,16 @@ public class Task {
    * follow-up task then this may include the time spent in persistent storage.
    *
    * @return The duration of the time from scheduling to completion of this task
-   *         in milliseconds.
+   *             in milliseconds.
    */
-  public synchronized long getRoundTripTime() {
+  public synchronized long getRoundTripTime()
+  {
     long result = this.elapsedMillisSinceSerialization;
     if (this.scheduledTimeNanos < 0L) {
       result += (System.nanoTime() - this.scheduledTimeNanos) / ONE_MILLION;
     } else {
-      result += (this.completedTimeNanos - this.scheduledTimeNanos) / ONE_MILLION;
+      result += (this.completedTimeNanos
+              - this.scheduledTimeNanos) / ONE_MILLION;
     }
     return result;
   }
@@ -815,13 +890,14 @@ public class Task {
   /**
    * Gets the number of milliseconds from the point in time from when this task
    * was created until the time it was completed either successfully or with
-   * failures. If not yet completed then the number of milliseconds since the task
-   * was created is returned. If the task was a deserialized follow-up task then
-   * this may include the time spent in persistent storage.
+   * failures. If not yet completed then the number of milliseconds since the
+   * task was created is returned. If the task was a deserialized follow-up task
+   * then this may include the time spent in persistent storage.
    *
    * @return The duration of the lifespan of this task in milliseconds.
    */
-  public synchronized long getLifespan() {
+  public synchronized long getLifespan()
+  {
     long result = this.elapsedMillisSinceSerialization;
     if (this.completedTimeNanos < 0L) {
       result += (System.nanoTime() - this.createdTimeNanos) / ONE_MILLION;

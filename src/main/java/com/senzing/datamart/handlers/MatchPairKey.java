@@ -9,7 +9,8 @@ import java.util.Objects;
  * principle having <code>null</code> values to indicate "any" match key or
  * principle, respectively.
  */
-public final class MatchPairKey implements Comparable<MatchPairKey> {
+public final class MatchPairKey implements Comparable<MatchPairKey>
+{
     /**
      * The match key associated with the relationships.
      */
@@ -21,25 +22,27 @@ public final class MatchPairKey implements Comparable<MatchPairKey> {
     private String principle;
 
     /**
-     * Constructs with the specified match key and principle. Both of the parameters
-     * may be <code>null</code>.
+     * Constructs with the specified match key and principle. Both of the
+     * parameters may be <code>null</code>.
      *
      * @param matchKey  The match key for the relationships.
      * @param principle The principle for the relationships.
      */
-    public MatchPairKey(String matchKey, String principle) {
+    public MatchPairKey(String matchKey, String principle)
+    {
         this.matchKey = matchKey;
         this.principle = principle;
     }
 
     /**
-     * Gets the match key. This may return <code>null</code> if constructed with a
-     * <code>null</code> match key.
+     * Gets the match key. This may return <code>null</code> if constructed with
+     * a <code>null</code> match key.
      * 
      * @return The associated match key, or <code>null</code> if no specific
-     *         match key was associated.
+     *             match key was associated.
      */
-    public String getMatchKey() {
+    public String getMatchKey()
+    {
         return this.matchKey;
     }
 
@@ -48,9 +51,10 @@ public final class MatchPairKey implements Comparable<MatchPairKey> {
      * constructed with a <code>null</code> principle.
      * 
      * @return The associated principle, or <code>null</code> if no specific
-     *         principle was associated.
+     *             principle was associated.
      */
-    public String getPrinciple() {
+    public String getPrinciple()
+    {
         return this.principle;
     }
 
@@ -60,19 +64,22 @@ public final class MatchPairKey implements Comparable<MatchPairKey> {
      * @return The hash code for this instance.
      */
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hash(this.getMatchKey(), this.getPrinciple());
     }
 
     /**
-     * Checks if this instance is equal to the specified object. This is implemented
-     * to return <code>true</code> if and only if the specified value is a non-null
-     * reference to an object of the same class with equivalent properties.
+     * Checks if this instance is equal to the specified object. This is
+     * implemented to return <code>true</code> if and only if the specified
+     * value is a non-null reference to an object of the same class with
+     * equivalent properties.
      *
      * @param obj The object to compare with.
      */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (obj == null) {
             return false;
         }
@@ -89,18 +96,20 @@ public final class MatchPairKey implements Comparable<MatchPairKey> {
 
     /**
      * Implemented to handle comparing such that we sort first on principles and
-     * then on match keys with <code>null</code> values sorting less-than non-null
-     * values. If the specified parameter is <code>null</code> then this returns one
-     * (1).
-     * 
+     * then on match keys with <code>null</code> values sorting less-than
+     * non-null values. If the specified parameter is <code>null</code> then
+     * this returns one (1).
+     *
      * @param key The {@link MatchPairKey} to compare with.
-     * 
-     * @return A negative number if this instance compares less-than the specified
-     *         parameter, a positive number if it compares greater-than the
-     *         specified parameter and zero (0) if they compare equal.
+     *
+     * @return A negative number if this instance compares less-than the
+     *           specified parameter, a positive number if it compares
+     *           greater-than the specified parameter and zero (0) if they
+     *           compare equal.
      */
     @Override
-    public int compareTo(MatchPairKey key) {
+    public int compareTo(MatchPairKey key)
+    {
         if (key == null) {
             return 1;
         }
@@ -133,12 +142,14 @@ public final class MatchPairKey implements Comparable<MatchPairKey> {
     }
 
     /**
-     * Implemented to provide a diagnostic {@link String} describing this instance.
+     * Implemented to provide a diagnostic {@link String} describing this
+     * instance.
      *
      * @return A diagnostic {@link String} describing this instance.
      */
     @Override
-    public String toString() {
+    public String toString()
+    {
         return "[" + this.getPrinciple() + ":" + this.getMatchKey() + "]";
     }
 }

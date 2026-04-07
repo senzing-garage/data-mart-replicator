@@ -30,7 +30,8 @@ import static com.senzing.sdk.SzFlag.*;
 /**
  * Provides a handler for refreshing an affected entity.
  */
-public class RefreshEntityHandler extends AbstractTaskHandler {
+public class RefreshEntityHandler extends AbstractTaskHandler
+{
     /**
      * The parameter key for the entity ID.
      */
@@ -41,11 +42,12 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
      */
     public static final Set<SzFlag> ENTITY_FLAGS;
     static {
-        EnumSet<SzFlag> enumSet = EnumSet.of(SZ_ENTITY_INCLUDE_ENTITY_NAME,
-                                             SZ_ENTITY_INCLUDE_RECORD_DATA,
-                                             SZ_ENTITY_INCLUDE_RECORD_MATCHING_INFO,
-                                             SZ_ENTITY_INCLUDE_RELATED_MATCHING_INFO,
-                                             SZ_ENTITY_INCLUDE_RELATED_RECORD_DATA);
+        EnumSet<SzFlag> enumSet = EnumSet.of(
+            SZ_ENTITY_INCLUDE_ENTITY_NAME,
+            SZ_ENTITY_INCLUDE_RECORD_DATA,
+            SZ_ENTITY_INCLUDE_RECORD_MATCHING_INFO,
+            SZ_ENTITY_INCLUDE_RELATED_MATCHING_INFO,
+            SZ_ENTITY_INCLUDE_RELATED_RECORD_DATA);
         enumSet.addAll(SZ_ENTITY_INCLUDE_ALL_RELATIONS);
         ENTITY_FLAGS = Collections.unmodifiableSet(enumSet);
     }
@@ -65,12 +67,13 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                  UPDATE_ENTITY_RELATION_BREAKDOWN);
 
     /**
-     * Constructs with the specified {@link SzReplicationProvider} to use to access
-     * the data mart replicator functions.
+     * Constructs with the specified {@link SzReplicationProvider} to use to
+     * access the data mart replicator functions.
      *
      * @param provider The {@link SzReplicationProvider} to use.
      */
-    public RefreshEntityHandler(SzReplicationProvider provider) {
+    public RefreshEntityHandler(SzReplicationProvider provider)
+    {
         super(provider, REFRESH_ENTITY);
     }
 
@@ -90,7 +93,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
         boolean overridingDebug = false;
         try {
             // get the entity ID
-            long entityId = ((Number) parameters.get(ENTITY_ID_KEY)).longValue();
+            long entityId =
+                    ((Number) parameters.get(ENTITY_ID_KEY)).longValue();
 
             // get the environment
             SzEnvironment env = this.getSzEnvironment();
@@ -108,13 +112,17 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
             JsonObject jsonObj = parseJsonObject(jsonText);
             SzResolvedEntity newEntity = SzResolvedEntity.parse(jsonObj);
 
-            // we need to check for the transient state of a missing relationship match key
+            // we need to check for the transient state of a missing
+            // relationship match key
             for (int retry = 0; (newEntity != null) && (retry < 5); retry++) {
                 boolean missingMatchKey = false;
-                for (SzRelatedEntity rel : newEntity.getRelatedEntities().values()) {
+                for (SzRelatedEntity rel
+                    : newEntity.getRelatedEntities()
+                        .values()) {
                     if (rel.getMatchKey() == null) {
                         missingMatchKey = true;
-                        logWarning("ENTITY " + entityId + " MISSING RELATIONSHIP MATCH KEY: ",
+                        logWarning("ENTITY " + entityId
+                                + " MISSING RELATIONSHIP MATCH KEY: ",
                                 toJsonText(jsonObj, true));
                         if (!overridingDebug) { 
                             LoggingUtilities.overrideDebugLogging(true);
@@ -152,7 +160,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
             }
 
             logDebug("REFRESHING ENTITY " + entityId + ": ",
-                     (newEntity == null) ? "--> DELETED" : newEntity.toString());
+                     (newEntity == null) ? "--> DELETED" : newEntity
+                             .toString());
 
             String deleteOpId = (newEntity == null)
                     ? this.generateOperationId(entityId)
@@ -169,7 +178,10 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
             if (entityHash != null && entityHash.trim().length() == 0) {
                 // check if the entity never existed
                 if (newEntity == null) {
-                    logDebug("ENTITY " + entityId + " WAS NEVER REPLICATED.  FOLLOWING UP ON RELATED ENTITIES...");
+                    logDebug("ENTITY " + entityId
+                        + " WAS NEVER REPLICATED."
+                        + "  FOLLOWING UP ON"
+                        + " RELATED ENTITIES...");
                 } else {
                     logDebug("ENTITY " + entityId 
                              + " HASHES MATCH (PRESUMABLY NO CHANGES)");
@@ -186,12 +198,15 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
             // parse the old entity
             SzResolvedEntity oldEntity = SzResolvedEntity.parseHash(entityHash);
 
-            // check if the entity in unchanged -- this is a double-check since the
+            // check if the entity in unchanged -- this is a double-check since
+            // the
             // hashes should have been the same before we got here
             if (Objects.equals(oldEntity, newEntity)) {
-                logWarning("ENTITY ID " + entityId + ": entity hashes were different, but no delta was found.",
-                           "NEW HASH  : " + newEntity.toHash(),
-                           "OLD HASH  : " + entityHash);
+                logWarning("ENTITY ID " + entityId
+                        + ": entity hashes were different,"
+                        + " but no delta was found.",
+                    "NEW HASH  : " + newEntity.toHash(),
+                    "OLD HASH  : " + entityHash);
                 return;
             }
 
@@ -216,19 +231,26 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
             logDebug("ENTITY " + entityId + " REMOVED RELATIONS: ",
                      entityDelta.getRemovedRelations());
             
-            // first enroll any subordinate resource locking rows into the transaction
-            // to ensure mutual exclusion while avoiding deadlocks -- this will ensure
+            // first enroll any subordinate resource locking rows into the
+            // transaction
+            // to ensure mutual exclusion while avoiding deadlocks -- this will
+            // ensure
             // mutual exclusion on the record and relationship rows
             this.enrollLockingRows(conn, entityDelta);
 
             // check for added and changed records
-            int changeCount = this.ensureEntityRecords(conn, entityDelta, followUpScheduler);
+            int changeCount = this.ensureEntityRecords(conn, entityDelta,
+                    followUpScheduler);
 
             // check for removed records
-            changeCount += this.orphanRemovedRecords(conn, entityDelta, followUpScheduler);
+            changeCount
+                    += this.orphanRemovedRecords(conn, entityDelta,
+                            followUpScheduler);
 
             // check for added relations
-            changeCount += this.ensureRelations(conn, entityDelta, followUpScheduler);
+            changeCount
+                    += this.ensureRelations(conn, entityDelta,
+                            followUpScheduler);
 
             // get all the report updates and insert them as pending
             changeCount += this.insertReportDeltaUpdates(conn, entityDelta);
@@ -273,28 +295,31 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
     }
 
     /**
-     * Prepares the entity row for deletion and retrieves the current entity state
-     * from the previous hash using the specified JDBC {@link Connection}, specified
-     * entity ID and unique operation ID that can later be used to actually delete
-     * the entity row. This returns <code>null</code> if the entity row is already
-     * deleted.
+     * Prepares the entity row for deletion and retrieves the current entity
+     * state from the previous hash using the specified JDBC {@link Connection},
+     * specified entity ID and unique operation ID that can later be used to
+     * actually delete the entity row. This returns <code>null</code> if the
+     * entity row is already deleted.
      *
      * @param conn        The JDBC {@link Connection} to use.
      * @param entityId    The entity ID for the entity.
      * @param operationId The unique operation ID previously used to prepare the
      *                    entity row for delete.
      * @return The {@link String} entity hash describing the previous state, or
-     *         <code>null</code> if not found.
+     *             <code>null</code> if not found.
      * @throws SQLException If a failure occurs.
      */
-    protected String prepareEntityDelete(Connection conn, long entityId, String operationId) 
+    protected String prepareEntityDelete(Connection conn,
+                                         long entityId,
+                                         String operationId)
         throws SQLException 
     {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
             ps = conn.prepareStatement(
-                    "UPDATE sz_dm_entity SET modifier_id = ? WHERE entity_id = ?");
+                    "UPDATE sz_dm_entity SET modifier_id = ? WHERE "
+                            + "entity_id = ?");
             ps.setString(1, operationId);
             ps.setLong(2, entityId);
 
@@ -322,7 +347,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
             if (!rs.next()) {
                 throw new IllegalStateException(
-                        "Updated/locked row to prepare for delete and it was not found.");
+                        "Updated/locked row to prepare for delete and "
+                                + "it was not found.");
             }
 
             // get the entity hash
@@ -346,8 +372,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
     /**
      * Deletes an entity row that was previously prepared for delete using the
-     * specified JDBC {@link Connection}, entity ID and the operation ID that was
-     * previously used to prepare the delete.
+     * specified JDBC {@link Connection}, entity ID and the operation ID that
+     * was previously used to prepare the delete.
      *
      * @param conn        The JDBC {@link Connection} to use.
      * @param entityId    The entity ID for the entity.
@@ -355,13 +381,16 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
      *                    entity row for delete.
      * @throws SQLException If a failure occurs.
      */
-    protected void deleteEntityRow(Connection conn, long entityId, String operationId) 
+    protected void deleteEntityRow(Connection conn,
+                                   long entityId,
+                                   String operationId)
         throws SQLException 
     {
         PreparedStatement ps = null;
         try {
             ps = conn.prepareStatement(
-                    "DELETE FROM sz_dm_entity " + "WHERE entity_id = ? AND modifier_id = ?");
+                    "DELETE FROM sz_dm_entity "
+                            + "WHERE entity_id = ? AND modifier_id = ?");
             ps.setLong(1, entityId);
             ps.setString(2, operationId);
 
@@ -370,7 +399,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
             // check if no rows were updated (i.e.: already deleted)
             if (rowCount == 0) {
                 throw new IllegalStateException(
-                        "Failed to find entity row to deleted.  entityId=[ " + entityId
+                        "Failed to find entity row to deleted.  entityId=[ "
+                                + entityId
                                 + " ], modifierId=[ " + operationId + " ]");
             }
             if (rowCount > 1) {
@@ -390,12 +420,13 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
      *
      * @param conn      The JDBC {@link Connection} to use.
      * @param newEntity The {@link SzResolvedEntity} describing the entity.
-     * @return The previous entity hash if updated, <code>null</code> if inserted,
-     *         or empty-string if nothing was changed because the entity hashes were
-     *         the same.
+     * @return The previous entity hash if updated, <code>null</code> if
+     *             inserted, or empty-string if nothing was changed because the
+     *             entity hashes were the same.
      * @throws SQLException If a JDBC failure occurs.
      */
-    protected String ensureEntityRow(Connection conn, SzResolvedEntity newEntity) 
+    protected String ensureEntityRow(Connection conn,
+                                     SzResolvedEntity newEntity)
         throws SQLException 
     {
         PreparedStatement ps = null;
@@ -428,7 +459,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
             ps = close(ps);
 
-            // check if nothing was updated or inserted (only happens if no patches)
+            // check if nothing was updated or inserted (only happens if no
+            // patches)
             if (rowCount == 0) {
                 return "";
             }
@@ -440,7 +472,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
             // check if a row was updated or inserted
             ps = conn.prepareStatement("SELECT prev_entity_hash "
-                    + "FROM sz_dm_entity WHERE entity_id = ? AND modifier_id = ?");
+                    + "FROM sz_dm_entity WHERE entity_id = ? AND "
+                            + "modifier_id = ?");
             ps.setLong(1, newEntity.getEntityId());
             ps.setString(2, operationId);
 
@@ -448,8 +481,10 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
             if (!rs.next()) {
                 throw new IllegalStateException(
-                        "Updated an entity row and could not find it by modifier_id.  "
-                                + "operationId=[ " + operationId + " ], entity=[ " + newEntity + " ]");
+                        "Updated an entity row and could not find it "
+                                + "by modifier_id.  "
+                                + "operationId=[ " + operationId
+                                        + " ], entity=[ " + newEntity + " ]");
             }
 
             // get the previous entity hash
@@ -492,7 +527,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
         throws SQLException 
     {
         Map<SzRecordKey, SzRecord> addedRecords = entityDelta.getAddedRecords();
-        Map<SzRecordKey, SzRecord> changedRecords = entityDelta.getChangedRecords();
+        Map<SzRecordKey,
+                SzRecord> changedRecords = entityDelta.getChangedRecords();
 
         int addedCount      = addedRecords.size();
         int changedCount    = changedRecords.size();
@@ -518,12 +554,14 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                     + " match_key = EXCLUDED.match_key, "
                     + " errule_code = EXCLUDED.errule_code, "
                     + " modifier_id = EXCLUDED.modifier_id, "
-                    + " prev_entity_id = (CASE WHEN (t1.entity_id IN (EXCLUDED.entity_id, 0)) "
+                    + " prev_entity_id = (CASE WHEN (t1.entity_id IN "
+                            + "(EXCLUDED.entity_id, 0)) "
                     + "THEN (NULL) ELSE (t1.entity_id) END), "
                     + " adopter_id = (CASE WHEN (t1.entity_id = 0) "
                     + "THEN (EXCLUDED.modifier_id) ELSE(NULL) END)");
 
-            List<Integer> rowCounts = this.batchUpdate(ps, records, (ps2, record) -> {
+            List<Integer> rowCounts = this.batchUpdate(ps, records,
+                    (ps2, record) -> {
                 // get normalized match key and principle
                 String matchKey = record.getMatchKey();
                 String principle = record.getPrinciple();
@@ -558,7 +596,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
             // now get the created records -- we don't need the modified ones
             ps = conn.prepareStatement(
-                    "SELECT data_source, record_id, match_key, errule_code, prev_entity_id "
+                    "SELECT data_source, record_id, match_key, "
+                            + "errule_code, prev_entity_id "
                     + "FROM sz_dm_record WHERE entity_id = ? AND "
                     + "(creator_id = ? OR adopter_id = ?)");
 
@@ -574,7 +613,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                 String  principle   = SQLUtilities.getString(rs, 4);
                 Long    prevEntity  = SQLUtilities.getLong(rs, 5);
 
-                SzRecord record = new SzRecord(dataSource, recordId, matchKey, principle);
+                SzRecord record = new SzRecord(dataSource, recordId, matchKey,
+                        principle);
                 // flag the record as created (even if it was adopted)
                 entityDelta.createdRecord(record);
             }
@@ -594,16 +634,17 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
      * Handles changing the entity ID of any removed records to be zero (0)
      * providing the entity ID is still the same as that for the specified
      * {@link EntityDelta}. This will mark records as
-     * {@linkplain EntityDelta#orphanedRecord(SzRecord) orphaned} in the specified
+     * {@linkplain EntityDelta#orphanedRecord(SzRecord) orphaned} in the
+     * specified
      * {@link EntityDelta} if the record row was in fact updated.
      *
      * @param conn              The JDBC {@link Connection} to use.
-     * @param entityDelta       The {@link EntityDelta} to use to obtain the removed
-     *                          records.
+     * @param entityDelta The {@link EntityDelta} to use to obtain the removed
+     *                    records.
      * @param followUpScheduler The {@link Scheduler} to use for scheduling
      *                          follow-up tasks.
-     * @return The number of records actually modified (i.e.: those that have not
-     *         already been claimed by other entities).
+     * @return The number of records actually modified (i.e.: those that have
+     *             not already been claimed by other entities).
      * @throws SQLException If a JDBC failure occurs.
      */
     protected int orphanRemovedRecords(Connection   conn, 
@@ -611,7 +652,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                                        Scheduler    followUpScheduler)
         throws SQLException 
     {
-        Map<SzRecordKey, SzRecord> removedRecords = entityDelta.getRemovedRecords();
+        Map<SzRecordKey,
+                SzRecord> removedRecords = entityDelta.getRemovedRecords();
         if (removedRecords.size() == 0) {
             return 0;
         }
@@ -621,10 +663,13 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
         try {
             ps = conn.prepareStatement(
                     "UPDATE sz_dm_record SET entity_id = 0, modifier_id = ? "
-                    + "WHERE data_source = ? AND record_id = ? AND entity_id = ?");
+                    + "WHERE data_source = ? AND record_id = ? AND "
+                            + "entity_id = ?");
 
-            List<Integer> rowCounts = this.batchUpdate(ps, removedRecords.values(), (ps2, record) -> {
-                logDebug("ENTITY " + entityDelta.getEntityId() + " ORPHANING RECORD: " + record);
+            List<Integer> rowCounts = this.batchUpdate(ps,
+                    removedRecords.values(), (ps2, record) -> {
+                logDebug("ENTITY " + entityDelta.getEntityId()
+                        + " ORPHANING RECORD: " + record);
                 
                 ps2.setString(1, operationId);
                 ps2.setString(2, record.getDataSource());
@@ -641,7 +686,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
             // now get the modified records
             ps = conn.prepareStatement(
                     "SELECT data_source, record_id, match_key, errule_code "
-                            + " FROM sz_dm_record WHERE entity_id = 0 AND modifier_id = ?");
+                            + " FROM sz_dm_record WHERE entity_id = 0 "
+                                    + "AND modifier_id = ?");
 
             ps.setString(1, operationId);
 
@@ -654,7 +700,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                 String recordId = rs.getString(2);
                 String matchKey = rs.getString(3);
                 String principle = rs.getString(4);
-                SzRecord record = new SzRecord(dataSource, recordId, matchKey, principle);
+                SzRecord record = new SzRecord(dataSource, recordId, matchKey,
+                        principle);
 
                 entityDelta.orphanedRecord(record);
             }
@@ -664,8 +711,10 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
             if (orphanedCount != expectedCount) {
                 throw new IllegalStateException(
-                        "Orphaned record count (" + orphanedCount + ") for entity "
-                                + entityDelta.getEntityId() + " was not as expected ("
+                        "Orphaned record count (" + orphanedCount
+                                + ") for entity "
+                                + entityDelta.getEntityId()
+                                        + " was not as expected ("
                                 + expectedCount + ").  Likely race condition.");
             }
 
@@ -677,13 +726,14 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
     }
 
     /**
-     * Ensures the added and changed relationship rows exist in the database with
-     * the correct match type and data source summaries and that the removed
-     * relations are deleted. Additionally, this will track all rows that were
-     * actually inserted or updated using the
+     * Ensures the added and changed relationship rows exist in the database
+     * with the correct match type and data source summaries and that the
+     * removed relations are deleted. Additionally, this will track all rows
+     * that were actually inserted or updated using the
      * {@link EntityDelta#trackStoredRelationship(SzRelationship)} function on 
-     * the specified {@link EntityDelta} and all rows that were deleted using the
-     * {@link EntityDelta#trackDeletedRelationship(SzRelationship)} method.
+     * the specified {@link EntityDelta} and all rows that were deleted using
+     * the {@link EntityDelta#trackDeletedRelationship(SzRelationship)}
+     * method.
      *
      * @param conn              The JDBC {@link Connection} to use.
      * @param entityDelta       The {@link EntityDelta} to use.
@@ -715,7 +765,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
         changeCount += removedRelationChanges;
 
         // check if we have stale relationships to follow-up on
-        this.ensureRelationIntegrity(conn, entityDelta, followUpScheduler, followUpSet);
+        this.ensureRelationIntegrity(conn, entityDelta, followUpScheduler,
+                followUpSet);
 
         // now check get the current and previous data sources for this entity
         Set<String> oldSources = entityDelta.getOldSourceSummary().keySet();
@@ -724,25 +775,32 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
         long entityId = entityDelta.getEntityId();
 
         // check if my sources have changed and refresh related entities
-        logDebug("ENTITY " + entityId + " OLD/NEW SOURCES: ", oldSources, newSources);
+        logDebug("ENTITY " + entityId
+                + " OLD/NEW SOURCES: ", oldSources, newSources);
 
         if (!oldSources.equals(newSources)) {
-            // if the sources for this entity have changed, then every related entity
-            // potentially may change its contributions to the related entity counts
+            // if the sources for this entity have changed, then every related
+            // entity
+            // potentially may change its contributions to the related entity
+            // counts
             entityDelta.getOldRelatedEntities().keySet().forEach(relatedId -> {
-                followUpOnEntity(followUpScheduler, followUpSet, entityId, relatedId);
+                followUpOnEntity(followUpScheduler, followUpSet, entityId,
+                        relatedId);
             });
 
             entityDelta.getNewRelatedEntities().keySet().forEach(relatedId -> {
-                followUpOnEntity(followUpScheduler, followUpSet, entityId, relatedId);
+                followUpOnEntity(followUpScheduler, followUpSet, entityId,
+                        relatedId);
             });
         }
 
         // check if we followed up on anything related
         if (followUpSet.size() > 0) {
-            // follow-up on this same entity in a bit simply to ensure that things
+            // follow-up on this same entity in a bit simply to ensure that
+            // things
             // that might still be in motion have settled down
-            followUpOnEntity(followUpScheduler, followUpSet, entityId, entityId);
+            followUpOnEntity(followUpScheduler, followUpSet, entityId,
+                    entityId);
         }
 
         // check if the
@@ -750,19 +808,19 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
     }
 
     /**
-     * Ensures the added and changed relationship rows exist in the database with
-     * the correct match type and data source summaries. Additionally, this will
-     * track all rows that were actually inserted or updated using the
-     * {@link EntityDelta#trackStoredRelationship(SzRelationship)} function on the
-     * specified {@link EntityDelta}.
+     * Ensures the added and changed relationship rows exist in the database
+     * with the correct match type and data source summaries. Additionally, this
+     * will track all rows that were actually inserted or updated using the
+     * {@link EntityDelta#trackStoredRelationship(SzRelationship)} function on
+     * the specified {@link EntityDelta}.
      *
      * @param conn              The JDBC {@link Connection} to use.
      * @param entityDelta       The {@link EntityDelta} to use.
      * @param followUpScheduler The {@link Scheduler} to use for scheduling
      *                          follow-up tasks.
-     * @param followUpSet       The {@link Set} to populate with {@link Long} entity
-     *                          ID's for which a relationship refresh follow-up was
-     *                          scheduled.
+     * @param followUpSet The {@link Set} to populate with {@link Long} entity
+     *                    ID's for which a relationship refresh follow-up was
+     *                    scheduled.
      *
      * @return The number of relationships modified or created.
      * @throws SQLException If a JDBC failure occurs.
@@ -773,8 +831,10 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                                         Set<Long>   followUpSet)
         throws SQLException 
     {
-        Map<Long, SzRelatedEntity> addedRelations = entityDelta.getAddedRelations();
-        Map<Long, SzRelatedEntity> changedRelations = entityDelta.getChangedRelations();
+        Map<Long, SzRelatedEntity> addedRelations = entityDelta
+                .getAddedRelations();
+        Map<Long, SzRelatedEntity> changedRelations = entityDelta
+                .getChangedRelations();
 
         int addedCount = addedRelations.size();
         int changedCount = changedRelations.size();
@@ -783,20 +843,23 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
             return 0;
         }
 
-        List<SzRelatedEntity> relations = new ArrayList<>(addedCount + changedCount);
+        List<SzRelatedEntity> relations = new ArrayList<>(addedCount
+                + changedCount);
         relations.addAll(addedRelations.values());
         relations.addAll(changedRelations.values());
 
         List<SzRelationship> relationships = new ArrayList<>(relations.size());
 
-        String operationId = this.generateOperationId(entityDelta.getEntityId());
+        String operationId =
+                this.generateOperationId(entityDelta.getEntityId());
 
         PreparedStatement ps = null;
         ResultSet rs = null;
 
         try {
             ps = conn.prepareStatement("INSERT INTO sz_dm_relation AS t1 ("
-                    + " entity_id, related_id, match_type, match_key, rev_match_key, "
+                    + " entity_id, related_id, match_type, match_key, "
+                            + "rev_match_key, "
                     + " errule_code, relation_hash, creator_id, modifier_id) "
                     + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) "
                     + "ON CONFLICT (entity_id, related_id) DO UPDATE SET"
@@ -809,9 +872,12 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                     + " modifier_id = EXCLUDED.modifier_id "
                     + "WHERE t1.relation_hash <> EXCLUDED.relation_hash");
 
-            List<Integer> rowCounts = this.batchUpdate(ps, relations, (ps2, relatedEntity) -> {
+            List<Integer> rowCounts = this.batchUpdate(ps, relations,
+                    (ps2, relatedEntity) -> {
 
-                SzRelationship relationship = new SzRelationship(entityDelta.getNewEntity(), relatedEntity);
+                SzRelationship relationship =
+                        new SzRelationship(entityDelta.getNewEntity(),
+                                relatedEntity);
 
                 relationships.add(relationship);
 
@@ -832,9 +898,12 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
             // determine the expected number of rows to update
             int expectedCount = sum(rowCounts);
 
-            // now get the ones that were actually added or modified along with their
+            // now get the ones that were actually added or modified along with
+            // their
             // previous relationship hashes
-            ps = conn.prepareStatement("SELECT COUNT (*) FROM sz_dm_relation WHERE modifier_id = ?");
+            ps = conn.prepareStatement(
+                "SELECT COUNT (*) FROM sz_dm_relation"
+                + " WHERE modifier_id = ?");
 
             ps.setString(1, operationId);
 
@@ -846,12 +915,14 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
             // check if the update count matched the expected count
             if (updateCount != expectedCount) {
                 throw new IllegalStateException(
-                        "Did not update the expected number of relationship rows.  "
+                        "Did not update the expected number of "
+                                + "relationship rows.  "
                                 + "expected=[ " + expectedCount
                                 + " ], updated=[ " + updateCount
                                 + " ], entityId=[ " + entityDelta.getEntityId()
                                 + " ], operationId=[ " + operationId
-                                + " ], relationships=[ " + relationships + " ]");
+                                + " ], relationships=[ " + relationships
+                                        + " ]");
             }
 
             rs = close(rs);
@@ -861,15 +932,18 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
             for (SzRelationship relationship : relationships) {
 
                 // now check if they are different
-                SzRelationship oldRelationship = entityDelta.trackStoredRelationship(relationship);
+                SzRelationship oldRelationship =
+                        entityDelta.trackStoredRelationship(relationship);
                 
                 // check if we need to schedule a follow-up
                 if (!Objects.equals(relationship, oldRelationship)) {
                     long entityId   = entityDelta.getEntityId();
                     long relatedId  = (entityId == relationship.getEntityId())
-                        ? relationship.getRelatedEntityId() : relationship.getEntityId();
+                        ? relationship.getRelatedEntityId() : relationship
+                                .getEntityId();
                     
-                    followUpOnEntity(followUpScheduler, followUpSet, entityId, relatedId);
+                    followUpOnEntity(followUpScheduler, followUpSet, entityId,
+                            relatedId);
                 }
             }
 
@@ -890,7 +964,7 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
      *
      * @param followUpScheduler The {@link Scheduler} to use for scheduling
      *                          follow-up tasks.
-     * @param followUpSet       The {@link Set} to populate with {@link Long} 
+     * @param followUpSet       The {@link Set} to populate with {@link Long}
      *                          entity ID's for each scheduled follow-up.
      * @param triggerId         The entity ID of the entity triggering the
      *                          refresh follow-up.
@@ -907,7 +981,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
             return;
         }
 
-        logDebug("ENTITY " + triggerId + " FOLLOWING UP ON ENTITY " + followUpId);
+        logDebug("ENTITY " + triggerId + " FOLLOWING UP ON ENTITY "
+                + followUpId);
         
         followUpScheduler.createTaskBuilder(REFRESH_ENTITY.toString())
                 .resource(ENTITY_RESOURCE_KEY, followUpId)
@@ -917,18 +992,19 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
     }
 
     /**
-     * Ensures the removed relationship rows no longer exist in the database. Additionally,
-     * this will track all rows that were actually deleted using the {@link 
-     * EntityDelta#trackDeletedRelationship(SzRelationship)} function on the specified 
+     * Ensures the removed relationship rows no longer exist in the database.
+     * Additionally, this will track all rows that were actually deleted using
+     * the {@link EntityDelta#trackDeletedRelationship(SzRelationship)} function
+     * on the specified
      * {@link EntityDelta}.
      *
      * @param conn              The JDBC {@link Connection} to use.
      * @param entityDelta       The {@link EntityDelta} to use.
      * @param followUpScheduler The {@link Scheduler} to use for scheduling
      *                          follow-up tasks.
-     * @param followUpSet       The {@link Set} to populate with {@link Long} entity
-     *                          ID's for which a relationship refresh follow-up was
-     *                          scheduled.
+     * @param followUpSet The {@link Set} to populate with {@link Long} entity
+     *                    ID's for which a relationship refresh follow-up was
+     *                    scheduled.
      *
      * @return The number of relationships deleted.
      * @throws SQLException If a JDBC failure occurs.
@@ -939,7 +1015,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                                          Set<Long>      followUpSet) 
         throws SQLException 
     {
-        Map<Long, SzRelatedEntity> relations = entityDelta.getRemovedRelations();
+        Map<Long,
+                SzRelatedEntity> relations = entityDelta.getRemovedRelations();
         if (relations.size() == 0) {
             return 0;
         }
@@ -949,7 +1026,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
         PreparedStatement ps = null;
         ResultSet rs = null;
 
-        String operationId = this.generateOperationId(entityDelta.getEntityId());
+        String operationId =
+                this.generateOperationId(entityDelta.getEntityId());
 
         try {
             ps = conn.prepareStatement(
@@ -960,7 +1038,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                 ps, relations.values(), (ps2, relatedEntity) -> {
 
                     SzRelationship relationship 
-                        = new SzRelationship(entityDelta.getOldEntity(), relatedEntity);
+                        = new SzRelationship(entityDelta.getOldEntity(),
+                                relatedEntity);
 
                     relationships.add(relationship);
 
@@ -975,7 +1054,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
             // determine the expected number of rows to update
             int expectedCount = sum(rowCounts);
 
-            // now get the ones that were actually added or modified along with their
+            // now get the ones that were actually added or modified along with
+            // their
             // current relationship hashes
             ps = conn.prepareStatement(
                     "SELECT entity_id, related_id, relation_hash "
@@ -995,14 +1075,17 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                 SzRelationship relationship = SzRelationship.parseHash(hash);
                 if (relationship == null) {
                     throw new IllegalStateException(
-                            "Existing relationship exists but has no hash.  relationship=[ "
+                            "Existing relationship exists but has no "
+                                    + "hash.  relationship=[ "
                                     + relationship + " ]");
                 }
                 if ((relationship.getEntityId() != entityId)
                         || (relationship.getRelatedEntityId() != relatedId)) {
                     throw new IllegalStateException(
-                            "Relationship from hash does not match expected entity ID ("
-                            + entityId + ") and related entity ID (" + relatedId + "): "
+                            "Relationship from hash does not match "
+                                    + "expected entity ID ("
+                            + entityId + ") and related entity ID (" + relatedId
+                                    + "): "
                             + relationship);
                 }
                 pendingDelete.add(relationship);
@@ -1015,8 +1098,10 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
             // check the counts
             if (pendingDelete.size() != expectedCount) {
                 throw new IllegalStateException(
-                        "Did not prepare the expected number of relationship rows for "
-                        + "deletion.  expected=[ " + expectedCount + " ], found=[ "
+                        "Did not prepare the expected number of "
+                                + "relationship rows for "
+                        + "deletion.  expected=[ " + expectedCount
+                                + " ], found=[ "
                         + pendingDelete.size() + " ], entityId=[ "
                         + entityDelta.getEntityId() + " ], operationId=[ "
                         + operationId + " ], found=[ " + pendingDelete + " ]");
@@ -1025,9 +1110,11 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
             // now delete using batch update
             ps = conn.prepareStatement(
                     "DELETE FROM sz_dm_relation "
-                            + "WHERE entity_id = ? AND related_id = ? AND modifier_id = ?");
+                            + "WHERE entity_id = ? AND related_id = ? "
+                                    + "AND modifier_id = ?");
 
-            rowCounts = this.batchUpdate(ps, pendingDelete, (ps2, relationship) -> {
+            rowCounts = this.batchUpdate(ps, pendingDelete,
+                    (ps2, relationship) -> {
 
                 ps2.setLong(1, relationship.getEntityId());
                 ps2.setLong(2, relationship.getRelatedEntityId());
@@ -1044,8 +1131,10 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                 int rowCount = rowCounts.get(index++);
                 if (rowCount == 0) {
                     throw new IllegalStateException(
-                            "Relationship was deleted externally despite lock. This may "
-                                    + "cause reporting totals to be incorrect: " + relationship);
+                            "Relationship was deleted externally "
+                                    + "despite lock. This may "
+                                    + "cause reporting totals to be incorrect: "
+                                            + relationship);
                 }
 
                 // increment the deleted count
@@ -1062,7 +1151,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                 // mark the relationship as deleted
                 entityDelta.trackDeletedRelationship(relationship);
 
-                followUpOnEntity(followUpScheduler, followUpSet, entityId, relatedId);
+                followUpOnEntity(followUpScheduler, followUpSet, entityId,
+                        relatedId);
 
             }
 
@@ -1075,17 +1165,17 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
     }
 
     /**
-     * Ensures the related entities connected by stale relationships to this entity
-     * are followed up on and removed relationships in the mart are also followed up
-     * on.
+     * Ensures the related entities connected by stale relationships to this
+     * entity are followed up on and removed relationships in the mart are also
+     * followed up on.
      *
      * @param conn              The JDBC {@link Connection} to use.
      * @param entityDelta       The {@link EntityDelta} to use.
      * @param followUpScheduler The {@link Scheduler} to use for scheduling
      *                          follow-up tasks.
-     * @param followUpSet       The {@link Set} to populate with {@link Long} entity
-     *                          ID's for which a relationship refresh follow-up was
-     *                          scheduled.
+     * @param followUpSet The {@link Set} to populate with {@link Long} entity
+     *                    ID's for which a relationship refresh follow-up was
+     *                    scheduled.
      *
      * @throws SQLException If a JDBC failure occurs.
      */
@@ -1096,20 +1186,21 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
         throws SQLException 
     {
         this.ensureRelationIntegrity(
-            conn, entityDelta.getEntityId(), entityDelta, followUpScheduler, followUpSet);
+            conn, entityDelta.getEntityId(), entityDelta, followUpScheduler,
+                    followUpSet);
     }
     /**
-     * Ensures the related entities connected by stale relationships to this entity
-     * are followed up on and removed relationships in the mart are also followed up
-     * on.
+     * Ensures the related entities connected by stale relationships to this
+     * entity are followed up on and removed relationships in the mart are also
+     * followed up on.
      *
      * @param conn              The JDBC {@link Connection} to use.
      * @param entityId          The entity ID of the entity.
      * @param followUpScheduler The {@link Scheduler} to use for scheduling
      *                          follow-up tasks.
-     * @param followUpSet       The {@link Set} to populate with {@link Long} entity
-     *                          ID's for which a relationship refresh follow-up was
-     *                          scheduled.
+     * @param followUpSet The {@link Set} to populate with {@link Long} entity
+     *                    ID's for which a relationship refresh follow-up was
+     *                    scheduled.
      *
      * @throws SQLException If a JDBC failure occurs.
      */
@@ -1124,19 +1215,19 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
     }
 
     /**
-     * Ensures the related entities connected by stale relationships to this entity
-     * are followed up on and removed relationships in the mart are also followed up
-     * on.
+     * Ensures the related entities connected by stale relationships to this
+     * entity are followed up on and removed relationships in the mart are also
+     * followed up on.
      *
      * @param conn              The JDBC {@link Connection} to use.
      * @param entityId          The entity ID of the entity.
-     * @param entityDelta       The {@link EntityDelta} to use, or <code>null</code>
-     *                          if a deleted entity was never replicated.
+     * @param entityDelta The {@link EntityDelta} to use, or <code>null</code>
+     *                    if a deleted entity was never replicated.
      * @param followUpScheduler The {@link Scheduler} to use for scheduling
      *                          follow-up tasks.
-     * @param followUpSet       The {@link Set} to populate with {@link Long} entity
-     *                          ID's for which a relationship refresh follow-up was
-     *                          scheduled.
+     * @param followUpSet The {@link Set} to populate with {@link Long} entity
+     *                    ID's for which a relationship refresh follow-up was
+     *                    scheduled.
      *
      * @throws SQLException If a JDBC failure occurs.
      */
@@ -1170,7 +1261,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
             ps = conn.prepareStatement(
                     "SELECT entity_id FROM sz_dm_relation WHERE related_id = ? "
                             + "UNION "
-                            + "SELECT related_id FROM sz_dm_relation WHERE entity_id = ?");
+                            + "SELECT related_id FROM sz_dm_relation "
+                                    + "WHERE entity_id = ?");
 
             ps.setLong(1, entityId);
             ps.setLong(2, entityId);
@@ -1190,13 +1282,15 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                 }
             }
 
-            // at this point the set should be empty, if not following up on remaining
+            // at this point the set should be empty, if not following up on
+            // remaining
             if (knownRelations.size() > 0) {
                 for (Long relatedId : knownRelations) {
                     logDebug("REMOVED RELATION FROM ENTITY " + entityId
                             + " TO ENTITY " + relatedId + " DETECTED");
                     followUpOnEntity(
-                            followUpScheduler, followUpSet, entityId, relatedId);
+                            followUpScheduler, followUpSet, entityId,
+                                    relatedId);
                 }
             }
 
@@ -1211,11 +1305,15 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
      * repository for later handling.
      *
      * @param conn  The JDBC {@link Connection} to use.
-     * @param delta The {@link EntityDelta} that has accumulated the report updates.
+     * @param delta The {@link EntityDelta} that has accumulated the report
+     *              updates.
      * @return The number of rows inserted.
      * @throws SQLException If a JDBC failure occurs.
      */
-    protected int insertReportDeltaUpdates(Connection conn, EntityDelta delta) throws SQLException {
+    protected int insertReportDeltaUpdates(Connection conn,
+                                           EntityDelta delta)
+                                           throws SQLException
+    {
         // get the updates
         List<SzReportUpdate> updates = delta.getReportUpdates();
         if (updates.size() == 0) {
@@ -1231,7 +1329,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
                             + " relation_delta, entity_id, related_id) "
                             + "VALUES (?, ?, ?, ?, ?, ?)");
 
-            List<Integer> rowCounts = this.batchUpdate(ps, updates, (ps2, update) -> {
+            List<Integer> rowCounts = this.batchUpdate(ps, updates,
+                    (ps2, update) -> {
 
                 ps2.setString(1, update.getReportKey().toString());
                 ps2.setInt(2, update.getEntityDelta());
@@ -1256,8 +1355,10 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
             // verify the insert count
             if (insertCount != updates.size()) {
                 throw new IllegalStateException(
-                        "Unexpected number of pending report update inserts.  expected=[ "
-                                + updates.size() + " ], actual=[ " + insertCount + " ]");
+                        "Unexpected number of pending report update "
+                                + "inserts.  expected=[ "
+                                + updates.size() + " ], actual=[ " + insertCount
+                                        + " ]");
             }
 
             // return the insert count
@@ -1272,11 +1373,13 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
      * This method handles notifying that we need to schedule report aggregation
      * follow-up tasks for the modified reports.
      *
-     * @param entityDelta The {@link EntityDelta} to get the pending updates from.
+     * @param entityDelta The {@link EntityDelta} to get the pending updates
+     *                    from.
      *
      * @return The number of unique follow-up tasks scheduled.
      */
-    protected int followUpOnReports(EntityDelta entityDelta) {
+    protected int followUpOnReports(EntityDelta entityDelta)
+    {
         // get the updates
         List<SzReportUpdate> updates = entityDelta.getReportUpdates();
         Set<SzReportKey> reportKeys = new LinkedHashSet<>();
@@ -1286,7 +1389,8 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
 
         // now that we have a unique set of report keys, do the scheduling
         for (SzReportKey reportKey : reportKeys) {
-            TaskAction action = UPDATE_ACTION_MAP.get(reportKey.getReportCode());
+            TaskAction action =
+                    UPDATE_ACTION_MAP.get(reportKey.getReportCode());
             this.scheduleReportFollowUp(action, reportKey);
         }
 
@@ -1303,10 +1407,14 @@ public class RefreshEntityHandler extends AbstractTaskHandler {
      * @param entityDelta The {@link EntityDelta} describing the changes.
      * @throws SQLException If a JDBC failure occurs.
      */
-    protected void enrollLockingRows(Connection conn, EntityDelta entityDelta) throws SQLException {
+    protected void enrollLockingRows(Connection conn,
+                                     EntityDelta entityDelta)
+                                     throws SQLException
+    {
         PreparedStatement ps = null;
 
-        String operationId = this.generateOperationId(entityDelta.getEntityId());
+        String operationId =
+                this.generateOperationId(entityDelta.getEntityId());
 
         try {
             ps = conn.prepareStatement(

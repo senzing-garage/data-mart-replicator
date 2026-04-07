@@ -32,35 +32,38 @@ import static com.senzing.util.LoggingUtilities.*;
 /**
  * Extends {@link AbstractListenerService} to implement a data mart replication.
  */
-public class SzReplicatorService extends AbstractListenerService {
+public class SzReplicatorService extends AbstractListenerService 
+{
     /**
      * Constant for converting between nanoseconds and milliseconds.
      */
     private static final long ONE_MILLION = 1000000L;
 
     /**
-     * The initialization key for obtaining the {@link ConnectionProvider} from the
-     * {@link ConnectionProvider#REGISTRY}. This initialization parameter is
+     * The initialization key for obtaining the {@link ConnectionProvider} from
+     * the {@link ConnectionProvider#REGISTRY}. This initialization parameter is
      * required.
      */
     public static final String CONNECTION_PROVIDER_KEY = "connectionProvider";
 
     /**
-     * The initialization parameter key to specify the number of <b>seconds</b> to
-     * wait before scheduling report update tasks as follow-up tasks.
+     * The initialization parameter key to specify the number of
+     * <b>seconds</b> to wait before scheduling report update tasks as
+     * follow-up tasks.
      */
     public static final String REPORT_UPDATE_PERIOD_KEY = "reportUpdatePeriod";
 
     /**
-     * The default wait period for periodically scheduling required report update
-     * tasks (in seconds).
+     * The default wait period for periodically scheduling required report
+     * update tasks (in seconds).
      */
     public static final long DEFAULT_REPORT_UPDATE_PERIOD = 60L;
 
     /**
-     * The {@link Map} of {@link DatabaseType} keys to {@link SchemaBuilder} values.
+     * The {@link Map} of {@link DatabaseType} keys to
+     * {@link SchemaBuilder} values.
      */
-    private static final Map<DatabaseType, SchemaBuilder> SCHEMA_BUILDER_MAP 
+    private static final Map<DatabaseType, SchemaBuilder> SCHEMA_BUILDER_MAP
         = Map.of(SQLITE, new SQLiteSchemaBuilder(),
                  POSTGRESQL, new PostgreSQLSchemaBuilder());
 
@@ -68,11 +71,13 @@ public class SzReplicatorService extends AbstractListenerService {
      * The {@link SzReplicationProvider} implementation used by
      * {@link SzReplicatorService}.
      */
-    protected class Provider implements SzReplicationProvider {
+    protected class Provider implements SzReplicationProvider
+    {
         /**
          * Default constructor.
          */
-        public Provider() {
+        public Provider()
+        {
             // do nothing
         }
 
@@ -80,7 +85,9 @@ public class SzReplicatorService extends AbstractListenerService {
          * {@inheritDoc}
          */
         @Override
-        public Boolean waitUntilReady(long timeoutMillis) throws InterruptedException {
+        public Boolean waitUntilReady(long timeoutMillis)
+            throws InterruptedException 
+        {
             return SzReplicatorService.this.waitUntilReady(timeoutMillis);
         }
 
@@ -88,7 +95,8 @@ public class SzReplicatorService extends AbstractListenerService {
          * {@inheritDoc}
          */
         @Override
-        public SzEnvironment getSzEnvironment() {
+        public SzEnvironment getSzEnvironment()
+        {
             return SzReplicatorService.this.getSzEnvironment();
         }
 
@@ -96,7 +104,8 @@ public class SzReplicatorService extends AbstractListenerService {
          * {@inheritDoc}
          */
         @Override
-        public ConnectionProvider getConnectionProvider() {
+        public ConnectionProvider getConnectionProvider()
+        {
             return SzReplicatorService.this.getConnectionProvider();
         }
 
@@ -104,7 +113,8 @@ public class SzReplicatorService extends AbstractListenerService {
          * {@inheritDoc}
          */
         @Override
-        public DatabaseType getDatabaseType() {
+        public DatabaseType getDatabaseType()
+        {
             return SzReplicatorService.this.getDatabaseType();
         }
 
@@ -112,16 +122,21 @@ public class SzReplicatorService extends AbstractListenerService {
          * {@inheritDoc}
          */
         @Override
-        public void scheduleReportFollowUp(String reportAction, SzReportKey reportKey) {
-            SzReplicatorService.this.lastReportActivityNanoTime.set(System.nanoTime());
-            SzReplicatorService.this.reportUpdater.addReportTask(reportKey, reportAction);
+        public void scheduleReportFollowUp(String reportAction,
+                                           SzReportKey reportKey) 
+        {
+            SzReplicatorService.this.lastReportActivityNanoTime.set(
+                System.nanoTime());
+            SzReplicatorService.this.reportUpdater.addReportTask(
+                reportKey, reportAction);
         }
 
         /**
          * {@inheritDoc}
          */
         @Override
-        public Map<Statistic, Number> getStatistics() {
+        public Map<Statistic, Number> getStatistics()
+        {
             return SzReplicatorService.this.getStatistics();
         }
     }
@@ -149,7 +164,8 @@ public class SzReplicatorService extends AbstractListenerService {
     /**
      * Tracks the time of the last report activity.
      */
-    private AtomicLong lastReportActivityNanoTime = new AtomicLong(System.nanoTime());
+    private AtomicLong lastReportActivityNanoTime
+            = new AtomicLong(System.nanoTime());
 
     /**
      * The {@link SzReplicationProvider} for this instance.
@@ -157,16 +173,17 @@ public class SzReplicatorService extends AbstractListenerService {
     private SzReplicationProvider provider = new Provider();
 
     /**
-     * The {@link Map} of {@link TaskAction} action name keys to {@link TaskHandler}
-     * values.
+     * The {@link Map} of {@link TaskAction} action name keys to
+     * {@link TaskHandler} values.
      */
     private Map<TaskAction, TaskHandler> handlerMap;
 
     /**
-     * Background thread to handle periodically scheduling tasks to avoid having to
-     * use follow-up tasks to increase performance.
+     * Background thread to handle periodically scheduling tasks to avoid having
+     * to use follow-up tasks to increase performance.
      */
-    public static class ReportUpdater extends Thread {
+    public static class ReportUpdater extends Thread
+    {
         /**
          * Flag indicating if this thread should shutdown.
          */
@@ -178,8 +195,8 @@ public class SzReplicatorService extends AbstractListenerService {
         private long period = 0L;
 
         /**
-         * The {@link Map} of {@link String} report keys to {@link String} task action
-         * values for reports that need to be handled.
+         * The {@link Map} of {@link String} report keys to {@link String} task
+         * action values for reports that need to be handled.
          */
         private Map<SzReportKey, String> reportKeyMap;
 
@@ -191,11 +208,12 @@ public class SzReplicatorService extends AbstractListenerService {
         /**
          * Constructs with the specified period in milliseconds.
          *
-         * @param replicator The {@link SzReplicatorService} that owns the report
-         *                   updater.
+         * @param replicator The {@link SzReplicatorService} that owns the
+         *                   report updater.
          * @param period     The period for scheduling periodic tasks.
          */
-        protected ReportUpdater(SzReplicatorService replicator, long period) {
+        protected ReportUpdater(SzReplicatorService replicator, long period) 
+        {
             this.replicator = replicator;
             this.period = period;
             this.reportKeyMap = new LinkedHashMap<>();
@@ -206,14 +224,16 @@ public class SzReplicatorService extends AbstractListenerService {
          *
          * @return <code>true</code> if shutdown, otherwise <code>false</code>.
          */
-        public synchronized boolean isShutdown() {
+        public synchronized boolean isShutdown()
+        {
             return this.shutdown;
         }
 
         /**
          * Triggers the shutdown of this thread.
          */
-        protected synchronized void shutdown() {
+        protected synchronized void shutdown()
+        {
             this.shutdown = true;
             this.notifyAll();
         }
@@ -221,10 +241,12 @@ public class SzReplicatorService extends AbstractListenerService {
         /**
          * Adds a report task that needs to be followed-up on.
          *
-         * @param reportKey    The report key for the report that needs an update.
+         * @param reportKey The report key for the report that needs an update.
          * @param reportAction The {@link String} report action.
          */
-        public synchronized void addReportTask(SzReportKey reportKey, String reportAction) {
+        public synchronized void addReportTask(SzReportKey  reportKey, 
+                                               String       reportAction) 
+        {
             this.reportKeyMap.put(reportKey, reportAction);
         }
 
@@ -232,18 +254,24 @@ public class SzReplicatorService extends AbstractListenerService {
          * Periodically schedules tasks.
          */
         @Override
-        public void run() {
-            SchedulingService scheduling = this.replicator.getSchedulingService();
+        public void run()
+        {
+            SchedulingService scheduling
+                = this.replicator.getSchedulingService();
 
             while (!this.isShutdown()) {
                 synchronized (this) {
                     Scheduler scheduler = (this.reportKeyMap.size() > 0)
                         ? scheduling.createScheduler(true) : null;
                     this.reportKeyMap.forEach((reportKey, action) -> {
-                        replicator.lastReportActivityNanoTime.set(System.nanoTime());
+                        replicator.lastReportActivityNanoTime.set(
+                            System.nanoTime());
+                        
                         scheduler.createTaskBuilder(action)
-                                .resource("REPORT", reportKey.toString())
-                                .parameter("reportKey", reportKey.toString()).schedule();
+                                 .resource("REPORT",
+                                           reportKey.toString())
+                                 .parameter("reportKey", 
+                                            reportKey.toString()).schedule();
                     });
                     try {
                         if (scheduler != null) {
@@ -252,7 +280,8 @@ public class SzReplicatorService extends AbstractListenerService {
                         }
                         
                     } catch (ServiceExecutionException e) {
-                        logWarning(e, "FAILED TO SCHEDULE PERIODIC REPORT UPDATE: ");
+                        logWarning(e, 
+                            "FAILED TO SCHEDULE PERIODIC REPORT UPDATE: ");
                     }
 
                     try {
@@ -270,21 +299,27 @@ public class SzReplicatorService extends AbstractListenerService {
      * 
      * @param env The {@link SzEnvironment} to use.
      */
-    public SzReplicatorService(SzEnvironment env) {
+    public SzReplicatorService(SzEnvironment env)
+    {
         super(Map.of(AFFECTED_ENTITY, REFRESH_ENTITY.toString()));
 
         // set the environment
         this.environment = env;
 
-        RefreshEntityHandler entityHandler = new RefreshEntityHandler(this.provider);
+        RefreshEntityHandler entityHandler
+            = new RefreshEntityHandler(this.provider);
 
-        SourceSummaryReportHandler summaryHandler = new SourceSummaryReportHandler(this.provider);
+        SourceSummaryReportHandler summaryHandler
+            = new SourceSummaryReportHandler(this.provider);
 
-        CrossSummaryReportHandler crossHandler = new CrossSummaryReportHandler(this.provider);
+        CrossSummaryReportHandler crossHandler
+            = new CrossSummaryReportHandler(this.provider);
 
-        SizeBreakdownReportHandler sizeBreakdownHandler = new SizeBreakdownReportHandler(this.provider);
+        SizeBreakdownReportHandler sizeBreakdownHandler
+            = new SizeBreakdownReportHandler(this.provider);
 
-        RelationBreakdownReportHandler relBreakdownHandler = new RelationBreakdownReportHandler(this.provider);
+        RelationBreakdownReportHandler relBreakdownHandler
+            = new RelationBreakdownReportHandler(this.provider);
 
         this.handlerMap = Map.of(
             REFRESH_ENTITY, entityHandler,
@@ -299,19 +334,22 @@ public class SzReplicatorService extends AbstractListenerService {
      * 
      * @return The {@link SzReplicationProvider} for this instance.
      */
-    public SzReplicationProvider getReplicationProvider() {
+    public SzReplicationProvider getReplicationProvider()
+    {
         return this.provider;
     }
 
     /**
      * Gets the initial pending report tasks.
      *
-     * @return The {@link Map} of the {@link String} report keys to {@link String}
-     *         report action values.
+     * @return The {@link Map} of the {@link String} report keys to {@link
+     *             String} report action values.
      *
      * @throws SQLException If a failure occurs.
      */
-    protected Map<SzReportKey, String> getInitialReportTasks() throws SQLException {
+    protected Map<SzReportKey, String> getInitialReportTasks()
+        throws SQLException 
+    {
         Map<SzReportKey, String> reportKeys = new LinkedHashMap<>();
 
         Connection conn = null;
@@ -325,7 +363,8 @@ public class SzReplicatorService extends AbstractListenerService {
             stmt = conn.createStatement();
 
             // get the pending report keys
-            rs = stmt.executeQuery("SELECT report_key FROM sz_dm_pending_report");
+            rs = stmt.executeQuery(
+                "SELECT report_key FROM sz_dm_pending_report");
             while (rs.next()) {
                 String reportKeyText = rs.getString(1);
                 SzReportKey reportKey = SzReportKey.parse(reportKeyText);
@@ -350,7 +389,8 @@ public class SzReplicatorService extends AbstractListenerService {
      * 
      * @return The number of pending report updates.
      */
-    protected long getPendingReportUpdateCount() {
+    protected long getPendingReportUpdateCount()
+    {
         Connection conn = null;
         Statement stmt = null;
         ResultSet rs = null;
@@ -362,7 +402,8 @@ public class SzReplicatorService extends AbstractListenerService {
             stmt = conn.createStatement();
 
             // get the pending report keys
-            rs = stmt.executeQuery("SELECT COUNT(*) FROM sz_dm_pending_report");
+            rs = stmt.executeQuery(
+                "SELECT COUNT(*) FROM sz_dm_pending_report");
             rs.next();
 
             synchronized (this.reportUpdater) {
@@ -382,21 +423,21 @@ public class SzReplicatorService extends AbstractListenerService {
 
     /**
      * Checks if this replicator service has been idle for at least the
-     * specified number of milliseconds, optionally waiting for the
-     * specified maximum wait tine for it to become idle.
+     * specified number of milliseconds, optionally waiting for the specified
+     * maximum wait tine for it to become idle.
      * 
-     * @param idleTime The number of milliseconds that the replicator
-     *                 service must be idle before this will return
-     *                 <code>true</code>.
+     * @param idleTime The number of milliseconds that the replicator service
+     *                 must be idle before this will return <code>true</code>.
      * 
-     * @param maxWaitTime The maximum wait time in milliseconds to wait for
-     *                    the replicator service to become idle, or zero (0)
-     *                    if just checking without waiting and a negative
-     *                    number to wait indefinitely.
+     * @param maxWaitTime The maximum wait time in milliseconds to wait for the
+     *                    replicator service to become idle, or zero (0) if just
+     *                    checking without waiting and a negative number to wait
+     *                    indefinitely.
      * 
      * @return <code>true</code> if idle, otherwise <code>false</code>.
      */
-    public boolean waitUntilIdle(long idleTime, long maxWaitTime) {
+    public boolean waitUntilIdle(long idleTime, long maxWaitTime)
+    {
         logInfo("Beginning SzReplicatorService.waitUntilIdle()");
         long    start           = System.nanoTime();
         long    maxWaitNanos    = maxWaitTime * ONE_MILLION;
@@ -406,7 +447,10 @@ public class SzReplicatorService extends AbstractListenerService {
             if (!firstPass && maxWaitTime != 0L) {
                 long now = System.nanoTime();
                 long sleepTime = 1000L;
-                if (maxWaitTime > 0L && ((maxWaitNanos - (now - start)) / ONE_MILLION < sleepTime)) {
+                if (maxWaitTime > 0L 
+                    && ((maxWaitNanos - (now - start)) / ONE_MILLION 
+                        < sleepTime))
+                {
                     sleepTime = (maxWaitNanos - (now - start)) / ONE_MILLION;
                 }
                 try {
@@ -418,20 +462,25 @@ public class SzReplicatorService extends AbstractListenerService {
 
             firstPass = false; // ensure we wait on subsequent passes
 
-            long updateCount    = this.getPendingReportUpdateCount();
-            long taskCount      = this.getSchedulingService().getAllRemainingTasksCount();
+            long updateCount
+                = this.getPendingReportUpdateCount();
+            
+            long taskCount
+                = this.getSchedulingService().getAllRemainingTasksCount();
             
             // check if nothing pending
             if (updateCount == 0L && taskCount == 0L) {
                 // check the idle time
                 long nowNanos       = System.nanoTime();
                 long reportNanos    = this.lastReportActivityNanoTime.get();
-                long taskNanos      = this.getSchedulingService().getLastTaskActivityNanoTime();
+                long taskNanos      = this.getSchedulingService()
+                                          .getLastTaskActivityNanoTime();
 
                 long reportIdle = ((nowNanos - reportNanos) / ONE_MILLION);
                 long taskIdle = ((nowNanos - taskNanos) / ONE_MILLION);
 
-                // check if the scheduler and the report updates have been idle for long enough
+                // check if the scheduler and the report updates have been idle
+                // for long enough
                 if (reportIdle >= idleTime && taskIdle >= idleTime)
                 {
                     logInfo("SzReplicatorService found to be idle");
@@ -439,7 +488,10 @@ public class SzReplicatorService extends AbstractListenerService {
                 }
             }
             
-        } while (maxWaitTime < 0L || (maxWaitTime > 0L && (System.nanoTime() - start) < maxWaitNanos));
+        } while (maxWaitTime < 0L 
+                || (maxWaitTime > 0L 
+                    && (System.nanoTime() - start) < maxWaitNanos));
+        // CSOFF
         logInfo("SzReplicatorService NOT found to be idle: ",
                 " - - - - - - - - - - - - - - - - - - - - - - - ",
                 "    Remaining Report Updates  : " + this.getPendingReportUpdateCount(),
@@ -447,18 +499,20 @@ public class SzReplicatorService extends AbstractListenerService {
                 "    Remaining Scheduled Tasks : " + this.getSchedulingService().getAllRemainingTasksCount(),
                 "    Task Idle Time            : " + ((System.nanoTime() - this.getSchedulingService().getLastTaskActivityNanoTime()) / ONE_MILLION) + "ms",
                 " - - - - - - - - - - - - - - - - - - - - - - - ");
-        
+        // CSON
+
         return false;
     }
 
     /**
-     * Implemented to delegate to a {@link TaskHandler} implementation based on the
-     * specified action.
+     * Implemented to delegate to a {@link TaskHandler} implementation based on
+     * the specified action.
      *
      * @param action            The action for the task.
      * @param parameters        The parameters for the task.
-     * @param multiplicity      The multiplier indicating how many times the task
-     *                          was scheduled before being dispatched to be handled.
+     * @param multiplicity      The multiplier indicating how many times the
+     *                          task was scheduled before being dispatched to be
+     *                          handled.
      * @param followUpScheduler The {@link Scheduler} for scheduling follow-up
      *                          tasks, or <code>null</code> if follow-up tasks
      *                          cannot be scheduled.
@@ -479,10 +533,11 @@ public class SzReplicatorService extends AbstractListenerService {
 
             if (handler == null) {
                 throw new ServiceExecutionException(
-                    "The specified action (" + action + ") is not recognized: " 
-                    + this.handlerMap);
+                    "The specified action (" + action
+                    + ") is not recognized: " + this.handlerMap);
             }
-            handler.handleTask(action, parameters, multiplicity, followUpScheduler);
+            handler.handleTask(
+                action, parameters, multiplicity, followUpScheduler);
 
         } catch (ServiceExecutionException e) {
             throw e;
@@ -503,9 +558,11 @@ public class SzReplicatorService extends AbstractListenerService {
     {
         try {
             // set up the connection provider
-            String providerName = getConfigString(config, CONNECTION_PROVIDER_KEY, true);
+            String providerName = getConfigString(
+                config, CONNECTION_PROVIDER_KEY, true);
 
-            this.connectionProvider = ConnectionProvider.REGISTRY.lookup(providerName);
+            this.connectionProvider
+                = ConnectionProvider.REGISTRY.lookup(providerName);
 
             this.databaseType = this.initDatabaseType();
 
@@ -533,7 +590,8 @@ public class SzReplicatorService extends AbstractListenerService {
      * {@inheritDoc}
      */
     @Override
-    protected void doDestroy() {
+    protected void doDestroy()
+    {
         ReportUpdater updater = null;
         synchronized (this) {
             updater = this.reportUpdater;
@@ -543,8 +601,7 @@ public class SzReplicatorService extends AbstractListenerService {
         }
 
         try {
-            if (updater != Thread.currentThread() && updater.isAlive())
-            {
+            if (updater != Thread.currentThread() && updater.isAlive()) {
                 updater.join();
             }
 
@@ -560,13 +617,16 @@ public class SzReplicatorService extends AbstractListenerService {
     }
 
     /**
-     * Initializes the {@link DatabaseType} to use for formatting SQL statements.
+     * Initializes the {@link DatabaseType} to use for formatting SQL
+     * statements.
      *
      * @return The {@link DatabaseType} to use.
      *
      * @throws SQLException If a failure occurs.
      */
-    protected DatabaseType initDatabaseType() throws SQLException {
+    protected DatabaseType initDatabaseType()
+        throws SQLException
+    {
         Connection conn = this.getConnection();
         try {
             return DatabaseType.detect(conn);
@@ -580,7 +640,8 @@ public class SzReplicatorService extends AbstractListenerService {
      *
      * @return The {@link DatabaseType} used by this instance.
      */
-    public DatabaseType getDatabaseType() {
+    public DatabaseType getDatabaseType()
+    {
         return this.databaseType;
     }
 
@@ -593,15 +654,19 @@ public class SzReplicatorService extends AbstractListenerService {
      *
      * @throws SQLException If a JDBC failure occurs.
      */
-    protected void ensureSchema(boolean recreate) throws SQLException {
+    protected void ensureSchema(boolean recreate)
+        throws SQLException
+    {
         Connection conn = this.getConnection();
         try {
             // get the database type
             DatabaseType dbType = this.getDatabaseType();
             SchemaBuilder schemaBuilder = SCHEMA_BUILDER_MAP.get(dbType);
             if (schemaBuilder == null) {
-                throw new SQLException("The database type is not supported.  databaseType=[ " + databaseType
-                        + " ], productName=[ " + conn.getMetaData().getDatabaseProductName() + " ]");
+                throw new SQLException(
+                    "The database type is not supported.  databaseType=[ "
+                    + databaseType + " ], productName=[ "
+                    + conn.getMetaData().getDatabaseProductName() + " ]");
             }
             schemaBuilder.ensureSchema(conn, recreate);
 
@@ -615,18 +680,23 @@ public class SzReplicatorService extends AbstractListenerService {
      *
      * @return The {@link ConnectionProvider} for this instance.
      */
-    public ConnectionProvider getConnectionProvider() {
+    public ConnectionProvider getConnectionProvider()
+    {
         return this.connectionProvider;
     }
 
     /**
-     * Gets a new {@link Connection} from the backing {@link ConnectionProvider}.
-     * When done with the {@link Connection} simply close it.
+     * Gets a new {@link Connection} from the backing
+     * {@link ConnectionProvider}.  When done with the {@link Connection}
+     * simply close it.
      *
-     * @return The {@link Connection} from the backing {@link ConnectionProvider}.
+     * @return The {@link Connection} from the backing {@link
+     *             ConnectionProvider}.
      * @throws SQLException If a JDBC failure occurs.
      */
-    protected Connection getConnection() throws SQLException {
+    protected Connection getConnection()
+        throws SQLException
+    {
         return this.getConnectionProvider().getConnection();
     }
 
@@ -635,7 +705,8 @@ public class SzReplicatorService extends AbstractListenerService {
      *
      * @return The backing {@link SzEnvironment} for this instance.
      */
-    protected SzEnvironment getSzEnvironment() {
+    protected SzEnvironment getSzEnvironment()
+    {
         return this.environment;
     }
 }

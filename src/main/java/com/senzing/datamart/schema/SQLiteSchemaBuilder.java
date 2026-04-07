@@ -8,19 +8,21 @@ import java.util.List;
 /**
  * Provides a data mart schema builder for SQLite.
  */
-public class SQLiteSchemaBuilder extends SchemaBuilder {
+public class SQLiteSchemaBuilder extends SchemaBuilder
+{
     /**
      * Default constructor.
      */
-    public SQLiteSchemaBuilder() {
+    public SQLiteSchemaBuilder()
+    {
         // do nothing
     }
 
     /**
-     * Ensures the SQLite schema exists and optionally drops the schema
-     * before creating it.
+     * Ensures the SQLite schema exists and optionally drops the schema before
+     * creating it.
      *
-     * @param conn     The JDBC {@link Connection} to use for creating the schema.
+     * @param conn The JDBC {@link Connection} to use for creating the schema.
      *
      * @param recreate <code>true</code> if the schema should be dropped and
      *                 recreated, or <code>false</code> if any existing schema
@@ -29,7 +31,9 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
      * @throws SQLException If a JDBC failure occurs.
      */
     @Override
-    public void ensureSchema(Connection conn, boolean recreate) throws SQLException {
+    public void ensureSchema(Connection conn, boolean recreate)
+        throws SQLException 
+    {
         List<String> sqlList = new LinkedList<>();
 
         String createLockTable = "CREATE TABLE IF NOT EXISTS sz_dm_locks ("
@@ -54,23 +58,31 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
 
         String dropEntityTable = "DROP TABLE IF EXISTS sz_dm_entity;";
 
-        String createEntityNewIndex = "CREATE INDEX IF NOT EXISTS sz_dm_entity_new_ix ON sz_dm_entity ("
-                + "creator_id)";
+        String createEntityNewIndex 
+            = "CREATE INDEX IF NOT EXISTS sz_dm_entity_new_ix "
+                + "ON sz_dm_entity (creator_id)";
 
-        String createEntityModIndex = "CREATE INDEX IF NOT EXISTS sz_dm_entity_mod_ix ON sz_dm_entity ("
-                + "modifier_id)";
+        String createEntityModIndex
+            = "CREATE INDEX IF NOT EXISTS sz_dm_entity_mod_ix "
+                + "ON sz_dm_entity (modifier_id)";
 
-        String dropEntityNewIndex = "DROP INDEX IF EXISTS sz_dm_entity_new_ix;";
+        String dropEntityNewIndex
+            = "DROP INDEX IF EXISTS sz_dm_entity_new_ix;";
 
-        String dropEntityModIndex = "DROP INDEX IF EXISTS sz_dm_entity_mod_ix;";
+        String dropEntityModIndex
+            = "DROP INDEX IF EXISTS sz_dm_entity_mod_ix;";
 
-        String createEntityInsertTrigger = formatCreateSQLiteInsertTrigger("sz_dm_entity");
+        String createEntityInsertTrigger
+            = formatCreateSQLiteInsertTrigger("sz_dm_entity");
 
-        String dropEntityInsertTrigger = formatDropSQLiteInsertTrigger("sz_dm_entity");
+        String dropEntityInsertTrigger
+            = formatDropSQLiteInsertTrigger("sz_dm_entity");
 
-        String createEntityUpdateTrigger = formatCreateSQLiteUpdateTrigger("sz_dm_entity");
+        String createEntityUpdateTrigger
+            = formatCreateSQLiteUpdateTrigger("sz_dm_entity");
 
-        String dropEntityUpdateTrigger = formatDropSQLiteUpdateTrigger("sz_dm_entity");
+        String dropEntityUpdateTrigger
+            = formatDropSQLiteUpdateTrigger("sz_dm_entity");
 
         String createRecordTable = "CREATE TABLE IF NOT EXISTS sz_dm_record ("
                 + "  data_source TEXT NOT NULL, "
@@ -90,40 +102,54 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
 
         String dropRecordTable = "DROP TABLE IF EXISTS sz_dm_record;";
 
-        String createRecordInsertTrigger = formatCreateSQLiteInsertTrigger("sz_dm_record");
+        String createRecordInsertTrigger 
+            = formatCreateSQLiteInsertTrigger("sz_dm_record");
 
-        String dropRecordInsertTrigger = formatDropSQLiteInsertTrigger("sz_dm_record");
+        String dropRecordInsertTrigger 
+            = formatDropSQLiteInsertTrigger("sz_dm_record");
 
-        String createRecordUpdateTrigger = formatCreateSQLiteUpdateTrigger("sz_dm_record");
+        String createRecordUpdateTrigger 
+            = formatCreateSQLiteUpdateTrigger("sz_dm_record");
 
-        String dropRecordUpdateTrigger = formatDropSQLiteUpdateTrigger("sz_dm_record");
+        String dropRecordUpdateTrigger 
+            = formatDropSQLiteUpdateTrigger("sz_dm_record");
 
-        String createRecordIndex = "CREATE INDEX IF NOT EXISTS sz_dm_record_ix ON sz_dm_record ("
-                + "entity_id)";
+        String createRecordIndex 
+            = "CREATE INDEX IF NOT EXISTS sz_dm_record_ix "
+                + "ON sz_dm_record (entity_id)";
 
         String dropRecordIndex = "DROP INDEX IF EXISTS sz_dm_record_ix;";
 
-        String createRecordNewIndex = "CREATE INDEX IF NOT EXISTS sz_dm_record_new_ix ON sz_dm_record ("
-                + "creator_id)";
+        String createRecordNewIndex 
+            = "CREATE INDEX IF NOT EXISTS sz_dm_record_new_ix "
+                + "ON sz_dm_record (creator_id)";
 
-        String createMatchKeyRecordIndex = "CREATE INDEX IF NOT EXISTS sz_dm_mkey_record_ix ON sz_dm_record ("
-                + "match_key, errule_code);";
+        String createMatchKeyRecordIndex 
+            = "CREATE INDEX IF NOT EXISTS sz_dm_mkey_record_ix "
+                + "ON sz_dm_record (match_key, errule_code);";
 
-        String dropMatchKeyRecordIndex = "DROP INDEX IF EXISTS sz_dm_mkey_record_ix;";
+        String dropMatchKeyRecordIndex
+            = "DROP INDEX IF EXISTS sz_dm_mkey_record_ix;";
 
-        String createPrincipleRecordIndex = "CREATE INDEX IF NOT EXISTS sz_dm_rule_record_ix ON sz_dm_record ("
-                + "errule_code, match_key);";
+        String createPrincipleRecordIndex 
+            = "CREATE INDEX IF NOT EXISTS sz_dm_rule_record_ix "
+                + "ON sz_dm_record (errule_code, match_key);";
 
-        String dropPrincipleRecordIndex = "DROP INDEX IF EXISTS sz_dm_rule_record_ix;";
+        String dropPrincipleRecordIndex
+            = "DROP INDEX IF EXISTS sz_dm_rule_record_ix;";
 
-        String dropRecordNewIndex = "DROP INDEX IF EXISTS sz_dm_record_new_ix;";
+        String dropRecordNewIndex
+            = "DROP INDEX IF EXISTS sz_dm_record_new_ix;";
 
-        String createRecordModIndex = "CREATE INDEX IF NOT EXISTS sz_dm_record_mod_ix ON sz_dm_record ("
-                + "modifier_id)";
+        String createRecordModIndex
+            = "CREATE INDEX IF NOT EXISTS sz_dm_record_mod_ix "
+                + "ON sz_dm_record (modifier_id)";
 
-        String dropRecordModIndex = "DROP INDEX IF EXISTS sz_dm_record_mod_ix;";
+        String dropRecordModIndex
+            = "DROP INDEX IF EXISTS sz_dm_record_mod_ix;";
 
-        String createRelationTable = "CREATE TABLE IF NOT EXISTS sz_dm_relation ("
+        String createRelationTable
+            = "CREATE TABLE IF NOT EXISTS sz_dm_relation ("
                 + "  entity_id INTEGER NOT NULL, "
                 + "  related_id INTEGER NOT NULL, "
                 + "  match_type TEXT NOT NULL, "
@@ -142,50 +168,68 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
 
         String dropRelationTable = "DROP TABLE IF EXISTS sz_dm_relation;";
 
-        String createRelationIndex = "CREATE INDEX IF NOT EXISTS sz_dm_relation_ix ON sz_dm_relation ("
-                + "related_id, entity_id);";
+        String createRelationIndex
+            = "CREATE INDEX IF NOT EXISTS sz_dm_relation_ix "
+                + "ON sz_dm_relation (related_id, entity_id);";
 
         String dropRelationIndex = "DROP INDEX IF EXISTS sz_dm_relation_ix;";
 
-        String createMatchKeyRelationIndex = "CREATE INDEX IF NOT EXISTS sz_dm_mkey_relation_ix ON sz_dm_relation ("
-                + "match_key, errule_code);";
+        String createMatchKeyRelationIndex
+            = "CREATE INDEX IF NOT EXISTS sz_dm_mkey_relation_ix "
+                + "ON sz_dm_relation (match_key, errule_code);";
 
-        String dropMatchKeyRelationIndex = "DROP INDEX IF EXISTS sz_dm_mkey_relation_ix;";
+        String dropMatchKeyRelationIndex 
+            = "DROP INDEX IF EXISTS sz_dm_mkey_relation_ix;";
 
-        String createRevMatchKeyRelationIndex = "CREATE INDEX IF NOT EXISTS sz_dm_rev_mkey_rel_ix ON sz_dm_relation ("
-                + "rev_match_key, errule_code);";
+        String createRevMatchKeyRelationIndex
+            = "CREATE INDEX IF NOT EXISTS sz_dm_rev_mkey_rel_ix "
+                + "ON sz_dm_relation (rev_match_key, errule_code);";
 
-        String dropRevMatchKeyRelationIndex = "DROP INDEX IF EXISTS sz_dm_rev_mkey_rel_ix;";
+        String dropRevMatchKeyRelationIndex
+            = "DROP INDEX IF EXISTS sz_dm_rev_mkey_rel_ix;";
         
-        String createPrincipleRelationIndex = "CREATE INDEX IF NOT EXISTS sz_dm_rule_relation_ix ON sz_dm_relation ("
-                + "errule_code, match_key);";
+        String createPrincipleRelationIndex
+            = "CREATE INDEX IF NOT EXISTS sz_dm_rule_relation_ix "
+                + "ON sz_dm_relation (errule_code, match_key);";
 
-        String dropPrincipleRelationIndex = "DROP INDEX IF EXISTS sz_dm_rule_relation_ix;";
+        String dropPrincipleRelationIndex
+            = "DROP INDEX IF EXISTS sz_dm_rule_relation_ix;";
 
-        String createRevPrincipleRelationIndex = "CREATE INDEX IF NOT EXISTS sz_dm_rev_rule_rel_ix ON sz_dm_relation ("
-                + "errule_code, rev_match_key);";
+        String createRevPrincipleRelationIndex
+            = "CREATE INDEX IF NOT EXISTS sz_dm_rev_rule_rel_ix "
+                + "ON sz_dm_relation (errule_code, rev_match_key);";
 
-        String dropRevPrincipleRelationIndex = "DROP INDEX IF EXISTS sz_dm_rev_rule_rel_ix;";
+        String dropRevPrincipleRelationIndex
+            = "DROP INDEX IF EXISTS sz_dm_rev_rule_rel_ix;";
 
-        String createRelationNewIndex = "CREATE INDEX IF NOT EXISTS sz_dm_relation_new_ix ON sz_dm_relation ("
-                + "creator_id);";
+        String createRelationNewIndex 
+            = "CREATE INDEX IF NOT EXISTS sz_dm_relation_new_ix "
+                + "ON sz_dm_relation (creator_id);";
 
-        String dropRelationNewIndex = "DROP INDEX IF EXISTS sz_dm_relation_new_ix;";
+        String dropRelationNewIndex
+            = "DROP INDEX IF EXISTS sz_dm_relation_new_ix;";
 
-        String createRelationModIndex = "CREATE INDEX IF NOT EXISTS sz_dm_relation_mod_ix ON sz_dm_relation ("
-                + "modifier_id);";
+        String createRelationModIndex
+            = "CREATE INDEX IF NOT EXISTS sz_dm_relation_mod_ix "
+                + "ON sz_dm_relation (modifier_id);";
 
-        String dropRelationModIndex = "DROP INDEX IF EXISTS sz_dm_relation_mod_ix;";
+        String dropRelationModIndex 
+            = "DROP INDEX IF EXISTS sz_dm_relation_mod_ix;";
 
-        String createRelationInsertTrigger = formatCreateSQLiteInsertTrigger("sz_dm_relation");
+        String createRelationInsertTrigger
+            = formatCreateSQLiteInsertTrigger("sz_dm_relation");
 
-        String dropRelationInsertTrigger = formatDropSQLiteInsertTrigger("sz_dm_relation");
+        String dropRelationInsertTrigger
+            = formatDropSQLiteInsertTrigger("sz_dm_relation");
 
-        String createRelationUpdateTrigger = formatCreateSQLiteUpdateTrigger("sz_dm_relation");
+        String createRelationUpdateTrigger
+            = formatCreateSQLiteUpdateTrigger("sz_dm_relation");
 
-        String dropRelationUpdateTrigger = formatDropSQLiteUpdateTrigger("sz_dm_relation");
+        String dropRelationUpdateTrigger
+            = formatDropSQLiteUpdateTrigger("sz_dm_relation");
 
-        String createReportTable = "CREATE TABLE IF NOT EXISTS sz_dm_report ("
+        String createReportTable
+            = "CREATE TABLE IF NOT EXISTS sz_dm_report ("
                 + "  report_key TEXT NOT NULL PRIMARY KEY, "
                 + "  report TEXT NOT NULL, "
                 + "  statistic TEXT NOT NULL, "
@@ -202,15 +246,20 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
 
         String dropReportTable = "DROP TABLE IF EXISTS sz_dm_report;";
 
-        String createReportInsertTrigger = formatCreateSQLiteInsertTrigger("sz_dm_report");
+        String createReportInsertTrigger
+            = formatCreateSQLiteInsertTrigger("sz_dm_report");
 
-        String dropReportInsertTrigger = formatDropSQLiteInsertTrigger("sz_dm_report");
+        String dropReportInsertTrigger
+            = formatDropSQLiteInsertTrigger("sz_dm_report");
 
-        String createReportUpdateTrigger = formatCreateSQLiteUpdateTrigger("sz_dm_report");
+        String createReportUpdateTrigger
+            = formatCreateSQLiteUpdateTrigger("sz_dm_report");
 
-        String dropReportUpdateTrigger = formatDropSQLiteUpdateTrigger("sz_dm_report");
+        String dropReportUpdateTrigger
+            = formatDropSQLiteUpdateTrigger("sz_dm_report");
 
-        String createReportDetailTable = "CREATE TABLE IF NOT EXISTS sz_dm_report_detail ("
+        String createReportDetailTable
+            = "CREATE TABLE IF NOT EXISTS sz_dm_report_detail ("
                 + "  report_key TEXT NOT NULL, "
                 + "  entity_id INTEGER NOT NULL, "
                 + "  related_id INTEGER NOT NULL DEFAULT (0), "
@@ -224,37 +273,52 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
                 + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')), "
                 + "PRIMARY KEY(entity_id, related_id, report_key));";
 
-        String dropReportDetailTable = "DROP TABLE IF EXISTS sz_dm_report_detail;";
+        String dropReportDetailTable
+            = "DROP TABLE IF EXISTS sz_dm_report_detail;";
 
-        String createReportDetailIndex1 = "CREATE INDEX IF NOT EXISTS sz_dm_rpt_detail_ix "
+        String createReportDetailIndex1
+            = "CREATE INDEX IF NOT EXISTS sz_dm_rpt_detail_ix "
                 + "ON sz_dm_report_detail (report_key, entity_id);";
 
-        String dropReportDetailIndex1 = "DROP INDEX IF EXISTS sz_dm_rpt_detail_ix;";
+        String dropReportDetailIndex1
+            = "DROP INDEX IF EXISTS sz_dm_rpt_detail_ix;";
 
-        String createReportDetailIndex2 = "CREATE UNIQUE INDEX IF NOT EXISTS sz_dm_rpt_detail_uix "
-                + "ON sz_dm_report_detail (related_id, entity_id, report_key);";
+        String createReportDetailIndex2
+            = "CREATE UNIQUE INDEX IF NOT EXISTS sz_dm_rpt_detail_uix "
+                + "ON sz_dm_report_detail "
+                + "(related_id, entity_id, report_key);";
 
-        String dropReportDetailIndex2 = "DROP INDEX IF EXISTS sz_dm_rpt_detail_uix;";
+        String dropReportDetailIndex2
+            = "DROP INDEX IF EXISTS sz_dm_rpt_detail_uix;";
 
-        String createReportDetailNewIndex = "CREATE INDEX IF NOT EXISTS sz_dm_rpt_det_new_ix "
+        String createReportDetailNewIndex
+            = "CREATE INDEX IF NOT EXISTS sz_dm_rpt_det_new_ix "
                 + "ON sz_dm_report_detail (creator_id);";
 
-        String dropReportDetailNewIndex = "DROP INDEX IF EXISTS sz_dm_rpt_det_new_ix;";
+        String dropReportDetailNewIndex
+            = "DROP INDEX IF EXISTS sz_dm_rpt_det_new_ix;";
 
-        String createReportDetailModIndex = "CREATE INDEX IF NOT EXISTS sz_dm_rpt_det_mod_ix "
+        String createReportDetailModIndex
+            = "CREATE INDEX IF NOT EXISTS sz_dm_rpt_det_mod_ix "
                 + "ON sz_dm_report_detail (modifier_id);";
 
-        String dropReportDetailModIndex = "DROP INDEX IF EXISTS sz_dm_rpt_det_mod_ix;";
+        String dropReportDetailModIndex
+            = "DROP INDEX IF EXISTS sz_dm_rpt_det_mod_ix;";
 
-        String createReportDetailInsertTrigger = formatCreateSQLiteInsertTrigger("sz_dm_report_detail");
+        String createReportDetailInsertTrigger
+            = formatCreateSQLiteInsertTrigger("sz_dm_report_detail");
 
-        String dropReportDetailInsertTrigger = formatDropSQLiteInsertTrigger("sz_dm_report_detail");
+        String dropReportDetailInsertTrigger
+            = formatDropSQLiteInsertTrigger("sz_dm_report_detail");
 
-        String createReportDetailUpdateTrigger = formatCreateSQLiteUpdateTrigger("sz_dm_report_detail");
+        String createReportDetailUpdateTrigger
+            = formatCreateSQLiteUpdateTrigger("sz_dm_report_detail");
 
-        String dropReportDetailUpdateTrigger = formatDropSQLiteUpdateTrigger("sz_dm_report_detail");
+        String dropReportDetailUpdateTrigger
+            = formatDropSQLiteUpdateTrigger("sz_dm_report_detail");
 
-        String createPendingReportTable = "CREATE TABLE IF NOT EXISTS sz_dm_pending_report ("
+        String createPendingReportTable
+            = "CREATE TABLE IF NOT EXISTS sz_dm_pending_report ("
                 + "  report_key TEXT NOT NULL, "
                 + "  lease_id TEXT, "
                 + "  expire_lease_at TIMESTAMP, "
@@ -268,25 +332,35 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
                 + "  modified_on TIMESTAMP NOT NULL "
                 + "DEFAULT (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')));";
 
-        String dropPendingReportTable = "DROP TABLE IF EXISTS sz_dm_pending_report;";
+        String dropPendingReportTable 
+            = "DROP TABLE IF EXISTS sz_dm_pending_report;";
 
-        String createPendingReportIndex1 = "CREATE INDEX IF NOT EXISTS sz_dm_pend_rpt_ix1 "
-                + "ON sz_dm_pending_report (report_key, lease_id, expire_lease_at);";
+        String createPendingReportIndex1 
+            = "CREATE INDEX IF NOT EXISTS sz_dm_pend_rpt_ix1 "
+                + "ON sz_dm_pending_report "
+                + "(report_key, lease_id, expire_lease_at);";
 
-        String dropPendingReportIndex1 = "DROP INDEX IF EXISTS sz_dm_pend_rpt_ix1;";
+        String dropPendingReportIndex1
+            = "DROP INDEX IF EXISTS sz_dm_pend_rpt_ix1;";
 
-        String createPendingReportIndex2 = "CREATE INDEX IF NOT EXISTS sz_dm_pend_rpt_ix2 "
+        String createPendingReportIndex2 
+            = "CREATE INDEX IF NOT EXISTS sz_dm_pend_rpt_ix2 "
                 + "ON sz_dm_pending_report (expire_lease_at, lease_id);";
 
-        String dropPendingReportIndex2 = "DROP INDEX IF EXISTS sz_dm_pend_rpt_ix2;";
+        String dropPendingReportIndex2
+            = "DROP INDEX IF EXISTS sz_dm_pend_rpt_ix2;";
 
-        String createPendingReportInsertTrigger = formatCreateSQLiteInsertTrigger("sz_dm_pending_report");
+        String createPendingReportInsertTrigger
+            = formatCreateSQLiteInsertTrigger("sz_dm_pending_report");
 
-        String dropPendingReportInsertTrigger = formatDropSQLiteInsertTrigger("sz_dm_pending_report");
+        String dropPendingReportInsertTrigger
+            = formatDropSQLiteInsertTrigger("sz_dm_pending_report");
 
-        String createPendingReportUpdateTrigger = formatCreateSQLiteUpdateTrigger("sz_dm_pending_report");
+        String createPendingReportUpdateTrigger
+            = formatCreateSQLiteUpdateTrigger("sz_dm_pending_report");
 
-        String dropPendingReportUpdateTrigger = formatDropSQLiteUpdateTrigger("sz_dm_pending_report");
+        String dropPendingReportUpdateTrigger
+            = formatDropSQLiteUpdateTrigger("sz_dm_pending_report");
 
         if (recreate) {
             sqlList.add(dropLockTable);
@@ -391,7 +465,8 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
      * @param tableName The table name for the create trigger statement.
      * @return The create trigger statement.
      */
-    protected String formatCreateSQLiteInsertTrigger(String tableName) {
+    protected String formatCreateSQLiteInsertTrigger(String tableName)
+    {
         return "CREATE TRIGGER IF NOT EXISTS " + tableName + "_new "
                 + "AFTER INSERT ON " + tableName + " FOR EACH ROW "
                 + "BEGIN UPDATE " + tableName + " "
@@ -407,7 +482,8 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
      * @param tableName The table name for the drop trigger statement.
      * @return The drop trigger statement.
      */
-    protected String formatDropSQLiteInsertTrigger(String tableName) {
+    protected String formatDropSQLiteInsertTrigger(String tableName)
+    {
         return "DROP TRIGGER IF EXISTS " + tableName + "_new;";
     }
 
@@ -418,7 +494,8 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
      * @param tableName The table name for the create trigger statement.
      * @return The create trigger statement.
      */
-    protected String formatCreateSQLiteUpdateTrigger(String tableName) {
+    protected String formatCreateSQLiteUpdateTrigger(String tableName)
+    {
         return "CREATE TRIGGER IF NOT EXISTS " + tableName + "_mod "
                 + "AFTER UPDATE ON " + tableName + " FOR EACH ROW "
                 + "BEGIN UPDATE " + tableName + " "
@@ -434,7 +511,8 @@ public class SQLiteSchemaBuilder extends SchemaBuilder {
      * @param tableName The table name for the drop trigger statement.
      * @return The drop trigger statement.
      */
-    protected String formatDropSQLiteUpdateTrigger(String tableName) {
+    protected String formatDropSQLiteUpdateTrigger(String tableName)
+    {
         return "DROP TRIGGER IF EXISTS " + tableName + "_mod;";
     }
 }

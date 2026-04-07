@@ -10,11 +10,13 @@ import com.senzing.sql.DatabaseType;
 /**
  * Provides a SQLite implementation of {@link SQLClient}.
  */
-public class SQLiteClient implements SQLClient {
+public class SQLiteClient implements SQLClient
+{
     /**
      * Default constructor.
      */
-    public SQLiteClient() {
+    public SQLiteClient()
+    {
         // do nothing
     }
 
@@ -25,7 +27,8 @@ public class SQLiteClient implements SQLClient {
      * </p>
      */
     @Override
-    public DatabaseType getDatabaseType() {
+    public DatabaseType getDatabaseType()
+    {
         return DatabaseType.SQLITE;
     }
 
@@ -73,7 +76,8 @@ public class SQLiteClient implements SQLClient {
             + " modified_on = (STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW')) "
             + " WHERE message_id = new.message_id; END;";
 
-       String dropInsertTriggerSql = "DROP TRIGGER IF EXISTS sz_msg_queue_create";
+       String dropInsertTriggerSql
+               = "DROP TRIGGER IF EXISTS sz_msg_queue_create";
 
        List<String> sqlList = new ArrayList<>();
 

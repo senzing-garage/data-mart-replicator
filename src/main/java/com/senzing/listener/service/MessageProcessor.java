@@ -5,13 +5,14 @@ import com.senzing.listener.service.exception.ServiceExecutionException;
 import javax.json.JsonObject;
 
 /**
- * Defines an interface for a {@link MessageProcessor} that can process
- * messages that are received.
+ * Defines an interface for a {@link MessageProcessor} that can process messages
+ * that are received.
  */
-public interface MessageProcessor {
+public interface MessageProcessor
+{
   /**
-   * This method is called by the consumer.  Processes the message passed to
-   * the service from the consumer.
+   * This method is called by the consumer. Processes the message passed to the
+   * service from the consumer.
    * 
    * @param message The message to process.
    *

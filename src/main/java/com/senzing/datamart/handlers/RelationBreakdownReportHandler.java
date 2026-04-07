@@ -9,16 +9,18 @@ import static com.senzing.datamart.SzReplicationProvider.TaskAction.*;
  *
  * @see com.senzing.datamart.model.SzReportCode#ENTITY_RELATION_BREAKDOWN
  */
-public class RelationBreakdownReportHandler extends UpdateReportHandler {
+public class RelationBreakdownReportHandler extends UpdateReportHandler
+{
   /**
-   * Constructs with the specified {@link SzReplicationProvider}.  This
-   * constructs the super class with {@link
-   * com.senzing.datamart.SzReplicationProvider.TaskAction#UPDATE_ENTITY_RELATION_BREAKDOWN} 
-   * as the supported action.
+   * Constructs with the specified {@link SzReplicationProvider}. This
+   * constructs the super class with
+   * {@link SzReplicationProvider.TaskAction#UPDATE_ENTITY_RELATION_BREAKDOWN
+   * UPDATE_ENTITY_RELATION_BREAKDOWN} as the supported action.
    *
    * @param provider The {@link SzReplicationProvider} to use.
    */
-  public RelationBreakdownReportHandler(SzReplicationProvider provider) {
+  public RelationBreakdownReportHandler(SzReplicationProvider provider)
+  {
     super(provider, UPDATE_ENTITY_RELATION_BREAKDOWN);
   }
 }

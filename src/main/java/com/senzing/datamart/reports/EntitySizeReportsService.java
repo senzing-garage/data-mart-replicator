@@ -21,7 +21,8 @@ import java.sql.SQLException;
 /**
  * Provides services for the Entity Size reports.
  */
-public interface EntitySizeReportsService extends ReportsService {
+public interface EntitySizeReportsService extends ReportsService
+{
     /**
      * The prefix path for entity size reports services.
      */
@@ -40,11 +41,13 @@ public interface EntitySizeReportsService extends ReportsService {
     /**
      * The endpoint for the entities report based on entity size.
      */
-    String ENTITY_SIZE_ENTITIES_ENDPOINT = ENTITY_SIZE_COUNT_ENDPOINT + "/entities";
+    String ENTITY_SIZE_ENTITIES_ENDPOINT = ENTITY_SIZE_COUNT_ENDPOINT
+            + "/entities";
 
     /**
-     * Exposes {@link EntitySizeReports#getEntitySizeBreakdown(Connection, Timers)}
-     * as a REST/JSON service at {@link #ENTITY_SIZE_BREAKDOWN_ENDPOINT}.
+     * Exposes {@link EntitySizeReports#getEntitySizeBreakdown(Connection,
+     * Timers)} as a REST/JSON service at {@link
+     * #ENTITY_SIZE_BREAKDOWN_ENDPOINT}.
      * 
      * @return The {@link SzEntitySizeBreakdown} describing the report.
      * 
@@ -54,7 +57,10 @@ public interface EntitySizeReportsService extends ReportsService {
     @Path(ENTITY_SIZE_PREFIX)
     @Path(ENTITY_SIZE_BREAKDOWN_ENDPOINT)
     @ProducesJson
-    default SzEntitySizeBreakdown getEntitySizeBreakdown() throws ReportsServiceException {
+    default SzEntitySizeBreakdown getEntitySizeBreakdown(
+            )
+        throws ReportsServiceException
+    {
         Connection conn = null;
         try {
             conn = this.getConnection();
@@ -79,11 +85,11 @@ public interface EntitySizeReportsService extends ReportsService {
     }
 
     /**
-     * Exposes {@link EntitySizeReports#getEntitySizeCount(Connection, int, Timers)}
-     * as a REST/JSON service at {@link #ENTITY_SIZE_COUNT_ENDPOINT}.
+     * Exposes {@link EntitySizeReports#getEntitySizeCount(Connection, int,
+     * Timers)} as a REST/JSON service at {@link #ENTITY_SIZE_COUNT_ENDPOINT}.
      * 
-     * @param entitySize The entity size (record count) for which the entity count
-     *                   is being requested.
+     * @param entitySize The entity size (record count) for which the entity
+     *                   count is being requested.
      * 
      * @return The {@link SzEntitySizeCount} describing the report.
      * 
@@ -91,14 +97,18 @@ public interface EntitySizeReportsService extends ReportsService {
      */
     @Get(ENTITY_SIZE_COUNT_ENDPOINT)
     @ProducesJson
-    default SzEntitySizeCount getEntitySizeCount(@Param("entitySize") int entitySize) throws ReportsServiceException {
+    default SzEntitySizeCount getEntitySizeCount(
+            @Param("entitySize") int entitySize)
+            throws ReportsServiceException
+    {
         Connection conn = null;
         try {
             conn = this.getConnection();
 
             Timers timers = this.getTimers();
 
-            return EntitySizeReports.getEntitySizeCount(conn, entitySize, timers);
+            return EntitySizeReports.getEntitySizeCount(conn, entitySize,
+                    timers);
 
         } catch (SQLException e) {
             System.err.println(e.getMessage());
@@ -118,20 +128,21 @@ public interface EntitySizeReportsService extends ReportsService {
 
     /**
      * Exposes
-     * {@link EntitySizeReports#getEntityIdsForEntitySize(Connection, int, String, SzBoundType, Integer, Integer, Timers)}
-     * as a REST/JSON service at {@link #ENTITY_SIZE_ENTITIES_ENDPOINT}.
+     * {@link EntitySizeReports#getEntityIdsForEntitySize(Connection, int,
+     * String, SzBoundType, Integer, Integer, Timers)} as a REST/JSON service at
+     * {@link #ENTITY_SIZE_ENTITIES_ENDPOINT}.
      * 
      * @param entitySize    The entity size (record count) for which the entity
      *                      count is being requested.
      * @param entityIdBound The bound value for the entity ID's that will be
      *                      returned.
-     * @param boundType     The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     * @param boundType The {@link SzBoundType} that describes how to apply the
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
      * 
-     * @param sampleSize    The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     * @param sampleSize The optional number of results to randomly sample from
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * 
      * @return The {@link SzEntitySizeCount} describing the report.
      * 
@@ -142,11 +153,12 @@ public interface EntitySizeReportsService extends ReportsService {
     @Path(ENTITY_SIZE_ENTITIES_ENDPOINT + "/")
     @ProducesJson
     default SzEntitiesPage getEntitySizeEntities(
-            @Param("entitySize")                            int         entitySize,
-            @Param("bound") @Nullable                       String      entityIdBound,
-            @Param("boundType") @Default("EXCLUSIVE_LOWER") SzBoundType boundType,
-            @Param("pageSize") @Nullable                    Integer     pageSize,
-            @Param("sampleSize") @Nullable                  Integer     sampleSize)
+            @Param("entitySize") int         entitySize,
+            @Param("bound") @Nullable String      entityIdBound,
+            @Param("boundType")
+                    @Default("EXCLUSIVE_LOWER") SzBoundType boundType,
+            @Param("pageSize") @Nullable Integer     pageSize,
+            @Param("sampleSize") @Nullable Integer     sampleSize)
         throws ReportsServiceException 
     {
         Connection conn = null;

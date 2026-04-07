@@ -13,30 +13,32 @@ import static com.senzing.text.TextUtilities.urlEncodeUtf8;
 /**
  * Represents a PostgreSQL database connection URI.
  */
-public class PostgreSqlUri extends ConnectionUri {
+public class PostgreSqlUri extends ConnectionUri
+{
     /**
-     * The default port for the PostgreSQL database connection.
-     * The value of this constant is <code>{@value}</code>.
+     * The default port for the PostgreSQL database connection. The value of
+     * this constant is <code>{@value}</code>.
      */
     public static final int DEFAULT_PORT = 5432;
 
     /**
-     * The default schema for the PostgreSQL database connection.
-     * The value of this constant is <code>{@value}</code>.
+     * The default schema for the PostgreSQL database connection. The value of
+     * this constant is <code>{@value}</code>.
      */
     public static final String DEFAULT_SCHEMA = "public";
 
     /**
      * The primary supported format for this URI (<code>{@value}</code>).
      */
-    public static final String SUPPORTED_FORMAT_1
-        = "postgresql://user:password@host:port/database?schema=schemaName";
+    public static final String SUPPORTED_FORMAT_1 
+            = "postgresql://user:password@host:port/database?schema=schemaName";
 
     /**
      * The alternate supported format for this URI (<code>{@value}</code>).
      */
     public static final String SUPPORTED_FORMAT_2
-        = "postgresql://user:password@host:port:database/?schema=schemaName";
+            = "postgresql://user:password@host:port:database/"
+                + "?schema=schemaName";
 
     /**
      * The <b>unmodifiable</b> {@link Set} of supported formats.
@@ -45,8 +47,8 @@ public class PostgreSqlUri extends ConnectionUri {
      *  <li><code>{@value #SUPPORTED_FORMAT_2}</code> (alternate)</li>
      * </ul>
      */
-    public static final Set<String> SUPPORTED_FORMATS 
-        = Set.of(SUPPORTED_FORMAT_1, SUPPORTED_FORMAT_2);
+    public static final Set<String> SUPPORTED_FORMATS = Set
+            .of(SUPPORTED_FORMAT_1, SUPPORTED_FORMAT_2);
 
     /**
      * The query options key for the schema.
@@ -74,7 +76,8 @@ public class PostgreSqlUri extends ConnectionUri {
     private String host;
 
     /**
-     * The database port, or <code>null</code> if using the {@link #DEFAULT_PORT}.
+     * The database port, or <code>null</code> if using the 
+     * {@link #DEFAULT_PORT}.
      */
     private Integer port;
 
@@ -84,23 +87,23 @@ public class PostgreSqlUri extends ConnectionUri {
     private String database;
 
     /**
-     * Makes a query options {@link Map} that merges the option for the
-     * schema using {@link #SCHEMA_KEY} with the other options (which may 
-     * be <code>null</code>).
+     * Makes a query options {@link Map} that merges the option for the schema
+     * using {@link #SCHEMA_KEY} with the other options (which may be
+     * <code>null</code>).
      * 
      * @param schema The non-null schema name.
-     * @param queryOptions The other query options, or <code>null</code> if none.
+     * @param queryOptions The other query options, or <code>null</code> if
+     *                     none.
      * 
-     * @return The merged query options {@link Map} of {@link String} keys to 
-     *         {@link String} values with the {@link #SCHEMA_KEY} first.
+     * @return The merged query options {@link Map} of {@link String} keys to
+     *             {@link String} values with the {@link #SCHEMA_KEY} first.
      */
-    private static Map<String, String> makeQueryOptions(String               schema, 
-                                                       Map<String, String>   queryOptions)
+    private static Map<String, String> makeQueryOptions(
+            String              schema,
+            Map<String, String> queryOptions)
     {
         // if no explicit schema, then return the query options as specified
-        if (schema == null) {
-            return queryOptions;
-        }
+        if (schema == null) return queryOptions;
         // create the result map
         Map<String, String> result = new LinkedHashMap<>();
 
@@ -108,10 +111,12 @@ public class PostgreSqlUri extends ConnectionUri {
         result.put(SCHEMA_KEY, schema);
 
         // add every other query option except the schema
-        if (queryOptions != null) {
+        if (queryOptions != null)
+        {
             queryOptions.forEach((key, value) -> {
                 // we already handled the schema key, so skip schema
-                if (!SCHEMA_KEY.equalsIgnoreCase(key)) {
+                if (!SCHEMA_KEY.equalsIgnoreCase(key))
+                {
                     result.put(key, value);
                 }
             });
@@ -122,17 +127,17 @@ public class PostgreSqlUri extends ConnectionUri {
     }
 
     /**
-     * Constructs with the specified parameters.  The port number
-     * is not specified so the {@linkplain #DEFAULT_PORT default port}
-     * will be used.  The schema is not specified so the {@linkplain
-     * #DEFAULT_SCHEMA default schema} will be used.
+     * Constructs with the specified parameters. The port number is not
+     * specified so the {@linkplain #DEFAULT_PORT default port} will be used.
+     * The schema is not specified so the {@linkplain #DEFAULT_SCHEMA default
+     * schema} will be used.
      * 
      * @param user The non-null user with which to authenticate.
      * @param password The non-null password with which to authenticate.
      * @param host THe non-null host for the database server.
      * @param database The non-null database name.
      * 
-     * @throws NullPointerException If any of the required {@link String} 
+     * @throws NullPointerException If any of the required {@link String}
      *                              parameters is <code>null</code>.
      */
     public PostgreSqlUri(String user,
@@ -144,164 +149,157 @@ public class PostgreSqlUri extends ConnectionUri {
     }
 
     /**
-     * Constructs with the specified parameters.  The port number
-     * may be specified as <code>null</code> indicating that the
+     * Constructs with the specified parameters. The port number may be
+     * specified as <code>null</code> indicating that the
      * {@linkplain #DEFAULT_PORT default port} should be used.  The
-     * schema is not specified so the {@linkplain #DEFAULT_SCHEMA
-     * default schema} will be used.
+     * schema is not specified so the {@linkplain #DEFAULT_SCHEMA default
+     * schema} will be used.
      * 
      * @param user The non-null user with which to authenticate.
      * @param password The non-null password with which to authenticate.
      * @param host THe non-null host for the database server.
-     * @param port The port for the database server, or <code>null</code>
-     *             if the {@linkplain #DEFAULT_PORT default port} should
-     *             be used.
+     * @param port The port for the database server, or <code>null</code> if the
+     *             {@linkplain #DEFAULT_PORT default port} should be used.
      * @param database The non-null database name.
      * 
-     * @throws NullPointerException If any of the required {@link String} 
+     * @throws NullPointerException If any of the required {@link String}
      *                              parameters is <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified port is
-     *                                  not a positive integer.
+     * @throws IllegalArgumentException If the specified port is not a positive
+     *                                  integer.
      */
-    public PostgreSqlUri(String     user,
-                         String     password,
-                         String     host,
-                         Integer    port,
-                         String     database)
+    public PostgreSqlUri(String user,
+                         String password,
+                         String host,
+                         Integer port,
+                         String database)
     {
         this(user, password, host, port, database, null);
     }
 
     /**
-     * Constructs with the specified parameters.  The port number
-     * is not specified so the {@linkplain #DEFAULT_PORT default port}
-     * will be used.  If the schema is <code>null</code> the {@linkplain
-     * #DEFAULT_SCHEMA default schema} will be used.
+     * Constructs with the specified parameters. The port number is not
+     * specified so the {@linkplain #DEFAULT_PORT default port} will be used. If
+     * the schema is <code>null</code> the {@linkplain #DEFAULT_SCHEMA default
+     * schema} will be used.
      * 
      * @param user The non-null user with which to authenticate.
      * @param password The non-null password with which to authenticate.
      * @param host THe non-null host for the database server.
      * @param database The non-null database name.
-     * @param schema The schema for the database, or <code>null</code>
-     *               if the {@linkplain #DEFAULT_SCHEMA default schema} should
-     *               be used.
+     * @param schema The schema for the database, or <code>null</code> if the
+     *               {@linkplain #DEFAULT_SCHEMA default schema} should be used.
      * 
-     * @throws NullPointerException If any of the required {@link String} 
+     * @throws NullPointerException If any of the required {@link String}
      *                              parameters is <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified port is
-     *                                  not a positive integer.
+     * @throws IllegalArgumentException If the specified port is not a positive
+     *                                  integer.
      */
-    public PostgreSqlUri(String     user,
-                         String     password,
-                         String     host,
-                         String     database,
-                         String     schema)
+    public PostgreSqlUri(String user,
+                         String password,
+                         String host,
+                         String database,
+                         String schema)
     {
         this(user, password, host, null, database, schema);
     }
 
     /**
-     * Constructs with the specified parameters.  The port number
-     * may be specified as <code>null</code> indicating that the
+     * Constructs with the specified parameters. The port number may be
+     * specified as <code>null</code> indicating that the
      * {@linkplain #DEFAULT_PORT default port} should be used.  If 
-     * the schema is <code>null</code> the {@linkplain #DEFAULT_SCHEMA
-     * default schema} will be used.
+     * the schema is <code>null</code> the {@linkplain #DEFAULT_SCHEMA default
+     * schema} will be used.
      * 
      * @param user The non-null user with which to authenticate.
      * @param password The non-null password with which to authenticate.
      * @param host THe non-null host for the database server.
-     * @param port The port for the database server, or <code>null</code>
-     *             if the {@linkplain #DEFAULT_PORT default port} should
-     *             be used.
+     * @param port The port for the database server, or <code>null</code> if the
+     *             {@linkplain #DEFAULT_PORT default port} should be used.
      * @param database The non-null database name.
-     * @param schema The schema for the database, or <code>null</code>
-     *               if the {@linkplain #DEFAULT_SCHEMA default schema} should
-     *               be used.
+     * @param schema The schema for the database, or <code>null</code> if the
+     *               {@linkplain #DEFAULT_SCHEMA default schema} should be used.
      * 
-     * @throws NullPointerException If any of the required {@link String} 
+     * @throws NullPointerException If any of the required {@link String}
      *                              parameters is <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified port is
-     *                                  not a positive integer.
+     * @throws IllegalArgumentException If the specified port is not a positive
+     *                                  integer.
      */
-    public PostgreSqlUri(String     user,
-                         String     password,
-                         String     host,
-                         Integer    port,
-                         String     database,
-                         String     schema)
+    public PostgreSqlUri(String user,
+                         String password,
+                         String host,
+                         Integer port,
+                         String database,
+                         String schema)
     {
         this(user, password, host, port, database, schema, null);
     }
 
     /**
-     * Constructs with the specified parameters.  The port number
-     * is not specified so the {@linkplain #DEFAULT_PORT default port}
-     * will be used.  If the schema is <code>null</code> the
+     * Constructs with the specified parameters. The port number is not
+     * specified so the {@linkplain #DEFAULT_PORT default port} will be used. If
+     * the schema is <code>null</code> the
      * {@linkplain #DEFAULT_SCHEMA default schema} will be used.
      * 
      * @param user The non-null user with which to authenticate.
      * @param password The non-null password with which to authenticate.
      * @param host THe non-null host for the database server.
      * @param database The non-null database name.
-     * @param schema The schema for the database, or <code>null</code>
-     *               if the {@linkplain #DEFAULT_SCHEMA default schema} should
-     *               be used.
+     * @param schema The schema for the database, or <code>null</code> if the
+     *               {@linkplain #DEFAULT_SCHEMA default schema} should be used.
      * @param queryOptions The optional {@link Map} of {@link String} query
      *                     parameter keys to {@link String} query parameter
      *                     values, or <code>null</code> if no parameters.
      * 
-     * @throws NullPointerException If any of the required {@link String} 
+     * @throws NullPointerException If any of the required {@link String}
      *                              parameters is <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified port is
-     *                                  not a positive integer.
+     * @throws IllegalArgumentException If the specified port is not a positive
+     *                                  integer.
      */
-    public PostgreSqlUri(String             user,
-                         String             password,
-                         String             host,
-                         String             database,
-                         String             schema,
+    public PostgreSqlUri(String user,
+                         String password,
+                         String host,
+                         String database,
+                         String schema,
                          Map<String, String> queryOptions)
     {
         this(user, password, host, null, database, schema, queryOptions);
     }
 
     /**
-     * Constructs with the specified parameters.  The port number
-     * may be specified as <code>null</code> indicating that the
+     * Constructs with the specified parameters. The port number may be
+     * specified as <code>null</code> indicating that the
      * {@linkplain #DEFAULT_PORT default port} should be used.  If
-     * the schema is <code>null</code> the {@linkplain #DEFAULT_SCHEMA
-     * default schema} will be used.
+     * the schema is <code>null</code> the {@linkplain #DEFAULT_SCHEMA default
+     * schema} will be used.
      * 
      * @param user The non-null user with which to authenticate.
      * @param password The non-null password with which to authenticate.
      * @param host THe non-null host for the database server.
-     * @param port The port for the database server, or <code>null</code>
-     *             if the {@linkplain #DEFAULT_PORT default port} should
-     *             be used.
+     * @param port The port for the database server, or <code>null</code> if the
+     *             {@linkplain #DEFAULT_PORT default port} should be used.
      * @param database The non-null database name.
-     * @param schema The schema for the database, or <code>null</code>
-     *               if the {@linkplain #DEFAULT_SCHEMA default schema} should
-     *               be used.
+     * @param schema The schema for the database, or <code>null</code> if the
+     *               {@linkplain #DEFAULT_SCHEMA default schema} should be used.
      * @param queryOptions The optional {@link Map} of {@link String} query
      *                     parameter keys to {@link String} query parameter
      *                     values, or <code>null</code> if no parameters.
      * 
-     * @throws NullPointerException If any of the required {@link String} 
+     * @throws NullPointerException If any of the required {@link String}
      *                              parameters is <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified port is
-     *                                  not a positive integer.
+     * @throws IllegalArgumentException If the specified port is not a positive
+     *                                  integer.
      */
-    public PostgreSqlUri(String             user,
-                         String             password,
-                         String             host,
-                         Integer            port,
-                         String             database,
-                         String             schema,
+    public PostgreSqlUri(String user,
+                         String password,
+                         String host,
+                         Integer port,
+                         String database,
+                         String schema,
                          Map<String, String> queryOptions)
     {
         super(SCHEME_PREFIX, makeQueryOptions(schema, queryOptions));
@@ -309,18 +307,18 @@ public class PostgreSqlUri extends ConnectionUri {
         requireNonNull(password, "The password cannot be null");
         requireNonNull(host, "The host cannot be null");
         requireNonNull(database, "The database cannot be null");
-        if (port != null && port <= 0) {
+        if (port != null && port <= 0)
+        {
             throw new IllegalArgumentException(
-                "The specified port must be a positive integer: "
-                + port);
+                    "The specified port must be a positive integer: " + port);
         }
 
         // set the fields
-        this.user       = user;
-        this.password   = password;
-        this.host       = host;
-        this.port       = port;
-        this.database   = database;
+        this.user = user;
+        this.password = password;
+        this.host = host;
+        this.port = port;
+        this.database = database;
     }
 
     /**
@@ -328,7 +326,8 @@ public class PostgreSqlUri extends ConnectionUri {
      * 
      * @return The user name for the PostgreSQL database connection.
      */
-    public String getUser() {
+    public String getUser()
+    {
         return this.user;
     }
 
@@ -337,7 +336,8 @@ public class PostgreSqlUri extends ConnectionUri {
      * 
      * @return The password for the PostgreSQL database connection.
      */
-    public String getPassword() {
+    public String getPassword()
+    {
         return this.password;
     }
 
@@ -346,30 +346,33 @@ public class PostgreSqlUri extends ConnectionUri {
      * 
      * @return The host for the PostgreSQL database connection.
      */
-    public String getHost() {
+    public String getHost()
+    {
         return this.host;
     }
 
     /**
-     * Gets the port for the PostgreSQL database connection.
-     * This returns {@link #DEFAULT_PORT} if no port was provided.
+     * Gets the port for the PostgreSQL database connection. This returns {@link
+     * #DEFAULT_PORT} if no port was provided.
      * 
      * @return The port for the PostgreSQL database connection.
      */
-    public int getPort() {
+    public int getPort()
+    {
         return (this.port == null) ? DEFAULT_PORT : this.port;
     }
 
     /**
-     * Checks if this instance has an explicit port number, or
-     * if the port number was omitted and the {@linkplain
-     * #DEFAULT_PORT default port} is being used.
+     * Checks if this instance has an explicit port number, or if the port
+     * number was omitted and the {@linkplain #DEFAULT_PORT default port} is
+     * being used.
      * 
-     * @return <code>true</code> if an explicit port number was
-     *         provided, or <code>false</code> if not and the 
-     *         {@linkplain #DEFAULT_PORT default port} is being used.
+     * @return <code>true</code> if an explicit port number was provided, or
+     *                           <code>false</code> if not and the {@linkplain
+     *                           #DEFAULT_PORT default port} is being used.
      */
-    public boolean hasPort() {
+    public boolean hasPort()
+    {
         return (this.port != null);
     }
 
@@ -378,47 +381,50 @@ public class PostgreSqlUri extends ConnectionUri {
      * 
      * @return The database name for the PostgreSQL database connection.
      */
-    public String getDatabase() {
+    public String getDatabase()
+    {
         return this.database;
     }
 
     /**
-     * Gets the schema name for the PostgreSQL database connection.
-     * This returns {@link #DEFAULT_SCHEMA} if no schema was provided.
+     * Gets the schema name for the PostgreSQL database connection. This returns
+     * {@link #DEFAULT_SCHEMA} if no schema was provided.
      * 
      * @return The schema name for the PostgreSQL database connection.
      */
-    public String getSchema() {
+    public String getSchema()
+    {
         String schema = this.getQueryOptions().get(SCHEMA_KEY);
         return (schema == null) ? DEFAULT_SCHEMA : schema;
     }
-    
+
     /**
-     * Checks if this instance has an explicit schema, or if the
-     * schema was omitted and the {@linkplain #DEFAULT_SCHEMA
-     * default schema} is being used.
+     * Checks if this instance has an explicit schema, or if the schema was
+     * omitted and the {@linkplain #DEFAULT_SCHEMA default schema} is being
+     * used.
      * 
-     * @return <code>true</code> if an explicit schema was provided,
-     *         or <code>false</code> if not and the {@linkplain 
-     *         #DEFAULT_SCHEMA default schema} is being used.
+     * @return <code>true</code> if an explicit schema was provided, or
+     *                           <code>false</code> if not and the {@linkplain
+     *                           #DEFAULT_SCHEMA default schema} is being used.
      */
-    public boolean hasSchema() {
+    public boolean hasSchema()
+    {
         return this.getQueryOptions().containsKey(SCHEMA_KEY);
     }
 
     /**
-     * Implemented to format the URI as a {@link String} with proper
-     * URI encoding.
+     * Implemented to format the URI as a {@link String} with proper URI
+     * encoding.
      * 
      * @return The formatted URI for this instance.
      */
-    public String toString() {
-        return SCHEME_PREFIX + urlEncodeUtf8(this.getUser()) + ":" 
-            + urlEncodeUtf8(this.getPassword())
-            + "@" + urlEncodeUtf8(this.getHost())
-            + (this.hasPort() ? (":" + this.getPort()) : "")
-            + "/" + urlEncodeUtf8(this.getDatabase())
-            + this.getQueryString();
+    public String toString()
+    {
+        return SCHEME_PREFIX + urlEncodeUtf8(this.getUser()) + ":"
+                + urlEncodeUtf8(this.getPassword()) + "@"
+                + urlEncodeUtf8(this.getHost())
+                + (this.hasPort() ? (":" + this.getPort()) : "") + "/"
+                + urlEncodeUtf8(this.getDatabase()) + this.getQueryString();
     }
 
     /**
@@ -427,14 +433,11 @@ public class PostgreSqlUri extends ConnectionUri {
      * 
      * @return The hash code for this instance.
      */
-    public int hashCode() {
-        return Objects.hash(this.getUser(), 
-                            this.getPassword(),
-                            this.getHost(),
-                            this.getPort(),
-                            this.hasPort(),
-                            this.getDatabase(),
-                            this.getQueryOptions());
+    public int hashCode()
+    {
+        return Objects.hash(this.getUser(), this.getPassword(), this.getHost(),
+                this.getPort(), this.hasPort(), this.getDatabase(),
+                this.getQueryOptions());
     }
 
     /**
@@ -443,34 +446,30 @@ public class PostgreSqlUri extends ConnectionUri {
      * equivalent properties.
      * 
      * <p>
-     * <b>NOTE:</b> An explicitly specified {@linkplain #DEFAULT_PORT default port}
-     * is <b>NOT</b> considered equal to excluded/unspecified (<code>null</code>) 
-     * port number.
+     * <b>NOTE:</b> An explicitly specified {@linkplain #DEFAULT_PORT default
+     * port} is <b>NOT</b> considered equal to excluded/unspecified
+     * (<code>null</code>) port number.
      * </p>
      *  
      * @param obj The object to compare with.
      * 
      * @return <code>true</code> if and only if the objects are equal, otherwise
-     *         <code>false</code>.
+     *                           <code>false</code>.
      */
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (this == obj) {
-            return true;
-        }
-        if (this.getClass() != obj.getClass()) {
-            return false;
-        }
+    public boolean equals(Object obj)
+    {
+        if (obj == null) return false;
+        if (this == obj) return true;
+        if (this.getClass() != obj.getClass()) return false;
         PostgreSqlUri url = (PostgreSqlUri) obj;
         return Objects.equals(this.getUser(), url.getUser())
-            && Objects.equals(this.getPassword(), url.getPassword())
-            && Objects.equals(this.getHost(), url.getHost())
-            && Objects.equals(this.getPort(), url.getPort())
-            && Objects.equals(this.hasPort(), url.hasPort())
-            && Objects.equals(this.getDatabase(), url.getDatabase())
-            && Objects.equals(this.getQueryOptions(), url.getQueryOptions());
+                && Objects.equals(this.getPassword(), url.getPassword())
+                && Objects.equals(this.getHost(), url.getHost())
+                && Objects.equals(this.getPort(), url.getPort())
+                && Objects.equals(this.hasPort(), url.hasPort())
+                && Objects.equals(this.getDatabase(), url.getDatabase())
+                && Objects.equals(this.getQueryOptions(),
+                        url.getQueryOptions());
     }
 
     /**
@@ -491,15 +490,16 @@ public class PostgreSqlUri extends ConnectionUri {
      * @throws IllegalArgumentException If the specified URI is not properly
      *                                  formatted.
      */
-    public static PostgreSqlUri parse(String uri) {
+    public static PostgreSqlUri parse(String uri)
+    {
         requireNonNull(uri, "The URI cannot be null");
 
         // check the prefix
-        if (!(uri.toLowerCase().startsWith(SCHEME_PREFIX) 
-              && uri.length() > SCHEME_PREFIX.length())) 
+        if (!(uri.toLowerCase().startsWith(SCHEME_PREFIX)
+                && uri.length() > SCHEME_PREFIX.length()))
         {
             throw new IllegalArgumentException(
-                "URI must begin with \"" + SCHEME_PREFIX + "\": " + uri);
+                    "URI must begin with \"" + SCHEME_PREFIX + "\": " + uri);
         }
 
         // get the suffix
@@ -507,22 +507,26 @@ public class PostgreSqlUri extends ConnectionUri {
 
         // find the user
         int index = suffix.indexOf(':');
-        if (index <= 0 || index == suffix.length() - 1) {
+        if (index <= 0 || index == suffix.length() - 1)
+        {
             throw new IllegalArgumentException(
-                "Formatting error while parsing user name from uri: uri=[ " 
-                + uri + " ], expectedFormat=[ " + SUPPORTED_FORMATS + " ]");
+                    "Formatting error while parsing user name from uri: uri=[ "
+                            + uri + " ], expectedFormat=[ " + SUPPORTED_FORMATS
+                            + " ]");
         }
         String user = urlDecodeUtf8(suffix.substring(0, index).trim()).trim();
-        
+
         // get the suffix
         suffix = suffix.substring(index + 1);
 
         // find the password
         index = suffix.indexOf('@');
-        if (index < 0 || index == suffix.length() - 1) {
+        if (index < 0 || index == suffix.length() - 1)
+        {
             throw new IllegalArgumentException(
-                "Formatting error while parsing password from uri: uri=[ " 
-                + uri + " ], expectedFormat=[ " + SUPPORTED_FORMATS + " ]");
+                    "Formatting error while parsing password from uri: uri=[ "
+                            + uri + " ], expectedFormat=[ " + SUPPORTED_FORMATS
+                            + " ]");
         }
         String password = urlDecodeUtf8(suffix.substring(0, index));
 
@@ -536,22 +540,26 @@ public class PostgreSqlUri extends ConnectionUri {
         index = suffix.indexOf(':');
 
         // check if the colon character was not found
-        if (index < 0) {
+        if (index < 0)
+        {
             // look for the forward slash
             index = suffix.indexOf('/');
 
             // if found then we know we have the primary format
-            if (index > 0) {
+            if (index > 0)
+            {
                 portSkipped = true;
                 primaryFormat = true;
             }
         }
 
         // check if we found the end of the host name, if not then error
-        if (index <= 0 || index == suffix.length() - 1) {
+        if (index <= 0 || index == suffix.length() - 1)
+        {
             throw new IllegalArgumentException(
-                "Formatting error while parsing host from uri: uri=[ " 
-                + uri + " ], expectedFormat=[ " + SUPPORTED_FORMATS + " ]");
+                    "Formatting error while parsing host from uri: uri=[ " + uri
+                            + " ], expectedFormat=[ " + SUPPORTED_FORMATS
+                            + " ]");
         }
 
         // get the host name
@@ -562,51 +570,65 @@ public class PostgreSqlUri extends ConnectionUri {
 
         // check if we already skipped the port
         Integer port = null;
-        if (!portSkipped) {
+        if (!portSkipped)
+        {
             // look for the colon character
             index = suffix.indexOf(':');
 
             // we should not get the colon character if using primary format
-            if (index > 0 && primaryFormat) {
+            if (index > 0 && primaryFormat)
+            {
                 throw new IllegalArgumentException(
-                    "Formatting error while parsing port from uri: uri=[ " 
-                    + uri + " ], expectedFormat=[ " + SUPPORTED_FORMATS + " ]");
+                        "Formatting error while parsing port from uri: uri=[ "
+                                + uri + " ], expectedFormat=[ "
+                                + SUPPORTED_FORMATS + " ]");
             }
 
             boolean forwardSlash = false;
             // check if no colon found and if not yet sure about primary format
-            if (index < 0 && !primaryFormat) {
+            if (index < 0 && !primaryFormat)
+            {
                 // look for the forward slash
                 index = suffix.indexOf('/');
 
                 // if found then we know we have the primary format
-                if (index > 0) {
+                if (index > 0)
+                {
                     forwardSlash = true;
                 }
             }
 
-            // we may have a port or a database name if using the alternate format
-            String portText = urlDecodeUtf8(suffix.substring(0, index).trim()).trim();
+            // we may have a port or a database name if using the alternate
+            // format
+            String portText = urlDecodeUtf8(suffix.substring(0, index).trim())
+                    .trim();
             boolean hasPort = true;
 
             // if using the primary format then the text MUST be a port number
-            for (char c : portText.toCharArray()) {
-                if (c < '0' || c > '9') {
+            for (char c : portText.toCharArray())
+            {
+                if (c < '0' || c > '9')
+                {
                     hasPort = false;
                     break;
                 }
             }
 
-            if (hasPort) {
+            if (hasPort)
+            {
                 // make sure we are getting the next chunk as expected
-                if (index <= 0 || index == suffix.length() - 1) {
+                if (index <= 0 || index == suffix.length() - 1)
+                {
                     throw new IllegalArgumentException(
-                        "Formatting error while parsing port from uri: uri=[ " 
-                        + uri + " ], expectedFormat=[ " + SUPPORTED_FORMATS + " ]");
+                            "Formatting error while parsing port from uri: "
+                                    + "uri=[ "
+                                    + uri + " ], expectedFormat=[ "
+                                    + SUPPORTED_FORMATS + " ]");
                 }
-                
+
                 // check if we used a forward slash
-                if (forwardSlash) {
+                if (forwardSlash)
+                {
                     primaryFormat = true;
                 }
 
@@ -614,31 +636,40 @@ public class PostgreSqlUri extends ConnectionUri {
                 suffix = suffix.substring(index + 1);
 
                 // parse the port
-                try {
+                try
+                {
                     port = Integer.parseInt(portText);
 
-                    if (port <= 0) {
+                    if (port <= 0)
+                    {
                         throw new IllegalArgumentException(
-                            "The port number must be a positive integer: " + port);
+                                "The port number must be a positive integer: "
+                                        + port);
                     }
 
                 } catch (IllegalArgumentException e) {
                     throw new IllegalArgumentException(
-                        "Formatting error while parsing port from uri: uri=[ " 
-                        + uri + " ], expectedFormat=[ " + SUPPORTED_FORMATS + " ]", e);
+                            "Formatting error while parsing port from uri: "
+                                    + "uri=[ "
+                                    + uri + " ], expectedFormat=[ "
+                                    + SUPPORTED_FORMATS + " ]",
+                            e);
                 }
             }
         }
 
         // get the database
         index = suffix.indexOf(primaryFormat ? '?' : '/');
-        if (index < 0 && primaryFormat) {
+        if (index < 0 && primaryFormat)
+        {
             index = suffix.length();
         }
-        if (index <= 0) {
+        if (index <= 0)
+        {
             throw new IllegalArgumentException(
-                "Formatting error while parsing database from uri: uri=[ " 
-                + uri + " ], expectedFormat=[ " + SUPPORTED_FORMATS + " ]");
+                    "Formatting error while parsing database from uri: uri=[ "
+                            + uri + " ], expectedFormat=[ " + SUPPORTED_FORMATS
+                            + " ]");
         }
         String database = urlDecodeUtf8(suffix.substring(0, index).trim());
 
@@ -650,17 +681,20 @@ public class PostgreSqlUri extends ConnectionUri {
         }
 
         // parse the query parameters if found
-        Map<String, String> queryOptions = ConnectionUri.parseQueryOptions(suffix);
+        Map<String, String> queryOptions = ConnectionUri
+                .parseQueryOptions(suffix);
 
         // get the schema name
-        String schema = (queryOptions != null) ? queryOptions.get(SCHEMA_KEY) : null;
+        String schema = (queryOptions != null) ? queryOptions.get(SCHEMA_KEY)
+                : null;
 
         // construct the instance
-        return new PostgreSqlUri(
-            user, password, host, port, database, schema, queryOptions);
+        return new PostgreSqlUri(user, password, host, port, database, schema,
+                queryOptions);
     }
 
-    static {
+    static
+    {
         registerConnectionType(SCHEME_PREFIX, PostgreSqlUri.class);
     }
 }

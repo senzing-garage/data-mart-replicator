@@ -7,7 +7,8 @@ import com.senzing.datamart.model.SzMatchType;
  * The key for a cross-relation report statistic comprising two data sources, a
  * match type, an optional principle and an optional match key.
  */
-public final class CrossRelationKey implements Comparable<CrossRelationKey> {
+public final class CrossRelationKey implements Comparable<CrossRelationKey>
+{
     /**
      * The first data source.
      */
@@ -38,29 +39,34 @@ public final class CrossRelationKey implements Comparable<CrossRelationKey> {
      *
      * @param source    The non-null data source code representing both the
      *                  "from" and "to" data source.
-     * @param matchType The non-null {@link SzMatchType} describing the match type.
+     * @param matchType The non-null {@link SzMatchType} describing the match
+     *                  type.
      * @param matchKey  The optional match key for the relationships.
      * @param principle The optional principle for the relationships.
-     * @throws NullPointerException If any of the required parameters is <code>null</code>
+     * @throws NullPointerException If any of the required parameters is
+     *                              <code>null</code>
      */
-    public CrossRelationKey(String      source, 
+    public CrossRelationKey(String      source,
                             SzMatchType matchType,
-                            String      matchKey, 
+                            String      matchKey,
                             String      principle)
-            throws NullPointerException 
+            throws NullPointerException
     {
         this(source, source, matchType, matchKey, principle);
     }
 
     /**
-     * Constructs with the specified data source codes and {@link SzMatchType}.
+     * Constructs with the specified data source codes and
+     * {@link SzMatchType}.
      *
      * @param source1   The non-null first ("from") data source code.
      * @param source2   The non-null second ("to") data source code.
-     * @param matchType The non-null {@link SzMatchType} describing the match type.
+     * @param matchType The non-null {@link SzMatchType} describing the match
+     *                  type.
      * @param matchKey  The optional match key for the relationships.
      * @param principle The optional principle for the relationships.
-     * @throws NullPointerException If any of the required parameters is <code>null</code>
+     * @throws NullPointerException If any of the required parameters is
+     *                              <code>null</code>
      */
     public CrossRelationKey(String      source1, 
                             String      source2, 
@@ -69,8 +75,10 @@ public final class CrossRelationKey implements Comparable<CrossRelationKey> {
                             String      principle)
             throws NullPointerException 
     {
-        Objects.requireNonNull(source1, "The first data source cannot be null");
-        Objects.requireNonNull(source2, "The second data source cannot be null");
+        Objects.requireNonNull(
+                source1, "The first data source cannot be null");
+        Objects.requireNonNull(
+                source2, "The second data source cannot be null");
         Objects.requireNonNull(matchType, "The match type cannot be null");
 
         this.source1 = source1;
@@ -85,7 +93,8 @@ public final class CrossRelationKey implements Comparable<CrossRelationKey> {
      *
      * @return The first ("from") data source code.
      */
-    public String getSource1() {
+    public String getSource1()
+    {
         return this.source1;
     }
 
@@ -94,7 +103,8 @@ public final class CrossRelationKey implements Comparable<CrossRelationKey> {
      *
      * @return The second ("to") data source code.
      */
-    public String getSource2() {
+    public String getSource2()
+    {
         return this.source2;
     }
 
@@ -103,7 +113,8 @@ public final class CrossRelationKey implements Comparable<CrossRelationKey> {
      *
      * @return The associated {@link SzMatchType}.
      */
-    public SzMatchType getMatchType() {
+    public SzMatchType getMatchType()
+    {
         return this.matchType;
     }
 
@@ -112,7 +123,8 @@ public final class CrossRelationKey implements Comparable<CrossRelationKey> {
      * 
      * @return The match key associated with the relationships.
      */
-    public String getMatchKey() {
+    public String getMatchKey()
+    {
         return this.matchKey;
     }
 
@@ -121,7 +133,8 @@ public final class CrossRelationKey implements Comparable<CrossRelationKey> {
      * 
      * @return The principle associated with the relationships.
      */
-    public String getPrinciple() {
+    public String getPrinciple()
+    {
         return this.principle;
     }
 
@@ -131,21 +144,24 @@ public final class CrossRelationKey implements Comparable<CrossRelationKey> {
      * @return The hash code for this instance.
      */
     @Override
-    public int hashCode() {
-        return Objects.hash(this.getSource1(), this.getSource2(), 
-                            this.getMatchType(), this.getMatchKey(),
-                            this.getPrinciple());
+    public int hashCode()
+    {
+        return Objects.hash(this.getSource1(),
+                this.getSource2(), this.getMatchType(),
+                this.getMatchKey(), this.getPrinciple());
     }
 
     /**
-     * Checks if this instance is equal to the specified object. This is implemented
-     * to return <code>true</code> if and only if the specified value is a non-null
-     * reference to an object of the same class with equivalent properties.
+     * Checks if this instance is equal to the specified object. This is
+     * implemented to return <code>true</code> if and only if the specified
+     * value is a non-null reference to an object of the same class with
+     * equivalent properties.
      *
      * @param obj The object to compare with.
      */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (obj == null) {
             return false;
         }
@@ -158,25 +174,30 @@ public final class CrossRelationKey implements Comparable<CrossRelationKey> {
         CrossRelationKey key = (CrossRelationKey) obj;
         return Objects.equals(this.getSource1(), key.getSource1())
                 && Objects.equals(this.getSource2(), key.getSource2())
-                && Objects.equals(this.getMatchType(), key.getMatchType())
-                && Objects.equals(this.getMatchKey(), key.getMatchKey())
-                && Objects.equals(this.getPrinciple(), key.getPrinciple());
+                && Objects.equals(this.getMatchType(),
+                        key.getMatchType())
+                && Objects.equals(this.getMatchKey(),
+                        key.getMatchKey())
+                && Objects.equals(this.getPrinciple(),
+                        key.getPrinciple());
     }
 
     /**
      * Implemented to handle comparing such that we sort first on the associated
-     * data sources, then on match type, then principles and then on match keys with
-     * <code>null</code> values sorting less-than non-null values. If the specified
-     * parameter is <code>null</code> then this returns one (1).
+     * data sources, then on match type, then principles and then on match keys
+     * with <code>null</code> values sorting less-than non-null values. If the
+     * specified parameter is <code>null</code> then this returns one (1).
      * 
      * @param key The {@link CrossRelationKey} to compare with.
      * 
-     * @return A negative number if this instance compares less-than the specified
-     *         parameter, a positive number if it compares greater-than the
-     *         specified parameter and zero (0) if they compare equal.
+     * @return A negative number if this instance compares less-than the
+     *           specified parameter, a positive number if it compares
+     *           greater-than the specified parameter and zero (0) if they
+     *           compare equal.
      */
     @Override
-    public int compareTo(CrossRelationKey key) {
+    public int compareTo(CrossRelationKey key)
+    {
         if (key == null) {
             return 1;
         }
@@ -228,12 +249,14 @@ public final class CrossRelationKey implements Comparable<CrossRelationKey> {
     }
 
     /**
-     * Implemented to provide a diagnostic {@link String} describing this instance.
+     * Implemented to provide a diagnostic {@link String} describing this
+     * instance.
      *
      * @return A diagnostic {@link String} describing this instance.
      */
     @Override
-    public String toString() {
+    public String toString()
+    {
         return this.getSource1() + ":" + this.getSource2() + "[" 
                 + this.getMatchType() + ":" + this.getPrinciple() + ":"
                 + this.getMatchKey() + "]";

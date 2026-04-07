@@ -21,23 +21,26 @@ import static com.senzing.datamart.reports.ReportUtilities.*;
 /**
  * Provides Entity Relations Breakdown Report functionality.
  */
-public final class EntityRelationsReports {
+public final class EntityRelationsReports
+{
     /**
      * Private default constructor.
      */
-    private EntityRelationsReports() {
+    private EntityRelationsReports()
+    {
         // do nothing
     }
 
     /**
      * Gets an {@link SzEntityRelationsBreakdown} describing the entity
      * relations breakdown which is the number of entities in the entity
-     * repository for each distinct number of relations that exists
-     * for an entity in the repository.
+     * repository for each distinct number of relations that exists for an
+     * entity in the repository.
      * 
      * @param conn The non-null JDBC {@link Connection} to use.
      * 
-     * @param timers The optional {@link Timers} to track timing of the operation.
+     * @param timers The optional {@link Timers} to track timing of the
+     *               operation.
      * 
      * @return The {@link SzEntityRelationsBreakdown} describing the statistics.
      * 
@@ -63,7 +66,8 @@ public final class EntityRelationsReports {
             try {
                 // get the connection to the data mart database
                 ps = conn.prepareStatement(
-                    "SELECT statistic, entity_count FROM sz_dm_report WHERE report=?");
+                    "SELECT statistic, entity_count FROM sz_dm_report "
+                            + "WHERE report=?");
 
                 // bind the report code
                 ps.setString(1, ENTITY_RELATION_BREAKDOWN.getCode());
@@ -73,7 +77,8 @@ public final class EntityRelationsReports {
                 
                 // read the results
                 while (rs.next()) {
-                    SzEntityRelationsCount relationsCount = new SzEntityRelationsCount();
+                    SzEntityRelationsCount relationsCount =
+                            new SzEntityRelationsCount();
                     String stat = rs.getString(1);
                     long count = rs.getLong(2);
                     int relations = Integer.parseInt(stat);
@@ -98,13 +103,13 @@ public final class EntityRelationsReports {
     }
 
     /**
-     * Gets the {@link SzEntityRelationsCount} describing the number of
-     * entities in the entity repository having the specified entity size.
+     * Gets the {@link SzEntityRelationsCount} describing the number of entities
+     * in the entity repository having the specified entity size.
      * 
      * @param conn The JDBC {@link Connection} to use.
      * 
-     * @param relationsCount The number of relationships for the entities
-     *                       that are being counted.
+     * @param relationsCount The number of relationships for the entities that
+     *                       are being counted.
      * 
      * @param timers The optional {@link Timers} to track timing of the
      *               operation.
@@ -178,13 +183,14 @@ public final class EntityRelationsReports {
      * @param relationsCount The number of entity relations for which the entity
      *                       count is being requested.
      * @param entityIdBound  The bounded value for the returned entity ID's,
-     *                       formatted as an integer or the word <code>"max"</code>.
-     * @param boundType      The {@link SzBoundType} that describes how to apply the
-     *                       specified entity ID bound.
+     *                       formatted as an integer or the word
+     *                       <code>"max"</code>.
+     * @param boundType The {@link SzBoundType} that describes how to apply the
+     *                  specified entity ID bound.
      * @param pageSize       The maximum number of entity ID's to return.
-     * @param sampleSize    The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     * @param sampleSize The optional number of results to randomly sample from
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * @param timers         The optional {@link Timers} to track timing of the
      *                       operation.
      * 
@@ -194,34 +200,42 @@ public final class EntityRelationsReports {
      *                              <code>null</code>.
      * 
      * @throws IllegalArgumentException If the specified relations count is
-     *                                  negative, if the specified page size
-     *                                  or sample size is less than one (1), 
-     *                                  or if the sample size is specified and is
-     *                                  greater-than or equal to the sample size.
+     *                                  negative, if the specified page size or
+     *                                  sample size is less than one (1), or if
+     *                                  the sample size is specified and is
+     *                                  greater-than or equal to the sample
+     *                                  size.
      * 
      * @throws SQLException             If a JDBC failure occurs.
      */
-    public static SzEntitiesPage getEntityIdsForRelationCount(Connection    conn,
-                                                              int           relationsCount, 
-                                                              String        entityIdBound, 
-                                                              SzBoundType   boundType,
-                                                              Integer       pageSize, 
-                                                              Integer       sampleSize, 
-                                                              Timers        timers)
-        throws NullPointerException, IllegalArgumentException, SQLException 
+    public static SzEntitiesPage
+        getEntityIdsForRelationCount(
+            Connection  conn,
+            int         relationsCount,
+            String      entityIdBound,
+            SzBoundType boundType,
+            Integer     pageSize,
+            Integer     sampleSize,
+            Timers      timers)
+        throws NullPointerException,
+               IllegalArgumentException,
+               SQLException
     {
         Objects.requireNonNull(conn, "The connection cannot be null");
 
         // check the entity size
         if (relationsCount < 0) {
             throw new IllegalArgumentException(
-                    "The relations count cannot be less than zero: " + relationsCount);
+                    "The relations count cannot be less than zero: "
+                            + relationsCount);
         }
 
-        SzReportKey reportKey = new SzReportKey(ENTITY_RELATION_BREAKDOWN, relationsCount);
+        SzReportKey reportKey = new SzReportKey(ENTITY_RELATION_BREAKDOWN,
+                relationsCount);
 
         return retrieveEntitiesPage(
-            conn, reportKey, entityIdBound, boundType, pageSize, sampleSize, timers);
+            conn, reportKey, entityIdBound, boundType, pageSize, sampleSize,
+                    timers);
     }
 
 }

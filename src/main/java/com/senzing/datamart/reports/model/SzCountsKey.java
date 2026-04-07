@@ -11,7 +11,8 @@ import java.util.Objects;
  * <code>null</code> references to this class. Any <code>null</code> value is
  * sorted as "less-than" a value that is <b>not</b> <code>null</code>.
  */
-class SzCountsKey implements Comparable<SzCountsKey>, Serializable {
+class SzCountsKey implements Comparable<SzCountsKey>, Serializable
+{
     /**
      * The associated match key.
      */
@@ -28,7 +29,8 @@ class SzCountsKey implements Comparable<SzCountsKey>, Serializable {
      * @param matchKey  The match key to associate with the new instance.
      * @param principle The principle to associate with the new instance.
      */
-    protected SzCountsKey(String matchKey, String principle) {
+    protected SzCountsKey(String matchKey, String principle)
+    {
         this.matchKey = matchKey;
         this.principle = principle;
     }
@@ -38,7 +40,8 @@ class SzCountsKey implements Comparable<SzCountsKey>, Serializable {
      * 
      * @return The associated match key.
      */
-    public String getMatchKey() {
+    public String getMatchKey()
+    {
         return this.matchKey;
     }
 
@@ -47,7 +50,8 @@ class SzCountsKey implements Comparable<SzCountsKey>, Serializable {
      * 
      * @return The associated principle.
      */
-    public String getPrinciple() {
+    public String getPrinciple()
+    {
         return this.principle;
     }
 
@@ -59,11 +63,13 @@ class SzCountsKey implements Comparable<SzCountsKey>, Serializable {
      * @param obj The object to compare with.
      * 
      * @return <code>true</code> if and only if the specified parameter is a
-     *         non-null reference to an object of the same class with an equivalent
-     *         match key and principle, otherwise <code>false</code>.
+     *                           non-null reference to an object of the same
+     *                           class with an equivalent match key and
+     *                           principle, otherwise <code>false</code>.
      */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (obj == null) {
             return false;
         }
@@ -85,25 +91,28 @@ class SzCountsKey implements Comparable<SzCountsKey>, Serializable {
      * @return The hash code for this instance.
      */
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return Objects.hash(this.getMatchKey(), this.getPrinciple());
     }
 
     /**
      * Implemented to return a negative number, zero (0) or a positive number
-     * depending on whether this instance compares less-than, equal-to, or greater
-     * than the specified parameter with sorting first on match key and then
-     * principle with <code>null</code> values comparing less-than values that are
-     * not <code>null</code>.
+     * depending on whether this instance compares less-than, equal-to, or
+     * greater than the specified parameter with sorting first on match key and
+     * then principle with
+     * <code>null</code> values comparing less-than values that
+     * are not <code>null</code>.
      * 
      * @param key The {@link SzCountsKey} to compare with.
      * 
-     * @return A negative number, zero (0) or a positive number depending on whether
-     *         this instance compares less-than, equal-to, or greater than the
-     *         specified parameter.
+     * @return A negative number, zero (0) or a positive number depending on
+     *           whether this instance compares less-than, equal-to, or greater
+     *           than the specified parameter.
      */
     @Override
-    public int compareTo(SzCountsKey key) {
+    public int compareTo(SzCountsKey key)
+    {
         if (key == null) {
             return 1;
         }
@@ -133,12 +142,14 @@ class SzCountsKey implements Comparable<SzCountsKey>, Serializable {
     }
 
     /**
-     * Implemented to return a diagnostic {@link String} describing this instance
-     * with the principle first and then the match key, separated by a colon.
+     * Implemented to return a diagnostic {@link String} describing this
+     * instance with the principle first and then the match key, separated by a
+     * colon.
      * 
      * @return A diagnostic {@link String} describing this instance.
      */
-    public String toString() {
+    public String toString()
+    {
         return this.getPrinciple() + ":" + this.getMatchKey();
     }
 

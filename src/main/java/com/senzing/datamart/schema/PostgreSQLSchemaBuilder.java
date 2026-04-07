@@ -8,11 +8,13 @@ import java.util.List;
 /**
  * Provides a data mart schema builder for PostgreSQL.
  */
-public class PostgreSQLSchemaBuilder extends SchemaBuilder {
+public class PostgreSQLSchemaBuilder extends SchemaBuilder
+{
     /**
      * Default constructor.
      */
-    public PostgreSQLSchemaBuilder() {
+    public PostgreSQLSchemaBuilder()
+    {
         // do nothing
     }
 
@@ -20,7 +22,7 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
      * Ensures the PostgreSQL schema exists and optionally drops the schema
      * before creating it.
      *
-     * @param conn     The JDBC {@link Connection} to use for creating the schema.
+     * @param conn The JDBC {@link Connection} to use for creating the schema.
      *
      * @param recreate <code>true</code> if the schema should be dropped and
      *                 recreated, or <code>false</code> if any existing schema
@@ -29,10 +31,13 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
      * @throws SQLException If a JDBC failure occurs.
      */
     @Override
-    public void ensureSchema(Connection conn, boolean recreate) throws SQLException {
+    public void ensureSchema(Connection conn, boolean recreate)
+        throws SQLException 
+    {
         List<String> sqlList = new LinkedList<>();
 
-        String createTriggerFunctionSql = "CREATE OR REPLACE FUNCTION sz_maintain_timestamps() "
+        String createTriggerFunctionSql 
+            = "CREATE OR REPLACE FUNCTION sz_maintain_timestamps() "
                 + "RETURNS TRIGGER "
                 + "LANGUAGE PLPGSQL "
                 + "AS $$ "
@@ -54,7 +59,8 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
                 + "END; "
                 + "$$;";
 
-        String dropTriggerFunctionSql = "DROP FUNCTION IF EXISTS sz_maintain_timestamps;";
+        String dropTriggerFunctionSql
+            = "DROP FUNCTION IF EXISTS sz_maintain_timestamps;";
 
         String createLockTable = "CREATE TABLE IF NOT EXISTS sz_dm_locks ("
                 + "  resource_key TEXT NOT NULL PRIMARY KEY, "
@@ -62,7 +68,8 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
 
         String dropLockTable = "DROP TABLE IF EXISTS sz_dm_locks;";
 
-        String createEntityTable = "CREATE TABLE IF NOT EXISTS sz_dm_entity ("
+        String createEntityTable
+            = "CREATE TABLE IF NOT EXISTS sz_dm_entity ("
                 + "  entity_id BIGINT NOT NULL PRIMARY KEY, "
                 + "  entity_name TEXT, "
                 + "  record_count INTEGER, "
@@ -76,21 +83,28 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
 
         String dropEntityTable = "DROP TABLE IF EXISTS sz_dm_entity;";
 
-        String createEntityTrigger = formatCreatePostgreSQLTrigger("sz_dm_entity");
+        String createEntityTrigger 
+            = formatCreatePostgreSQLTrigger("sz_dm_entity");
 
-        String dropEntityTrigger = formatDropPostgreSQLTrigger("sz_dm_entity");
+        String dropEntityTrigger
+            = formatDropPostgreSQLTrigger("sz_dm_entity");
 
-        String createEntityNewIndex = "CREATE INDEX IF NOT EXISTS sz_dm_entity_new_ix ON sz_dm_entity ("
-                + "creator_id);";
+        String createEntityNewIndex 
+            = "CREATE INDEX IF NOT EXISTS sz_dm_entity_new_ix "
+                + "ON sz_dm_entity (creator_id);";
 
-        String dropEntityNewIndex = "DROP INDEX IF EXISTS sz_dm_entity_new_ix;";
+        String dropEntityNewIndex
+            = "DROP INDEX IF EXISTS sz_dm_entity_new_ix;";
 
-        String createEntityModIndex = "CREATE INDEX IF NOT EXISTS sz_dm_entity_mod_ix ON sz_dm_entity ("
-                + "modifier_id);";
+        String createEntityModIndex
+            = "CREATE INDEX IF NOT EXISTS sz_dm_entity_mod_ix "
+                + "ON sz_dm_entity (modifier_id);";
 
-        String dropEntityModIndex = "DROP INDEX IF EXISTS sz_dm_entity_mod_ix;";
+        String dropEntityModIndex
+            = "DROP INDEX IF EXISTS sz_dm_entity_mod_ix;";
 
-        String createRecordTable = "CREATE TABLE IF NOT EXISTS sz_dm_record ("
+        String createRecordTable
+            = "CREATE TABLE IF NOT EXISTS sz_dm_record ("
                 + "  data_source TEXT NOT NULL, "
                 + "  record_id TEXT NOT NULL, "
                 + "  entity_id BIGINT NOT NULL, "
@@ -106,36 +120,48 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
 
         String dropRecordTable = "DROP TABLE IF EXISTS sz_dm_record;";
 
-        String createRecordTrigger = formatCreatePostgreSQLTrigger("sz_dm_record");
+        String createRecordTrigger
+            = formatCreatePostgreSQLTrigger("sz_dm_record");
 
-        String dropRecordTrigger = formatDropPostgreSQLTrigger("sz_dm_record");
+        String dropRecordTrigger
+            = formatDropPostgreSQLTrigger("sz_dm_record");
 
-        String createRecordIndex = "CREATE INDEX IF NOT EXISTS sz_dm_record_ix ON sz_dm_record ("
-                + "entity_id)";
+        String createRecordIndex
+            = "CREATE INDEX IF NOT EXISTS sz_dm_record_ix "
+                + "ON sz_dm_record (entity_id)";
 
         String dropRecordIndex = "DROP INDEX IF EXISTS sz_dm_record_ix;";
 
-        String createMatchKeyRecordIndex = "CREATE INDEX IF NOT EXISTS sz_dm_mkey_record_ix ON sz_dm_record ("
-                + "match_key, errule_code);";
+        String createMatchKeyRecordIndex 
+            = "CREATE INDEX IF NOT EXISTS sz_dm_mkey_record_ix "
+                + "ON sz_dm_record (match_key, errule_code);";
 
-        String dropMatchKeyRecordIndex = "DROP INDEX IF EXISTS sz_dm_mkey_record_ix;";
+        String dropMatchKeyRecordIndex 
+            = "DROP INDEX IF EXISTS sz_dm_mkey_record_ix;";
 
-        String createPrincipleRecordIndex = "CREATE INDEX IF NOT EXISTS sz_dm_rule_record_ix ON sz_dm_record ("
-                + "errule_code, match_key);";
+        String createPrincipleRecordIndex 
+            = "CREATE INDEX IF NOT EXISTS sz_dm_rule_record_ix "
+                + "ON sz_dm_record (errule_code, match_key);";
 
-        String dropPrincipleRecordIndex = "DROP INDEX IF EXISTS sz_dm_rule_record_ix;";
+        String dropPrincipleRecordIndex
+            = "DROP INDEX IF EXISTS sz_dm_rule_record_ix;";
 
-        String createRecordNewIndex = "CREATE INDEX IF NOT EXISTS sz_dm_record_new_ix ON sz_dm_record ("
-                + "creator_id)";
+        String createRecordNewIndex
+            = "CREATE INDEX IF NOT EXISTS sz_dm_record_new_ix "
+                + "ON sz_dm_record (creator_id)";
 
-        String dropRecordNewIndex = "DROP INDEX IF EXISTS sz_dm_record_new_ix;";
+        String dropRecordNewIndex 
+            = "DROP INDEX IF EXISTS sz_dm_record_new_ix;";
 
-        String createRecordModIndex = "CREATE INDEX IF NOT EXISTS sz_dm_record_mod_ix ON sz_dm_record ("
-                + "modifier_id)";
+        String createRecordModIndex 
+            = "CREATE INDEX IF NOT EXISTS sz_dm_record_mod_ix "
+                + "ON sz_dm_record (modifier_id)";
 
-        String dropRecordModIndex = "DROP INDEX IF EXISTS sz_dm_record_mod_ix;";
+        String dropRecordModIndex
+            = "DROP INDEX IF EXISTS sz_dm_record_mod_ix;";
 
-        String createRelationTable = "CREATE TABLE IF NOT EXISTS sz_dm_relation ("
+        String createRelationTable 
+            = "CREATE TABLE IF NOT EXISTS sz_dm_relation ("
                 + "  entity_id BIGINT NOT NULL, "
                 + "  related_id BIGINT NOT NULL, "
                 + "  match_type TEXT NOT NULL, "
@@ -152,46 +178,62 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
 
         String dropRelationTable = "DROP TABLE IF EXISTS sz_dm_relation;";
 
-        String createRelationIndex = "CREATE INDEX IF NOT EXISTS sz_dm_relation_ix ON sz_dm_relation ("
-                + "related_id, entity_id);";
+        String createRelationIndex
+            = "CREATE INDEX IF NOT EXISTS sz_dm_relation_ix "
+                + "ON sz_dm_relation (related_id, entity_id);";
 
         String dropRelationIndex = "DROP INDEX IF EXISTS sz_dm_relation_ix;";
 
-        String createMatchKeyRelationIndex = "CREATE INDEX IF NOT EXISTS sz_dm_mkey_relation_ix ON sz_dm_relation ("
-                + "match_key, errule_code);";
+        String createMatchKeyRelationIndex
+            = "CREATE INDEX IF NOT EXISTS sz_dm_mkey_relation_ix "
+                + "ON sz_dm_relation (match_key, errule_code);";
 
-        String dropMatchKeyRelationIndex = "DROP INDEX IF EXISTS sz_dm_mkey_relation_ix;";
+        String dropMatchKeyRelationIndex
+            = "DROP INDEX IF EXISTS sz_dm_mkey_relation_ix;";
 
-        String createRevMatchKeyRelationIndex = "CREATE INDEX IF NOT EXISTS sz_dm_rev_mkey_rel_ix ON sz_dm_relation ("
-                + "rev_match_key, errule_code);";
+        String createRevMatchKeyRelationIndex
+            = "CREATE INDEX IF NOT EXISTS sz_dm_rev_mkey_rel_ix "
+                + "ON sz_dm_relation (rev_match_key, errule_code);";
 
-        String dropRevMatchKeyRelationIndex = "DROP INDEX IF EXISTS sz_dm_rev_mkey_rel_ix;";
+        String dropRevMatchKeyRelationIndex
+            = "DROP INDEX IF EXISTS sz_dm_rev_mkey_rel_ix;";
 
-        String createPrincipleRelationIndex = "CREATE INDEX IF NOT EXISTS sz_dm_rule_relation_ix ON sz_dm_relation ("
-                + "errule_code, match_key);";
+        String createPrincipleRelationIndex
+            = "CREATE INDEX IF NOT EXISTS sz_dm_rule_relation_ix "
+                + "ON sz_dm_relation (errule_code, match_key);";
 
-        String dropPrincipleRelationIndex = "DROP INDEX IF EXISTS sz_dm_rule_relation_ix;";
+        String dropPrincipleRelationIndex
+            = "DROP INDEX IF EXISTS sz_dm_rule_relation_ix;";
 
-        String createRevPrincipleRelIndex = "CREATE INDEX IF NOT EXISTS sz_dm_rev_rule_rel_ix ON sz_dm_relation ("
-                + "errule_code, rev_match_key);";
+        String createRevPrincipleRelIndex
+            = "CREATE INDEX IF NOT EXISTS sz_dm_rev_rule_rel_ix "
+                + "ON sz_dm_relation (errule_code, rev_match_key);";
         
-        String dropRevPrincipleRelIndex = "DROP INDEX IF EXISTS sz_dm_rev_rule_rel_ix;";
+        String dropRevPrincipleRelIndex
+            = "DROP INDEX IF EXISTS sz_dm_rev_rule_rel_ix;";
 
-        String createRelationNewIndex = "CREATE INDEX IF NOT EXISTS sz_dm_relation_new_ix ON sz_dm_relation ("
-                + "creator_id);";
+        String createRelationNewIndex
+            = "CREATE INDEX IF NOT EXISTS sz_dm_relation_new_ix "
+                + "ON sz_dm_relation (creator_id);";
 
-        String dropRelationNewIndex = "DROP INDEX IF EXISTS sz_dm_relation_new_ix;";
+        String dropRelationNewIndex
+            = "DROP INDEX IF EXISTS sz_dm_relation_new_ix;";
 
-        String createRelationModIndex = "CREATE INDEX IF NOT EXISTS sz_dm_relation_mod_ix ON sz_dm_relation ("
-                + "modifier_id);";
+        String createRelationModIndex
+            = "CREATE INDEX IF NOT EXISTS sz_dm_relation_mod_ix "
+                + "ON sz_dm_relation (modifier_id);";
 
-        String dropRelationModIndex = "DROP INDEX IF EXISTS sz_dm_relation_mod_ix;";
+        String dropRelationModIndex
+            = "DROP INDEX IF EXISTS sz_dm_relation_mod_ix;";
 
-        String createRelationTrigger = formatCreatePostgreSQLTrigger("sz_dm_relation");
+        String createRelationTrigger
+            = formatCreatePostgreSQLTrigger("sz_dm_relation");
 
-        String dropRelationTrigger = formatDropPostgreSQLTrigger("sz_dm_relation");
+        String dropRelationTrigger
+            = formatDropPostgreSQLTrigger("sz_dm_relation");
 
-        String createReportTable = "CREATE TABLE IF NOT EXISTS sz_dm_report ("
+        String createReportTable 
+            = "CREATE TABLE IF NOT EXISTS sz_dm_report ("
                 + "  report_key TEXT NOT NULL PRIMARY KEY, "
                 + "  report TEXT NOT NULL, "
                 + "  statistic TEXT NOT NULL, "
@@ -206,11 +248,14 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
 
         String dropReportTable = "DROP TABLE IF EXISTS sz_dm_report;";
 
-        String createReportTrigger = formatCreatePostgreSQLTrigger("sz_dm_report");
+        String createReportTrigger
+            = formatCreatePostgreSQLTrigger("sz_dm_report");
 
-        String dropReportTrigger = formatDropPostgreSQLTrigger("sz_dm_report");
+        String dropReportTrigger
+            = formatDropPostgreSQLTrigger("sz_dm_report");
 
-        String createReportDetailTable = "CREATE TABLE IF NOT EXISTS sz_dm_report_detail ("
+        String createReportDetailTable
+            = "CREATE TABLE IF NOT EXISTS sz_dm_report_detail ("
                 + "  report_key TEXT NOT NULL, "
                 + "  entity_id BIGINT NOT NULL, "
                 + "  related_id BIGINT NOT NULL DEFAULT (0), "
@@ -222,33 +267,47 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
                 + "  modified_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
                 + "PRIMARY KEY(report_key, entity_id, related_id));";
 
-        String dropReportDetailTable = "DROP TABLE IF EXISTS sz_dm_report_detail;";
+        String dropReportDetailTable
+            = "DROP TABLE IF EXISTS sz_dm_report_detail;";
 
-        String createReportDetailIndex1 = "CREATE UNIQUE INDEX IF NOT EXISTS sz_dm_rpt_detail_uix1 "
-                + "ON sz_dm_report_detail (entity_id, related_id, report_key);";
+        String createReportDetailIndex1
+            = "CREATE UNIQUE INDEX IF NOT EXISTS sz_dm_rpt_detail_uix1 "
+                + "ON sz_dm_report_detail "
+                + "(entity_id, related_id, report_key);";
 
-        String dropReportDetailIndex1 = "DROP INDEX IF EXISTS sz_dm_rpt_detail_uix1;";
+        String dropReportDetailIndex1
+            = "DROP INDEX IF EXISTS sz_dm_rpt_detail_uix1;";
 
-        String createReportDetailIndex2 = "CREATE UNIQUE INDEX IF NOT EXISTS sz_dm_rpt_detail_uix2 "
-                + "ON sz_dm_report_detail (related_id, entity_id, report_key);";
+        String createReportDetailIndex2 
+            = "CREATE UNIQUE INDEX IF NOT EXISTS sz_dm_rpt_detail_uix2 "
+                + "ON sz_dm_report_detail "
+                + "(related_id, entity_id, report_key);";
 
-        String dropReportDetailIndex2 = "DROP INDEX IF EXISTS sz_dm_rpt_detail_uix2;";
+        String dropReportDetailIndex2
+            = "DROP INDEX IF EXISTS sz_dm_rpt_detail_uix2;";
 
-        String createReportDetailNewIndex = "CREATE INDEX IF NOT EXISTS sz_dm_rpt_det_new_ix "
+        String createReportDetailNewIndex
+            = "CREATE INDEX IF NOT EXISTS sz_dm_rpt_det_new_ix "
                 + "ON sz_dm_report_detail (creator_id);";
 
-        String dropReportDetailNewIndex = "DROP INDEX IF EXISTS sz_dm_rpt_det_new_ix;";
+        String dropReportDetailNewIndex
+            = "DROP INDEX IF EXISTS sz_dm_rpt_det_new_ix;";
 
-        String createReportDetailModIndex = "CREATE INDEX IF NOT EXISTS sz_dm_rpt_det_mod_ix "
+        String createReportDetailModIndex
+            = "CREATE INDEX IF NOT EXISTS sz_dm_rpt_det_mod_ix "
                 + "ON sz_dm_report_detail (modifier_id);";
 
-        String dropReportDetailModIndex = "DROP INDEX IF EXISTS sz_dm_rpt_det_mod_ix;";
+        String dropReportDetailModIndex
+            = "DROP INDEX IF EXISTS sz_dm_rpt_det_mod_ix;";
 
-        String createReportDetailTrigger = formatCreatePostgreSQLTrigger("sz_dm_report_detail");
+        String createReportDetailTrigger
+            = formatCreatePostgreSQLTrigger("sz_dm_report_detail");
 
-        String dropReportDetailTrigger = formatDropPostgreSQLTrigger("sz_dm_report_detail");
+        String dropReportDetailTrigger 
+            = formatDropPostgreSQLTrigger("sz_dm_report_detail");
 
-        String createPendingReportTable = "CREATE TABLE IF NOT EXISTS sz_dm_pending_report ("
+        String createPendingReportTable
+            = "CREATE TABLE IF NOT EXISTS sz_dm_pending_report ("
                 + "  report_key TEXT NOT NULL, "
                 + "  lease_id TEXT, "
                 + "  expire_lease_at TIMESTAMP, "
@@ -260,26 +319,36 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
                 + "  created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
                 + "  modified_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP);";
 
-        String dropPendingReportTable = "DROP TABLE IF EXISTS sz_dm_pending_report;";
+        String dropPendingReportTable
+            = "DROP TABLE IF EXISTS sz_dm_pending_report;";
 
-        String createPendingReportIndex1 = "CREATE INDEX IF NOT EXISTS sz_dm_pend_rpt_ix1 "
-                + "ON sz_dm_pending_report (report_key, lease_id, expire_lease_at);";
+        String createPendingReportIndex1
+            = "CREATE INDEX IF NOT EXISTS sz_dm_pend_rpt_ix1 "
+                + "ON sz_dm_pending_report "
+                + "(report_key, lease_id, expire_lease_at);";
 
-        String dropPendingReportIndex1 = "DROP INDEX IF EXISTS sz_dm_pend_rpt_ix1;";
+        String dropPendingReportIndex1
+            = "DROP INDEX IF EXISTS sz_dm_pend_rpt_ix1;";
 
-        String createPendingReportIndex2 = "CREATE INDEX IF NOT EXISTS sz_dm_pend_rpt_ix2 "
+        String createPendingReportIndex2
+            = "CREATE INDEX IF NOT EXISTS sz_dm_pend_rpt_ix2 "
                 + "ON sz_dm_pending_report (expire_lease_at, lease_id);";
 
-        String dropPendingReportIndex2 = "DROP INDEX IF EXISTS sz_dm_pend_rpt_ix2;";
+        String dropPendingReportIndex2 
+            = "DROP INDEX IF EXISTS sz_dm_pend_rpt_ix2;";
 
-        String createPendingReportIndex3 = "CREATE INDEX IF NOT EXISTS sz_dm_pend_rpt_ix3 "
+        String createPendingReportIndex3 
+            = "CREATE INDEX IF NOT EXISTS sz_dm_pend_rpt_ix3 "
                 + "ON sz_dm_pending_report (lease_id);";
 
-        String dropPendingReportIndex3 = "DROP INDEX IF EXISTS sz_dm_pend_rpt_ix3;";
+        String dropPendingReportIndex3 
+            = "DROP INDEX IF EXISTS sz_dm_pend_rpt_ix3;";
 
-        String createPendingReportTrigger = formatCreatePostgreSQLTrigger("sz_dm_pending_report");
+        String createPendingReportTrigger 
+            = formatCreatePostgreSQLTrigger("sz_dm_pending_report");
 
-        String dropPendingReportTrigger = formatDropPostgreSQLTrigger("sz_dm_pending_report");
+        String dropPendingReportTrigger
+            = formatDropPostgreSQLTrigger("sz_dm_pending_report");
 
         if (recreate) {
             sqlList.add(dropLockTable);
@@ -380,13 +449,14 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
     }
 
     /**
-     * Formats a PostgreSQL create trigger statement for the timestamp maintenance
-     * trigger for the specified table name.
+     * Formats a PostgreSQL create trigger statement for the timestamp
+     * maintenance trigger for the specified table name.
      *
      * @param tableName The table name for the create trigger statement.
      * @return The create trigger statement.
      */
-    protected String formatCreatePostgreSQLTrigger(String tableName) {
+    protected String formatCreatePostgreSQLTrigger(String tableName)
+    {
         return "CREATE TRIGGER " + tableName + "_trig "
                 + "BEFORE INSERT OR UPDATE "
                 + "ON " + tableName + " "
@@ -402,7 +472,8 @@ public class PostgreSQLSchemaBuilder extends SchemaBuilder {
      * @param tableName The table name for the drop trigger statement.
      * @return The drop trigger statement.
      */
-    protected String formatDropPostgreSQLTrigger(String tableName) {
+    protected String formatDropPostgreSQLTrigger(String tableName)
+    {
         return "DROP TRIGGER IF EXISTS " + tableName + "_trig ON "
                 + tableName + ";";
     }

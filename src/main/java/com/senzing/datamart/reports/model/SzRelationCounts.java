@@ -14,11 +14,12 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
  * The statistics are optionally associated with a specific match key or
  * principle.
  */
-public class SzRelationCounts implements Serializable {
+public class SzRelationCounts implements Serializable
+{
     /**
      * The optional match key associated with the statistics. This may be
-     * <code>null</code> or absent if the statistics are not associated with a match
-     * key.
+     * <code>null</code> or absent if the statistics are not associated with a
+     * match key.
      */
     private String matchKey = null;
 
@@ -45,22 +46,26 @@ public class SzRelationCounts implements Serializable {
     private long relationCount = 0L;
 
     /**
-     * Default constructor. This constructs an instance with no associated match key
-     * or principle.
+     * Default constructor. This constructs an instance with no associated match
+     * key or principle.
      */
-    public SzRelationCounts() {
+    public SzRelationCounts()
+    {
         this(null, null);
     }
 
     /**
      * Constructs with the optional match key and principle.
      * 
-     * @param matchKey  The optionally associated match key, or <code>null</code> if
-     *                  no specific match key is associated.
-     * @param principle The optionally associated principle, or <code>null</code> if
-     *                  no specific principle is associated.
+     * @param matchKey  The optionally associated match key, or
+     *                  <code>null</code> if no specific match key is
+     *                  associated.
+     * @param principle The optionally associated principle, or
+     *                  <code>null</code> if no specific principle is
+     *                  associated.
      */
-    public SzRelationCounts(String matchKey, String principle) {
+    public SzRelationCounts(String matchKey, String principle)
+    {
         this.matchKey = matchKey;
         this.principle = principle;
         this.entityCount = 0L;
@@ -70,15 +75,16 @@ public class SzRelationCounts implements Serializable {
 
     /**
      * Gets the optional match key associated with the statistics. This may be
-     * <code>null</code> or absent if the statistics are not associated with a match
-     * key.
-     * 
+     * <code>null</code> or absent if the statistics are not associated with a
+     * match key.
+     *
      * @return The optional match key associated with the statistics, or
-     *         <code>null</code> or absent if the statistics are not associated with
-     *         a match key.
+     *             <code>null</code> or absent if the statistics are not
+     *             associated with a match key.
      */
     @JsonInclude(NON_NULL)
-    public String getMatchKey() {
+    public String getMatchKey()
+    {
         return this.matchKey;
     }
 
@@ -88,130 +94,150 @@ public class SzRelationCounts implements Serializable {
      * principle.
      * 
      * @return The optional principle associated with the statistics, or
-     *         <code>null</code> or absent if the statistics are not associated with
-     *         a principle.
+     *             <code>null</code> or absent if the statistics are not
+     *             associated with a principle.
      */
     @JsonInclude(NON_NULL)
-    public String getPrinciple() {
+    public String getPrinciple()
+    {
         return this.principle;
     }
 
     /**
      * The number of entities having at least one record from the primary data
-     * source related by a relationship of the respective relationship type to an
-     * entity with at least one record from the "versus" data source.
-     * 
-     * @return The number of entities having at least one record from the primary
-     *         data source related by a relationship of the respective relationship
-     *         type to an entity with at least one record from the "versus" data
-     *         source.
+     * source related by a relationship of the respective relationship type to
+     * an entity with at least one record from the "versus" data source.
+     *
+     * @return The number of entities having at least one record from the
+     *             primary data source related by a relationship of the
+     *             respective relationship type to an entity with at least one
+     *             record from the "versus" data source.
      */
-    public long getEntityCount() {
+    public long getEntityCount()
+    {
         return this.entityCount;
     }
 
     /**
-     * Sets the number of entities having at least one record from the primary data
-     * source related by a relationship of the respective relationship type to an
-     * entity with at least one record from the "versus" data source.
-     * 
-     * @param entityCount The number of entities having at least one record from the
-     *                    primary data source related by a relationship of the
-     *                    respective relationship type to an entity with at least
-     *                    one record from the "versus" data source.
+     * Sets the number of entities having at least one record from the primary
+     * data source related by a relationship of the respective relationship type
+     * to an entity with at least one record from the "versus" data source.
+     *
+     * @param entityCount The number of entities having at least one record from
+     *                    the primary data source related by a relationship of
+     *                    the respective relationship type to an entity with at
+     *                    least one record from the "versus" data source.
      */
-    public void setEntityCount(long entityCount) {
+    public void setEntityCount(long entityCount)
+    {
         this.entityCount = entityCount;
     }
 
     /**
      * Gets the number of records from the primary data source in the entities
-     * described by the {@linkplain #getEntityCount() entityCount}. <b>NOTE:</b>
-     * this is not the total number of records in those entities, but only the count
-     * of those records from the primary data source.
-     * 
-     * @return The number of records from the primary data source in the entities
-     *         described by the {@linkplain #getEntityCount() entityCount}.
+     * described by the
+     * {@linkplain #getEntityCount() entityCount}. <b>NOTE:</b>
+     * this is not the total number of records in those entities, but only the
+     * count of those records from the primary data source.
+     *
+     * @return The number of records from the primary data source in the
+     *             entities described by the {@linkplain #getEntityCount()
+     *             entityCount}.
      */
-    public long getRecordCount() {
+    public long getRecordCount()
+    {
         return this.recordCount;
     }
 
     /**
      * Sets the number of records from the primary data source in the entities
-     * described by the {@linkplain #getEntityCount() entityCount}. <b>NOTE:</b>
-     * this is not the total number of records in those entities, but only the count
-     * of those records from the primary data source.
-     * 
-     * @param recordCount The number of records from the primary data source in the
-     *                    entities described by the {@linkplain #getEntityCount()
-     *                    entityCount}.
+     * described by the
+     * {@linkplain #getEntityCount() entityCount}. <b>NOTE:</b>
+     * this is not the total number of records in those entities, but only the
+     * count of those records from the primary data source.
+     *
+     * @param recordCount The number of records from the primary data source in
+     *                    the entities described by the {@linkplain
+     *                    #getEntityCount() entityCount}.
      */
-    public void setRecordCount(long recordCount) {
+    public void setRecordCount(long recordCount)
+    {
         this.recordCount = recordCount;
     }
 
     /**
-     * Gets the number of relationships of the respective relationship type between
-     * entities having at least one record from the primary data source and entities
-     * having at least one record from the "versus" data source.
+     * Gets the number of relationships of the respective relationship type
+     * between entities having at least one record from the primary data source
+     * and entities having at least one record from the "versus" data source.
      *
      * @return The number of relationships of the respective relationship type
-     *         between entities having at least one record from the primary data
-     *         source and entities having at least one record from the "versus" data
-     *         source.
+     *             between entities having at least one record from the primary
+     *             data source and entities having at least one record from the
+     *             "versus" data source.
      */
-    public long getRelationCount() {
+    public long getRelationCount()
+    {
         return this.relationCount;
     }
 
     /**
-     * Sets the number of relationships of the respective relationship type between
-     * entities having at least one record from the primary data source and entities
-     * having at least one record from the "versus" data source.
+     * Sets the number of relationships of the respective relationship type
+     * between entities having at least one record from the primary data source
+     * and entities having at least one record from the "versus" data source.
      *
      * @param relationCount The number of relationships of the respective
-     *                      relationship type between entities having at least one
-     *                      record from the primary data source and entities having
-     *                      at least one record from the "versus" data source.
+     *                      relationship type between entities having at least
+     *                      one record from the primary data source and entities
+     *                      having at least one record from the "versus" data
+     *                      source.
      */
-    public void setRelationCount(long relationCount) {
+    public void setRelationCount(long relationCount)
+    {
         this.relationCount = relationCount;
     }
 
     /**
-     * Overridden to return a diagnostic {@link String} describing this instance.
+     * Overridden to return a diagnostic {@link String} describing this
+     * instance.
      * 
      * @return A diagnostic {@link String} describing this instance.
      */
     @Override
-    public String toString() {
-        return "matchKey=[ " + this.getMatchKey() + " ], principle=[ " + this.getPrinciple() + " ], entityCount=[ "
-                + this.getEntityCount() + " ], recordCount=[ " + this.getRecordCount() + " ], relationCount=[ "
+    public String toString()
+    {
+        return "matchKey=[ " + this.getMatchKey()
+                + " ], principle=[ " + this.getPrinciple()
+                + " ], entityCount=[ " + this.getEntityCount()
+                + " ], recordCount=[ " + this.getRecordCount()
+                + " ], relationCount=[ "
                 + this.getRelationCount() + " ]";
     }
 
     /**
-     * Overridden to return a hash code consistent with the {@link #equals(Object)} 
-     * implementation.
+     * Overridden to return a hash code consistent with the
+     * {@link #equals(Object)} implementation.
      * 
      * @return The hash code for this instance.
      */
     @Override
-    public int hashCode() {
-        return Objects.hash(matchKey, principle, entityCount, recordCount, relationCount);
+    public int hashCode()
+    {
+        return Objects.hash(matchKey, principle,
+                entityCount, recordCount, relationCount);
     }
 
     /**
-     * Overridden to return <code>true</code> if and only if the specified parameter
-     * is an instance of the same class with equivalent properties.
-     * 
+     * Overridden to return <code>true</code> if and only if the specified
+     * parameter is an instance of the same class with equivalent properties.
+     *
      * @param obj The object to compare with.
-     * @return <code>true</code> if the specified parameter is an instance of the 
-     *         same class with equivalent properties, otherwise <code>false</code>.
+     * @return <code>true</code> if the specified parameter is an instance of
+     *                           the same class with equivalent properties,
+     *                           otherwise <code>false</code>.
      */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (this == obj) {
             return true;
         }
@@ -219,8 +245,10 @@ public class SzRelationCounts implements Serializable {
             return false;
         }
         SzRelationCounts other = (SzRelationCounts) obj;
-        return Objects.equals(matchKey, other.matchKey) && Objects.equals(principle, other.principle)
-                && entityCount == other.entityCount && recordCount == other.recordCount
+        return Objects.equals(matchKey, other.matchKey)
+                && Objects.equals(principle, other.principle)
+                && entityCount == other.entityCount
+                && recordCount == other.recordCount
                 && relationCount == other.relationCount;
     }
 }

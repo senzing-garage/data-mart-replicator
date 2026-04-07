@@ -10,7 +10,8 @@ import com.senzing.util.Timers;
 /**
  * Base interface implemented by all datamart reports services.
  */
-public interface ReportsService {
+public interface ReportsService
+{
     /**
      * The prefix for all data mart reports.
      */
@@ -26,17 +27,15 @@ public interface ReportsService {
     Connection getConnection() throws SQLException;
 
     /**
-     * Gets the {@link Set} of {@link String} data source codes
-     * for all configured data sources in the associated entity
-     * repository (optionally excluding the default data sources).
+     * Gets the {@link Set} of {@link String} data source codes for all
+     * configured data sources in the associated entity repository (optionally
+     * excluding the default data sources).
      * 
-     * @param excludeDefault <code>true</code> if the default 
-     *                       data sources should be excluded, otherwise
-     *                       <code>false</code>.
+     * @param excludeDefault <code>true</code> if the default data sources
+     *                       should be excluded, otherwise <code>false</code>.
      * 
-     * @return The {@link Set} of {@link String} data source codes
-     *         for all configured data sources in the associated
-     *         entity repository. 
+     * @return The {@link Set} of {@link String} data source codes for all
+     *             configured data sources in the associated entity repository.
      * 
      * @throws SzException If a failure occurs.
      */
@@ -44,15 +43,16 @@ public interface ReportsService {
         throws SzException;
 
     /**
-     * Gets the {@link Timers} instance for timing the current operation.
-     * By default this returns <code>null</code> so that the operations
-     * are not timed.  This is typically overridden to return a 
-     * thread-local {@link Timers} instance.
+     * Gets the {@link Timers} instance for timing the current operation. By
+     * default this returns <code>null</code> so that the operations are not
+     * timed. This is typically overridden to return a thread-local {@link
+     * Timers} instance.
      * 
-     * @return The {@link Timers} instance to use for an operation, 
-     *         or <code>null</code> if not timing the operation.
+     * @return The {@link Timers} instance to use for an operation, or
+     *             <code>null</code> if not timing the operation.
      */
-    default Timers getTimers() {
+    default Timers getTimers()
+    {
         return null;
     }
 }

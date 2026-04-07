@@ -13,7 +13,8 @@ import java.util.*;
 /**
  * Identifies a lock that has been obtained.
  */
-public final class LockToken implements Serializable {
+public final class LockToken implements Serializable
+{
     /**
      * The pattern for parsing the date values returned from the native API.
      */
@@ -25,10 +26,11 @@ public final class LockToken implements Serializable {
     private static final ZoneId UTC_ZONE = ZoneId.of("UTC");
 
     /**
-     * The {@link DateTimeFormatter} for interpreting the timestamps from the native
-     * API.
+     * The {@link DateTimeFormatter} for interpreting the timestamps from the
+     * native API.
      */
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
+    private static final DateTimeFormatter DATE_TIME_FORMATTER
+            = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
 
     /**
      * The next lock token ID.
@@ -46,8 +48,8 @@ public final class LockToken implements Serializable {
     private LockScope scope;
 
     /**
-     * The key that identifies the process on the server/host on where the lock was
-     * obtained.
+     * The key that identifies the process on the server/host on where the lock
+     * was obtained.
      */
     private String processKey;
 
@@ -77,7 +79,8 @@ public final class LockToken implements Serializable {
      * 
      * @return The next unique token ID.
      */
-    private synchronized long getNextTokenId() {
+    private synchronized long getNextTokenId()
+    {
         return nextTokenId++;
     }
 
@@ -86,7 +89,8 @@ public final class LockToken implements Serializable {
      *
      * @param scope The {@link LockScope} for the token.
      */
-    public LockToken(LockScope scope) {
+    public LockToken(LockScope scope)
+    {
         Objects.requireNonNull(scope, "The scope cannot be null");
         this.scope = scope;
         ProcessHandle procHandle = ProcessHandle.current();
@@ -97,28 +101,37 @@ public final class LockToken implements Serializable {
         if (startInstant.isPresent()) {
             ZonedDateTime startTime = startInstant.get().atZone(UTC_ZONE);
 
-            this.processKey = this.processKey + "#" + DATE_TIME_FORMATTER.format(startTime);
+            this.processKey = this.processKey + "#"
+                    + DATE_TIME_FORMATTER.format(startTime);
         }
         this.hostKey = LOCAL_HOST_KEY;
 
         Instant now = Instant.now();
         this.tokenId = getNextTokenId();
 
-        this.tokenKey = "[" + this.tokenId + "#" + this.scope + "#" + DATE_TIME_FORMATTER.format(now.atZone(UTC_ZONE))
-                + " ] @ [ " + this.processKey + " ] @ [ " + this.hostKey + " ]";
+        this.tokenKey = "[" + this.tokenId + "#"
+                + this.scope + "#"
+                + DATE_TIME_FORMATTER.format(
+                        now.atZone(UTC_ZONE))
+                + " ] @ [ " + this.processKey
+                + " ] @ [ " + this.hostKey + " ]";
 
         this.timestamp = now;
     }
 
     /**
-     * Gets the {@linkS String} representation of the MAC address for the specified
+     * Gets the {@linkS String} representation of the MAC address for the
+     * specified
      * {@link NetworkInterface}.
      *
      * @param netInterface The {@link NetworkInterface} for which to get the MAC
      *                     address.
      * @return The {@link String} representation of the MAC address.
      */
-    private static String getMacAddress(NetworkInterface netInterface) throws SocketException {
+    private static String getMacAddress(
+            NetworkInterface netInterface)
+        throws SocketException
+    {
         byte[] mac = netInterface.getHardwareAddress();
         StringBuilder sb = new StringBuilder();
         String prefix = "";
@@ -135,11 +148,13 @@ public final class LockToken implements Serializable {
      *
      * @return The server key encoding the IP and MAC addresses for the server.
      */
-    private static String formatHostKey() {
+    private static String formatHostKey()
+    {
         try {
             LinkedHashMap<String, Integer> macAddrMap = new LinkedHashMap<>();
             LinkedList<NetworkInterface> interfaces = new LinkedList<>();
-            Enumeration<NetworkInterface> allInterfaces = NetworkInterface.getNetworkInterfaces();
+            Enumeration<NetworkInterface> allInterfaces
+                    = NetworkInterface.getNetworkInterfaces();
 
             while (allInterfaces.hasMoreElements()) {
                 NetworkInterface netInterface = allInterfaces.nextElement();
@@ -156,7 +171,8 @@ public final class LockToken implements Serializable {
                     continue;
                 }
 
-                Enumeration<InetAddress> addrEnum = netInterface.getInetAddresses();
+                Enumeration<InetAddress> addrEnum
+                        = netInterface.getInetAddresses();
                 if (!addrEnum.hasMoreElements()) {
                     continue;
                 }
@@ -180,7 +196,8 @@ public final class LockToken implements Serializable {
                     continue;
                 }
 
-                Enumeration<InetAddress> addresses = netInterface.getInetAddresses();
+                Enumeration<InetAddress> addresses
+                        = netInterface.getInetAddresses();
                 while (addresses.hasMoreElements()) {
                     InetAddress inetAddr = addresses.nextElement();
                     sb.append(prefix);
@@ -201,19 +218,22 @@ public final class LockToken implements Serializable {
      * Gets the {@link LockScope} describing the scope of the lock identified by
      * this lock token.
      *
-     * @return The {@link LockScope} describing the scope of the lock identified by
-     *         this lock token.
+     * @return The {@link LockScope} describing the scope of the lock identified
+     *             by this lock token.
      */
-    public LockScope getScope() {
+    public LockScope getScope()
+    {
         return this.scope;
     }
 
     /**
      * Gets the unique (within process) sequential token ID for this instance.
      *
-     * @return The unique (within process) sequential token ID for this instance.
+     * @return The unique (within process) sequential token ID for this
+     *             instance.
      */
-    public long getTokenId() {
+    public long getTokenId()
+    {
         return this.tokenId;
     }
 
@@ -222,18 +242,20 @@ public final class LockToken implements Serializable {
      *
      * @return The {@link Instant} timestamp when this instance was constructed.
      */
-    public Instant getTimestamp() {
+    public Instant getTimestamp()
+    {
         return this.timestamp;
     }
 
     /**
-     * Gets the encoded {@link String} key for the process in which the lock token
-     * instance was originally constructed.
+     * Gets the encoded {@link String} key for the process in which the lock
+     * token instance was originally constructed.
      *
      * @return The encoded {@link String} key for the process in which the lock
-     *         token instance was originally constructed.
+     *             token instance was originally constructed.
      */
-    public String getProcessKey() {
+    public String getProcessKey()
+    {
         return this.processKey;
     }
 
@@ -241,36 +263,39 @@ public final class LockToken implements Serializable {
      * Gets the encoded {@link String} key for the host/server on which the lock
      * token instance was originally constructed.
      *
-     * @return The encoded {@link String} key for the host/server on which the lock
-     *         token instance was originally constructed.
+     * @return The encoded {@link String} key for the host/server on which the
+     *             lock token instance was originally constructed.
      */
-    public String getHostKey() {
+    public String getHostKey()
+    {
         return this.hostKey;
     }
 
     /**
      * Gets the full formatted token key which formats the elements of this lock
-     * token into a unique descriptive {@link String} describing when, where and how
-     * the resource is locked. This can be used to uniquely represent this
+     * token into a unique descriptive {@link String} describing when, where and
+     * how the resource is locked. This can be used to uniquely represent this
      * {@link LockToken} as a {@link String}.
      *
      * @return The unique token key for this instance.
      */
-    public String getTokenKey() {
+    public String getTokenKey()
+    {
         return this.tokenKey;
     }
 
     /**
-     * Overridden to return <code>true</code> if and only if the specified parameter
-     * is a non-null reference to an object of the same class with equivalent
-     * properties.
+     * Overridden to return <code>true</code> if and only if the specified
+     * parameter is a non-null reference to an object of the same class with
+     * equivalent properties.
      *
      * @param obj The object to compare with.
      * @return <code>true</code> if the objects are equal, otherwise
-     *         <code>false</code>.
+     *                           <code>false</code>.
      */
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj)
+    {
         if (obj == null) {
             return false;
         }
@@ -309,9 +334,14 @@ public final class LockToken implements Serializable {
      * @return The hash code for this instance.
      */
     @Override
-    public int hashCode() {
-        return Objects.hash(this.getScope(), this.getTokenId(), this.getTimestamp(), this.getProcessKey(),
-                this.getHostKey(), this.getTokenKey());
+    public int hashCode()
+    {
+        return Objects.hash(
+                this.getScope(), this.getTokenId(),
+                this.getTimestamp(),
+                this.getProcessKey(),
+                this.getHostKey(),
+                this.getTokenKey());
     }
 
     /**
@@ -319,7 +349,8 @@ public final class LockToken implements Serializable {
      *
      * @return The result from {@link #getTokenKey()}.
      */
-    public String toString() {
+    public String toString()
+    {
         return this.getTokenKey();
     }
 }

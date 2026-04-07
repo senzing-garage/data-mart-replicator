@@ -33,14 +33,16 @@ import static com.senzing.datamart.model.SzReportStatistic.*;
 /**
  * Provides Summary Stats Report functionality.
  */
-public final class SummaryStatsReports {
+public final class SummaryStatsReports
+{
     /**
      * Thread-local flag used to optimize handling of data sources set.
      */
     private static final ThreadLocal<Boolean> AUGMENT_DATA_SOURCES 
         = new ThreadLocal<>() {
             @Override
-            protected Boolean initialValue() {
+            protected Boolean initialValue()
+            {
                 return Boolean.TRUE;
             }
         };
@@ -48,21 +50,24 @@ public final class SummaryStatsReports {
     /**
      * Private default constructor.
      */
-    private SummaryStatsReports() {
+    private SummaryStatsReports()
+    {
         // do nothing
     }
 
     /**
-     * Gets the {@link SzSummaryStats} describing the source summaries for
-     * one or more data sources.
+     * Gets the {@link SzSummaryStats} describing the source summaries for one
+     * or more data sources.
      * 
      * <p>
-     * The statistics for data sources with loaded records are <b>ALWAYS</b> included
-     * in the report.  However, a {@link Set} of {@link String} data source codes can
-     * be specified for those data sources for which "zero" statistics should be
-     * included even if no records are loaded for those data sources.  <b>NOTE:</b>
-     * this will <b>NOT</b> filter statistics so that statistics for data sources
-     * with loaded records can be excluded.
+     * The statistics for data sources with loaded records are <b>ALWAYS</b>
+     * included in the report. However, a {@link Set} of {@link String} data
+     * source codes can be specified for those data sources for which "zero"
+     * statistics should be included even if no records are loaded for those
+     * data sources.
+     * <b>NOTE:</b>
+     * this will <b>NOT</b> filter statistics so that statistics for data
+     * sources with loaded records can be excluded.
      * 
      * @param conn The non-null JDBC {@link Connection} to use.
      * 
@@ -72,18 +77,21 @@ public final class SummaryStatsReports {
      *                 match keys, or <code>null</code> for only retrieving
      *                 statistics that are not specific to a match key.
      * 
-     * @param principle  The optional principle for retrieving statistics specific
-     *                   to a principle, or asterisk (<code>"*"</code>) for all
-     *                   principles, or <code>null</code> for only retrieving
-     *                   statistics that are not specific to a principle.
+     * @param principle The optional principle for retrieving statistics
+     *                  specific to a principle, or asterisk (<code>"*"</code>)
+     *                  for all principles, or <code>null</code> for only
+     *                  retrieving statistics that are not specific to a
+     *                  principle.
      * 
-     * @param dataSources The optional {@link Set} of {@link String} data source codes
-     *                    for those data sources to be included in the statistics even
-     *                    if they have no records loaded, or <code>null</code> if the
-     *                    results should simply include statistics for data sources for
-     *                    which records have been loaded.
+     * @param dataSources The optional {@link Set} of {@link String} data source
+     *                    codes for those data sources to be included in the
+     *                    statistics even if they have no records loaded, or
+     *                    <code>null</code> if the results should simply include
+     *                    statistics for data sources for which records have
+     *                    been loaded.
      * 
-     * @param timers The optional {@link Timers} to track timing of the operation.
+     * @param timers The optional {@link Timers} to track timing of the
+     *               operation.
      * 
      * @return The {@link SzSummaryStats} describing the statistics.
      * 
@@ -116,7 +124,8 @@ public final class SummaryStatsReports {
         try {
             for (String dataSource : reportSources) {
                 result.addSourceSummary(getSourceSummary(
-                    conn, dataSource, matchKey, principle, reportSources, timers));
+                    conn, dataSource, matchKey, principle, reportSources,
+                            timers));
             }
         } finally {
             AUGMENT_DATA_SOURCES.set(initialValue);
@@ -127,8 +136,8 @@ public final class SummaryStatsReports {
     }
 
     /**
-     * Gets the {@link SzSourceSummary} (including cross-summary statistics) 
-     * for a specific data source.
+     * Gets the {@link SzSourceSummary} (including cross-summary statistics) for
+     * a specific data source.
      * 
      * <p>
      * The cross-summary statistics for data sources with loaded records are
@@ -144,27 +153,30 @@ public final class SummaryStatsReports {
      * @param dataSource The data source code identifying the data source for
      *                   which the count statistics are being requested.
      * 
-     * @param matchKey The optional match key for retrieving statistics specific 
+     * @param matchKey The optional match key for retrieving statistics specific
      *                 to a match key, or asterisk (<code>"*"</code>) for all
      *                 match keys, or <code>null</code> for only retrieving
      *                 statistics that are not specific to a match key.
      * 
-     * @param principle The optional principle for retrieving statistics specific
-     *                  to a principle, or asterisk (<code>"*"</code>) for all
-     *                  principles, or <code>null</code> for only retrieving
-     *                  statistics that are not specific to a principle.
+     * @param principle The optional principle for retrieving statistics
+     *                  specific to a principle, or asterisk (<code>"*"</code>)
+     *                  for all principles, or <code>null</code> for only
+     *                  retrieving statistics that are not specific to a
+     *                  principle.
      * 
-     * @param dataSources The optional {@link Set} of {@link String} data source codes
-     *                    for those data sources to be included in the statistics even
-     *                    if they have no records loaded, or <code>null</code> if the
-     *                    results should simply include statistics for data sources for
-     *                    which records have been loaded.
+     * @param dataSources The optional {@link Set} of {@link String} data source
+     *                    codes for those data sources to be included in the
+     *                    statistics even if they have no records loaded, or
+     *                    <code>null</code> if the results should simply include
+     *                    statistics for data sources for which records have
+     *                    been loaded.
      * 
-     * @param timers The optional {@link Timers} to track timing of the operation.
+     * @param timers The optional {@link Timers} to track timing of the
+     *               operation.
      * 
      * @return The {@link SzSourceSummary} describing the statistics.
      * 
-     * @throws NullPointerException If a required parameter is specified as 
+     * @throws NullPointerException If a required parameter is specified as
      *                              <code>null</code>.
      * 
      * @throws SQLException If a JDBC failure occurs.
@@ -223,7 +235,8 @@ public final class SummaryStatsReports {
                         result.setUnmatchedRecordCount(recordCount);
                         break;
                     default:
-                        throw new IllegalStateException("Unexpected statistic value: " + statistic);
+                        throw new IllegalStateException(
+                                "Unexpected statistic value: " + statistic);
                     }
                 }
 
@@ -247,7 +260,8 @@ public final class SummaryStatsReports {
             // get the cross summaries
             for (String vsDataSource : reportSources) {
                 result.addCrossSourceSummary(getCrossSourceSummary(
-                    conn, dataSource, vsDataSource, null, matchKey, principle, timers));
+                    conn, dataSource, vsDataSource, null, matchKey, principle,
+                            timers));
             }
 
             // return the result
@@ -264,12 +278,13 @@ public final class SummaryStatsReports {
      * 
      * @param conn The non-null JDBC {@link Connection} to use.
      * 
-     * @param timers The optional {@link Timers} to track timing of the operation.
+     * @param timers The optional {@link Timers} to track timing of the
+     *               operation.
      * 
      * @return The {@link Set} of data sources that have loaded records.
      * 
-     * @throws NullPointerException If the specified JDBC {@link Connection}
-     *                              is <code>null</code>.
+     * @throws NullPointerException If the specified JDBC {@link Connection} is
+     *                              <code>null</code>.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
@@ -314,8 +329,8 @@ public final class SummaryStatsReports {
     }
 
     /**
-     * Gets cross-source summary statistics for a specific primary data source and
-     * "versus" data source.
+     * Gets cross-source summary statistics for a specific primary data source
+     * and "versus" data source.
      *
      * @param conn The non-null JDBC {@link Connection} to use.
      * 
@@ -330,16 +345,17 @@ public final class SummaryStatsReports {
      * @param matchKey         The optional match key for retrieving statistics
      *                         specific to a match key, or asterisk
      *                         (<code>"*"</code>) for all match keys, or
-     *                         <code>null</code> for only retrieving statistics that
-     *                         are not specific to a match key.
+     *                         <code>null</code> for only retrieving statistics
+     *                         that are not specific to a match key.
      * 
      * @param principle        The optional principle for retrieving statistics
      *                         specific to a principle, or asterisk
      *                         (<code>"*"</code>) for all principles, or
-     *                         <code>null</code> for only retrieving statistics that
-     *                         are not specific to a principle.
+     *                         <code>null</code> for only retrieving statistics
+     *                         that are not specific to a principle.
      * 
-     * @param timers The optional {@link Timers} to track timing of the operation.
+     * @param timers The optional {@link Timers} to track timing of the
+     *               operation.
      * 
      * @return The {@link SzCrossSourceSummary} describing the statistics.
      * 
@@ -348,13 +364,14 @@ public final class SummaryStatsReports {
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
-    public static SzCrossSourceSummary getCrossSourceSummary(Connection conn,
-                                                             String     dataSource, 
-                                                             String     vsDataSource, 
-                                                             String     matchKey,
-                                                             String     principle, 
-                                                             Timers     timers) 
-        throws NullPointerException, SQLException                                                         
+    public static SzCrossSourceSummary
+        getCrossSourceSummary(Connection  conn,
+                              String      dataSource,
+                              String      vsDataSource,
+                              String      matchKey,
+                              String      principle,
+                              Timers      timers)
+        throws NullPointerException, SQLException
     {
         return getCrossSourceSummary(conn, 
                                      dataSource, 
@@ -374,19 +391,20 @@ public final class SummaryStatsReports {
      *                           statistics are being requested.
      * @param vsDataSource       The "versus" data source code for which the
      *                           statistics are being requested.
-     * @param requestedStatistic The optional {@link SzReportStatistic} to narrow
-     *                           the query, or <code>null</code> if all statistics 
-     *                           should be included.
-     * @param requestedMatchKey  The optional match key for retrieving statistics
-     *                           specific to a match key, or asterisk
-     *                           (<code>"*"</code>) for all match keys, or
-     *                           <code>null</code> for only retrieving statistics
-     *                           that are not specific to a match key.
-     * @param requestedPrinciple The optional principle for retrieving statistics
-     *                           specific to a principle, or asterisk
+     * @param requestedStatistic The optional {@link SzReportStatistic} to
+     *                           narrow the query, or <code>null</code> if all
+     *                           statistics should be included.
+     * @param requestedMatchKey The optional match key for retrieving statistics
+     *                          specific to a match key, or asterisk
+     *                          (<code>"*"</code>) for all match keys, or
+     *                          <code>null</code> for only retrieving statistics
+     *                          that are not specific to a match key.
+     * @param requestedPrinciple The optional principle for retrieving
+     *                           statistics specific to a principle, or asterisk
      *                           (<code>"*"</code>) for all principles, or
-     *                           <code>null</code> for only retrieving statistics
-     *                           that are not specific to a principle.
+     *                           <code>null</code> for only retrieving
+     *                           statistics that are not specific to a
+     *                           principle.
      * @param timers             The {@link Timers} associated with the request.
      * 
      * @return The {@link SzCrossSourceSummary} describing the statistics.
@@ -408,7 +426,8 @@ public final class SummaryStatsReports {
     {
         Objects.requireNonNull(conn, "The connection cannot be null");
         Objects.requireNonNull(dataSource, "The data source cannot be null");
-        Objects.requireNonNull(vsDataSource, "The versus data source cannot be null");
+        Objects.requireNonNull(vsDataSource,
+                "The versus data source cannot be null");
         
         // normalize the match key and principle
         if (requestedMatchKey != null) {
@@ -434,22 +453,27 @@ public final class SummaryStatsReports {
         // get the connection
         PreparedStatement ps = null;
         ResultSet rs = null;
-        SzCrossSourceSummary result = new SzCrossSourceSummary(dataSource, vsDataSource);
+        SzCrossSourceSummary result = new SzCrossSourceSummary(dataSource,
+                vsDataSource);
 
         try {
             queryingDatabase(timers, "selectCrossSourceSummary");
             try {
                 // determine the report code
                 String reportCode = (dataSource.equals(vsDataSource)) 
-                    ? DATA_SOURCE_SUMMARY.getCode() : CROSS_SOURCE_SUMMARY.getCode();
+                    ? DATA_SOURCE_SUMMARY.getCode() : CROSS_SOURCE_SUMMARY
+                            .getCode();
 
                 // prepare the statement
                 ps = conn.prepareStatement(
-                    "SELECT statistic, entity_count, record_count, relation_count "
+                    "SELECT statistic, entity_count, record_count, "
+                            + "relation_count "
                     + "FROM sz_dm_report WHERE report=? AND data_source1 = ? "
                     + "AND data_source2 = ? AND statistic NOT IN (?, ?) "
-                    + ((requestedStatistic != null) ? "AND statistic LIKE ? " : "") 
-                    + "AND (entity_count <> 0 OR record_count <> 0 OR relation_count <> 0) "
+                    + ((requestedStatistic != null)
+                            ? "AND statistic LIKE ? " : "")
+                    + "AND (entity_count <> 0 OR record_count <> 0 OR "
+                            + "relation_count <> 0) "
                     + "ORDER BY statistic");
 
                 // bind the parameters
@@ -503,7 +527,8 @@ public final class SummaryStatsReports {
 
                     switch (statistic) {
                         case MATCHED_COUNT:
-                            matchCounts = new SzMatchCounts(matchKey, principle);
+                            matchCounts = new SzMatchCounts(matchKey,
+                                    principle);
                             matchCounts.setEntityCount(entityCount);
                             matchCounts.setRecordCount(recordCount);
                             break;
@@ -511,14 +536,16 @@ public final class SummaryStatsReports {
                         case POSSIBLE_MATCH_COUNT:
                         case POSSIBLE_RELATION_COUNT:
                         case DISCLOSED_RELATION_COUNT:
-                            relationCounts = new SzRelationCounts(matchKey, principle);
+                            relationCounts = new SzRelationCounts(matchKey,
+                                    principle);
                             relationCounts.setEntityCount(entityCount);
                             relationCounts.setRecordCount(recordCount);
                             relationCounts.setRelationCount(relationCount);
                             break;
                         default:
                             throw new IllegalStateException(
-                                "Unexpected statistic encountered.  statistic=[ "
+                                "Unexpected statistic encountered.  "
+                                        + "statistic=[ "
                                 + statistic + " ], formattedStatistic=[ " 
                                 + encodedStat + " ]");
                     }
@@ -545,7 +572,8 @@ public final class SummaryStatsReports {
                             break;
                         default:
                             throw new IllegalStateException(
-                                "Unexpected statistic encountered.  statistic=[ "
+                                "Unexpected statistic encountered.  "
+                                        + "statistic=[ "
                                 + statistic + " ], formattedStatistic=[ " 
                                 + encodedStat + " ]");
                     }
@@ -572,16 +600,24 @@ public final class SummaryStatsReports {
             if (matchCount == 0 && (stat == null || stat == MATCHED_COUNT)) {
                 result.addMatches(new SzMatchCounts(mkey, prin));
             }
-            if (ambMatchCount == 0 && (stat == null || stat == AMBIGUOUS_MATCH_COUNT)) {
+            if (ambMatchCount == 0 && (stat == null
+                || stat == AMBIGUOUS_MATCH_COUNT))
+            {
                 result.addAmbiguousMatches(new SzRelationCounts(mkey, prin));
             }
-            if (posMatchCount == 0 && (stat == null || stat == POSSIBLE_MATCH_COUNT)) {
+            if (posMatchCount == 0 && (stat == null
+                || stat == POSSIBLE_MATCH_COUNT))
+            {
                 result.addPossibleMatches(new SzRelationCounts(mkey, prin));
             }
-            if (posRelCount == 0 && (stat == null || stat == POSSIBLE_RELATION_COUNT)) {
+            if (posRelCount == 0 && (stat == null
+                || stat == POSSIBLE_RELATION_COUNT))
+            {
                 result.addPossibleRelations(new SzRelationCounts(mkey, prin));
             }
-            if (discRelCount == 0 && (stat == null || stat == DISCLOSED_RELATION_COUNT)) {
+            if (discRelCount == 0 && (stat == null
+                || stat == DISCLOSED_RELATION_COUNT))
+            {
                 result.addDisclosedRelations(new SzRelationCounts(mkey, prin));
             }
 
@@ -595,10 +631,10 @@ public final class SummaryStatsReports {
     }
 
     /**
-     * Gets the cross-summary statistics for matches for entities having at least
-     * one record from a primary data source and at least one <b>other</b> record
-     * from another data source (which may be the same data source), optionally for
-     * one or more combination of match key and principle.
+     * Gets the cross-summary statistics for matches for entities having at
+     * least one record from a primary data source and at least one <b>other</b>
+     * record from another data source (which may be the same data source),
+     * optionally for one or more combination of match key and principle.
      *
      * @param conn         The non-null JDBC {@link Connection} to use.
      * @param dataSource   The data source code identifying the primary data
@@ -618,7 +654,7 @@ public final class SummaryStatsReports {
      *                     (<code>"*"</code>) for all principles, or
      *                     <code>null</code> for only retrieving statistics that
      *                     are not specific to a principle.
-     * @param timers       The optional {@link Timers} to track timing of the 
+     * @param timers       The optional {@link Timers} to track timing of the
      *                     operation.
      * 
      * @return The {@link SzCrossSourceMatchCounts} describing the statistics.
@@ -638,7 +674,8 @@ public final class SummaryStatsReports {
         throws NullPointerException, SQLException
     {
         SzCrossSourceSummary summary = getCrossSourceSummary(
-            conn, dataSource, vsDataSource, MATCHED_COUNT, matchKey, principle, timers);
+            conn, dataSource, vsDataSource, MATCHED_COUNT, matchKey, principle,
+                    timers);
             
         SzCrossSourceMatchCounts result 
             = new SzCrossSourceMatchCounts(dataSource, vsDataSource);
@@ -650,9 +687,9 @@ public final class SummaryStatsReports {
 
     /**
      * Gets the cross-summary statistics for ambiguous-match relations between
-     * entities having at least one record from one data source and entities having
-     * at least one record from another data source (which may be the same),
-     * optionally for one or more combination of match key and principle.
+     * entities having at least one record from one data source and entities
+     * having at least one record from another data source (which may be the
+     * same), optionally for one or more combination of match key and principle.
      *
      * @param conn         The non-null JDBC {@link Connection} to use.
      * @param dataSource   The data source code identifying the primary data
@@ -672,17 +709,19 @@ public final class SummaryStatsReports {
      *                     (<code>"*"</code>) for all principles, or
      *                     <code>null</code> for only retrieving statistics that
      *                     are not specific to a principle.
-     * @param timers       The optional {@link Timers} to track timing of the 
+     * @param timers       The optional {@link Timers} to track timing of the
      *                     operation.
      * 
-     * @return The {@link SzCrossSourceRelationCounts} describing the statistics.
+     * @return The {@link SzCrossSourceRelationCounts} describing the
+     *             statistics.
      * 
      * @throws NullPointerException If the specified {@link Connection} is
      *                              <code>null</code>.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
-    public static SzCrossSourceRelationCounts getCrossSourceAmbiguousMatchSummary(
+    public static
+            SzCrossSourceRelationCounts getCrossSourceAmbiguousMatchSummary(
             Connection  conn,
             String      dataSource,
             String      vsDataSource,
@@ -691,16 +730,16 @@ public final class SummaryStatsReports {
             Timers      timers)
         throws NullPointerException, SQLException
     {
-        SzCrossSourceSummary summary = getCrossSourceSummary(conn,
-                                                             dataSource,
-                                                             vsDataSource,
-                                                             AMBIGUOUS_MATCH_COUNT,
-                                                             matchKey,
-                                                             principle,
-                                                             timers);
+        SzCrossSourceSummary summary
+            = getCrossSourceSummary(
+                conn, dataSource, vsDataSource,
+                AMBIGUOUS_MATCH_COUNT,
+                matchKey, principle, timers);
 
-        SzCrossSourceRelationCounts result 
-            = new SzCrossSourceRelationCounts(dataSource, vsDataSource, AMBIGUOUS_MATCH);
+        SzCrossSourceRelationCounts result
+            = new SzCrossSourceRelationCounts(
+                dataSource, vsDataSource,
+                AMBIGUOUS_MATCH);
 
         result.setCounts(summary.getAmbiguousMatches());
 
@@ -709,8 +748,69 @@ public final class SummaryStatsReports {
 
     /**
      * Gets the cross-summary statistics for possible-match relations between
-     * entities having at least one record from one data source and entities having
-     * at least one record from another data source (which may be the same),
+     * entities having at least one record from one data source and entities
+     * having at least one record from another data source (which may be the
+     * same), optionally for one or more combination of match key and principle.
+     *
+     * @param conn         The non-null JDBC {@link Connection} to use.
+     * @param dataSource   The data source code identifying the primary data
+     *                     source for which the cross summary statistics are
+     *                     being requested.
+     * 
+     * @param vsDataSource The data source code identifying the "versus" data
+     *                     source for which the cross summary statistics are
+     *                     being requested.
+     * @param matchKey     The optional match key for retrieving statistics
+     *                     specific to a match key, or asterisk
+     *                     (<code>"*"</code>) for all match keys, or
+     *                     <code>null</code> for only retrieving statistics that
+     *                     are not specific to a match key.
+     * @param principle    The optional principle for retrieving statistics
+     *                     specific to a principle, or asterisk
+     *                     (<code>"*"</code>) for all principles, or
+     *                     <code>null</code> for only retrieving statistics that
+     *                     are not specific to a principle.
+     * @param timers       The optional {@link Timers} to track timing of the
+     *                     operation.
+     * 
+     * @return The {@link SzCrossSourceRelationCounts} describing the
+     *             statistics.
+     * 
+     * @throws NullPointerException If the specified {@link Connection} is
+     *                              <code>null</code>.
+     * 
+     * @throws SQLException If a JDBC failure occurs.
+     */
+    public static
+            SzCrossSourceRelationCounts getCrossSourcePossibleMatchSummary(
+            Connection  conn,
+            String      dataSource,
+            String      vsDataSource,
+            String      matchKey,
+            String      principle,
+            Timers      timers)
+        throws NullPointerException, SQLException
+    {
+        SzCrossSourceSummary summary
+            = getCrossSourceSummary(
+                conn, dataSource, vsDataSource,
+                POSSIBLE_MATCH_COUNT,
+                matchKey, principle, timers);
+
+        SzCrossSourceRelationCounts result
+            = new SzCrossSourceRelationCounts(
+                dataSource, vsDataSource,
+                POSSIBLE_MATCH);
+
+        result.setCounts(summary.getPossibleMatches());
+
+        return result;
+    }
+
+    /**
+     * Gets the cross-summary statistics for possible relations between entities
+     * having at least one record from one data source and entities having at
+     * least one record from another data source (which may be the same),
      * optionally for one or more combination of match key and principle.
      *
      * @param conn         The non-null JDBC {@link Connection} to use.
@@ -731,17 +831,19 @@ public final class SummaryStatsReports {
      *                     (<code>"*"</code>) for all principles, or
      *                     <code>null</code> for only retrieving statistics that
      *                     are not specific to a principle.
-     * @param timers       The optional {@link Timers} to track timing of the 
+     * @param timers       The optional {@link Timers} to track timing of the
      *                     operation.
      * 
-     * @return The {@link SzCrossSourceRelationCounts} describing the statistics.
+     * @return The {@link SzCrossSourceRelationCounts} describing the
+     *             statistics.
      * 
      * @throws NullPointerException If the specified {@link Connection} is
      *                              <code>null</code>.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
-    public static SzCrossSourceRelationCounts getCrossSourcePossibleMatchSummary(
+    public static
+            SzCrossSourceRelationCounts getCrossSourcePossibleRelationSummary(
             Connection  conn,
             String      dataSource,
             String      vsDataSource,
@@ -750,75 +852,16 @@ public final class SummaryStatsReports {
             Timers      timers)
         throws NullPointerException, SQLException
     {
-        SzCrossSourceSummary summary = getCrossSourceSummary(conn,
-                                                             dataSource,
-                                                             vsDataSource,
-                                                             POSSIBLE_MATCH_COUNT,
-                                                             matchKey,
-                                                             principle,
-                                                             timers);
+        SzCrossSourceSummary summary
+            = getCrossSourceSummary(
+                conn, dataSource, vsDataSource,
+                POSSIBLE_RELATION_COUNT,
+                matchKey, principle, timers);
 
-        SzCrossSourceRelationCounts result 
-            = new SzCrossSourceRelationCounts(dataSource, vsDataSource, POSSIBLE_MATCH);
-
-        result.setCounts(summary.getPossibleMatches());
-
-        return result;
-    }
-
-    /**
-     * Gets the cross-summary statistics for possible relations between entities
-     * having at least one record from one data source and entities having at least
-     * one record from another data source (which may be the same), optionally for
-     * one or more combination of match key and principle.
-     *
-     * @param conn         The non-null JDBC {@link Connection} to use.
-     * @param dataSource   The data source code identifying the primary data
-     *                     source for which the cross summary statistics are
-     *                     being requested.
-     * 
-     * @param vsDataSource The data source code identifying the "versus" data
-     *                     source for which the cross summary statistics are
-     *                     being requested.
-     * @param matchKey     The optional match key for retrieving statistics
-     *                     specific to a match key, or asterisk
-     *                     (<code>"*"</code>) for all match keys, or
-     *                     <code>null</code> for only retrieving statistics that
-     *                     are not specific to a match key.
-     * @param principle    The optional principle for retrieving statistics
-     *                     specific to a principle, or asterisk
-     *                     (<code>"*"</code>) for all principles, or
-     *                     <code>null</code> for only retrieving statistics that
-     *                     are not specific to a principle.
-     * @param timers       The optional {@link Timers} to track timing of the 
-     *                     operation.
-     * 
-     * @return The {@link SzCrossSourceRelationCounts} describing the statistics.
-     * 
-     * @throws NullPointerException If the specified {@link Connection} is
-     *                              <code>null</code>.
-     * 
-     * @throws SQLException If a JDBC failure occurs.
-     */
-    public static SzCrossSourceRelationCounts getCrossSourcePossibleRelationSummary(
-            Connection  conn,
-            String      dataSource,
-            String      vsDataSource,
-            String      matchKey,
-            String      principle,
-            Timers      timers)
-        throws NullPointerException, SQLException
-    {
-        SzCrossSourceSummary summary = getCrossSourceSummary(conn,
-                                                             dataSource,
-                                                             vsDataSource,
-                                                             POSSIBLE_RELATION_COUNT,
-                                                             matchKey,
-                                                             principle,
-                                                             timers);
-
-        SzCrossSourceRelationCounts result = new SzCrossSourceRelationCounts(
-            dataSource, vsDataSource, POSSIBLE_RELATION);
+        SzCrossSourceRelationCounts result
+            = new SzCrossSourceRelationCounts(
+                dataSource, vsDataSource,
+                POSSIBLE_RELATION);
 
         result.setCounts(summary.getPossibleRelations());
 
@@ -826,10 +869,10 @@ public final class SummaryStatsReports {
     }
 
     /**
-     * Gets the cross-summary statistics for disclosed relations between entities
-     * having at least one record from one data source and entities having at least
-     * one record from another data source (which may be the same), optionally for
-     * one or more combination of match key and principle.
+     * Gets the cross-summary statistics for disclosed relations between
+     * entities having at least one record from one data source and entities
+     * having at least one record from another data source (which may be the
+     * same), optionally for one or more combination of match key and principle.
      *
      * @param conn         The non-null JDBC {@link Connection} to use.
      * @param dataSource   The data source code identifying the primary data
@@ -849,17 +892,19 @@ public final class SummaryStatsReports {
      *                     (<code>"*"</code>) for all principles, or
      *                     <code>null</code> for only retrieving statistics that
      *                     are not specific to a principle.
-     * @param timers       The optional {@link Timers} to track timing of the 
+     * @param timers       The optional {@link Timers} to track timing of the
      *                     operation.
      * 
-     * @return The {@link SzCrossSourceRelationCounts} describing the statistics.
+     * @return The {@link SzCrossSourceRelationCounts} describing the
+     *             statistics.
      * 
      * @throws NullPointerException If the specified {@link Connection} is
      *                              <code>null</code>.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
-    public static SzCrossSourceRelationCounts getCrossSourceDisclosedRelationSummary(
+    public static
+            SzCrossSourceRelationCounts getCrossSourceDisclosedRelationSummary(
             Connection  conn,
             String      dataSource,
             String      vsDataSource,
@@ -868,16 +913,16 @@ public final class SummaryStatsReports {
             Timers      timers)
         throws NullPointerException, SQLException
     {
-        SzCrossSourceSummary summary = getCrossSourceSummary(conn,
-                                                             dataSource,
-                                                             vsDataSource,
-                                                             DISCLOSED_RELATION_COUNT,
-                                                             matchKey,
-                                                             principle,
-                                                             timers);
+        SzCrossSourceSummary summary
+            = getCrossSourceSummary(
+                conn, dataSource, vsDataSource,
+                DISCLOSED_RELATION_COUNT,
+                matchKey, principle, timers);
 
-        SzCrossSourceRelationCounts result = new SzCrossSourceRelationCounts(
-            dataSource, vsDataSource, DISCLOSED_RELATION);
+        SzCrossSourceRelationCounts result
+            = new SzCrossSourceRelationCounts(
+                dataSource, vsDataSource,
+                DISCLOSED_RELATION);
 
         result.setCounts(summary.getDisclosedRelations());
 
@@ -885,31 +930,32 @@ public final class SummaryStatsReports {
     }
 
     /**
-     * Retrieves a page of entity ID's for entities that have at least two records
-     * from the associated data source that have matched.
+     * Retrieves a page of entity ID's for entities that have at least two
+     * records from the associated data source that have matched.
      *
      * @param conn          The non-null JDBC {@link Connection} to use.
-     * @param dataSource    The non-null data source code identifying the data source
-     *                      for which the entities are being retrieved.
+     * @param dataSource The non-null data source code identifying the data
+     *                   source for which the entities are being retrieved.
      * @param matchKey   The optional match key for retrieving statistics
-     *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) for all match keys, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a match key.
+     *                   specific to a match key, or asterisk (<code>"*"</code>)
+     *                   for all match keys, or <code>null</code> for only
+     *                   retrieving statistics that are not specific to a match
+     *                   key.
      * @param principle  The optional principle for retrieving statistics
-     *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) for all principles, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a principle.
+     *                   specific to a principle, or asterisk (<code>"*"</code>)
+     *                   for all principles, or <code>null</code> for only
+     *                   retrieving statistics that are not specific to a
+     *                   principle.
      * @param entityIdBound The bounded value for the returned entity ID's,
-     *                      formatted as an integer or the word <code>"max"</code>.
-     * @param boundType     The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                      formatted as an integer or the word
+     *                      <code>"max"</code>.
+     * @param boundType The {@link SzBoundType} that describes how to apply the
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
-     * @param sampleSize    The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
-     * @param timers        The optional {@link Timers} to track timing of the 
+     * @param sampleSize The optional number of results to randomly sample from
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
+     * @param timers        The optional {@link Timers} to track timing of the
      *                      operation.
      * 
      * @return The {@link SzEntitiesPage} containing the entity IDs.
@@ -917,10 +963,11 @@ public final class SummaryStatsReports {
      * @throws NullPointerException If a required parameter is specified as
      *                              <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified page size or sample size
-     *                                  is less than one (1), or if the sample size
-     *                                  is specified and is greater-than or equal
-     *                                  to the sample size.
+     * @throws IllegalArgumentException If the specified page size or sample
+     *                                  size is less than one (1), or if the
+     *                                  sample size is specified and is
+     *                                  greater-than or equal to the sample
+     *                                  size.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
@@ -950,32 +997,34 @@ public final class SummaryStatsReports {
     }
 
     /**
-     * Retrieves a page of entity ID's for entities that have at least one record
-     * from the associated data source ambiguously matched against another entity
-     * that has at least one record from the associated data source.
+     * Retrieves a page of entity ID's for entities that have at least one
+     * record from the associated data source ambiguously matched against
+     * another entity that has at least one record from the associated data
+     * source.
      *
      * @param conn          The non-null JDBC {@link Connection} to use.
-     * @param dataSource    The non-null data source code identifying the data source
-     *                      for which the entities are being retrieved.
+     * @param dataSource The non-null data source code identifying the data
+     *                   source for which the entities are being retrieved.
      * @param matchKey   The optional match key for retrieving statistics
-     *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) for all match keys, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a match key.
+     *                   specific to a match key, or asterisk (<code>"*"</code>)
+     *                   for all match keys, or <code>null</code> for only
+     *                   retrieving statistics that are not specific to a match
+     *                   key.
      * @param principle  The optional principle for retrieving statistics
-     *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) for all principles, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a principle.
+     *                   specific to a principle, or asterisk (<code>"*"</code>)
+     *                   for all principles, or <code>null</code> for only
+     *                   retrieving statistics that are not specific to a
+     *                   principle.
      * @param entityIdBound The bounded value for the returned entity ID's,
-     *                      formatted as an integer or the word <code>"max"</code>.
-     * @param boundType     The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                      formatted as an integer or the word
+     *                      <code>"max"</code>.
+     * @param boundType The {@link SzBoundType} that describes how to apply the
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
-     * @param sampleSize    The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
-     * @param timers        The optional {@link Timers} to track timing of the 
+     * @param sampleSize The optional number of results to randomly sample from
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
+     * @param timers        The optional {@link Timers} to track timing of the
      *                      operation.
      * 
      * @return The {@link SzEntitiesPage} containing the entity IDs.
@@ -983,10 +1032,11 @@ public final class SummaryStatsReports {
      * @throws NullPointerException If a required parameter is specified as
      *                              <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified page size or sample size
-     *                                  is less than one (1), or if the sample size
-     *                                  is specified and is greater-than or equal
-     *                                  to the sample size.
+     * @throws IllegalArgumentException If the specified page size or sample
+     *                                  size is less than one (1), or if the
+     *                                  sample size is specified and is
+     *                                  greater-than or equal to the sample
+     *                                  size.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
@@ -1016,32 +1066,34 @@ public final class SummaryStatsReports {
     }
 
     /**
-     * Retrieves a page of entity ID's for entities that have at least one record
-     * from the associated data source with a possible-match relationship to another
-     * entity that has at least one record from the associated data source.
+     * Retrieves a page of entity ID's for entities that have at least one
+     * record from the associated data source with a possible-match relationship
+     * to another entity that has at least one record from the associated data
+     * source.
      *
      * @param conn          The non-null JDBC {@link Connection} to use.
-     * @param dataSource    The non-null data source code identifying the data source
-     *                      for which the entities are being retrieved.
+     * @param dataSource The non-null data source code identifying the data
+     *                   source for which the entities are being retrieved.
      * @param matchKey   The optional match key for retrieving statistics
-     *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) for all match keys, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a match key.
+     *                   specific to a match key, or asterisk (<code>"*"</code>)
+     *                   for all match keys, or <code>null</code> for only
+     *                   retrieving statistics that are not specific to a match
+     *                   key.
      * @param principle  The optional principle for retrieving statistics
-     *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) for all principles, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a principle.
+     *                   specific to a principle, or asterisk (<code>"*"</code>)
+     *                   for all principles, or <code>null</code> for only
+     *                   retrieving statistics that are not specific to a
+     *                   principle.
      * @param entityIdBound The bounded value for the returned entity ID's,
-     *                      formatted as an integer or the word <code>"max"</code>.
-     * @param boundType     The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                      formatted as an integer or the word
+     *                      <code>"max"</code>.
+     * @param boundType The {@link SzBoundType} that describes how to apply the
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
-     * @param sampleSize    The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
-     * @param timers        The optional {@link Timers} to track timing of the 
+     * @param sampleSize The optional number of results to randomly sample from
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
+     * @param timers        The optional {@link Timers} to track timing of the
      *                      operation.
      * 
      * @return The {@link SzEntitiesPage} containing the entity IDs.
@@ -1049,10 +1101,11 @@ public final class SummaryStatsReports {
      * @throws NullPointerException If a required parameter is specified as
      *                              <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified page size or sample size
-     *                                  is less than one (1), or if the sample size
-     *                                  is specified and is greater-than or equal
-     *                                  to the sample size.
+     * @throws IllegalArgumentException If the specified page size or sample
+     *                                  size is less than one (1), or if the
+     *                                  sample size is specified and is
+     *                                  greater-than or equal to the sample
+     *                                  size.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
@@ -1082,32 +1135,34 @@ public final class SummaryStatsReports {
     }
 
     /**
-     * Retrieves a page of entity ID's for entities that have at least one record
-     * from the associated data source with a possible relation to another entity
-     * that has at least one record from the associated data source.
+     * Retrieves a page of entity ID's for entities that have at least one
+     * record from the associated data source with a possible relation to
+     * another entity that has at least one record from the associated data
+     * source.
      *
      * @param conn          The non-null JDBC {@link Connection} to use.
-     * @param dataSource    The non-null data source code identifying the data source
-     *                      for which the entities are being retrieved.
+     * @param dataSource The non-null data source code identifying the data
+     *                   source for which the entities are being retrieved.
      * @param matchKey   The optional match key for retrieving statistics
-     *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) for all match keys, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a match key.
+     *                   specific to a match key, or asterisk (<code>"*"</code>)
+     *                   for all match keys, or <code>null</code> for only
+     *                   retrieving statistics that are not specific to a match
+     *                   key.
      * @param principle  The optional principle for retrieving statistics
-     *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) for all principles, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a principle.
+     *                   specific to a principle, or asterisk (<code>"*"</code>)
+     *                   for all principles, or <code>null</code> for only
+     *                   retrieving statistics that are not specific to a
+     *                   principle.
      * @param entityIdBound The bounded value for the returned entity ID's,
-     *                      formatted as an integer or the word <code>"max"</code>.
-     * @param boundType     The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                      formatted as an integer or the word
+     *                      <code>"max"</code>.
+     * @param boundType The {@link SzBoundType} that describes how to apply the
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
-     * @param sampleSize    The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
-     * @param timers        The optional {@link Timers} to track timing of the 
+     * @param sampleSize The optional number of results to randomly sample from
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
+     * @param timers        The optional {@link Timers} to track timing of the
      *                      operation.
      * 
      * @return The {@link SzEntitiesPage} containing the entity IDs.
@@ -1115,10 +1170,11 @@ public final class SummaryStatsReports {
      * @throws NullPointerException If a required parameter is specified as
      *                              <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified page size or sample size
-     *                                  is less than one (1), or if the sample size
-     *                                  is specified and is greater-than or equal
-     *                                  to the sample size.
+     * @throws IllegalArgumentException If the specified page size or sample
+     *                                  size is less than one (1), or if the
+     *                                  sample size is specified and is
+     *                                  greater-than or equal to the sample
+     *                                  size.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
@@ -1148,32 +1204,34 @@ public final class SummaryStatsReports {
     }
 
     /**
-     * Retrieves a page of entity ID's for entities that have at least one record
-     * from the associated data source with a disclosed relationship to another
-     * entity that has at least one record from the "versus" data source.
+     * Retrieves a page of entity ID's for entities that have at least one
+     * record from the associated data source with a disclosed relationship to
+     * another entity that has at least one record from the "versus" data
+     * source.
      *
      * @param conn          The non-null JDBC {@link Connection} to use.
-     * @param dataSource    The non-null data source code identifying the data source
-     *                      for which the entities are being retrieved.
+     * @param dataSource The non-null data source code identifying the data
+     *                   source for which the entities are being retrieved.
      * @param matchKey   The optional match key for retrieving statistics
-     *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) for all match keys, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a match key.
+     *                   specific to a match key, or asterisk (<code>"*"</code>)
+     *                   for all match keys, or <code>null</code> for only
+     *                   retrieving statistics that are not specific to a match
+     *                   key.
      * @param principle  The optional principle for retrieving statistics
-     *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) for all principles, or
-     *                   <code>null</code> for only retrieving statistics
-     *                   that are not specific to a principle.
+     *                   specific to a principle, or asterisk (<code>"*"</code>)
+     *                   for all principles, or <code>null</code> for only
+     *                   retrieving statistics that are not specific to a
+     *                   principle.
      * @param entityIdBound The bounded value for the returned entity ID's,
-     *                      formatted as an integer or the word <code>"max"</code>.
-     * @param boundType     The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                      formatted as an integer or the word
+     *                      <code>"max"</code>.
+     * @param boundType The {@link SzBoundType} that describes how to apply the
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
-     * @param sampleSize    The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
-     * @param timers        The optional {@link Timers} to track timing of the 
+     * @param sampleSize The optional number of results to randomly sample from
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
+     * @param timers        The optional {@link Timers} to track timing of the
      *                      operation.
      * 
      * @return The {@link SzEntitiesPage} containing the entity IDs.
@@ -1181,10 +1239,11 @@ public final class SummaryStatsReports {
      * @throws NullPointerException If a required parameter is specified as
      *                              <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified page size or sample size
-     *                                  is less than one (1), or if the sample size
-     *                                  is specified and is greater-than or equal
-     *                                  to the sample size.
+     * @throws IllegalArgumentException If the specified page size or sample
+     *                                  size is less than one (1), or if the
+     *                                  sample size is specified and is
+     *                                  greater-than or equal to the sample
+     *                                  size.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
@@ -1214,32 +1273,31 @@ public final class SummaryStatsReports {
     }
 
     /**
-     * Retrieves a page of entity ID's for entities that have at least one record
-     * from the first data source and another record from the second "versus" data
-     * source.
+     * Retrieves a page of entity ID's for entities that have at least one
+     * record from the first data source and another record from the second
+     * "versus" data source.
      *
      * @param conn          The non-null JDBC {@link Connection} to use.
      * @param dataSource    The non-null data source code identifying the data
      *                      source for which the entities are being retrieved.
-     * @param vsDataSource  The non-null "versus" data source for which the 
+     * @param vsDataSource  The non-null "versus" data source for which the
      *                      entities are being retrieved.
      * @param matchKey   The optional match key for retrieving statistics
-     *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) or <code>null</code> for all
-     *                   match keys.
+     *                   specific to a match key, or asterisk (<code>"*"</code>)
+     *                   or <code>null</code> for all match keys.
      * @param principle  The optional principle for retrieving statistics
-     *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) or <code>null</code> for all 
-     *                   principles.
+     *                   specific to a principle, or asterisk (<code>"*"</code>)
+     *                   or <code>null</code> for all principles.
      * @param entityIdBound The bounded value for the returned entity ID's,
-     *                      formatted as an integer or the word <code>"max"</code>.
-     * @param boundType     The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                      formatted as an integer or the word
+     *                      <code>"max"</code>.
+     * @param boundType The {@link SzBoundType} that describes how to apply the
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
-     * @param sampleSize    The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
-     * @param timers        The optional {@link Timers} to track timing of the 
+     * @param sampleSize The optional number of results to randomly sample from
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
+     * @param timers        The optional {@link Timers} to track timing of the
      *                      operation.
      * 
      * @return The {@link SzEntitiesPage} containing the entity IDs.
@@ -1247,10 +1305,11 @@ public final class SummaryStatsReports {
      * @throws NullPointerException If a required parameter is specified as
      *                              <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified page size or sample size
-     *                                  is less than one (1), or if the sample size
-     *                                  is specified and is greater-than or equal
-     *                                  to the sample size.
+     * @throws IllegalArgumentException If the specified page size or sample
+     *                                  size is less than one (1), or if the
+     *                                  sample size is specified and is
+     *                                  greater-than or equal to the sample
+     *                                  size.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
@@ -1281,32 +1340,31 @@ public final class SummaryStatsReports {
     }
 
     /**
-     * Retrieves a page of entity ID's for entities that have at least one record
-     * from the first data source ambiguously matched against another entity that
-     * has at least one record from the "versus" data source.
+     * Retrieves a page of entity ID's for entities that have at least one
+     * record from the first data source ambiguously matched against another
+     * entity that has at least one record from the "versus" data source.
      *
      * @param conn          The non-null JDBC {@link Connection} to use.
      * @param dataSource    The non-null data source code identifying the data
      *                      source for which the entities are being retrieved.
-     * @param vsDataSource  The non-null "versus" data source for which the 
+     * @param vsDataSource  The non-null "versus" data source for which the
      *                      entities are being retrieved.
      * @param matchKey   The optional match key for retrieving statistics
-     *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) or <code>null</code> for all
-     *                   match keys.
+     *                   specific to a match key, or asterisk (<code>"*"</code>)
+     *                   or <code>null</code> for all match keys.
      * @param principle  The optional principle for retrieving statistics
-     *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) or <code>null</code> for all 
-     *                   principles.
+     *                   specific to a principle, or asterisk (<code>"*"</code>)
+     *                   or <code>null</code> for all principles.
      * @param entityIdBound The bounded value for the returned entity ID's,
-     *                      formatted as an integer or the word <code>"max"</code>.
-     * @param boundType     The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                      formatted as an integer or the word
+     *                      <code>"max"</code>.
+     * @param boundType The {@link SzBoundType} that describes how to apply the
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
-     * @param sampleSize    The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
-     * @param timers        The optional {@link Timers} to track timing of the 
+     * @param sampleSize The optional number of results to randomly sample from
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
+     * @param timers        The optional {@link Timers} to track timing of the
      *                      operation.
      * 
      * @return The {@link SzEntitiesPage} containing the entity IDs.
@@ -1314,10 +1372,11 @@ public final class SummaryStatsReports {
      * @throws NullPointerException If a required parameter is specified as
      *                              <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified page size or sample size
-     *                                  is less than one (1), or if the sample size
-     *                                  is specified and is greater-than or equal
-     *                                  to the sample size.
+     * @throws IllegalArgumentException If the specified page size or sample
+     *                                  size is less than one (1), or if the
+     *                                  sample size is specified and is
+     *                                  greater-than or equal to the sample
+     *                                  size.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
@@ -1348,32 +1407,31 @@ public final class SummaryStatsReports {
     }
 
     /**
-     * Retrieves a page of entity ID's for entities that have at least one record
-     * from the first data source possibly matched against another entity that has
-     * at least one record from the "versus" data source.
+     * Retrieves a page of entity ID's for entities that have at least one
+     * record from the first data source possibly matched against another entity
+     * that has at least one record from the "versus" data source.
      *
      * @param conn          The non-null JDBC {@link Connection} to use.
      * @param dataSource    The non-null data source code identifying the data
      *                      source for which the entities are being retrieved.
-     * @param vsDataSource  The non-null "versus" data source for which the 
+     * @param vsDataSource  The non-null "versus" data source for which the
      *                      entities are being retrieved.
      * @param matchKey   The optional match key for retrieving statistics
-     *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) or <code>null</code> for all
-     *                   match keys.
+     *                   specific to a match key, or asterisk (<code>"*"</code>)
+     *                   or <code>null</code> for all match keys.
      * @param principle  The optional principle for retrieving statistics
-     *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) or <code>null</code> for all 
-     *                   principles.
+     *                   specific to a principle, or asterisk (<code>"*"</code>)
+     *                   or <code>null</code> for all principles.
      * @param entityIdBound The bounded value for the returned entity ID's,
-     *                      formatted as an integer or the word <code>"max"</code>.
-     * @param boundType     The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                      formatted as an integer or the word
+     *                      <code>"max"</code>.
+     * @param boundType The {@link SzBoundType} that describes how to apply the
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
-     * @param sampleSize    The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
-     * @param timers        The optional {@link Timers} to track timing of the 
+     * @param sampleSize The optional number of results to randomly sample from
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
+     * @param timers        The optional {@link Timers} to track timing of the
      *                      operation.
      * 
      * @return The {@link SzEntitiesPage} containing the entity IDs.
@@ -1381,10 +1439,11 @@ public final class SummaryStatsReports {
      * @throws NullPointerException If a required parameter is specified as
      *                              <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified page size or sample size
-     *                                  is less than one (1), or if the sample size
-     *                                  is specified and is greater-than or equal
-     *                                  to the sample size.
+     * @throws IllegalArgumentException If the specified page size or sample
+     *                                  size is less than one (1), or if the
+     *                                  sample size is specified and is
+     *                                  greater-than or equal to the sample
+     *                                  size.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
@@ -1415,32 +1474,32 @@ public final class SummaryStatsReports {
     }
 
     /**
-     * Retrieves a page of entity ID's for entities that have at least one record
-     * from the associated data source with a disclosed relationship to another
-     * entity that has at least one record from the "versus" data source.
+     * Retrieves a page of entity ID's for entities that have at least one
+     * record from the associated data source with a disclosed relationship to
+     * another entity that has at least one record from the "versus" data
+     * source.
      *
      * @param conn          The non-null JDBC {@link Connection} to use.
      * @param dataSource    The non-null data source code identifying the data
      *                      source for which the entities are being retrieved.
-     * @param vsDataSource  The non-null "versus" data source for which the 
+     * @param vsDataSource  The non-null "versus" data source for which the
      *                      entities are being retrieved.
      * @param matchKey   The optional match key for retrieving statistics
-     *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) or <code>null</code> for all
-     *                   match keys.
+     *                   specific to a match key, or asterisk (<code>"*"</code>)
+     *                   or <code>null</code> for all match keys.
      * @param principle  The optional principle for retrieving statistics
-     *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) or <code>null</code> for all 
-     *                   principles.
+     *                   specific to a principle, or asterisk (<code>"*"</code>)
+     *                   or <code>null</code> for all principles.
      * @param entityIdBound The bounded value for the returned entity ID's,
-     *                      formatted as an integer or the word <code>"max"</code>.
-     * @param boundType     The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                      formatted as an integer or the word
+     *                      <code>"max"</code>.
+     * @param boundType The {@link SzBoundType} that describes how to apply the
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
-     * @param sampleSize    The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
-     * @param timers        The optional {@link Timers} to track timing of the 
+     * @param sampleSize The optional number of results to randomly sample from
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
+     * @param timers        The optional {@link Timers} to track timing of the
      *                      operation.
      * 
      * @return The {@link SzEntitiesPage} containing the entity IDs.
@@ -1448,10 +1507,11 @@ public final class SummaryStatsReports {
      * @throws NullPointerException If a required parameter is specified as
      *                              <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified page size or sample size
-     *                                  is less than one (1), or if the sample size
-     *                                  is specified and is greater-than or equal
-     *                                  to the sample size.
+     * @throws IllegalArgumentException If the specified page size or sample
+     *                                  size is less than one (1), or if the
+     *                                  sample size is specified and is
+     *                                  greater-than or equal to the sample
+     *                                  size.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
@@ -1482,32 +1542,32 @@ public final class SummaryStatsReports {
     }
 
     /**
-     * Retrieves a page of entity ID's for entities that have at least one record
-     * from the associated data source ambiguously matched against another entity
-     * that has at least one record from the associated data source.
+     * Retrieves a page of entity ID's for entities that have at least one
+     * record from the associated data source ambiguously matched against
+     * another entity that has at least one record from the associated data
+     * source.
      *
      * @param conn          The non-null JDBC {@link Connection} to use.
      * @param dataSource    The non-null data source code identifying the data
      *                      source for which the entities are being retrieved.
-     * @param vsDataSource  The non-null "versus" data source for which the 
+     * @param vsDataSource  The non-null "versus" data source for which the
      *                      entities are being retrieved.
      * @param matchKey   The optional match key for retrieving statistics
-     *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) or <code>null</code> for all
-     *                   match keys.
+     *                   specific to a match key, or asterisk (<code>"*"</code>)
+     *                   or <code>null</code> for all match keys.
      * @param principle  The optional principle for retrieving statistics
-     *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) or <code>null</code> for all 
-     *                   principles.
+     *                   specific to a principle, or asterisk (<code>"*"</code>)
+     *                   or <code>null</code> for all principles.
      * @param entityIdBound The bounded value for the returned entity ID's,
-     *                      formatted as an integer or the word <code>"max"</code>.
-     * @param boundType     The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                      formatted as an integer or the word
+     *                      <code>"max"</code>.
+     * @param boundType The {@link SzBoundType} that describes how to apply the
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
-     * @param sampleSize    The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
-     * @param timers        The optional {@link Timers} to track timing of the 
+     * @param sampleSize The optional number of results to randomly sample from
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
+     * @param timers        The optional {@link Timers} to track timing of the
      *                      operation.
      * 
      * @return The {@link SzEntitiesPage} containing the entity IDs.
@@ -1515,10 +1575,11 @@ public final class SummaryStatsReports {
      * @throws NullPointerException If a required parameter is specified as
      *                              <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified page size or sample size
-     *                                  is less than one (1), or if the sample size
-     *                                  is specified and is greater-than or equal
-     *                                  to the sample size.
+     * @throws IllegalArgumentException If the specified page size or sample
+     *                                  size is less than one (1), or if the
+     *                                  sample size is specified and is
+     *                                  greater-than or equal to the sample
+     *                                  size.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
@@ -1560,21 +1621,19 @@ public final class SummaryStatsReports {
      *                      being retrieved.
      * @param statistic     The non-null {@link SzReportStatistic} to use.
      * @param matchKey   The optional match key for retrieving statistics
-     *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) or <code>null</code> for all
-     *                   match keys.
+     *                   specific to a match key, or asterisk (<code>"*"</code>)
+     *                   or <code>null</code> for all match keys.
      * @param principle  The optional principle for retrieving statistics
-     *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) or <code>null</code> for all 
-     *                   principles.
+     *                   specific to a principle, or asterisk (<code>"*"</code>)
+     *                   or <code>null</code> for all principles.
      * @param entityIdBound The bound value for the entity ID's that will be
      *                      returned.
-     * @param boundType     The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     * @param boundType The {@link SzBoundType} that describes how to apply the
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
-     * @param sampleSize    The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     * @param sampleSize The optional number of results to randomly sample from
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * @param timers        The optional {@link Timers} to track timing of the
      *                      operation.
      * 
@@ -1583,20 +1642,21 @@ public final class SummaryStatsReports {
      * @throws NullPointerException If a required parameter is specified as
      *                              <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified page size or sample size
-     *                                  is less than one (1), or if the sample size
-     *                                  is specified and is greater-than or equal
-     *                                  to the sample size.
+     * @throws IllegalArgumentException If the specified page size or sample
+     *                                  size is less than one (1), or if the
+     *                                  sample size is specified and is
+     *                                  greater-than or equal to the sample
+     *                                  size.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
     protected static SzEntitiesPage getEntityIds(Connection         conn,
                                                  String             dataSource,
-                                                 String             vsDataSource,
+                                                 String vsDataSource,
                                                  SzReportStatistic  statistic,
                                                  String             matchKey,
                                                  String             principle,
-                                                 String             entityIdBound,
+                                                 String entityIdBound,
                                                  SzBoundType        boundType,
                                                  Integer            pageSize,
                                                  Integer            sampleSize,
@@ -1612,7 +1672,8 @@ public final class SummaryStatsReports {
         principle = "*".equals(principle) ? null : principle;
         matchKey = "*".equals(matchKey) ? null : matchKey;
 
-        String stat = statistic.principle(principle).matchKey(matchKey).format();
+        String stat =
+                statistic.principle(principle).matchKey(matchKey).format();
 
         SzReportCode reportCode = (dataSource.equals(vsDataSource)) 
             ? DATA_SOURCE_SUMMARY : CROSS_SOURCE_SUMMARY;
@@ -1630,32 +1691,31 @@ public final class SummaryStatsReports {
     }
 
     /**
-     * Retrieves a page of {@link com.senzing.datamart.reports.model.SzReportRelation}
-     * instances describing the ambiguous match relations between entities having at
-     * least one record from the first data source ambiguously matched against another
-     * entity that has at least one record from the "versus" data source.
+     * Retrieves a page of {@link
+     * com.senzing.datamart.reports.model.SzReportRelation} instances describing
+     * the ambiguous match relations between entities having at least one record
+     * from the first data source ambiguously matched against another entity
+     * that has at least one record from the "versus" data source.
      *
      * @param conn          The non-null JDBC {@link Connection} to use.
      * @param dataSource    The non-null data source code identifying the data
      *                      source for which the entities are being retrieved.
-     * @param vsDataSource  The non-null "versus" data source for which the 
+     * @param vsDataSource  The non-null "versus" data source for which the
      *                      entities are being retrieved.
      * @param matchKey   The optional match key for retrieving statistics
-     *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) or <code>null</code> for all
-     *                   match keys.
+     *                   specific to a match key, or asterisk (<code>"*"</code>)
+     *                   or <code>null</code> for all match keys.
      * @param principle  The optional principle for retrieving statistics
-     *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) or <code>null</code> for all 
-     *                   principles.
+     *                   specific to a principle, or asterisk (<code>"*"</code>)
+     *                   or <code>null</code> for all principles.
      * @param relationBound The bounded value for the returned relations.
-     * @param boundType     The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     * @param boundType The {@link SzBoundType} that describes how to apply the
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
-     * @param sampleSize    The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
-     * @param timers        The optional {@link Timers} to track timing of the 
+     * @param sampleSize The optional number of results to randomly sample from
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
+     * @param timers        The optional {@link Timers} to track timing of the
      *                      operation.
      * 
      * @return The {@link SzEntitiesPage} containing the entity IDs.
@@ -1663,10 +1723,11 @@ public final class SummaryStatsReports {
      * @throws NullPointerException If a required parameter is specified as
      *                              <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified page size or sample size
-     *                                  is less than one (1), or if the sample size
-     *                                  is specified and is greater-than or equal
-     *                                  to the sample size.
+     * @throws IllegalArgumentException If the specified page size or sample
+     *                                  size is less than one (1), or if the
+     *                                  sample size is specified and is
+     *                                  greater-than or equal to the sample
+     *                                  size.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
@@ -1697,32 +1758,31 @@ public final class SummaryStatsReports {
     }
 
     /**
-     * Retrieves a page of {@link com.senzing.datamart.reports.model.SzReportRelation}
-     * instances describing the possible match relations between entities having at
-     * least one record from the first data source possibly matched against another
-     * entity that has at least one record from the "versus" data source.
+     * Retrieves a page of {@link
+     * com.senzing.datamart.reports.model.SzReportRelation} instances describing
+     * the possible match relations between entities having at least one record
+     * from the first data source possibly matched against another entity that
+     * has at least one record from the "versus" data source.
      *
      * @param conn          The non-null JDBC {@link Connection} to use.
      * @param dataSource    The non-null data source code identifying the data
      *                      source for which the entities are being retrieved.
-     * @param vsDataSource  The non-null "versus" data source for which the 
+     * @param vsDataSource  The non-null "versus" data source for which the
      *                      entities are being retrieved.
      * @param matchKey   The optional match key for retrieving statistics
-     *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) or <code>null</code> for all
-     *                   match keys.
+     *                   specific to a match key, or asterisk (<code>"*"</code>)
+     *                   or <code>null</code> for all match keys.
      * @param principle  The optional principle for retrieving statistics
-     *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) or <code>null</code> for all 
-     *                   principles.
+     *                   specific to a principle, or asterisk (<code>"*"</code>)
+     *                   or <code>null</code> for all principles.
      * @param relationBound The bounded value for the returned relations.
-     * @param boundType     The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     * @param boundType The {@link SzBoundType} that describes how to apply the
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
-     * @param sampleSize    The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
-     * @param timers        The optional {@link Timers} to track timing of the 
+     * @param sampleSize The optional number of results to randomly sample from
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
+     * @param timers        The optional {@link Timers} to track timing of the
      *                      operation.
      * 
      * @return The {@link SzEntitiesPage} containing the entity IDs.
@@ -1730,10 +1790,11 @@ public final class SummaryStatsReports {
      * @throws NullPointerException If a required parameter is specified as
      *                              <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified page size or sample size
-     *                                  is less than one (1), or if the sample size
-     *                                  is specified and is greater-than or equal
-     *                                  to the sample size.
+     * @throws IllegalArgumentException If the specified page size or sample
+     *                                  size is less than one (1), or if the
+     *                                  sample size is specified and is
+     *                                  greater-than or equal to the sample
+     *                                  size.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
@@ -1764,32 +1825,31 @@ public final class SummaryStatsReports {
     }
 
     /**
-     * Retrieves a page of {@link com.senzing.datamart.reports.model.SzReportRelation}
-     * instances describing the possible relations between entities having at least
-     * one record from the first data source possibly related against another entity
-     * that has at least one record from the "versus" data source.
+     * Retrieves a page of {@link
+     * com.senzing.datamart.reports.model.SzReportRelation} instances describing
+     * the possible relations between entities having at least one record from
+     * the first data source possibly related against another entity that has at
+     * least one record from the "versus" data source.
      *
      * @param conn          The non-null JDBC {@link Connection} to use.
      * @param dataSource    The non-null data source code identifying the data
      *                      source for which the entities are being retrieved.
-     * @param vsDataSource  The non-null "versus" data source for which the 
+     * @param vsDataSource  The non-null "versus" data source for which the
      *                      entities are being retrieved.
      * @param matchKey   The optional match key for retrieving statistics
-     *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) or <code>null</code> for all
-     *                   match keys.
+     *                   specific to a match key, or asterisk (<code>"*"</code>)
+     *                   or <code>null</code> for all match keys.
      * @param principle  The optional principle for retrieving statistics
-     *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) or <code>null</code> for all 
-     *                   principles.
+     *                   specific to a principle, or asterisk (<code>"*"</code>)
+     *                   or <code>null</code> for all principles.
      * @param relationBound The bounded value for the returned relations.
-     * @param boundType     The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     * @param boundType The {@link SzBoundType} that describes how to apply the
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
-     * @param sampleSize    The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
-     * @param timers        The optional {@link Timers} to track timing of the 
+     * @param sampleSize The optional number of results to randomly sample from
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
+     * @param timers        The optional {@link Timers} to track timing of the
      *                      operation.
      * 
      * @return The {@link SzEntitiesPage} containing the entity IDs.
@@ -1797,10 +1857,11 @@ public final class SummaryStatsReports {
      * @throws NullPointerException If a required parameter is specified as
      *                              <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified page size or sample size
-     *                                  is less than one (1), or if the sample size
-     *                                  is specified and is greater-than or equal
-     *                                  to the sample size.
+     * @throws IllegalArgumentException If the specified page size or sample
+     *                                  size is less than one (1), or if the
+     *                                  sample size is specified and is
+     *                                  greater-than or equal to the sample
+     *                                  size.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
@@ -1831,32 +1892,31 @@ public final class SummaryStatsReports {
     }
 
     /**
-     * Retrieves a page of {@link com.senzing.datamart.reports.model.SzReportRelation}
-     * instances describing the disclosed relations between entities having at least
-     * one record from the first data source having a disclosed relation to another
-     * entity that has at least one record from the "versus" data source.
+     * Retrieves a page of {@link
+     * com.senzing.datamart.reports.model.SzReportRelation} instances describing
+     * the disclosed relations between entities having at least one record from
+     * the first data source having a disclosed relation to another entity that
+     * has at least one record from the "versus" data source.
      *
      * @param conn          The non-null JDBC {@link Connection} to use.
      * @param dataSource    The non-null data source code identifying the data
      *                      source for which the entities are being retrieved.
-     * @param vsDataSource  The non-null "versus" data source for which the 
+     * @param vsDataSource  The non-null "versus" data source for which the
      *                      entities are being retrieved.
      * @param matchKey   The optional match key for retrieving statistics
-     *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) or <code>null</code> for all
-     *                   match keys.
+     *                   specific to a match key, or asterisk (<code>"*"</code>)
+     *                   or <code>null</code> for all match keys.
      * @param principle  The optional principle for retrieving statistics
-     *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) or <code>null</code> for all 
-     *                   principles.
+     *                   specific to a principle, or asterisk (<code>"*"</code>)
+     *                   or <code>null</code> for all principles.
      * @param relationBound The bounded value for the returned relations.
-     * @param boundType     The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     * @param boundType The {@link SzBoundType} that describes how to apply the
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
-     * @param sampleSize    The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
-     * @param timers        The optional {@link Timers} to track timing of the 
+     * @param sampleSize The optional number of results to randomly sample from
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
+     * @param timers        The optional {@link Timers} to track timing of the
      *                      operation.
      * 
      * @return The {@link SzEntitiesPage} containing the entity IDs.
@@ -1864,10 +1924,11 @@ public final class SummaryStatsReports {
      * @throws NullPointerException If a required parameter is specified as
      *                              <code>null</code>.
      * 
-     * @throws IllegalArgumentException If the specified page size or sample size
-     *                                  is less than one (1), or if the sample size
-     *                                  is specified and is greater-than or equal
-     *                                  to the sample size.
+     * @throws IllegalArgumentException If the specified page size or sample
+     *                                  size is less than one (1), or if the
+     *                                  sample size is specified and is
+     *                                  greater-than or equal to the sample
+     *                                  size.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
@@ -1898,9 +1959,9 @@ public final class SummaryStatsReports {
     }
 
     /**
-     * Retrieves a page of relations that have the match type associated with the
-     * specific {@link SzReportStatistic} using the other parameters for determining
-     * the page.
+     * Retrieves a page of relations that have the match type associated with
+     * the specific {@link SzReportStatistic} using the other parameters for
+     * determining the page.
      *
      * @param conn          The non-null JDBC {@link Connection} to use.
      * @param dataSource    The non-null data source for which the entities are
@@ -1909,32 +1970,32 @@ public final class SummaryStatsReports {
      *                      entities are being retrieved.
      * @param statistic     The non-null {@link SzReportStatistic} to use.
      * @param matchKey   The optional match key for retrieving statistics
-     *                   specific to a match key, or asterisk
-     *                   (<code>"*"</code>) or <code>null</code> for all
-     *                   match keys.
+     *                   specific to a match key, or asterisk (<code>"*"</code>)
+     *                   or <code>null</code> for all match keys.
      * @param principle  The optional principle for retrieving statistics
-     *                   specific to a principle, or asterisk
-     *                   (<code>"*"</code>) or <code>null</code> for all 
-     *                   principles.
-     * @param relationBound The bound value for the relation that is either a single
-     *                      entity ID or a pair of entity ID's separated by a colon.
-     * @param boundType     The {@link SzBoundType} that describes how to apply the
-     *                      specified entity ID bound.
+     *                   specific to a principle, or asterisk (<code>"*"</code>)
+     *                   or <code>null</code> for all principles.
+     * @param relationBound The bound value for the relation that is either a
+     *                      single entity ID or a pair of entity ID's separated
+     *                      by a colon.
+     * @param boundType The {@link SzBoundType} that describes how to apply the
+     *                  specified entity ID bound.
      * @param pageSize      The maximum number of entity ID's to return.
-     * @param sampleSize    The optional number of results to randomly sample from
-     *                      the page, which, if specified, must be strictly
-     *                      less-than the page size.
+     * @param sampleSize The optional number of results to randomly sample from
+     *                   the page, which, if specified, must be strictly
+     *                   less-than the page size.
      * @param timers        The optional {@link Timers} to use.
      * 
      * @return The {@link SzRelationsPage} describing the relations on the page.
      * 
-     * @throws NullPointerException If a required parameter is specified as 
+     * @throws NullPointerException If a required parameter is specified as
      *                              <code>null</code>.
      * 
      * @throws IllegalArgumentException If the specified page size or sample
      *                                  size is less than one (1), or if the
      *                                  sample size is specified and is
-     *                                  greater-than or equal to the sample size.
+     *                                  greater-than or equal to the sample
+     *                                  size.
      * 
      * @throws SQLException If a JDBC failure occurs.
      */
@@ -1961,7 +2022,8 @@ public final class SummaryStatsReports {
         principle = "*".equals(principle) ? null : principle;
         matchKey = "*".equals(matchKey) ? null : matchKey;
 
-        String stat = statistic.principle(principle).matchKey(matchKey).format();
+        String stat =
+                statistic.principle(principle).matchKey(matchKey).format();
 
         SzReportCode reportCode = (dataSource.equals(vsDataSource)) 
             ? DATA_SOURCE_SUMMARY : CROSS_SOURCE_SUMMARY;

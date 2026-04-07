@@ -48,7 +48,8 @@ import static com.senzing.util.LoggingUtilities.*;
 /**
  * The data mart replicator command-line class.
  */
-public class SzReplicator extends Thread {
+public class SzReplicator extends Thread
+{
     /**
      * Constant for converting between nanoseconds and milliseconds.
      */
@@ -78,8 +79,9 @@ public class SzReplicator extends Thread {
      * The {@link DateTimeFormatter} for interpreting the build number as a
      * LocalDateTime instance.
      */
-    private static final DateTimeFormatter BUILD_DATE_FORMATTER = DateTimeFormatter.ofPattern(BUILD_DATE_PATTERN)
-            .withZone(BUILD_ZONE);
+    private static final DateTimeFormatter BUILD_DATE_FORMATTER
+            = DateTimeFormatter.ofPattern(BUILD_DATE_PATTERN)
+                               .withZone(BUILD_ZONE);
 
     /**
      * The date-time pattern for the build number.
@@ -90,13 +92,15 @@ public class SzReplicator extends Thread {
      * The {@link DateTimeFormatter} for interpreting the build number as a
      * LocalDateTime instance.
      */
-    private static final DateTimeFormatter BUILD_NUMBER_FORMATTER = DateTimeFormatter.ofPattern(BUILD_NUMBER_PATTERN);
+    private static final DateTimeFormatter BUILD_NUMBER_FORMATTER
+            = DateTimeFormatter.ofPattern(BUILD_NUMBER_PATTERN);
 
     /**
-     * The {@link String} token used to identify development builds when parsing the
-     * version info.
+     * The {@link String} token used to identify development builds when parsing
+     * the version info.
      */
-    private static final String DEVELOPMENT_VERSION_TOKEN = "DEVELOPMENT_VERSION";
+    private static final String DEVELOPMENT_VERSION_TOKEN
+            = "DEVELOPMENT_VERSION";
 
     /**
      * A constant for the {@link SzEnvironment#destroy()} method.
@@ -124,15 +128,20 @@ public class SzReplicator extends Thread {
      *
      * @throws Exception If a failure occurs.
      */
-    public static void main(String[] args) throws Exception {
-        commandLineStart(args, SzReplicator::parseCommandLine, SzReplicator::getUsageString,
-                SzReplicator::getVersionString, SzReplicator::build);
+    public static void main(String[] args)
+        throws Exception
+    {
+        commandLineStart(args,
+                         SzReplicator::parseCommandLine,
+                         SzReplicator::getUsageString,
+                         SzReplicator::getVersionString,
+                         SzReplicator::build);
     }
 
     /**
      * Parses the {@link SzReplicator} command line arguments and produces a
-     * {@link Map} of {@link CommandLineOption} keys to {@link Object} command line
-     * values.
+     * {@link Map} of {@link CommandLineOption} keys to {@link Object} command
+     * line values.
      *
      * @param args                The arguments to parse.
      * @param deprecationWarnings The {@link List} to populate with deprecation
@@ -141,9 +150,17 @@ public class SzReplicator extends Thread {
      * @throws CommandLineException If a command-line parsing failure occurs.
      */
     @SuppressWarnings({ "rawtypes" })
-    protected static Map<CommandLineOption, Object> parseCommandLine(String[] args, List<DeprecatedOptionWarning> deprecationWarnings) throws CommandLineException {
-        Map<CommandLineOption, CommandLineValue> optionValues = CommandLineUtilities.parseCommandLine(
-                SzReplicatorOption.class, args, SzReplicatorOption.PARAMETER_PROCESSOR, deprecationWarnings);
+    protected static Map<CommandLineOption, Object> parseCommandLine(
+            String[] args, 
+            List<DeprecatedOptionWarning> deprecationWarnings)
+        throws CommandLineException 
+    {
+        Map<CommandLineOption, CommandLineValue> optionValues 
+            = CommandLineUtilities.parseCommandLine(
+                SzReplicatorOption.class, 
+                           args, 
+                           SzReplicatorOption.PARAMETER_PROCESSOR,
+                           deprecationWarnings);
 
         // iterate over the option values and handle them
         JsonObjectBuilder job = Json.createObjectBuilder();
@@ -156,8 +173,12 @@ public class SzReplicator extends Thread {
         CommandLineUtilities.processCommandLine(optionValues, result, job, sb);
 
         // log the options
-        if (!optionValues.containsKey(HELP) && !optionValues.containsKey(VERSION)) {
-            System.out.println("[" + (new Date()) + "] Senzing Data Mart Replicator: " + sb.toString());
+        if (!optionValues.containsKey(HELP) 
+            && !optionValues.containsKey(VERSION)) 
+        {
+            System.out.println(
+                "[" + (new Date()) + "] Senzing Data Mart Replicator: "
+                + sb.toString());
         }
 
         // return the result
@@ -165,7 +186,8 @@ public class SzReplicator extends Thread {
     }
 
     /**
-     * Creates a new instance of {@link SzReplicator} from the specified options.
+     * Creates a new instance of {@link SzReplicator} from the specified
+     * options.
      *
      * @param options The {@link Map} of {@link CommandLineOption} keys to
      *                {@link Object} values.
@@ -173,24 +195,34 @@ public class SzReplicator extends Thread {
      * @throws Exception If a failure occurs.
      */
     @SuppressWarnings("rawtypes")
-    private static SzReplicator build(Map<CommandLineOption, Object> options) throws Exception {
+    private static SzReplicator build(Map<CommandLineOption, Object> options)
+        throws Exception 
+    {
         return new SzReplicator(new SzReplicatorOptions(options));
     }
 
     /**
-     * Starts an instance of the server from the command line using the specified
-     * arguments and the specified function helpers.
+     * Starts an instance of the server from the command line using the
+     * specified arguments and the specified function helpers.
      *
      * @param args           The command-line arguments.
-     * @param cmdLineParser  The {@link CommandLineParser} to parse the command line
-     *                       arguments.
+     * @param cmdLineParser  The {@link CommandLineParser} to parse the command
+     *                       line arguments.
      * @param usageMessage   The {@link Supplier} for the usage message.
      * @param versionMessage The {@link Supplier} for the version message.
      * @param appBuilder     The {@link CommandLineBuilder} to create the server
      *                       instance from the command line options.
      * @throws Exception If a failure occurs.
      */
-    protected static void commandLineStart(String[] args, CommandLineParser cmdLineParser, Supplier<String> usageMessage, Supplier<String> versionMessage, CommandLineBuilder<SzReplicator> appBuilder) throws Exception {
+    @SuppressWarnings("rawtypes")
+    protected static void commandLineStart(
+            String[]                            args, 
+            CommandLineParser                   cmdLineParser,
+            Supplier<String>                    usageMessage, 
+            Supplier<String>                    versionMessage, 
+            CommandLineBuilder<SzReplicator>    appBuilder)
+        throws Exception 
+    {
         Map<CommandLineOption, Object> options = null;
         List<DeprecatedOptionWarning> warnings = new LinkedList<>();
         try {
@@ -206,7 +238,8 @@ public class SzReplicator extends Thread {
             System.out.println(e.getMessage());
 
             System.err.println();
-            System.err.println("Try the " + HELP.getCommandLineFlag() + " option for help.");
+            System.err.println(
+                "Try the " + HELP.getCommandLineFlag() + " option for help.");
             System.err.println();
             throw e;
 
@@ -230,11 +263,16 @@ public class SzReplicator extends Thread {
             return;
         }
 
-        System.out.println("os.arch        = " + System.getProperty("os.arch"));
-        System.out.println("os.name        = " + System.getProperty("os.name"));
-        System.out.println("user.dir       = " + System.getProperty("user.dir"));
-        System.out.println("user.home      = " + System.getProperty("user.home"));
-        System.out.println("java.io.tmpdir = " + System.getProperty("java.io.tmpdir"));
+        System.out.println(
+            "os.arch        = " + System.getProperty("os.arch"));
+        System.out.println(
+            "os.name        = " + System.getProperty("os.name"));
+        System.out.println(
+            "user.dir       = " + System.getProperty("user.dir"));
+        System.out.println(
+            "user.home      = " + System.getProperty("user.home"));
+        System.out.println(
+            "java.io.tmpdir = " + System.getProperty("java.io.tmpdir"));
 
         SzReplicator replicator = null;
         try {
@@ -245,7 +283,8 @@ public class SzReplicator extends Thread {
 
             if (replicator == null) {
                 System.err.println("FAILED TO INITIALIZE");
-                throw new IllegalStateException("FAILED TO INITIALIZE REPLICATOR");
+                throw new IllegalStateException(
+                    "FAILED TO INITIALIZE REPLICATOR");
             }
 
         } catch (Exception e) {
@@ -265,7 +304,8 @@ public class SzReplicator extends Thread {
     /**
      *
      */
-    public void run() {
+    public void run()
+    {
         try {
             logInfo("STARTING MESSAGE CONSUMPTION...");
             this.messageConsumer.consume(this.replicatorService);
@@ -274,13 +314,16 @@ public class SzReplicator extends Thread {
             synchronized (monitor) {
                 while (true) {
                     this.monitor.wait(5000L);
-                    ListenerService.State listenerState = this.replicatorService.getState();
+                    ListenerService.State listenerState 
+                            = this.replicatorService.getState();
 
-                    MessageConsumer.State consumerState = this.messageConsumer.getState();
+                    MessageConsumer.State consumerState 
+                            = this.messageConsumer.getState();
 
                     // check if something has interrupted processing
                     if (listenerState != ListenerService.State.AVAILABLE
-                            || consumerState != MessageConsumer.State.CONSUMING) {
+                        || consumerState != MessageConsumer.State.CONSUMING) 
+                    {
                         break;
                     }
 
@@ -299,7 +342,8 @@ public class SzReplicator extends Thread {
     /**
      * Destroys the replicator and causes message consumption to cease.
      */
-    public void shutdown() {
+    public void shutdown()
+    {
         this.messageConsumer.destroy();
         this.replicatorService.destroy();
         try {
@@ -332,14 +376,18 @@ public class SzReplicator extends Thread {
             }
             if (token != null) {
                 try {
-                    ConnectionProvider.REGISTRY.unbind(this.connProviderName, token);
+                    ConnectionProvider.REGISTRY.unbind(
+                        this.connProviderName, token);
                 } catch (Exception e) {
-                    logWarning(e, "Failed to unbind connection provider: " + this.connProviderName);
+                    logWarning(e,
+                               "Failed to unbind connection provider: " 
+                                    + this.connProviderName);
                 }
             }
 
         } catch (InterruptedException e) {
-            logWarning(e, "Interrupted while joining against replicator during destroy()");
+            logWarning(e, "Interrupted while joining against "
+                    + "replicator during destroy()");
         } finally {
             if (this.manageEnv) {
                 this.environment.destroy();
@@ -348,13 +396,14 @@ public class SzReplicator extends Thread {
     }
 
     /**
-     * Gets the {@link Map} of {@link Statistic} keys to {@link Number} values for
-     * this instance.
+     * Gets the {@link Map} of {@link Statistic} keys to {@link Number} values
+     * for this instance.
      * 
-     * @return The {@link Map} of {@link Statistic} keys to {@link Number} values
-     *         for this instance.
+     * @return The {@link Map} of {@link Statistic} keys to {@link Number}
+     *             values for this instance.
      */
-    public Map<Statistic, Number> getStatistics() {
+    public Map<Statistic, Number> getStatistics()
+    {
         Map<Statistic, Number> stats = new LinkedHashMap<>();
         stats.putAll(this.messageConsumer.getStatistics());
         stats.putAll(this.replicatorService.getStatistics());
@@ -369,39 +418,47 @@ public class SzReplicator extends Thread {
      * @param stats The {@link Map} of {@link Statistic} keys to {@link Number}
      *              values to print.
      */
-    public static void printStatisticsMap(Map<Statistic, Number> stats) {
+    public static void printStatisticsMap(Map<Statistic, Number> stats)
+    {
         stats.forEach((key, value) -> {
             String units = key.getUnits();
-            System.out.println("  " + key.getName() + ": " + value + ((units != null) ? " " + units : ""));
+            System.out.println(
+                "  " + key.getName() + ": " + value 
+                    + ((units != null) ? " " + units : ""));
         });
     }
 
     /**
-     * Creates a {@link RabbitMQConsumer} instance. This method can be overridden
-     * in subclasses to provide alternative implementations (e.g., for testing).
+     * Creates a {@link RabbitMQConsumer} instance. This method can be
+     * overridden in subclasses to provide alternative implementations (e.g.,
+     * for testing).
      *
      * @return A new {@link RabbitMQConsumer} instance.
      */
-    protected RabbitMQConsumer createRabbitMQConsumer() {
+    protected RabbitMQConsumer createRabbitMQConsumer()
+    {
         return new RabbitMQConsumer();
     }
 
     /**
-     * Creates an {@link SQSConsumer} instance. This method can be overridden
-     * in subclasses to provide alternative implementations (e.g., for testing).
+     * Creates an {@link SQSConsumer} instance. This method can be overridden in
+     * subclasses to provide alternative implementations (e.g., for testing).
      *
      * @return A new {@link SQSConsumer} instance.
      */
-    protected SQSConsumer createSQSConsumer() {
+    protected SQSConsumer createSQSConsumer()
+    {
         return new SQSConsumer();
     }
 
     /**
-     * Returns a formatted string describing the version details of the API Server.
+     * Returns a formatted string describing the version details of the API
+     * Server.
      *
      * @return A formatted string describing the version details.
      */
-    protected static String getVersionString() {
+    protected static String getVersionString()
+    {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         printJarVersion(pw);
@@ -415,16 +472,20 @@ public class SzReplicator extends Thread {
      *
      * @param pw The {@link PrintWriter} to print the version information to.
      */
-    protected static void printJarVersion(PrintWriter pw) {
-        pw.println("[ " + JAR_FILE_NAME + " version " + BuildInfo.MAVEN_VERSION + " ]");
+    protected static void printJarVersion(PrintWriter pw)
+    {
+        pw.println("[ " + JAR_FILE_NAME + " version " 
+                    + BuildInfo.MAVEN_VERSION + " ]");
     }
 
     /**
-     * Prints the Senzing version information to the specified {@link PrintWriter}.
+     * Prints the Senzing version information to the specified
+     * {@link PrintWriter}.
      *
      * @param pw The {@link PrintWriter} to print the version information to.
      */
-    protected static void printSenzingVersions(PrintWriter pw) {
+    protected static void printSenzingVersions(PrintWriter pw)
+    {
         SzEnvironment env = SzCoreEnvironment.getActiveInstance();
         boolean manageEnv = false;
         try {
@@ -437,26 +498,39 @@ public class SzReplicator extends Thread {
             String jsonText = env.getProduct().getVersion();
             JsonObject jsonObj = JsonUtilities.parseJsonObject(jsonText);
 
-            String nativeApiVersion = JsonUtilities.getString(jsonObj, "VERSION");
-            String buildVersion = JsonUtilities.getString(jsonObj, "BUILD_VERSION");
-            String buildNumber = JsonUtilities.getString(jsonObj, "BUILD_NUMBER");
+            String nativeApiVersion 
+                    = JsonUtilities.getString(jsonObj, "VERSION");
+            String buildVersion
+                    = JsonUtilities.getString(jsonObj, "BUILD_VERSION");
+            String buildNumber
+                    = JsonUtilities.getString(jsonObj, "BUILD_NUMBER");
 
             Date buildDate = null;
-            if (buildNumber != null && buildNumber.length() > 0 && buildNumber.indexOf(DEVELOPMENT_VERSION_TOKEN) < 0) {
-                LocalDateTime localDateTime = LocalDateTime.parse(buildNumber, BUILD_NUMBER_FORMATTER);
-                ZonedDateTime zonedDateTime = localDateTime.atZone(BUILD_ZONE);
+            if (buildNumber != null && buildNumber.length() > 0
+                && buildNumber.indexOf(DEVELOPMENT_VERSION_TOKEN) < 0) 
+            {
+                LocalDateTime localDateTime = LocalDateTime.parse(
+                    buildNumber, BUILD_NUMBER_FORMATTER);
+                
+                ZonedDateTime zonedDateTime 
+                        = localDateTime.atZone(BUILD_ZONE);
+
                 buildDate = Date.from(zonedDateTime.toInstant());
 
             } else {
                 buildDate = new Date();
             }
 
-            String formattedBuildDate = BUILD_DATE_FORMATTER.format(Instant.ofEpochMilli(buildDate.getTime()));
+            String formattedBuildDate = BUILD_DATE_FORMATTER.format(
+                    Instant.ofEpochMilli(buildDate.getTime()));
 
-            JsonObject compatVersion = JsonUtilities.getJsonObject(jsonObj, "COMPATIBILITY_VERSION");
+            JsonObject compatVersion = JsonUtilities.getJsonObject(
+                    jsonObj, "COMPATIBILITY_VERSION");
 
-            String configCompatVersion = JsonUtilities.getString(compatVersion, "CONFIG_VERSION");
+            String configCompatVersion = JsonUtilities.getString(
+                compatVersion, "CONFIG_VERSION");
 
+            // CSOFF
             pw.println(" - Senzing Replicator Version   : " + BuildInfo.MAVEN_VERSION);
             pw.println(" - Senzing Native API Version   : " + nativeApiVersion);
             pw.println(" - Senzing Native Build Version : " + buildVersion);
@@ -464,6 +538,7 @@ public class SzReplicator extends Thread {
             pw.println(" - Senzing Native Build Date    : " + formattedBuildDate);
             pw.println(" - Config Compatibility Version : " + configCompatVersion);
             pw.flush();
+            // CSON
 
         } catch (SzException e) {
             pw.println("Failure in getting version: " + e.getMessage());
@@ -483,8 +558,11 @@ public class SzReplicator extends Thread {
      *
      * @param pw The {@link PrintWriter} to write the usage introduction to.
      */
-    protected static void printUsageIntro(PrintWriter pw) {
-        pw.println(multilineFormat("java -jar " + JAR_FILE_NAME + " <options>", "", "<options> includes: "));
+    protected static void printUsageIntro(PrintWriter pw)
+    {
+        pw.println(multilineFormat("java -jar " + JAR_FILE_NAME + " <options>",
+                                   "", 
+                                   "<options> includes: "));
     }
 
     /**
@@ -493,7 +571,9 @@ public class SzReplicator extends Thread {
      *
      * @param pw The {@link PrintWriter} to write the standard options usage.
      */
-    protected static void printStandardOptionsUsage(PrintWriter pw) {
+    protected static void printStandardOptionsUsage(PrintWriter pw)
+    {
+        // CSOFF
         pw.println(multilineFormat(
                 "[ Standard Options ]",
                 "",
@@ -569,6 +649,7 @@ public class SzReplicator extends Thread {
                 "          aggressive : More resources, minimal delay, stay closely in sync",
                 "        Default: standard",
                 "        --> VIA ENVIRONMENT: " + PROCESSING_RATE.getEnvironmentVariable()));
+        // CSON
     }
 
     /**
@@ -576,7 +657,9 @@ public class SzReplicator extends Thread {
      *
      * @param pw The {@link PrintWriter} to write the info-queue options usage.
      */
-    protected static void printInfoQueueOptionsUsage(PrintWriter pw) {
+    protected static void printInfoQueueOptionsUsage(PrintWriter pw)
+    {
+        // CSOFF
         pw.println(multilineFormat(
                 "[ Asynchronous Info Queue Options ]",
                 "   The following options configure the message queue from which to receive",
@@ -616,6 +699,7 @@ public class SzReplicator extends Thread {
                 "        NOTE: This option conflicts with --database-info-queue and --sqs-info-uri.",
                 "        NOTE: Requires --rabbit-info-uri to be specified.",
                 "        --> VIA ENVIRONMENT: " + RABBITMQ_INFO_QUEUE.getEnvironmentVariable()));
+        // CSON
     }
 
     /**
@@ -625,7 +709,9 @@ public class SzReplicator extends Thread {
      * @param pw The {@link PrintWriter} to write the data-mart database
      *           connectivity options usage.
      */
-    protected static void printDatabaseOptionsUsage(PrintWriter pw) {
+    protected static void printDatabaseOptionsUsage(PrintWriter pw)
+    {
+        // CSOFF
         pw.println(multilineFormat(
                 "[ Data Mart Database Connectivity Options ]",
                 "",
@@ -659,6 +745,7 @@ public class SzReplicator extends Thread {
                 "",
                 "        Default: " + DEFAULT_CORE_SETTINGS_DATABASE_URI + " (extract from core settings)",
                 "        --> VIA ENVIRONMENT: " + DATABASE_URI.getEnvironmentVariable()));
+        // CSON
     }
 
     /**
@@ -666,7 +753,8 @@ public class SzReplicator extends Thread {
      *
      * @return The usage string for the data-mart replicator.
      */
-    public static String getUsageString() {
+    public static String getUsageString()
+    {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
 
@@ -698,7 +786,8 @@ public class SzReplicator extends Thread {
     private ConnectionPool connPool = null;
 
     /**
-     * The {@link ConnectionProvider} that is backed by the {@link ConnectionPool}.
+     * The {@link ConnectionProvider} that is backed by the
+     * {@link ConnectionPool}.
      */
     private ConnectionProvider connProvider;
 
@@ -709,12 +798,14 @@ public class SzReplicator extends Thread {
     private String connProviderName;
 
     /**
-     * The name under which to register the message queue if using a database queue.
+     * The name under which to register the message queue if using a database
+     * queue.
      */
     private String queueRegistryName = null;
 
     /**
-     * The name under which to register the message queue if using a database queue.
+     * The name under which to register the message queue if using a database
+     * queue.
      */
     private SQLConsumer.MessageQueue sqlMessageQueue = null;
 
@@ -724,12 +815,14 @@ public class SzReplicator extends Thread {
     private SzEnvironment environment = null;
 
     /**
-     * The proxied {@link SzEnvironment} to prevent calling of {@link #destroy()}.
+     * The proxied {@link SzEnvironment} to prevent calling of
+     * {@link #destroy()}.
      */
     private SzEnvironment proxyEnvironment = null;
 
     /**
-     * The flag indicating if this instance should manage the {@link SzEnvironment}.
+     * The flag indicating if this instance should manage the
+     * {@link SzEnvironment}.
      */
     private boolean manageEnv = false;
 
@@ -750,17 +843,21 @@ public class SzReplicator extends Thread {
     private SzReplicatorService replicatorService;
 
     /**
-     * Creates a new instance of {@link SzAutoCoreEnvironment} using the specified
-     * options.
+     * Creates a new instance of {@link SzAutoCoreEnvironment} using the
+     * specified options.
      * 
      * @param options The {@link SzReplicatorOptions} to use.
      * @return The {@link SzAutoCoreEnvironment} that was created using the
-     *         specified options.
+     *             specified options.
      * 
      * @throws IllegalStateException If there is already an active instance of
-     *                               {@link com.senzing.sdk.core.SzCoreEnvironment}.
+     *                               {@link
+     *                               com.senzing.sdk.core.SzCoreEnvironment}.
      */
-    protected static SzAutoCoreEnvironment createSzAutoCoreEnvironment(SzReplicatorOptions options) throws IllegalStateException {
+    protected static SzAutoCoreEnvironment createSzAutoCoreEnvironment(
+            SzReplicatorOptions options)
+        throws IllegalStateException 
+    {
         String settings = JsonUtilities.toJsonText(options.getCoreSettings());
 
         String instanceName = options.getCoreInstanceName();
@@ -770,22 +867,27 @@ public class SzReplicator extends Thread {
         int concurrency = options.getCoreConcurrency();
 
         long refreshSeconds = options.getRefreshConfigSeconds();
-        Duration duration = (refreshSeconds < 0) ? null : Duration.ofSeconds(refreshSeconds);
+        Duration duration = (refreshSeconds < 0) 
+                          ? null : Duration.ofSeconds(refreshSeconds);
 
-        return SzAutoCoreEnvironment.newAutoBuilder().concurrency(concurrency).configRefreshPeriod(duration)
-                .settings(settings).instanceName(instanceName).verboseLogging(verbose).build();
+        return SzAutoCoreEnvironment.newAutoBuilder()
+                                    .concurrency(concurrency)
+                                    .configRefreshPeriod(duration)
+                                    .settings(settings)
+                                    .instanceName(instanceName)
+                                    .verboseLogging(verbose).build();
     }
 
     /**
      * Constructs an instance of {@link SzReplicator} with the specified
      * {@link SzReplicatorOptions} instance. The server will <b>not</b>
-     * be started upon construction and the {@link #start()} method will
-     * need to be called.
+     * be started upon construction and the {@link #start()} method will need to
+     * be called.
      *
      * <b>NOTE:</b> This will initialize the Senzing Core SDK via
      * {@link SzAutoCoreEnvironment} and only one active instance of
-     * {@link com.senzing.sdk.core.SzCoreEnvironment} is allowed in a process at any
-     * given time.
+     * {@link com.senzing.sdk.core.SzCoreEnvironment} is allowed in a
+     * process at any given time.
      * 
      * @param options The {@link SzReplicatorOptions} instance with which to
      *                construct the API server instance.
@@ -795,7 +897,9 @@ public class SzReplicator extends Thread {
      * 
      * @throws Exception             If a failure occurs.
      */
-    public SzReplicator(SzReplicatorOptions options) throws Exception {
+    public SzReplicator(SzReplicatorOptions options)
+        throws Exception
+    {
         this(options, false);
     }
 
@@ -804,16 +908,21 @@ public class SzReplicator extends Thread {
      * {@link SzReplicatorOptions} instance, optionally {@linkplain #start()
      * starting} processing upon construction.
      *
-     * @param options         The {@link SzReplicatorOptions} instance with which to
-     *                        construct the API server instance.
+     * @param options         The {@link SzReplicatorOptions} instance with
+     *                        which to construct the API server instance.
      * 
-     * @param startProcessing <code>true</code> if processing should be started upon
-     *                        construction, otherwise <code>false</code>.
+     * @param startProcessing <code>true</code> if processing should be started
+     *                        upon construction, otherwise <code>false</code>.
      * 
      * @throws Exception If a failure occurs.
      */
-    public SzReplicator(SzReplicatorOptions options, boolean startProcessing) throws Exception {
-        this(createSzAutoCoreEnvironment(options), true, options, startProcessing);
+    public SzReplicator(SzReplicatorOptions options, boolean startProcessing)
+        throws Exception 
+    {
+        this(createSzAutoCoreEnvironment(options),
+             true,
+             options,
+             startProcessing);
     }
 
     /**
@@ -821,26 +930,29 @@ public class SzReplicator extends Thread {
      * {@link SzEnvironment} and {@link SzReplicatorOptions} instance. The
      * constructed instance will <b>not</b> manage the specified
      * {@link SzEnvironment} in that it will <b>not</b> attempt
-     * {@linkplain SzEnvironment#destroy() destroy} it upon destruction of this
-     * instance.
+     * {@linkplain SzEnvironment#destroy() destroy} it upon destruction of
+     * this instance.
      *
      * <p>
-     * <b>NOTE:</b> Any of the {@linkplain SzReplicatorOptions options} specified
-     * pertaining to the creation of an {@link SzAutoCoreEnvironment} will be
-     * ignored.
+     * <b>NOTE:</b> Any of the {@linkplain SzReplicatorOptions options}
+     * specified pertaining to the creation of an {@link SzAutoCoreEnvironment}
+     * will be ignored.
      * 
      * @param environment     The {@link SzEnvironment} to use.
      * 
-     * @param options         The {@link SzReplicatorOptions} instance with which to
-     *                        construct the API server instance.
+     * @param options         The {@link SzReplicatorOptions} instance with
+     *                        which to construct the API server instance.
      * 
-     * @param startProcessing <code>true</code> if processing should be started upon
-     *                        construction, otherwise <code>false</code>.
+     * @param startProcessing <code>true</code> if processing should be started
+     *                        upon construction, otherwise <code>false</code>.
      * 
      * @throws Exception If a failure occurs.
      */
-    public SzReplicator(SzEnvironment environment, SzReplicatorOptions options, boolean startProcessing)
-            throws Exception {
+    public SzReplicator(SzEnvironment       environment, 
+                        SzReplicatorOptions options, 
+                        boolean             startProcessing)
+        throws Exception 
+    {
         this(environment, false, options, startProcessing);
     }
 
@@ -850,18 +962,22 @@ public class SzReplicator extends Thread {
      *
      * @param environment     The {@link SzEnvironment} to use.
      * 
-     * @param manageEnv       <code>true</code> if this instance should destroy the
-     *                        environment when done, otherwise <code>false</code>.
+     * @param manageEnv       <code>true</code> if this instance should destroy
+     *                        the environment when done, otherwise
+     *                        <code>false</code>.
      * 
-     * @param options         The {@link SzReplicatorOptions} instance with which to
-     *                        construct the API server instance.
+     * @param options         The {@link SzReplicatorOptions} instance with
+     *                        which to construct the API server instance.
      * 
-     * @param startProcessing <code>true</code> if processing should be started upon
-     *                        construction, otherwise <code>false</code>.
+     * @param startProcessing <code>true</code> if processing should be started
+     *                        upon construction, otherwise <code>false</code>.
      * 
      * @throws Exception If a failure occurs.
      */
-    protected SzReplicator(SzEnvironment environment, boolean manageEnv, SzReplicatorOptions options, boolean startProcessing)
+    protected SzReplicator(SzEnvironment        environment, 
+                           boolean              manageEnv,
+                           SzReplicatorOptions  options,
+                           boolean              startProcessing)
         throws Exception
     {
         boolean success = false;
@@ -884,9 +1000,12 @@ public class SzReplicator extends Thread {
             this.manageEnv = manageEnv;
 
             // proxy the environment
-            this.proxyEnvironment = (SzEnvironment) ReflectionUtilities.restrictedProxy(this.environment, DESTROY_METHOD);
+            this.proxyEnvironment = (SzEnvironment)
+                    ReflectionUtilities.restrictedProxy(
+                                this.environment, DESTROY_METHOD);
 
-            // declare the scheduling service class (determine based on database type)
+            // declare the scheduling service class
+            // (determine based on database type)
             String schedulingServiceClassName = null;
 
             // get the database URI
@@ -897,20 +1016,28 @@ public class SzReplicator extends Thread {
                 JsonObject coreSettings = options.getCoreSettings();
                 if (coreSettings == null) {
                     throw new IllegalArgumentException(
-                        "Cannot specify an " + databaseUri.getClass().getSimpleName()
-                        + " URI (" + databaseUri.toString() + ") if the core settings "
+                        "Cannot specify an "
+                        + databaseUri.getClass().getSimpleName()
+                        + " URI (" + databaseUri.toString() 
+                        + ") if the core settings "
                         + "have not been provided.");
                 }
-                SzCoreSettingsUri coreSettingsUri = (SzCoreSettingsUri) databaseUri;
-                ConnectionUri resolvedUri = coreSettingsUri.resolveUri(coreSettings);
+                SzCoreSettingsUri coreSettingsUri 
+                        = (SzCoreSettingsUri) databaseUri;
+                
+                ConnectionUri resolvedUri 
+                        = coreSettingsUri.resolveUri(coreSettings);
+                
                 if (resolvedUri == null) {
                     throw new IllegalArgumentException(
-                        "Unable to resolve " + databaseUri + " Data Mart URI using "
+                        "Unable to resolve " + databaseUri
+                        + " Data Mart URI using "
                         + "the provided core settings: "
                         + toJsonText(coreSettings, true));
                 }
-                if (resolvedUri instanceof SzCoreSettingsUri 
-                    || !SUPPORTED_DATABASE_URI_TYPES.contains(resolvedUri.getClass())) 
+                if (resolvedUri instanceof SzCoreSettingsUri
+                    || !SUPPORTED_DATABASE_URI_TYPES.contains(
+                                resolvedUri.getClass()))
                 {
                     StringBuilder sb = new StringBuilder();
                     sb.append("supportedTypes=[ ");
@@ -924,10 +1051,12 @@ public class SzReplicator extends Thread {
                     sb.append(" ]");
 
                     throw new IllegalArgumentException(
-                        "Resolved the " + databaseUri + " Data Mart URI to a database "
+                        "Resolved the " + databaseUri 
+                        + " Data Mart URI to a database "
                         + "URI that is not supported. resolvedType=[ " 
-                        + resolvedUri.getClass().getSimpleName() + " ], resolvedText=[ " 
-                        + resolvedUri.toString() + " ], " + sb.toString()); 
+                        + resolvedUri.getClass().getSimpleName()
+                        + " ], resolvedText=[ " + resolvedUri.toString()
+                        + " ], " + sb.toString()); 
                 }
                 databaseUri = resolvedUri;
             }
@@ -936,53 +1065,84 @@ public class SzReplicator extends Thread {
                 SQLiteUri sqliteUri = (SQLiteUri) databaseUri;
                 Map<String, String> connProps = sqliteUri.getQueryOptions();
 
-                this.connector = (sqliteUri.isMemory()) ? new SQLiteConnector(sqliteUri.getInMemoryIdentifier(), connProps)
-                        : new SQLiteConnector(sqliteUri.getFile(), connProps);
+                this.connector = (sqliteUri.isMemory()) 
+                    ? new SQLiteConnector(sqliteUri.getInMemoryIdentifier(),
+                                          connProps)
+                    : new SQLiteConnector(sqliteUri.getFile(), connProps);
 
-                this.connPool = new ConnectionPool(this.connector, poolSize, maxPoolSize);
+                this.connPool = new ConnectionPool(
+                    this.connector, poolSize, maxPoolSize);
 
-                schedulingServiceClassName = SQLiteSchedulingService.class.getName();
+                schedulingServiceClassName
+                    = SQLiteSchedulingService.class.getName();
 
             } else if (databaseUri instanceof PostgreSqlUri) {
                 PostgreSqlUri postgreSqlUri = (PostgreSqlUri) databaseUri;
 
-                this.connector = new PostgreSqlConnector(postgreSqlUri.getHost(), postgreSqlUri.getPort(),
-                        postgreSqlUri.getDatabase(), postgreSqlUri.getUser(), postgreSqlUri.getPassword());
+                this.connector = new PostgreSqlConnector(
+                        postgreSqlUri.getHost(),
+                        postgreSqlUri.getPort(),
+                        postgreSqlUri.getDatabase(),
+                        postgreSqlUri.getUser(),
+                        postgreSqlUri.getPassword());
 
-                this.connPool = new ConnectionPool(this.connector, TransactionIsolation.READ_COMMITTED, poolSize,
+                this.connPool = new ConnectionPool(
+                        this.connector,
+                        TransactionIsolation.READ_COMMITTED,
+                        poolSize,
                         maxPoolSize);
 
-                schedulingServiceClassName = PostgreSQLSchedulingService.class.getName();
+                schedulingServiceClassName
+                    = PostgreSQLSchedulingService.class.getName();
 
             } else {
                 throw new IllegalStateException(
-                    "Unhandled database URI type (" + databaseUri.getClass().getName()
+                    "Unhandled database URI type ("
+                    + databaseUri.getClass().getName()
                     + "): " + databaseUri);
             }
 
-            this.connProvider = new PoolConnectionProvider(this.connPool, MAX_POOL_WAIT_TIME);
+            this.connProvider = new PoolConnectionProvider(
+                    this.connPool, MAX_POOL_WAIT_TIME);
 
             this.connProviderName = TextUtilities.randomAlphanumericText(30);
 
-            this.connProviderToken = ConnectionProvider.REGISTRY.bind(this.connProviderName, this.connProvider);
+            this.connProviderToken = ConnectionProvider.REGISTRY.bind(
+                    this.connProviderName, this.connProvider);
 
             // get the processing rate
             ProcessingRate processingRate = options.getProcessingRate();
 
             // handle the scheduling service config
-            JsonObjectBuilder schedulingJOB = processingRate.addSchedulingServiceOptions(null);
-            schedulingJOB.add(AbstractSchedulingService.CONCURRENCY_KEY, scheduleConcurrency);
-            schedulingJOB.add(AbstractSQLSchedulingService.CONNECTION_PROVIDER_KEY, this.connProviderName);
+            JsonObjectBuilder schedulingJOB
+                    = processingRate.addSchedulingServiceOptions(null);
+            
+            schedulingJOB.add(AbstractSchedulingService.CONCURRENCY_KEY,
+                              scheduleConcurrency);
+            
+            schedulingJOB.add(
+                AbstractSQLSchedulingService.CONNECTION_PROVIDER_KEY,
+                this.connProviderName);
 
             // handle the replicator config
-            JsonObjectBuilder replicatorJOB = processingRate.addReplicatorServiceOptions(null);
-            replicatorJOB.add(SzReplicatorService.SCHEDULING_SERVICE_CLASS_KEY, schedulingServiceClassName);
+            JsonObjectBuilder replicatorJOB 
+                    = processingRate.addReplicatorServiceOptions(null);
+            
+            replicatorJOB.add(
+                SzReplicatorService.SCHEDULING_SERVICE_CLASS_KEY,
+                schedulingServiceClassName);
 
-            replicatorJOB.add(SzReplicatorService.SCHEDULING_SERVICE_CONFIG_KEY, schedulingJOB);
+            replicatorJOB.add(
+                SzReplicatorService.SCHEDULING_SERVICE_CONFIG_KEY,
+                schedulingJOB);
 
-            replicatorJOB.add(SzReplicatorService.CONNECTION_PROVIDER_KEY, this.connProviderName);
+            replicatorJOB.add(
+                SzReplicatorService.CONNECTION_PROVIDER_KEY,
+                this.connProviderName);
 
-            this.replicatorService = new SzReplicatorService(this.proxyEnvironment);
+            this.replicatorService
+                    = new SzReplicatorService(this.proxyEnvironment);
+            
             this.replicatorService.init(replicatorJOB.build());
 
             // build the message consumer
@@ -992,48 +1152,65 @@ public class SzReplicator extends Thread {
 
             JsonObjectBuilder consumerJOB = Json.createObjectBuilder();
             if (Boolean.TRUE.equals(databaseQueue)) {
-                this.queueRegistryName = TextUtilities.randomAlphanumericText(25);
-                consumerJOB.add(SQLConsumer.CONNECTION_PROVIDER_KEY, this.connProviderName);
-                consumerJOB.add(SQLConsumer.QUEUE_REGISTRY_NAME_KEY, this.queueRegistryName);
+                this.queueRegistryName
+                    = TextUtilities.randomAlphanumericText(25);
+
+                consumerJOB.add(SQLConsumer.CONNECTION_PROVIDER_KEY,
+                                this.connProviderName);
+                
+                consumerJOB.add(SQLConsumer.QUEUE_REGISTRY_NAME_KEY,
+                                this.queueRegistryName);
+                
                 this.messageConsumer = new SQLConsumer();
 
             } else if (rabbitMqUri != null) {
                 String queueName = options.getRabbitMqInfoQueue();
                 if (queueName == null) {
                     throw new IllegalArgumentException(
-                            "The RabbitMQ MQ must be specified if the RabbitMQ URI is provided.");
+                            "The RabbitMQ MQ must be specified if the "
+                            + "RabbitMQ URI is provided.");
                 }
-                consumerJOB.add(RabbitMQConsumer.CONCURRENCY_KEY, consumerConcurrency);
-                consumerJOB.add(RabbitMQConsumer.MQ_HOST_KEY, rabbitMqUri.getHost());
-                consumerJOB.add(RabbitMQConsumer.MQ_USER_KEY, rabbitMqUri.getUser());
-                consumerJOB.add(RabbitMQConsumer.MQ_PASSWORD_KEY, rabbitMqUri.getPassword());
+                consumerJOB.add(RabbitMQConsumer.CONCURRENCY_KEY,
+                                consumerConcurrency);
+                consumerJOB.add(RabbitMQConsumer.MQ_HOST_KEY,
+                                rabbitMqUri.getHost());
+                consumerJOB.add(RabbitMQConsumer.MQ_USER_KEY,
+                                rabbitMqUri.getUser());
+                consumerJOB.add(RabbitMQConsumer.MQ_PASSWORD_KEY,
+                                rabbitMqUri.getPassword());
                 consumerJOB.add(RabbitMQConsumer.MQ_QUEUE_KEY, queueName);
 
                 // check if we have the port parameter
                 if (rabbitMqUri.hasPort()) {
-                    consumerJOB.add(RabbitMQConsumer.MQ_PORT_KEY, rabbitMqUri.getPort());
+                    consumerJOB.add(RabbitMQConsumer.MQ_PORT_KEY,
+                                    rabbitMqUri.getPort());
                 }
 
                 // check if we have the virtual host parameter
                 if (rabbitMqUri.getVirtualHost() != null) {
-                    consumerJOB.add(RabbitMQConsumer.MQ_VIRTUAL_HOST_KEY, rabbitMqUri.getVirtualHost());
+                    consumerJOB.add(RabbitMQConsumer.MQ_VIRTUAL_HOST_KEY,
+                                    rabbitMqUri.getVirtualHost());
                 }
 
                 this.messageConsumer = this.createRabbitMQConsumer();
 
             } else if (sqsUri != null) {
-                consumerJOB.add(SQSConsumer.CONCURRENCY_KEY, consumerConcurrency);
+                consumerJOB.add(SQSConsumer.CONCURRENCY_KEY,
+                                consumerConcurrency);
 
                 // build an SQS message consumer
                 consumerJOB.add(SQSConsumer.SQS_URL_KEY, sqsUri.toString());
                 this.messageConsumer = this.createSQSConsumer();
 
             } else {
-                throw new IllegalStateException("Missing INFO queue option: " + options);
+                throw new IllegalStateException(
+                    "Missing INFO queue option: " + options);
             }
             this.messageConsumer.init(consumerJOB.build());
             if (this.queueRegistryName != null) {
-                this.sqlMessageQueue = SQLConsumer.MESSAGE_QUEUE_REGISTRY.lookup(this.queueRegistryName);
+                this.sqlMessageQueue 
+                    = SQLConsumer.MESSAGE_QUEUE_REGISTRY.lookup(
+                        this.queueRegistryName);
             }
 
             if (startProcessing) {
@@ -1053,26 +1230,28 @@ public class SzReplicator extends Thread {
      * 
      * @return The {@link SzReplicationProvider} for this instance.
      */
-    public SzReplicationProvider getReplicationProvider() {
+    public SzReplicationProvider getReplicationProvider()
+    {
         return this.replicatorService.getReplicationProvider();
     }
 
     /**
-     * Checks if this replicator has been idle for at least the specified
-     * number of milliseconds, optionally waiting for the specified maximum
-     * wait tine for it to become idle.
+     * Checks if this replicator has been idle for at least the specified number
+     * of milliseconds, optionally waiting for the specified maximum wait tine
+     * for it to become idle.
      * 
-     * @param idleTime The number of milliseconds that the replicator
-     *                 must be idle before this will return <code>true</code>.
+     * @param idleTime The number of milliseconds that the replicator must be
+     *                 idle before this will return <code>true</code>.
      * 
-     * @param maxWaitTime The maximum wait time in milliseconds to wait for
-     *                    the replicator to become idle, or zero (0) if just
-     *                    checking without waiting and a negative number to
-     *                    wait indefinitely.
+     * @param maxWaitTime The maximum wait time in milliseconds to wait for the
+     *                    replicator to become idle, or zero (0) if just
+     *                    checking without waiting and a negative number to wait
+     *                    indefinitely.
      * 
      * @return <code>true</code> if idle, otherwise <code>false</code>.
      */
-    public boolean waitUntilIdle(long idleTime, long maxWaitTime) {
+    public boolean waitUntilIdle(long idleTime, long maxWaitTime)
+    {
         logInfo("Beginning SzReplicator.waitUntilIdle()");
         long    start           = System.nanoTime();
         long    maxWaitNanos    = maxWaitTime * ONE_MILLION;
@@ -1082,7 +1261,9 @@ public class SzReplicator extends Thread {
             if (!firstPass && maxWaitTime != 0L) {
                 long now = System.nanoTime();
                 long sleepTime = 1000L;
-                if (maxWaitTime > 0L && ((maxWaitNanos - (now - start)) / ONE_MILLION < sleepTime)) {
+                if (maxWaitTime > 0L && ((maxWaitNanos - (now - start))
+                        / ONE_MILLION < sleepTime)) 
+                {
                     sleepTime = (maxWaitNanos - (now - start)) / ONE_MILLION;
                 }
                 try {
@@ -1099,42 +1280,54 @@ public class SzReplicator extends Thread {
             // check if nothing pending
             if (messageCount == 0L) {
                 // check the idle time
-                long nowNanos       = System.nanoTime();
-                long messageNanos   = this.messageConsumer.getLastMessageNanoTime();
+                long nowNanos = System.nanoTime();
+                long messageNanos 
+                    = this.messageConsumer.getLastMessageNanoTime();
                 
-                // check if the scheduler and the report updates have been idle for long enough
+                // check if the scheduler and the report updates have been
+                // idle for long enough
                 if (((nowNanos - messageNanos) / ONE_MILLION) >= idleTime)
                 {
                     long remainingTime = (maxWaitTime <= 0L) ? maxWaitTime
-                        : (maxWaitNanos - (System.nanoTime() - start)) / ONE_MILLION;
-                    if (this.replicatorService.waitUntilIdle(idleTime, remainingTime)) {
+                        : ((maxWaitNanos - (System.nanoTime() - start))
+                            / ONE_MILLION);
+                    if (this.replicatorService.waitUntilIdle(idleTime, 
+                                                             remainingTime))
+                    {
                         logInfo("SzReplicator found to be idle");
                         return true;
                     }
                 }
             }
             
-        } while (maxWaitTime < 0L || (maxWaitTime > 0L && (System.nanoTime() - start) < maxWaitNanos));
+        } while (maxWaitTime < 0L 
+                 || (maxWaitTime > 0L && (System.nanoTime() - start)
+                     < maxWaitNanos));
+        
+        // CSOFF
         logInfo("SzReplicator NOT found to be idle: ",
                 " - - - - - - - - - - - - - - - - - - - - - - - ",
                 "    Remaining Messages : " + this.messageConsumer.getMessageCount(),
                 "    Message Idle Time  : " + ((System.nanoTime() - this.messageConsumer.getLastMessageNanoTime()) / ONE_MILLION) + "ms",
                 " - - - - - - - - - - - - - - - - - - - - - - - ");
+        // CSON
         return false;
     }
 
     /**
      * Gets the {@link SQLConsumer.MessageQueue} instance backing the underlying
-     * {@link SQLConsumer} if database message queue is being employed rather than
-     * RabbitMQ or Amazon SQS. This returns <code>null</code> if this instance is
-     * configured to use a RabbitMQ or Amazon SQS queue.
+     * {@link SQLConsumer} if database message queue is being employed rather
+     * than RabbitMQ or Amazon SQS. This returns
+     * <code>null</code> if this instance is configured to use a RabbitMQ
+     * or Amazon SQS queue.
      * 
-     * @return The {@link SQLConsumer.MessageQueue} instance backing the underlying
-     *         {@link SQLConsumer} if database message queue is being employed, or
-     *         <code>null</code> if the configured message queue for this instance
-     *         is RabbitMQ or Amazon SQS.
+     * @return The {@link SQLConsumer.MessageQueue} instance backing the
+     *             underlying {@link SQLConsumer} if database message queue is
+     *             being employed, or <code>null</code> if the configured
+     *             message queue for this instance is RabbitMQ or Amazon SQS.
      */
-    public SQLConsumer.MessageQueue getDatabaseMessageQueue() {
+    public SQLConsumer.MessageQueue getDatabaseMessageQueue()
+    {
         return this.sqlMessageQueue;
     }
 
