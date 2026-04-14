@@ -81,13 +81,11 @@ jobs:
         with:
           script: |
             core.setFailed('Overall coverage is less than 80%!')
-
-  slack-notification:
-    needs: [maven-windows]
-    if: ${{ always() && contains(fromJSON('["failure", "cancelled"]'), needs.maven-windows.result ) && github.event_name == 'schedule' }}
-    secrets:
-      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-      SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
-    uses: senzing-factory/build-resources/.github/workflows/build-failure-slack-notification.yaml@v4
-    with:
-      job-status: ${{ needs.maven-windows.result }}
+      - name: Notify Slack on failure
+        if: (failure() || cancelled()) && github.event_name == 'schedule'
+        uses: senzing-factory/build-resources/slack-failure-notification@v4
+        with:
+          job-status: ${{ job.status }}
+          slack-channel: ${{ secrets.SLACK_CHANNEL }}
+          slack-bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          additional-info: "SDK: ${{ matrix.senzingsdk-version }}"
