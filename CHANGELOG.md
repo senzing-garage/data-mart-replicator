@@ -6,6 +6,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-05-15
+
+### Changed in 2.0.0
+
+- Promoted the 2.x line out of beta to the 2.0.0 general-availability
+  release. This release targets the Senzing 4.x SDK and requires
+  Senzing 4.3.0 or later.
+- Removed the "under construction" disclaimer from the README and
+  modernized the build and usage documentation to reflect Senzing 4.x
+  (`--core-settings`, OpenJDK 17, Maven 3.8+).
+- Adopted comprehensive Java coding standards (Allman braces for
+  type and method definitions, 80-character line limit, escape-aware
+  Javadoc reflow) enforced via the `-Pcheckstyle` Maven profile.
+- Updated dependencies:
+  - Updated `senzing-commons` from version `4.0.0-beta.3.0` to `4.0.0`
+  - Updated `sqlite-jdbc` from version `3.51.3.0` to `3.53.0.0`
+  - Updated `postgresql` from version `42.7.10` to `42.7.11`
+  - Updated Amazon `sqs` from version `2.42.40` to `2.43.0`
+  - Updated `amqp-client` from version `5.29.0` to `5.30.0`
+
+### Removed in 2.0.0
+
+- **Breaking change (from 1.x)**: Removed the legacy Senzing 3.x
+  initialization options. Users upgrading from a 1.x release must
+  replace these with the unified `--core-settings` option:
+  - `--ini-file <ini-file-path>` (with environment variable
+    `SENZING_ENGINE_CONFIGURATION_INI_FILE`) — Senzing 4.x no longer
+    supports INI-based initialization.
+  - `--init-file <json-init-file>` (with environment variable
+    `SENZING_ENGINE_CONFIGURATION_JSON_FILE`) — replaced by
+    `--core-settings {file-path}`.
+  - `--init-json <json-init-text>` (with environment variable
+    `SENZING_ENGINE_CONFIGURATION_JSON`) — replaced by
+    `--core-settings {json-text}`. The
+    `SENZING_ENGINE_CONFIGURATION_JSON` environment variable is
+    still honored as a fallback.
+  - The new option also supports the `SENZING_TOOLS_CORE_SETTINGS`
+    environment variable as the primary environment binding.
+
 ## [2.0.0-beta.2.4] - 2026-04-06
 
 ### Changed in 2.0.0-beta.2.4

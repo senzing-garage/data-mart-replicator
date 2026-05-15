@@ -4,7 +4,7 @@
   <groupId>com.senzing</groupId>
   <artifactId>data-mart-replicator</artifactId>
   <packaging>jar</packaging>
-  <version>2.0.0-beta.2.4</version>
+  <version>2.0.0</version>
   <name>Senzing Data Mart Replicator</name>
   <description>The Senzing listener implementation that replicates data to the data mart.</description>
   <url>http://github.com/senzing-garage/data-mart-replicator</url>
@@ -66,7 +66,7 @@
     <dependency>
       <groupId>com.senzing</groupId>
       <artifactId>senzing-commons</artifactId>
-      <version>4.0.0-beta.3.0</version>
+      <version>4.0.0</version>
     </dependency>
     <dependency>
       <groupId>com.linecorp.armeria</groupId>
@@ -97,12 +97,12 @@
     <dependency>
       <groupId>org.xerial</groupId>
       <artifactId>sqlite-jdbc</artifactId>
-      <version>3.51.3.0</version>
+      <version>3.53.0.0</version>
     </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>42.7.10</version>
+      <version>42.7.11</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -140,7 +140,7 @@
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>sqs</artifactId>
-      <version>2.42.40</version>
+      <version>2.43.0</version>
       <exclusions>
         <exclusion>
           <groupId>com.fasterxml.jackson.core</groupId>
@@ -151,7 +151,7 @@
     <dependency>
       <groupId>com.rabbitmq</groupId>
       <artifactId>amqp-client</artifactId>
-      <version>5.29.0</version>
+      <version>5.30.0</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.datatype</groupId>
