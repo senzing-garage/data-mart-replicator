@@ -25,6 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated `postgresql` from version `42.7.10` to `42.7.11`
   - Updated Amazon `sqs` from version `2.42.40` to `2.43.0`
   - Updated `amqp-client` from version `5.29.0` to `5.30.0`
+  - Updated `netty-bom` from version `4.2.12.Final` to `4.2.13.Final`
+    to address multiple netty CVEs reported by Trivy (CVE-2026-42579,
+    CVE-2026-42580, CVE-2026-42581, CVE-2026-42584, CVE-2026-42585,
+    CVE-2026-42587 [HIGH]; CVE-2026-41417 [MEDIUM]; CVE-2026-42578
+    [LOW]).
 
 ### Removed in 2.0.0
 
