@@ -25,6 +25,9 @@
 
     <module name="TreeWalker">
 
+        <!-- Unused imports (Javadoc-only usage counts as used) -->
+        <module name="UnusedImports"/>
+
         <!-- Require braces, but allow single-line statements -->
         <module name="NeedBraces">
             <property name="allowSingleLineStatement" value="true"/>

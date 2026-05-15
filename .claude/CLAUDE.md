@@ -220,15 +220,15 @@ The JaCoCo profile must be activated with `-P jacoco`. The coverage report is ge
 **Core:**
 - `sz-sdk` 4.3.0+ - Senzing Core SDK (minimum 4.3.0 for match key escaping)
 - `sz-sdk-auto` 0.5.1 - Auto-configuration
-- `senzing-commons` 4.0.0-beta.3.0 - Shared utilities
+- `senzing-commons` 4.0.0 - Shared utilities
 
 **Database:**
-- `postgresql` 42.7.10 - PostgreSQL JDBC driver
-- `sqlite-jdbc` 3.51.3.0 - SQLite JDBC driver
+- `postgresql` 42.7.11 - PostgreSQL JDBC driver
+- `sqlite-jdbc` 3.53.0.0 - SQLite JDBC driver
 
 **Messaging:**
-- `amqp-client` 5.29.0 - RabbitMQ client
-- `sqs` 2.42.28 - AWS SQS SDK
+- `amqp-client` 5.30.0 - RabbitMQ client
+- `sqs` 2.43.0 - AWS SQS SDK
 
 **Serialization:**
 - `jackson-*` 2.21.x - JSON processing

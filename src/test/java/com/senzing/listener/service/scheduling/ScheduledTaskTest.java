@@ -2,7 +2,6 @@ package com.senzing.listener.service.scheduling;
 
 import com.senzing.listener.service.locking.ResourceKey;
 
-import org.checkerframework.checker.units.qual.s;
 import org.junit.jupiter.api.*;
 
 import java.util.*;

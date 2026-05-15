@@ -5,6 +5,7 @@
     "aarch",
     "aayushatharva",
     "ACOLONS",
+    "Allman",
     "alnum",
     "alse",
     "amqp",
@@ -80,6 +81,7 @@
     "pkey",
     "PLPGSQL",
     "Postrgre",
+    "prefs",
     "prin",
     "PRNG",
     "proguard",
@@ -129,6 +131,7 @@
     "xerial",
     "Xlint",
     "xstream",
+    "zizmor",
     "zonky",
     "Zonky"
   ],
