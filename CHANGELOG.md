@@ -18,8 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated `sqlite-jdbc` from version `3.53.0.0` to `3.53.1.0`
   - Updated Amazon `sqs` from version `2.43.0` to `2.44.10`
   - Updated `junit-jupiter` from version `6.0.3` to `6.1.0`
-  - Updated `slf4j-api` and `slf4j-simple` from version `2.0.17` to
-    `2.0.18`
+  - Updated `slf4j-api` and `slf4j-simple` from version `2.0.17` to `2.0.18`
 
 ## [2.0.0] - 2026-05-15
 
@@ -190,7 +189,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modified to produce both a standard JAR and an executable server JAR
 - Incorporated reporting code that was previously in `senzing-poc-server`
 - Known Issues:
-  - Missing unit tests on all data mart code (only some unit tests on listener code).  This issue is
+  - Missing unit tests on all data mart code (only some unit tests on listener code). This issue is
     inherited from version 1.x which was manually tested, but will be rectified before release of 2.0.0.
 
 ## [1.2.4] - 2025-10-23
