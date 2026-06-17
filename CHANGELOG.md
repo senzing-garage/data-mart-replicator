@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-06-17
+
+### Changed in 2.0.1
+
+- Updated dependencies:
+  - Updated `senzing-commons` from version `4.0.0` to `4.0.1`
+  - Updated `sz-sdk-auto` from version `0.5.1` to `1.0.1`
+  - Updated `armeria-bom` from version `1.38.0` to `1.39.0`
+  - Updated `netty-bom` from version `4.2.13.Final` to `4.2.14.Final`
+  - Updated `sqlite-jdbc` from version `3.53.0.0` to `3.53.1.0`
+  - Updated Amazon `sqs` from version `2.43.0` to `2.44.10`
+  - Updated `junit-jupiter` from version `6.0.3` to `6.1.0`
+  - Updated `slf4j-api` and `slf4j-simple` from version `2.0.17` to
+    `2.0.18`
+
 ## [2.0.0] - 2026-05-15
 
 ### Changed in 2.0.0
