@@ -562,26 +562,46 @@ class RabbitMQConsumerTest {
         consumer.setMaximumPendingCount(5); // Low threshold to trigger throttling
         consumer.init(config);
 
-        CountDownLatch latch = new CountDownLatch(20);
+        // Block all workers deterministically until we observe throttling.
+        // This guarantees the pending-message queue grows past the threshold
+        // rather than relying on a timing race between message production
+        // and "slow processor" sleeps.
+        CountDownLatch blockWorkers = new CountDownLatch(1);
+        CountDownLatch processedAll = new CountDownLatch(20);
         AtomicInteger processedCount = new AtomicInteger(0);
 
         MessageProcessor processor = (message) -> {
             try {
-                Thread.sleep(200); // Slow processing to allow queue to build up
-            } catch (InterruptedException ignore) {}
+                blockWorkers.await(30, TimeUnit.SECONDS);
+            } catch (InterruptedException ignore) {
+                Thread.currentThread().interrupt();
+            }
             processedCount.incrementAndGet();
-            latch.countDown();
+            processedAll.countDown();
         };
 
         consumer.consume(processor);
-        boolean completed = latch.await(60, TimeUnit.SECONDS);
-        assertTrue(completed, "All messages should be processed within timeout");
-        assertEquals(20, processedCount.get());
 
-        // Verify basicCancel was called (throttling occurred)
-        // Note: basicCancel is also called by destroy(), so we check > 1
-        int cancelCount = mockChannel.getBasicCancelCallCount();
-        assertTrue(cancelCount >= 1, "basicCancel should be called during throttling or cleanup");
+        // Wait for the throttle to actually fire (basicCancel called).
+        // Poll rather than sleep to avoid baking timing assumptions into
+        // the test on slower CI runners.
+        long deadline = System.currentTimeMillis() + 10_000;
+        while (mockChannel.getBasicCancelCallCount() == 0
+                && System.currentTimeMillis() < deadline) {
+            Thread.sleep(50);
+        }
+        int cancelDuringThrottle = mockChannel.getBasicCancelCallCount();
+        assertTrue(cancelDuringThrottle >= 1,
+                "basicCancel should be called when pending queue "
+                + "exceeds the threshold (throttling).  Actual: "
+                + cancelDuringThrottle);
+
+        // Release the workers and let all messages drain.
+        blockWorkers.countDown();
+        assertTrue(processedAll.await(30, TimeUnit.SECONDS),
+                "All 20 messages should be processed after the "
+                + "throttle is released.");
+        assertEquals(20, processedCount.get());
 
         consumer.destroy();
     }
