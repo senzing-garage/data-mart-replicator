@@ -22,16 +22,6 @@ Critical topics documented in FAQs:
 - Backpressure and throttling mechanisms
 - Multi-process safety with lease-based coordination
 
-## IMPORTANT: Code Modification Policy
-
-**DO NOT modify files directly. Always make suggestions instead and wait for user approval.**
-
-- The ONLY file you are permitted to edit directly is .claude/CLAUDE.md
-- For ALL other files, provide suggestions and recommendations
-- Wait for user review and approval before any changes are made
-- Default to suggesting changes rather than implementing them
-- This ensures the user maintains full control over all code modifications
-
 ## Project Overview
 
 The Senzing Data Mart Replicator is a multi-threaded Java application that consumes Senzing INFO messages from message queues (Amazon SQS, RabbitMQ, or SQL-based), retrieves entity data via the Senzing SDK, and replicates statistics to a data mart database (PostgreSQL or SQLite).
@@ -66,7 +56,7 @@ Output: `target/site/apidocs/`
 
 ### Running the Application
 ```bash
-java -jar target/data-mart-replicator-2.0.0.jar --help
+java -jar target/data-mart-replicator-server.jar --help
 ```
 
 ### Clean Build
@@ -219,16 +209,16 @@ The JaCoCo profile must be activated with `-P jacoco`. The coverage report is ge
 
 **Core:**
 - `sz-sdk` 4.3.0+ - Senzing Core SDK (minimum 4.3.0 for match key escaping)
-- `sz-sdk-auto` 0.5.1 - Auto-configuration
-- `senzing-commons` 4.0.0 - Shared utilities
+- `sz-sdk-auto` 1.0.1 - Auto-configuration
+- `senzing-commons` 4.0.1 - Shared utilities
 
 **Database:**
 - `postgresql` 42.7.11 - PostgreSQL JDBC driver
-- `sqlite-jdbc` 3.53.0.0 - SQLite JDBC driver
+- `sqlite-jdbc` 3.53.1.0 - SQLite JDBC driver
 
 **Messaging:**
 - `amqp-client` 5.30.0 - RabbitMQ client
-- `sqs` 2.43.0 - AWS SQS SDK
+- `sqs` 2.44.10 - AWS SQS SDK
 
 **Serialization:**
 - `jackson-*` 2.21.x - JSON processing
