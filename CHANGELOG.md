@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 [markdownlint](https://dlaa.me/markdownlint/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-06-17
+
+### Changed in 2.0.1
+
+- Updated dependencies:
+  - Updated `senzing-commons` from version `4.0.0` to `4.0.1`
+  - Updated `sz-sdk-auto` from version `0.5.1` to `1.0.1`
+  - Updated `armeria-bom` from version `1.38.0` to `1.39.0`
+  - Updated `netty-bom` from version `4.2.13.Final` to `4.2.15.Final`
+    to address netty CVEs reported by Trivy (CVE-2026-44893,
+    CVE-2026-44249, CVE-2026-45416, CVE-2026-45674, CVE-2026-47691,
+    CVE-2026-48059, CVE-2026-50010 [HIGH]; CVE-2026-45673,
+    CVE-2026-47244, CVE-2026-48043, CVE-2026-50560 [MEDIUM]).
+  - Updated `sqlite-jdbc` from version `3.53.0.0` to `3.53.1.0`
+  - Updated Amazon `sqs` from version `2.43.0` to `2.44.10`
+  - Updated `junit-jupiter` from version `6.0.3` to `6.1.0`
+  - Updated `slf4j-api` and `slf4j-simple` from version `2.0.17` to `2.0.18`
+
 ## [2.0.0] - 2026-05-15
 
 ### Changed in 2.0.0
@@ -175,7 +193,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modified to produce both a standard JAR and an executable server JAR
 - Incorporated reporting code that was previously in `senzing-poc-server`
 - Known Issues:
-  - Missing unit tests on all data mart code (only some unit tests on listener code).  This issue is
+  - Missing unit tests on all data mart code (only some unit tests on listener code). This issue is
     inherited from version 1.x which was manually tested, but will be rectified before release of 2.0.0.
 
 ## [1.2.4] - 2025-10-23
