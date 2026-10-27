@@ -213,12 +213,12 @@ The JaCoCo profile must be activated with `-P jacoco`. The coverage report is ge
 - `senzing-commons` 4.0.1 - Shared utilities
 
 **Database:**
-- `postgresql` 42.7.12 - PostgreSQL JDBC driver
+- `postgresql` 42.7.13 - PostgreSQL JDBC driver
 - `sqlite-jdbc` 3.53.1.0 - SQLite JDBC driver
 
 **Messaging:**
 - `amqp-client` 5.37.0 - RabbitMQ client
-- `sqs` 2.44.10 - AWS SQS SDK
+- `sqs` 2.45.1 - AWS SQS SDK
 
 **Serialization:**
 - `jackson-*` 2.22.x - JSON processing
