@@ -1,0 +1,72 @@
+name: Trivy dependency scan
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  dependency-scan:
+    name: Scan Dependencies
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Cache Maven packages
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Install Senzing runtime
+        uses: senzing-factory/github-action-install-senzing-sdk@v5
+        with:
+          packages-to-install: "senzingsdk-runtime senzingsdk-setup"
+          # production-v4, not the staging-v4 the source repository hardcodes.
+          # This repository drives its build matrix from
+          # senzing-factory/build-resources/sdk-versions@v4, which emits
+          # ["production-v4","staging-v4"]. A dependency scan should report
+          # what ships, and running it as a matrix would double the job for a
+          # scan whose result is the same pom.xml either way.
+          senzingsdk-version: "production-v4"
+
+      # Generate the dependency tree so Trivy can resolve transitive deps
+      - name: Build and resolve dependencies
+        env:
+          SENZING_PATH: "/opt/senzing"
+        run: |
+          java -jar "$SENZING_PATH"/er/sdk/java/sz-sdk.jar -x
+          mvn dependency:resolve -DskipTests --batch-mode
+
+      # Third-party actions are hash-pinned: a tag we do not own can be moved
+      # under us and a moved tag executes in CI. senzing-factory/* stays on the
+      # floating major because it is ours.
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln
+          severity: CRITICAL,HIGH
+          exit-code: 1
+          ignore-unfixed: true
+          format: table
