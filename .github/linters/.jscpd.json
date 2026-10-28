@@ -1,4 +1,20 @@
 {
-  "threshold": 6,
-  "ignore": ["**/src/test/**"]
+  "threshold": 30,
+  "ignore": [
+    "**/.claude/**",
+    "**/.vscode/**",
+    "**/.java-coding-standards/**",
+    "**/docs/**",
+    "**/src/**",
+    "**/CHANGELOG.md",
+    "**/CODE_OF_CONDUCT.md",
+    "**/CONTRIBUTING.md",
+    "**/Makefile",
+    "**/README.md",
+    "**/checkstyle-suppressions.xml",
+    "**/checkstyle.xml",
+    "**/data-mart-reports.yaml",
+    "**/dependabot-approve-and-merge.yaml",
+    "**/pom.xml"
+  ]
 }

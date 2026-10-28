@@ -1,0 +1,24 @@
+---
+# Replaces super-linter's bundled TEMPLATES/trivy.yaml ENTIRELY -- --config
+# does not merge -- so the four settings above `skip-files` are reproduced from
+# it verbatim and must be kept in step with it on a super-linter bump.
+exit-code: 1
+exit-on-eol: 2
+scan:
+  disable-telemetry: true
+  scanners:
+    - vuln
+    - misconfig
+    - secret
+  # pom.xml is NOT a lockfile. To resolve it Trivy must fetch parent POMs from
+  # repo.maven.apache.org, and Maven Central rate-limits per IP: a 429 is
+  # FATAL by design since Trivy v0.71.0, because the alternative is a scan that
+  # silently drops every transitive dependency. GitHub runners share an IP
+  # pool, and super-linter is a container action whose $HOME is /github/home,
+  # so a warmed ~/.m2 on the runner is invisible to it -- the cache cannot help
+  # here. Dependency scanning for this repository is done properly by
+  # trivy-dependency-scan.yaml, which runs in a normal job where the cache IS
+  # visible. Every other ecosystem Trivy reads uses a self-contained lockfile
+  # and needs no network, so nothing else is affected by this exclusion.
+  skip-files:
+    - "**/pom.xml"
